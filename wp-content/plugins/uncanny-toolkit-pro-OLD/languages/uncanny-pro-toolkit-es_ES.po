@@ -1,0 +1,2573 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Uncanny LearnDash Toolkit Pro\n"
+"POT-Creation-Date: 2020-01-06 18:55-0300\n"
+"PO-Revision-Date: 2020-01-06 19:09-0300\n"
+"Last-Translator: Uncanny Owl <info@uncannyowl.com>\n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.2.3\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-Flags-xgettext: --add-comments=translators:\n"
+"X-Poedit-WPHeader: uncanny-toolkit-pro.php\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
+"esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;"
+"_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.js\n"
+
+#: src/blocks/src/toolkit-course-expiry/block.php:12
+msgid "Course Access Expires in"
+msgstr "El acceso al curso expira en"
+
+#: src/boot.php:23
+msgid ""
+"Please contact your hosting company to update to php version 5.3+ and enable "
+"spl extensions."
+msgstr ""
+"Por favor, contacta a tu compañía de almacenamiento web para actualizar la "
+"versión de PHP a 5.3 (o mayor) y habilitar las extensiones SPL."
+
+#: src/boot.php:186 src/templates/admin-import-user/admin-import-users.php:56
+msgid "by"
+msgstr ""
+
+#: src/boot.php:198
+msgid "Modules"
+msgstr ""
+
+#: src/boot.php:200
+msgid "Help"
+msgstr ""
+
+#: src/boot.php:202
+msgid "LearnDash Plugins"
+msgstr ""
+
+#: src/boot.php:204
+msgid "License Activation"
+msgstr ""
+
+#: src/boot.php:249
+msgid "Your License is Active!"
+msgstr ""
+
+#: src/boot.php:251
+msgid "Your License is Not Active!"
+msgstr ""
+
+#: src/boot.php:266
+msgid "Please enter a valid license code and click \"Activate now\"."
+msgstr ""
+
+#: src/boot.php:272
+#, php-format
+msgctxt ""
+"Your license has expired. Please renew your license to get instant access to "
+"updates and support."
+msgid ""
+"Your license has expired. Please %s to get instant access to updates and "
+"support."
+msgstr ""
+
+#: src/boot.php:280 src/boot.php:295
+msgctxt ""
+"Your license has expired. Please renew your license to get instant access to "
+"updates and support."
+msgid "renew your license"
+msgstr ""
+
+#: src/boot.php:289
+#, php-format
+msgctxt ""
+"Your license has disabled. Please renew your license to get instant access "
+"to updates and support."
+msgid ""
+"Your license is disabled. Please %s to get instant access to updates and "
+"support."
+msgstr ""
+
+#: src/boot.php:304
+msgid "The license code you entered is invalid."
+msgstr ""
+
+#: src/boot.php:318 src/boot.php:325
+msgid "Enter your Uncanny LearnDash Toolkit Pro license key"
+msgstr ""
+
+#: src/boot.php:338 src/boot.php:390
+msgid "Deactivate License"
+msgstr "Desactivar licencia"
+
+#: src/boot.php:345 src/boot.php:397
+msgid "Activate now"
+msgstr "Activar ahora"
+
+#: src/boot.php:350 src/boot.php:402
+msgid "Buy license"
+msgstr ""
+
+#: src/boot.php:360
+msgid "Need help?"
+msgstr ""
+
+#: src/boot.php:367
+msgid "Where to get my license key"
+msgstr "Dónde obtener mi clave de licencia"
+
+#: src/boot.php:372
+msgid "Buy a new license"
+msgstr ""
+
+#: src/boot.php:377
+msgid "Knowledge Base"
+msgstr ""
+
+#: src/boot.php:440
+msgid "All"
+msgstr ""
+
+#: src/boot.php:495 src/boot.php:542 src/boot.php:614
+msgid "An error occurred, please try again."
+msgstr "Un error ocurrió, por favor, intenta de nuevo."
+
+#: src/boot.php:509
+#, php-format
+msgid "Your license key expired on %s."
+msgstr "Tu clave de licencia expiró el %s."
+
+#: src/boot.php:516
+msgid "Your license key has been disabled."
+msgstr "Tu clave de licencia ha sido deshabilitada."
+
+#: src/boot.php:521
+msgid "Invalid license."
+msgstr "Licencia inválida."
+
+#: src/boot.php:527
+msgid "Your license is not active for this URL."
+msgstr "Tu licencia no está activa para esta URL."
+
+#: src/boot.php:532
+#, php-format
+msgid "This appears to be an invalid license key for %s."
+msgstr "Esto parece ser una clave de licencia inválida para %s."
+
+#: src/boot.php:537
+msgid "Your license key has reached its activation limit."
+msgstr "Tu clave de licencia ha alcanzado su límite de activación."
+
+#: src/classes/certificate-preview.php:46
+#: src/classes/certificate-preview.php:97
+#: src/classes/certificate-preview.php:114
+#: src/classes/certificate-preview.php:146
+#: src/classes/certificate-preview.php:290
+msgid "Certificate Preview"
+msgstr "Previsualización del certificado"
+
+#: src/classes/certificate-preview.php:52
+msgid ""
+"Get a preview of your quiz or course certificate without leaving the editor."
+msgstr ""
+
+#: src/classes/certificate-preview.php:111
+msgid "Save or Update Certificate before previewing."
+msgstr ""
+
+#: src/classes/certificate-preview.php:116
+msgid ""
+"Note: Learndash shortcodes will be replaced with static preview values. Non-"
+"LearnDash shortcodes are not supported."
+msgstr ""
+
+#: src/classes/clone-posts-pages-learn-dash-contents.php:48
+msgid "Duplicate Pages & Posts"
+msgstr "Duplicar páginas y entradas"
+
+#: src/classes/clone-posts-pages-learn-dash-contents.php:53
+msgid ""
+"Easily clone pages, posts, LearnDash courses, lessons, topics, quizzes and "
+"more. This plugin handles quiz duplication properly."
+msgstr ""
+"Clona fácilmente páginas, entradas, cursos LearnDash, lecciones, temas, "
+"exámenes y más. Este plugin maneja la duplicación de exámenes correctamente."
+
+#: src/classes/clone-posts-pages-learn-dash-contents.php:158
+#: src/classes/clone-posts-pages-learn-dash-contents.php:159
+#, php-format
+msgid "Clone this %s"
+msgstr "Clonar este %s"
+
+#: src/classes/clone-posts-pages-learn-dash-contents.php:172
+#: src/classes/clone-posts-pages-learn-dash-contents.php:198
+msgid "No quiz to duplicate has been supplied!"
+msgstr "¡No se ha proporcionado ningún examen para duplicar!"
+
+#: src/classes/clone-posts-pages-learn-dash-contents.php:187
+#: src/classes/clone-posts-pages-learn-dash-contents.php:216
+msgid "Copy creation failed, could not find original:"
+msgstr "La creación de la copia falló, no se pudo encontrar el original:"
+
+#: src/classes/course-access-expiry.php:40
+msgid "Days Until Course Expiry"
+msgstr "Días hasta que el curso expire"
+
+#: src/classes/course-access-expiry.php:45
+msgid ""
+"Use this shortcode to display the number of days until the learner's access "
+"expires for the current course. This is a useful shortcode to include on "
+"course pages."
+msgstr ""
+"Utilice este shortcode para mostrar el número de días hasta que el acceso "
+"del alumno expire para el curso actual. Este es un shortcode útil para "
+"incluir en páginas de cursos."
+
+#: src/classes/course-access-expiry.php:97
+#: src/classes/course-access-expiry.php:196
+msgid "Course Access Expires in 1 Day"
+msgstr "El acceso al curso expira en 1 día"
+
+#: src/classes/course-access-expiry.php:98
+#: src/classes/course-access-expiry.php:202
+#, php-format
+msgid "Course Access Expires in %s Days"
+msgstr "El acceso al curso expira en %s días"
+
+#: src/classes/course-access-expiry.php:118
+msgid "1 Day"
+msgstr "1 día"
+
+#: src/classes/course-access-expiry.php:119
+msgid "Days"
+msgstr "días"
+
+#: src/classes/course-access-expiry.php:195
+msgid "Text displayed when one day remaining"
+msgstr ""
+
+#: src/classes/course-access-expiry.php:201
+msgid "Text displayed when multiple days remaining"
+msgstr ""
+
+#: src/classes/course-access-expiry.php:203
+#, php-format
+msgid "You can use the %s argument in your string to get the number of days"
+msgstr ""
+
+#: src/classes/course-completion-certificate.php:58
+msgid "Email Course Certificates"
+msgstr ""
+
+#: src/classes/course-completion-certificate.php:64
+msgid ""
+"Sends a copy of certificate earned from course completion and saves "
+"certificates on the server."
+msgstr ""
+"Envía una copia del certificado obtenido por completar un curso y almacena "
+"el certificado en el servidor."
+
+#: src/classes/course-completion-certificate.php:124
+msgid "Use Cron to send certificate"
+msgstr ""
+
+#: src/classes/course-completion-certificate.php:129
+#: src/classes/generate-p-d-f-email.php:88
+msgid "Do not store certificates on server"
+msgstr "No almacenar certificados en el servidor"
+
+#: src/classes/course-completion-certificate.php:138
+#: src/classes/generate-p-d-f-email.php:97
+msgid "Send Certificate to Site Admin?"
+msgstr "¿Enviar certificado al administrador del sitio?"
+
+#: src/classes/course-completion-certificate.php:143
+#: src/classes/generate-p-d-f-email.php:102
+msgid "Send Certificate to Group Leader(s)?"
+msgstr "¿Enviar certificado a los líderes del grupo?"
+
+#: src/classes/course-completion-certificate.php:149
+#: src/classes/generate-p-d-f-email.php:108
+msgid "CC Certificate To (comma separated)"
+msgstr "CC certificado a (separado por comas)"
+
+#: src/classes/course-completion-certificate.php:155
+msgid "User Email Subject"
+msgstr "Asunto del correo electrónico del usuario"
+
+#: src/classes/course-completion-certificate.php:161
+#: src/classes/generate-p-d-f-email.php:114
+msgid "Admin/Group Leader Email Subject"
+msgstr "Asunto del correo electrónico del administrador / líder del grupo"
+
+#: src/classes/course-completion-certificate.php:167
+msgid "Email Body"
+msgstr "Cuerpo del mensaje"
+
+#: src/classes/course-completion-certificate.php:173
+msgid "Email Body &mdash; Admin/Group Leader"
+msgstr ""
+
+#: src/classes/course-timer.php:354
+msgid "Simple Course Timer"
+msgstr "Temporizador de curso simple"
+
+#: src/classes/course-timer.php:359
+msgid ""
+"Tracks time spent in all LearnDash courses and detects when a user is idle. "
+"Course completion time and total course time are both added to LearnDash "
+"reports. Enables blocking access to quizzes until minimum time spent in "
+"course."
+msgstr ""
+"Registra el tiempo empleado en todos los cursos LearnDash y detecta cuando "
+"un usuario está inactivo. El tiempo de finalización del curso y el tiempo "
+"total del curso se agregan a los informes LearnDash. Permite bloquear el "
+"acceso a exámenes hasta que se haya cumplido un tiempo de permanencia mínimo "
+"en el curso."
+
+#: src/classes/course-timer.php:423 src/classes/learn-dash-transcript.php:113
+#: src/classes/lesson-topic-auto-complete-on-quiz-end.php:115
+#: src/classes/lesson-topic-auto-complete-on-quiz-graded.php:118
+#: src/classes/lesson-topic-auto-complete.php:222 src/classes/sample.php:128
+msgid "Select a Page"
+msgstr "Selecciona una página"
+
+#: src/classes/course-timer.php:427 src/classes/learn-dash-transcript.php:117
+#: src/classes/lesson-topic-auto-complete-on-quiz-end.php:119
+#: src/classes/lesson-topic-auto-complete-on-quiz-graded.php:122
+#: src/classes/lesson-topic-auto-complete.php:226 src/classes/sample.php:132
+msgid "(no title)"
+msgstr ""
+
+#: src/classes/course-timer.php:471
+msgid ""
+"Enable minimum course time before learners can attempt quizzes. Minimum "
+"course time value is set in quizzes."
+msgstr ""
+
+#: src/classes/course-timer.php:483
+msgid ""
+"Minimum polling interval is 5 seconds. Default polling interval is 15 "
+"seconds."
+msgstr ""
+"El intervalo de tiempo entre guardados mínimo es de 5 segundos. El intervalo "
+"predeterminado es de 15 segundos."
+
+#: src/classes/course-timer.php:495
+msgid ""
+"Performance Mode uses a simplified REST API call that reduces load on the "
+"server."
+msgstr ""
+
+#: src/classes/course-timer.php:535 src/classes/course-timer.php:1368
+msgid "Idle Time(seconds)"
+msgstr "Tiempo de inactividad (segundos)"
+
+#: src/classes/course-timer.php:537 src/classes/course-timer.php:1370
+msgid ""
+"Set the time in seconds until a user is flagged as inactive for time "
+"tracking purposes"
+msgstr ""
+"Establezca el tiempo en segundos hasta que un usuario se considere inactivo "
+"para fines de seguimiento de tiempo"
+
+#: src/classes/course-timer.php:574 src/classes/course-timer.php:1459
+msgid "Minimum Course Time (in minutes)"
+msgstr "Tiempo mínimo en el curso (en minutos)"
+
+#: src/classes/course-timer.php:576 src/classes/course-timer.php:1461
+msgid ""
+"Only allow access to the quiz when the user's time spent in the course "
+"EQUALS OR EXCEEDS this value in minutes."
+msgstr ""
+"Permita el acceso al examen cuando el tiempo que el usuario haya pasado en "
+"el curso IGUALE O EXCEDA este valor en minutos."
+
+#: src/classes/course-timer.php:895 src/classes/course-timer.php:897
+msgid "Avg Time To Complete"
+msgstr ""
+
+#: src/classes/course-timer.php:896
+msgid "Avg Time Spent"
+msgstr ""
+
+#: src/classes/course-timer.php:898
+msgid "Time To Complete"
+msgstr ""
+
+#: src/classes/course-timer.php:899
+msgid "Time Spent"
+msgstr ""
+
+#: src/classes/generate-p-d-f-email.php:44
+msgid "Email Quiz Certificates"
+msgstr ""
+
+#: src/classes/generate-p-d-f-email.php:49
+msgid ""
+"Sends a copy of certificates earned from quiz completion and saves "
+"certificates on the server."
+msgstr ""
+"Envía una copia de los certificados obtenidos al completar un examen y "
+"guarda los certificados en el servidor."
+
+#: src/classes/generate-p-d-f-email.php:120
+msgid "Admin/Group Leader Email Body"
+msgstr ""
+
+#: src/classes/generate-p-d-f-email.php:186
+msgid "Your certificate is attached with this email."
+msgstr ""
+
+#: src/classes/gf-lesson-topic-auto-complete.php:59
+msgid "Autocomplete Lessons & Topics on Gravity Form Submission"
+msgstr "Autocompletar lecciones y temas al enviar formulario de Gravity Forms"
+
+#: src/classes/gf-lesson-topic-auto-complete.php:64
+msgid ""
+"Automatically mark LearnDash lessons and topics as completed when the user "
+"submits Gravity Forms."
+msgstr ""
+"Automáticamente marcar como completada una lección o tema LearnDash cuando "
+"un usuario envíe un formulario Gravity Forms."
+
+#: src/classes/gf-lesson-topic-auto-complete.php:101
+msgid "Hide the Mark Complete button if the user has a previous entry"
+msgstr ""
+
+#: src/classes/gf-lesson-topic-auto-complete.php:185
+msgid "Mark Lesson / Topic complete"
+msgstr "Marcar lección / tema como completa"
+
+#: src/classes/gf-lesson-topic-auto-complete.php:185
+msgid ""
+"When enabled, Autocomplete Pro Module will attempt to mark lesson or topic "
+"complete if this form is the last thing in it. It will also attempt to "
+"remove Mark Complete button."
+msgstr ""
+"Cuando esté habilitado, el módulo Pro de autocompletado intentará marcar la "
+"lección o el tema como completada si este formulario es lo último en ella. "
+"También intentará eliminar el botón \"Marcar como completado\"."
+
+#: src/classes/group-leader-access.php:52
+msgid "Improved Group Leader Interface"
+msgstr "Interfaz de líder de grupo mejorada"
+
+#: src/classes/group-leader-access.php:57
+msgid ""
+"Enhances the experience of LearnDash Group Leaders by providing direct "
+"access to reports and removing unnecessary distractions from the admin panel."
+msgstr ""
+"Mejora la experiencia de los líderes de grupos LearnDash al proporcionar "
+"acceso directo a informes y eliminar distracciones innecesarias en el panel "
+"de administración."
+
+#: src/classes/group-leader-access.php:123
+msgid "Select \"View "
+msgstr "Seleccionar \"Vista "
+
+#: src/classes/group-leader-access.php:129
+msgid "Redirect group leaders"
+msgstr ""
+
+#: src/classes/group-leader-access.php:135
+msgid "Redirect URL"
+msgstr ""
+
+#: src/classes/group-leader-access.php:141
+msgid "Redirect Priority"
+msgstr ""
+
+#: src/classes/group-leader-access.php:199
+msgid "View Reports"
+msgstr "Ver reportes"
+
+#: src/classes/group-leader-access.php:216
+#: src/classes/group-leader-access.php:243
+#: src/classes/group-leader-access.php:244
+#, php-format
+msgid "View %s"
+msgstr "Ver %s"
+
+#: src/classes/group-login-redirect.php:147
+#: src/classes/group-login-redirect.php:223
+msgid "Group Login Redirect"
+msgstr ""
+
+#: src/classes/group-login-redirect.php:152
+msgid ""
+"Adds a group-specific login redirect setting to LearnDash groups. "
+"Automatically redirect group members to a specific page on login."
+msgstr ""
+
+#: src/classes/group-login-redirect.php:252
+#: src/classes/group-login-redirect.php:268
+msgid "Click for Help!"
+msgstr ""
+
+#: src/classes/group-login-redirect.php:254
+msgid "Redirect members on login"
+msgstr ""
+
+#: src/classes/group-login-redirect.php:260
+msgid ""
+"Specify the URL (relative or absolute) that members will be redirected to "
+"upon log in."
+msgstr ""
+
+#: src/classes/group-login-redirect.php:270
+msgid "Redirect priority"
+msgstr ""
+
+#: src/classes/group-login-redirect.php:276
+msgid "Specify a priority for this redirect. (optional) Default is 99."
+msgstr ""
+
+#: src/classes/group-logo-list.php:47
+msgid "Group Logo/List"
+msgstr ""
+
+#: src/classes/group-logo-list.php:52
+msgid ""
+"Add group-specific logos to any page, including registration pages. A "
+"shortcode to list a user’s LearnDash Groups is also available."
+msgstr ""
+"Agrega logotipos específicos de grupo a cualquier página, incluidas las "
+"páginas de registro. También hay disponible un shortcode para enumerar los "
+"grupos LearnDash de un usuario."
+
+#: src/classes/import-learndash-users-from-csv.php:97
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:162
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:168
+#: src/templates/admin-import-user/admin-import-users.php:53
+#: src/templates/admin-import-user/admin-import-users.php:75
+msgid "Import Users"
+msgstr "Importar usuarios"
+
+#: src/classes/import-learndash-users-from-csv.php:151
+msgid "Something went wrong!"
+msgstr "¡Algo salió mal!"
+
+#: src/classes/import-learndash-users-from-csv.php:152
+msgid "Select the file!"
+msgstr "¡Selecciona un archivo!"
+
+#: src/classes/import-learndash-users-from-csv.php:153
+msgid "The file size is too big!"
+msgstr "¡El tamaño del archivo es muy grande!"
+
+#: src/classes/import-learndash-users-from-csv.php:154
+msgid "File type must be a csv!"
+msgstr "¡El tipo de archivo debe ser CSV!"
+
+#: src/classes/import-learndash-users-from-csv.php:155
+msgid "Username and Email are required!"
+msgstr "¡Nombre de usuario y correo electrónico son requeridos!"
+
+#: src/classes/import-learndash-users-from-csv.php:157
+msgid "Test user ID is required!"
+msgstr "¡Se requiere el ID del usuario de prueba!"
+
+#: src/classes/import-learndash-users-from-csv.php:454
+msgid "Options are successfully saved."
+msgstr "Las opciones fueron guardadas correctamente."
+
+#: src/classes/import-learndash-users-from-csv.php:1092
+msgid "Email was successfully sent."
+msgstr "El correo electrónico fue enviado correctamente."
+
+#: src/classes/import-learndash-users-from-csv.php:1098
+msgid "Otherwise, check your WordPress and server settings."
+msgstr ""
+"Caso contrario, revisa tu configuración de WordPress y la del servidor."
+
+#: src/classes/import-learndash-users-from-csv.php:1132
+msgid "Email template is successfully saved."
+msgstr "La plantilla del correo electrónico fue guardada correctamente."
+
+#: src/classes/import-learndash-users-from-csv.php:1149
+msgid ""
+"Create or update users and assign them to courses and LearnDash Groups from "
+"a CSV file."
+msgstr ""
+"Crea o actualiza usuarios y asignalos a cursos y grupos LearnDash desde un "
+"archivo CSV."
+
+#: src/classes/learn-dash-group-expiration.php:72
+msgid "Group Expiration"
+msgstr "Expiración de grupo LearnDash"
+
+#: src/classes/learn-dash-group-expiration.php:77
+msgid ""
+"Set expiration dates for LearnDash groups so that course enrolment for the "
+"group is removed on the specified day. Reminder emails can be sent to users "
+"advising them of group expiration."
+msgstr ""
+"Establezca fechas de expiración para grupos LearnDash para que el acceso a "
+"los cursos del grupo sea removido en el día especificado. Se pueden enviar "
+"correos electrónicos de recordatorio informándoles de la caducidad de su "
+"acceso al grupo."
+
+#: src/classes/learn-dash-group-expiration.php:112
+msgid "Send Expiry Email"
+msgstr "Enviar correo electrónico de expiración"
+
+#: src/classes/learn-dash-group-expiration.php:162
+msgid "Archived"
+msgstr "Archivado"
+
+#: src/classes/learn-dash-group-expiration.php:192
+msgid "Test message successfully sent to "
+msgstr "Mensaje de prueba enviado con éxito a "
+
+#: src/classes/learn-dash-group-expiration.php:194
+msgid "Failed!!"
+msgstr "¡Falló!"
+
+#: src/classes/learn-dash-group-expiration.php:205
+#: src/classes/learn-dash-group-expiration.php:301
+msgid "Expiration Date"
+msgstr "Fecha de expiración"
+
+#: src/classes/learn-dash-group-expiration.php:262
+#, php-format
+msgid "Access Expired on %s"
+msgstr "El acceso al curso expiró el %s"
+
+#: src/classes/learn-dash-group-expiration.php:266
+#, php-format
+msgid "Access Expires on %s"
+msgstr "El acceso al curso expira el %s"
+
+#: src/classes/learn-dash-group-expiration.php:272
+#, php-format
+msgid "Email sent on %s"
+msgstr ""
+
+#: src/classes/learn-dash-group-expiration.php:276
+#, php-format
+msgid "Email scheduled on %s"
+msgstr ""
+
+#: src/classes/learn-dash-group-expiration.php:308
+msgid "Expiration Email"
+msgstr "Correo electrónico de expiración"
+
+#: src/classes/learn-dash-group-expiration.php:350
+#, php-format
+msgid "%s Course Access Expiring"
+msgstr "Expiración de acceso al curso %s"
+
+#: src/classes/learn-dash-group-expiration.php:351
+msgid ""
+"Hi %display name%,\n"
+"\n"
+"This is a courtesy email to let you know that your access to %s as part of "
+"the %LearnDash Group Name% group is expiring on %expiration date%. Your "
+"access to %s courses will be removed on that date."
+msgstr ""
+"Hola %display name%,\n"
+"\n"
+"Este es un correo electrónico de cortesía para informarle que su acceso a "
+"%s, como parte del grupo %LearnDash Group Name%, expira el %expiration date"
+"%. Su acceso a los cursos %s se eliminará en esa fecha."
+
+#: src/classes/learn-dash-group-sign-up.php:75
+msgid "Group Registration"
+msgstr "Registro en grupo"
+
+#: src/classes/learn-dash-group-sign-up.php:80
+msgid ""
+"Allow users to add themselves directly to LearnDash Groups on registration "
+"by assigning each group a unique registration URL. Users can also change or "
+"add groups themselves by visiting group URLs."
+msgstr ""
+"Permita que los usuarios se agreguen directamente a los grupos LearnDash en "
+"el registro asignando a cada grupo un enlace de registro único. Los usuarios "
+"también pueden cambiar o agregar grupos al visitar enlaces de grupos."
+
+#: src/classes/learn-dash-group-sign-up.php:336
+#: src/includes/EDD_SL_Plugin_Updater.php:477
+msgid "Error"
+msgstr "Error"
+
+#: src/classes/learn-dash-group-sign-up.php:363
+msgid "User registration is not enabled. Contact Site Administrator."
+msgstr ""
+"El registro de usuarios está deshabilitado. Por favor, contacta al "
+"administrador del sitio web."
+
+#: src/classes/learn-dash-group-sign-up.php:396
+msgid "Username already taken"
+msgstr "El nombre de usuario ya está en uso"
+
+#: src/classes/learn-dash-group-sign-up.php:400
+msgid "Invalid username"
+msgstr "Nombre de usuario inválido"
+
+#: src/classes/learn-dash-group-sign-up.php:404
+msgid "Please enter a username"
+msgstr "Por favor, ingresa un nombre de usuario"
+
+#: src/classes/learn-dash-group-sign-up.php:408
+msgid "Invalid email"
+msgstr "Correo electrónico inválido"
+
+#: src/classes/learn-dash-group-sign-up.php:412
+msgid "Email already registered"
+msgstr "El correo electrónico ya está en uso"
+
+#: src/classes/learn-dash-group-sign-up.php:416
+msgid "Please enter a password"
+msgstr "Por favor, ingresa una contraseña"
+
+#: src/classes/learn-dash-group-sign-up.php:420
+msgid "Passwords do not match"
+msgstr "Las contraseñas no coinciden"
+
+#: src/classes/learn-dash-group-sign-up.php:434
+#: src/classes/learn-dash-group-sign-up.php:795
+#: src/classes/learn-dash-group-sign-up.php:964
+msgid "Sorry, the group you are trying to join is full."
+msgstr "Lo sentimos, el grupo al que intentas unirte está lleno."
+
+#: src/classes/learn-dash-group-sign-up.php:491
+msgid "You're already signed in! We hope you're enjoying our courses."
+msgstr "¡Ya estás registrado! Esperamos que estés disfrutando nuestros cursos."
+
+#: src/classes/learn-dash-group-sign-up.php:544
+msgid ""
+"You are not currently a member of any group. If you believe this is an "
+"error, please request the registration URL from your organization contact."
+msgstr ""
+"Actualmente no eres miembro de ningún grupo. Si cree que se trata de un "
+"error, solicite el enlace de registro al contacto de su organización."
+
+#: src/classes/learn-dash-group-sign-up.php:578
+#: src/classes/learn-dash-group-sign-up.php:648
+msgid "Organization Details"
+msgstr "Detalles de organización"
+
+#: src/classes/learn-dash-group-sign-up.php:579
+msgid "Name"
+msgstr "Nombre"
+
+#: src/classes/learn-dash-group-sign-up.php:580
+msgid "Contact"
+msgstr "Contacto"
+
+#: src/classes/learn-dash-group-sign-up.php:581
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:231
+#: src/templates/group-registration-form.php:42
+#: src/templates/group-registration-form.php:46
+msgid "Email"
+msgstr "Correo electrónico"
+
+#: src/classes/learn-dash-group-sign-up.php:582
+msgid "Phone"
+msgstr "Teléfono"
+
+#: src/classes/learn-dash-group-sign-up.php:818
+msgid "Sorry, you are not allowed to switch groups."
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:85
+msgid "Course Dashboard"
+msgstr "Tablero de curso"
+
+#: src/classes/learn-dash-my-courses.php:90
+msgid ""
+"Use the [uo_dashboard] shortcode to display a list of courses for the "
+"current user.  Users can filter courses by category, or expand courses to "
+"view lessons and topics."
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:144
+msgid "Choose a Dashboard Theme"
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:149
+msgid "Legacy"
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:153
+msgid "3.0"
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:159
+msgid "Colors (3.0 theme only)"
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:163
+msgid "Toggle button background (expanded)"
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:166
+msgid "Color of the background of the toggle button when expanded."
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:170
+msgid "Toggle button icon color (expanded)"
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:173
+msgid "Color of the icon of the toggle button when expanded."
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:177
+msgid "Toggle button background (disabled)"
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:180
+msgid "Color of the background of the toggle button when not expandable."
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:184
+msgid "Progress color"
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:187
+msgid ""
+"Color used to represent progress. Used in the progress bar and the completed "
+"icon."
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:191
+msgid "Third level background"
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:194
+msgid "Color of the background of quiz results and topics."
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:198
+msgid "Quiz score background (passed)"
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:201
+msgid "Color of the quiz score when the quiz was passed"
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:205
+msgid "Quiz score background (failed)"
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:208
+msgid "Color of the quiz score when the quiz was failed."
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:253
+msgid "Course dashboard template in settings not defined."
+msgstr ""
+
+#: src/classes/learn-dash-my-courses.php:963
+#: src/classes/learn-dash-transcript.php:229 src/templates/course-grid.php:93
+msgid "CEUs"
+msgstr "CEUs"
+
+#: src/classes/learn-dash-reset.php:62
+msgid "Reset Progress Button"
+msgstr ""
+
+#: src/classes/learn-dash-reset.php:64
+msgid "Inserts a button that allows learners to reset the course."
+msgstr ""
+
+#: src/classes/learn-dash-reset.php:98
+msgid "Reset Button Text"
+msgstr ""
+
+#: src/classes/learn-dash-reset.php:103
+msgid "Show Name of Course"
+msgstr ""
+
+#: src/classes/learn-dash-table-color.php:57
+msgid "Lesson/Topic/Quiz Table Colors (Legacy)"
+msgstr ""
+
+#: src/classes/learn-dash-table-color.php:62
+msgid ""
+"Change the background and header text color of LearnDash tables. This module "
+"modifies the course, lesson, topic, quiz, and Pro Dashboard tables. (Legacy "
+"LearnDash theme only)."
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:47
+msgid "Learner Transcript"
+msgstr "Transcripción del alumno"
+
+#: src/classes/learn-dash-transcript.php:52
+msgid ""
+"Add printable transcripts to the front end for your learners. This is a "
+"great way for learners to have a record of all course progress and overall "
+"standing."
+msgstr ""
+"Agregue transcripciones imprimibles a la interfaz de sus alumnos. Esta es "
+"una gran manera de que los estudiantes tengan un registro de todos los "
+"progresos del curso y la posición general."
+
+#: src/classes/learn-dash-transcript.php:128
+msgid "General"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:133
+msgid "Display completed courses only"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:139
+msgid "Accent UI Color"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:146
+msgid "Header"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:151
+#: src/classes/learn-dash-transcript.php:249
+msgid "Logo Url"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:157
+msgid "Heading"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:163 src/templates/transcript.php:68
+msgid "Organization"
+msgstr "Organización"
+
+#: src/classes/learn-dash-transcript.php:169
+msgid "Table"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:206
+msgid "Disable Status Column"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:212
+msgid "Disable Steps Column"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:218
+msgid "Disable Avg Quiz Score Column"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:224
+msgid "Disable Final Quiz Score Column"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:234
+#, php-format
+msgid "Disable %s Column"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:244
+msgid "Footer"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:255
+msgid "Disclaimer"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:278
+msgid "Login to view information"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:289
+msgid "Student Transcript"
+msgstr "Certificado de notas del alumno"
+
+#: src/classes/learn-dash-transcript.php:420
+#: src/classes/learn-dash-transcript.php:663
+msgid "Completed"
+msgstr "Completado"
+
+#: src/classes/learn-dash-transcript.php:422
+#, php-format
+msgid "Completed on %1$s"
+msgstr "Completado el %1$s"
+
+#: src/classes/learn-dash-transcript.php:438
+#, php-format
+msgid "%1$s / %2$s"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:448
+#: src/classes/learn-dash-transcript.php:466 src/templates/transcript.php:144
+#: src/templates/transcript.php:155
+msgid "0%"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:452
+#: src/classes/learn-dash-transcript.php:470
+#: src/classes/learn-dash-transcript.php:512
+#: src/classes/learn-dash-transcript.php:524
+#, php-format
+msgid "%1$s%%"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:491
+#, php-format
+msgid "%1$s / %2$s courses completed"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:530
+#: src/templates/drip-template_legacy.php:117
+#: src/templates/drip-template_legacy.php:240
+#: src/templates/frontend-dashboard/dashboard-template.php:85
+#: src/templates/single-course.php:89 src/templates/single-lesson.php:114
+#: src/templates/transcript.php:79
+msgid "Status"
+msgstr "Estado"
+
+#: src/classes/learn-dash-transcript.php:533
+msgid "Steps"
+msgstr ""
+
+#: src/classes/learn-dash-transcript.php:536
+msgid "Avg. Score"
+msgstr "Nota promedio"
+
+#: src/classes/learn-dash-transcript.php:539
+msgid "Final Score"
+msgstr "Nota final"
+
+#: src/classes/learndash-course-navigation.php:45
+msgid "Lazy Loading Course Navigation"
+msgstr ""
+
+#: src/classes/learndash-course-navigation.php:47
+msgid ""
+"Shortcode that loads a course navigation tree via AJAX.  Useful on sites "
+"with many lessons and topics where the native LearnDash Course Navigation "
+"widget is extending page load time."
+msgstr ""
+
+#: src/classes/learndash-course-navigation.php:91
+msgid "Navigation Settings"
+msgstr ""
+
+#: src/classes/learndash-course-navigation.php:95
+msgid "Widget Heading"
+msgstr ""
+
+#: src/classes/learndash-course-navigation.php:96
+msgid "Course Navigation."
+msgstr ""
+
+#: src/classes/learndash-course-navigation.php:137
+msgid "Loading..."
+msgstr ""
+
+#: src/classes/lesson-topic-auto-complete-on-quiz-end.php:47
+msgid "Autocomplete Lessons & Topics on Quiz Results Page"
+msgstr "Autocompletar lecciones y temas en páginas de exámenes"
+
+#: src/classes/lesson-topic-auto-complete-on-quiz-end.php:52
+msgid ""
+"Automatically mark LearnDash lessons and topics as completed when the user "
+"reaches the quiz results page with a passing mark."
+msgstr ""
+"Marca automáticamente lecciones y temas LearnDash como completadas cuando un "
+"usuario llega a la página de resultados de un examen con un aprobado."
+
+#: src/classes/lesson-topic-auto-complete-on-quiz-end.php:145
+#: src/classes/lesson-topic-auto-complete-on-quiz-graded.php:148
+#: src/classes/lesson-topic-auto-complete.php:252
+msgid ""
+"<div>** This global setting can be overridden for individual lessons and "
+"topics in the Edit page of the associated lesson or topic.</div>"
+msgstr ""
+"<div>** Esta configuración global puede anularse para lecciones y temas "
+"individuales en la página Editar de la lección o tema asociado.</div>"
+
+#: src/classes/lesson-topic-auto-complete-on-quiz-graded.php:50
+msgid "Autocomplete Lessons & Topics When Quiz Is Graded"
+msgstr ""
+
+#: src/classes/lesson-topic-auto-complete-on-quiz-graded.php:55
+msgid ""
+"Automatically mark LearnDash lessons and topics as completed when the "
+"associated quiz is manually graded."
+msgstr ""
+
+#: src/classes/lesson-topic-auto-complete.php:131
+#: src/classes/lesson-topic-auto-complete.php:760
+msgid "Auto Complete"
+msgstr "Autocompletar"
+
+#: src/classes/lesson-topic-auto-complete.php:133
+#: src/classes/lesson-topic-auto-complete.php:762
+msgid "Automatically complete lesson or topic on page visit"
+msgstr "Completar automáticamente lecciones y temas al visitar la página"
+
+#: src/classes/lesson-topic-auto-complete.php:155
+msgid "Autocomplete Lessons & Topics"
+msgstr "Autocompletar lecciones y temas"
+
+#: src/classes/lesson-topic-auto-complete.php:160
+msgid ""
+"Automatically mark all lessons and topics as completed on user visit and "
+"remove Mark Complete buttons. Global settings can be overridden for "
+"individual lessons and topics."
+msgstr ""
+"Marca automáticamente todas las lecciones y temas como completadas cuando el "
+"usuario visite estas páginas y remueva los botones \"Marcar como completo\". "
+"La configuración global puede ser anulada para lecciones y temas "
+"individuales."
+
+#: src/classes/lesson-topic-auto-complete.php:420
+#: src/classes/lesson-topic-auto-complete.php:634
+msgid "Done"
+msgstr "Hecho"
+
+#: src/classes/lesson-topic-grid.php:66
+msgid "Enhanced Lessons/Topics Grid"
+msgstr "Mejores tablas de lecciones/temas"
+
+#: src/classes/lesson-topic-grid.php:71
+msgid ""
+"Add a highly customizable grid of LearnDash lessons/topics to the front end, "
+"learner dashboard or anywhere you want. This is a great tool for sites with "
+"a large number of lessons/topics."
+msgstr ""
+"Agrega una cuadrícula altamente personalizable de lecciones/temas LearnDash "
+"a la interfaz, panel de aprendizaje o en cualquier lugar que desees. Esta es "
+"una gran herramienta para sitios con una gran cantidad de lecciones/temas."
+
+#: src/classes/lesson-topic-grid.php:107
+msgid "Replace Course's Lessons table with grid"
+msgstr "Reemplazar la tabla de lecciones del curso con la grilla"
+
+#: src/classes/lesson-topic-grid.php:113
+msgid "Replace Lesson's Topics list with grid"
+msgstr "Reemplazar la tabla de temas de la lección con la grilla"
+
+#: src/classes/lesson-topic-grid.php:119
+msgid "Number of columns per row"
+msgstr "Número de columnas por fila"
+
+#: src/classes/lesson-topic-grid.php:124
+msgid "Show Featured Image?"
+msgstr "¿Mostrar imagen destacada?"
+
+#: src/classes/lesson-topic-grid.php:688 src/classes/show-all-courses.php:1119
+#: src/classes/show-all-courses.php:1262
+msgid "Complete"
+msgstr "Completado"
+
+#: src/classes/lesson-topic-grid.php:690 src/classes/lesson-topic-grid.php:732
+#: src/classes/lesson-topic-grid.php:736
+msgid "Not Completed"
+msgstr "No completado"
+
+#: src/classes/lesson-topic-grid.php:732
+msgid "Sample Lesson"
+msgstr ""
+
+#: src/classes/lesson-topic-grid.php:736
+msgid "Course not enrolled"
+msgstr "Curso no matriculado"
+
+#: src/classes/restrict-page-access.php:29
+msgid "Access is restricted."
+msgstr ""
+
+#: src/classes/restrict-page-access.php:327
+msgid "Restrict users page access"
+msgstr ""
+
+#: src/classes/restrict-page-access.php:419
+#, php-format
+msgid "Users must be logged in to view this %s"
+msgstr ""
+
+#: src/classes/restrict-page-access.php:444
+msgid "Required role (optional)"
+msgstr ""
+
+#: src/classes/restrict-page-access.php:491
+msgid "Required course (optional)"
+msgstr ""
+
+#: src/classes/restrict-page-access.php:539
+msgid "Required group (optional)"
+msgstr ""
+
+#: src/classes/restrict-page-access.php:580
+msgid "Redirect if access is denied"
+msgstr ""
+
+#: src/classes/restrict-page-access.php:608
+msgid "Redirect to"
+msgstr ""
+
+#: src/classes/restrict-page-access.php:626
+#: src/classes/restrict-page-access.php:680
+msgid "Page"
+msgstr ""
+
+#: src/classes/restrict-page-access.php:634
+msgid "Custom URL (include http:// or https://)"
+msgstr ""
+
+#: src/classes/restrict-page-access.php:722
+msgid "Custom URL"
+msgstr ""
+
+#: src/classes/restrict-page-access.php:748
+msgid "Restrict Users Page Access"
+msgstr ""
+
+#: src/classes/restrict-page-access.php:753
+msgid "Restrict page access for users based on logged in/out or role."
+msgstr ""
+
+#: src/classes/restrict-page-access.php:804
+msgid "Access restriction message"
+msgstr ""
+
+#: src/classes/sample-tag.php:43
+msgid "Sample Lesson Label (Legacy)"
+msgstr ""
+
+#: src/classes/sample-tag.php:51
+msgid "Add visual label to sample lessons (Legacy LearnDash theme only)."
+msgstr ""
+
+#: src/classes/sample.php:44
+msgid "Sample Title"
+msgstr "Título de ejemplo"
+
+#: src/classes/sample.php:49
+msgid "Sample Description B"
+msgstr "Descripción de ejemplo B"
+
+#: src/classes/sample.php:144
+msgid "<div>Some Extra Information for the user</div>"
+msgstr "<div>Información extra para el usuario</div>"
+
+#: src/classes/show-all-courses.php:73
+msgid "Enhanced Course Grid"
+msgstr "Grilla mejorada de curso"
+
+#: src/classes/show-all-courses.php:78
+msgid ""
+"Add a highly customizable grid of LearnDash courses to the front end, "
+"learner dashboard or anywhere you want. This is a great tool for sites with "
+"a large number of courses."
+msgstr ""
+"Agrega una cuadrícula altamente personalizable de cursos LearnDash a la "
+"interfaz, panel de aprendizaje o en cualquier lugar que desees. Esta es una "
+"gran herramienta para sitios con una gran cantidad de lecciones/temas."
+
+#: src/classes/show-all-courses.php:398
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:145
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:171
+#: src/templates/frontend-dashboard/dashboard-template.php:93
+msgid "Category"
+msgstr ""
+
+#: src/classes/show-all-courses.php:400 src/classes/show-all-courses.php:437
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:150
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:176
+#: src/templates/frontend-dashboard/dashboard-template.php:97
+#: src/templates/frontend-dashboard/dashboard-template.php:135
+msgid "All categories"
+msgstr ""
+
+#: src/classes/show-all-courses.php:435
+#, php-format
+msgid "%s Category"
+msgstr ""
+
+#: src/classes/show-all-courses.php:925
+#, php-format
+msgid "Sorry! You don't have any enrolled %s."
+msgstr ""
+
+#: src/classes/show-all-courses.php:1121 src/classes/show-all-courses.php:1264
+#: src/templates/course-grid.php:126
+msgid "Coming Soon"
+msgstr "Próximamente"
+
+#: src/classes/show-all-courses.php:1123 src/classes/show-all-courses.php:1187
+#: src/classes/show-all-courses.php:1266
+#, php-format
+msgid "%s Status"
+msgstr "Estado de %s"
+
+#: src/classes/show-all-courses.php:1126 src/classes/show-all-courses.php:1269
+#: src/templates/course-grid.php:110 src/templates/course-grid.php:119
+#: src/templates/course-grid.php:130 src/templates/course-grid.php:138
+#, php-format
+msgid "View %s Outline"
+msgstr "Ver descripción de %s"
+
+#: src/classes/show-all-courses.php:1394 src/templates/course-grid.php:40
+msgid "Free"
+msgstr "Gratuito"
+
+#: src/classes/show-all-courses.php:1409
+#, php-format
+msgid "%1$s %2$s"
+msgstr "%1$s %2$s"
+
+#: src/classes/show-all-courses.php:1487
+msgid "Short Description"
+msgstr "Descripción corta"
+
+#: src/classes/show-all-courses.php:1489
+#, php-format
+msgid "A short description of the %s to show on grid."
+msgstr ""
+
+#: src/classes/uncanny-drip-lessons-by-group.php:393
+msgid "LearnDash Group"
+msgstr ""
+
+#: src/classes/uncanny-drip-lessons-by-group.php:395
+msgid "Choose a group for a custom drip date"
+msgstr ""
+
+#: src/classes/uncanny-drip-lessons-by-group.php:507
+msgid "Drip Lessons by Group"
+msgstr ""
+
+#: src/classes/uncanny-drip-lessons-by-group.php:511
+msgid ""
+"Unlock access to LearnDash lessons by setting dates for LearnDash Groups "
+"rather than for all enrolled users."
+msgstr ""
+"Desbloquea el acceso a lecciones LearnDash estableciendo fechas para los "
+"grupos LearnDash en lugar de para todos los usuarios inscritos."
+
+#: src/classes/uncanny-drip-lessons-by-group.php:1057
+#: src/templates/frontend-dashboard/dashboard-template.php:279
+#: src/templates/lesson-topic-grid.php:49
+#, php-format
+msgid "Available on: %s"
+msgstr "Disponible el: %s"
+
+#: src/classes/uncanny-drip-lessons-by-group.php:1060
+msgid "Return to Course Overview"
+msgstr "Volver a la vista general del curso"
+
+#: src/includes/EDD_SL_Plugin_Updater.php:231
+#, php-format
+msgid ""
+"There is a new version of %1$s available. %2$sView version %3$s details%4$s."
+msgstr ""
+"Hay una nueva versión de %1$s disponible. %2$sVer detalles de la versión %3$s"
+"%4$s."
+
+#: src/includes/EDD_SL_Plugin_Updater.php:239
+#, php-format
+msgid ""
+"There is a new version of %1$s available. %2$sView version %3$s details%4$s "
+"or %5$supdate now%6$s."
+msgstr ""
+"Hay una nueva versión de %1$s disponible. %2$sVer detalles de la versión%3$s"
+"%4$s o %5$sactualizar ahora%6$s."
+
+#: src/includes/EDD_SL_Plugin_Updater.php:477
+msgid "You do not have permission to install plugin updates"
+msgstr "No tienes el permiso para instalar actualizaciones del plugin"
+
+#. translators: placeholder: Lesson.
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:23
+#, php-format
+msgctxt "placeholder: Lesson"
+msgid "%s Group Drip Settings"
+msgstr ""
+
+#. translators: placeholder: lessons.
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:29
+#, php-format
+msgctxt "placeholder: lessons"
+msgid "Controls the timing and way %s can be accessed."
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:87
+#, php-format
+msgctxt "Course  Label"
+msgid "Please select a %s to manage group drip dates.zz"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:101
+msgid "Please click here to set group drip dates."
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:105
+#, php-format
+msgctxt "Course  Label"
+msgid "Drip dates can only be added if the %s is associated with a %s."
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:111
+#, php-format
+msgctxt "Course  Label"
+msgid "This %s has no %s associations."
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:125
+#, php-format
+msgctxt "1 Lesson and 2 Course  Label"
+msgid ""
+"Note: A drip date set for a %1$s/Group persists across all %2$s. You cannot "
+"set different drip dates for the same %1$s/Group in different %2$s."
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:142
+msgid "LearnDash group"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:143
+msgid "Drip date"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:144
+msgid "Drip date sort numeric"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:145
+msgid "Drip date sort Y-M-D"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:146
+msgid "Action"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:184
+msgid "Month"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:190
+msgid "01-Jan"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:195
+msgid "02-Feb"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:200
+msgid "03-Mar"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:205
+msgid "04-Apr"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:210
+msgid "05-May"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:215
+msgid "06-Jun"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:220
+msgid "07-Jul"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:225
+msgid "08-Aug"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:230
+msgid "09-Sep"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:235
+msgid "10-Oct"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:240
+msgid "11-Nov"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:245
+msgid "12-Dec"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:249
+msgid "Day"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:255
+msgid "Year"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:262
+msgid "Hour"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:268
+msgid "Minute"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:280
+msgid "Save date"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:285
+msgid "Remove date"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:309
+#, php-format
+msgctxt "Course  Label"
+msgid "%s: %s"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:321
+#, php-format
+msgctxt "placeholder: Course"
+msgid "Switch %s"
+msgstr ""
+
+#: src/includes/learn-dash-settings-metabox-lesson-group-drip-settings.php:323
+#, php-format
+msgctxt "placeholder: Course"
+msgid "Select a %s"
+msgstr "Seleccionar un %s"
+
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:23
+msgid "New User Email Template"
+msgstr "Plantilla de correo electrónico de nuevo usuario"
+
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:28
+msgid "Email to New Users"
+msgstr "Enviar correo electrónico a nuevos usuarios"
+
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:33
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:92
+msgid "Send Email"
+msgstr "Enviar correo electrónico"
+
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:39
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:98
+msgid "Subject"
+msgstr "Asunto"
+
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:49
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:109
+msgid "Body"
+msgstr "Cuerpo"
+
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:50
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:110
+msgid "Variables"
+msgstr "Variables"
+
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:69
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:129
+msgid "Test Email Address:"
+msgstr "Correo electrónico de prueba:"
+
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:73
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:133
+msgid "Send Test Email"
+msgstr "Enviar correo electrónico de prueba"
+
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:82
+msgid "Updated User Email Template"
+msgstr "Plantilla de correo electrónico del usuario actualizada"
+
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:87
+msgid "Email to Updated Users"
+msgstr "Enviar correo electrónico a usuarios actualizados"
+
+#: src/templates/admin-import-user/admin-import-user-part-emails.php:142
+#: src/templates/admin-import-user/admin-import-user-part-options.php:215
+msgid "Save Changes"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:35
+msgid "New users WILL be sent an email."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:36
+msgid "New users WILL NOT be sent an email."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:40
+msgid "Updated users WILL be sent an email."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:41
+msgid "Updated users WILL NOT be sent an email."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:52
+msgid "Current Settings"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:55
+msgid ""
+"Review your enrollment defaults and email options. Make any necessary "
+"changes before proceeding to Import LearnDash Users."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:58
+msgid "Default Course(s)"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:59
+msgid ""
+"Users without valid course IDs in the spreadsheet will be enrolled in the "
+"following courses:"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:81
+msgid "( Course is Open to all )"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:96
+#: src/templates/admin-import-user/admin-import-user-part-options.php:152
+msgid "No Courses Published"
+msgstr "No hay cursos publicados"
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:101
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:138
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:154
+msgid "Edit Options"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:103
+msgid "Default Groups(s)"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:104
+msgid ""
+"Users without valid group IDs in the spreadsheet will be added to the "
+"following groups:"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:133
+#: src/templates/admin-import-user/admin-import-user-part-options.php:206
+msgid "No Groups Published"
+msgstr "No hay grupos publicados"
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:140
+msgid "Default Role(s)"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:141
+msgid ""
+"Users without a valid role in the spreadsheet will be set to the following "
+"role:"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:156
+msgid "Email Options"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:160
+msgid "Edit Email Settings"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:164
+msgid "Upload the CSV file and review verification results."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:170
+msgid "Upload file and verify records"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:177
+msgid "Validation Results"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:182
+msgid "Type"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:183
+msgid "Number"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:188
+msgid "Total number of users found in CSV"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:192
+msgid "New users that will be created"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:199
+msgid "Existing users that WILL be updated"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:201
+msgid "Existing users that WILL NOT be updated"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:208
+msgid "Users with malformed email addresses"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:212
+msgid "Users with invalid course IDs"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:216
+msgid "Users with invalid group IDs"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:222
+msgid "Skipped Users with Existing Emails"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:224
+msgid ""
+"The emails listed below were found in the CSV, but are assigned to users "
+"that already exist in WordPress. WordPress requires that each email be "
+"unique."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:226
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:243
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:259
+msgid "These records will be ignored."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:230
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:247
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:263
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:331
+msgid "CSV Row"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:232
+msgid "Conflicting User"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:239
+msgid "Invalid Course IDs"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:241
+msgid ""
+"The course IDs below were found in the CSV but do not correspond to an "
+"existing LearnDash course. If you proceed, they will be ignored."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:248
+msgid "Invalid Courses"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:255
+msgid "Invalid Group IDs"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:257
+msgid ""
+"The group IDs below were found in the CSV but do not correspond to an "
+"existing LearnDash group. If you proceed, they will be ignored."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:264
+msgid "Invalid Groups"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:271
+msgid "Let's Add Some Users!"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:273
+msgid "Abort Import Process"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:274
+msgid "Perform Import"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:276
+msgid "It is not possible to cancel the import process once it has\tbegun."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:279
+msgid "Let me review the validation results again"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:282
+msgid "I'm ready to import"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:290
+msgid "Import Progress"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:299
+msgid "Do not reload this page while import is in progress"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:303
+msgid "Import Results"
+msgstr "Importar resultados"
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:308
+msgid "New Users Created"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:312
+msgid "Existing Users Updated"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:316
+msgid "Emails Sent"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:320
+msgid "Rows Ignored"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:326
+msgid "The following rows in the spreadsheet were skipped:"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-import-users.php:332
+msgid "Issue"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:15
+msgid ""
+"This is a complex module that allows users to be added to courses and "
+"LearnDash Groups from a CSV file. The Options tab includes settings that "
+"control how updates to users are managed and bulk imported into specific "
+"courses and groups. The Emails tab includes settings that control whether to "
+"send notifications to imported users and the email templates. These settings "
+"should be reviewed before proceeding with the import. Download the sample "
+"CSV on this page to see examples of the fields that can be included."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:21
+msgid "Knowledge Base article"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:29
+msgid "Step 1"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:34
+msgid "Review Options"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:36
+msgid "Use this tab to configure:"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:38
+msgid "Whether to update or ignore users that already exist on your website"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:39
+msgid "Role to assign to imported users"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:40
+msgid "Course(s) to enroll imported users into"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:41
+msgid "LearnDash Group(s) to assign imported users to"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:48
+msgid "Step 2"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:53
+msgid "Review Email Settings"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:55
+msgid "Use this tab to:"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:57
+msgid "Enable email notifications to new and/or updated users"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:58
+msgid "Customize email templates"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:65
+msgid "Step 3"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:70
+msgid "Create a CSV File"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:72
+msgid "Download Sample CSV"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:76
+msgid ""
+"Your CSV file must be comma-delimited with a .csv extension. It requires "
+"user_login and user_email columns, and can include any number of optional "
+"meta fields below."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:79
+msgid "Available Meta Fields"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:84
+msgid "Column Heading"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:85
+msgid "Description"
+msgstr "Descripción"
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:86
+msgid "Required/Optional"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:91
+msgid "user_email"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:92
+msgid "The user's email"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:93
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:98
+msgid "required"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:96
+msgid "user_login"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:97
+msgid "The user's username"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:101
+msgid "user_pass"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:102
+msgid "The user's password"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:103
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:110
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:117
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:128
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:133
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:138
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:143
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:148
+msgid "optional"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:106
+msgid "learndash_courses"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:108
+msgid ""
+"One or more courses to enroll the user into, specified by course ID. If this "
+"column exists and cell is empty, course(s) in Options will be used. Multiple "
+"course IDs must be separated by semi-colons, e.g., 96;107;92"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:113
+msgid "learndash_groups"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:115
+msgid ""
+"One or more LearnDash groups to enroll the user into, specified by group ID. "
+"If this column exists and cell is empty, group(s) in Options will be used. "
+"Multiple group IDs must be separated by semi-colons, e.g., 91;102;98"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:120
+msgid "wp_role"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:122
+msgid ""
+"Role to assign to the imported user, specified by role slug. If this column "
+"exists and cell is empty, the role in Options will be used."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:123
+msgid "Available role slugs:"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:131
+msgid "first_name"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:132
+msgid "The user's first name"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:136
+msgid "last_name"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:137
+msgid "The user's last name"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:141
+msgid "display_name"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:142
+msgid "The user's display name"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:146
+msgid "**"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:147
+msgid ""
+"Any other meta column heading will be treated as a custom user meta value"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:153
+msgid "Notes:"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:155
+msgid ""
+"If no password value is present for new users, a password will be auto-"
+"generated."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:156
+msgid "Username and email address cannot be updated via import."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:163
+msgid "Step 4"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-instructions.php:170
+msgid ""
+"Go to the Import Users tab once your CSV file is ready to begin the import."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-options.php:39
+msgid "Existing Users"
+msgstr "Usuarios existentes"
+
+#: src/templates/admin-import-user/admin-import-user-part-options.php:45
+msgid "For imported existing users,"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-options.php:51
+msgid "Update (Default)"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-options.php:55
+msgid "Ignore"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-options.php:58
+msgid "user data."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-options.php:67
+msgid "User Roles"
+msgstr "Roles de usuario"
+
+#: src/templates/admin-import-user/admin-import-user-part-options.php:73
+msgid "Set the Role for imported users"
+msgstr "Establecer el rol para los usuarios importados"
+
+#: src/templates/admin-import-user/admin-import-user-part-options.php:75
+msgid "Users with no role specified in the CSV will receive the selected role."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-options.php:76
+msgid ""
+"If no role is selected and no role specified for the user in the CSV, those "
+"users will be assigned the 'Subscriber' role."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-options.php:108
+msgid "Enroll users in course(s)"
+msgstr "Usuarios inscriptos en curso(s)"
+
+#: src/templates/admin-import-user/admin-import-user-part-options.php:110
+msgid ""
+"Users with no courses specified in the CSV will be enrolled in the specified "
+"courses."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-options.php:111
+msgid ""
+"Note: Courses that are set to Type 'Open'  do not appear here, as all users "
+"are automatically enrolled in Open courses."
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-user-part-options.php:161
+msgid "Groups"
+msgstr "Grupos"
+
+#: src/templates/admin-import-user/admin-import-user-part-options.php:167
+msgid "Add users to group(s)"
+msgstr "Agregar usuarios a grupo(s)"
+
+#: src/templates/admin-import-user/admin-import-user-part-options.php:169
+msgid ""
+"Users with no groups specified in the CSV will be enrolled in the selected "
+"groups."
+msgstr ""
+
+#. Author of the plugin/theme
+#: src/templates/admin-import-user/admin-import-users.php:59
+msgid "Uncanny Owl"
+msgstr "Uncanny Owl"
+
+#: src/templates/admin-import-user/admin-import-users.php:69
+msgid "Instructions"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-users.php:71
+msgid "Options"
+msgstr ""
+
+#: src/templates/admin-import-user/admin-import-users.php:73
+msgid "Email Settings"
+msgstr ""
+
+#: src/templates/course-grid.php:44
+msgid "Closed"
+msgstr "Cerrado"
+
+#: src/templates/course-grid.php:91
+msgid "CEU"
+msgstr "CEU"
+
+#: src/templates/drip-template_legacy.php:43 src/templates/single-course.php:38
+#, php-format
+msgctxt "Course Status Label"
+msgid "%s Status:"
+msgstr "Estado de %s:"
+
+#: src/templates/drip-template_legacy.php:59 src/templates/single-course.php:55
+msgid "PRINT YOUR CERTIFICATE"
+msgstr "IMPRIMIR TU CERTIFICADO"
+
+#: src/templates/drip-template_legacy.php:71 src/templates/single-course.php:68
+#, php-format
+msgctxt "Course Materials Label"
+msgid "%s Materials"
+msgstr "Materials de %s"
+
+#: src/templates/drip-template_legacy.php:100
+#: src/templates/frontend-dashboard/dashboard-template.php:74
+msgid "Expand All"
+msgstr "Expandir todos"
+
+#: src/templates/drip-template_legacy.php:102
+#: src/templates/frontend-dashboard/dashboard-template.php:76
+msgid "Collapse All"
+msgstr "Minimizar todo"
+
+#: src/templates/drip-template_legacy.php:219
+msgid "« Previous"
+msgstr "« Anterior"
+
+#: src/templates/drip-template_legacy.php:222
+msgid "Next »"
+msgstr "Siguiente »"
+
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:158
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:181
+#, php-format
+msgctxt ""
+"%1$s is the category name, %2$s is the number of courses that category has"
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:196
+msgid "Expand all"
+msgstr "Expandir todo"
+
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:199
+msgid "Collapse all"
+msgstr "Minimizar todo"
+
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:297
+msgid "Start"
+msgstr ""
+
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:302
+msgid "Resume"
+msgstr ""
+
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:308
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:576
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:709
+#: src/templates/frontend-dashboard/dashboard-template.php:379
+msgid "Certificate"
+msgstr "Certificado"
+
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:329
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:332
+#, php-format
+msgid "%s complete"
+msgstr "%s ompletado"
+
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:415
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:430
+msgid "Available on"
+msgstr "Disponible el"
+
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:520
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:654
+msgid "Quizzes Results"
+msgstr ""
+
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:589
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:722
+#: src/templates/frontend-dashboard/dashboard-template.php:381
+msgid "Statistics"
+msgstr "Estadísticas"
+
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:600
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:733
+#, php-format
+msgid "%s Passed"
+msgstr ""
+
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:602
+#: src/templates/frontend-dashboard/dashboard-template-3_0.php:735
+#, php-format
+msgid "%s Failed"
+msgstr ""
+
+#: src/templates/frontend-dashboard/dashboard-template.php:50
+#, php-format
+msgid "Registered %s"
+msgstr ""
+
+#: src/templates/frontend-dashboard/dashboard-template.php:132
+msgid "Course Category"
+msgstr ""
+
+#: src/templates/frontend-dashboard/dashboard-template.php:376
+msgid "Results"
+msgstr "Resultados"
+
+#: src/templates/frontend-dashboard/dashboard-template.php:380
+msgid "Score"
+msgstr "Nota"
+
+#: src/templates/frontend-dashboard/dashboard-template.php:383
+msgid "Date"
+msgstr "Fecha"
+
+#: src/templates/frontend-dashboard/dashboard-template.php:419
+msgid "-"
+msgstr "-"
+
+#: src/templates/group-registration-form.php:6
+#: src/templates/group-registration-form.php:10
+msgid "First Name"
+msgstr "Nombre(s)"
+
+#: src/templates/group-registration-form.php:18
+#: src/templates/group-registration-form.php:22
+msgid "Last Name"
+msgstr "Apellido(s)"
+
+#: src/templates/group-registration-form.php:30
+#: src/templates/group-registration-form.php:34
+#: src/templates/groups-login-form.php:14
+#: src/templates/groups-login-form.php:15
+msgid "Username"
+msgstr "Nombre de usuario"
+
+#: src/templates/group-registration-form.php:54
+#: src/templates/group-registration-form.php:58
+#: src/templates/groups-login-form.php:20
+#: src/templates/groups-login-form.php:21
+msgid "Password"
+msgstr "Contraseña"
+
+#: src/templates/group-registration-form.php:63
+#: src/templates/group-registration-form.php:67
+msgid "Confirm Password"
+msgstr "Confirmar contraseña"
+
+#: src/templates/group-registration-form.php:81
+msgid "Register Your Account"
+msgstr "Registrar tu cuenta"
+
+#: src/templates/groups-login-form.php:3 src/templates/groups-login-form.php:33
+msgid "Log In"
+msgstr ""
+
+#: src/templates/groups-login-form.php:29
+msgid "Remember Me"
+msgstr ""
+
+#: src/templates/learndash-group-join-form.php:1
+msgid "You are not a member of this Group"
+msgstr "No eres miembro de este grupo"
+
+#: src/templates/learndash-group-join-form.php:5
+msgid "Join this Group"
+msgstr "Unirse a este grupo"
+
+#: src/templates/learndash_course_lesson_not_available_legacy.php:25
+#, php-format
+msgid ""
+"<span class=\"ld-display-label\">Available on:</span> <span class=\"ld-"
+"display-date\">%s</span>"
+msgstr ""
+
+#: src/templates/learndash_course_lesson_not_available_legacy.php:32
+#, php-format
+msgctxt "Return to Course Overview Label"
+msgid "Return to %s Overview"
+msgstr ""
+
+#: src/templates/single-group.php:36
+msgid ""
+"This page can only be used by organizations with a valid group ID. The URL "
+"used to reach this page is not valid. Please contact your organization to "
+"obtain the correct registration URL."
+msgstr ""
+"Esta página solo puede ser utilizada por organizaciones con un ID de grupo "
+"válido. El enlace utilizado para llegar a esta página no es válido. "
+"Comuníquese con su organización para obtener el enlace de registro correcto."
+
+#: src/templates/single-group.php:39
+msgid "Shown to admins only."
+msgstr "Mostrado solo a administradores."
+
+#: src/templates/single-group.php:39
+msgid "The sign up link for this group is:"
+msgstr "El enlace de registro para este grupo es:"
+
+#: src/templates/single-group.php:59 src/templates/single-group.php:132
+msgid "Sorry, no more seats are available for this group."
+msgstr ""
+
+#: src/templates/single-group.php:94
+msgid ""
+"Thank you for registering. Your account needs to be approved by site "
+"administrator."
+msgstr ""
+"Gracias por registrarte. Tu cuenta debe ser aprobada por un administrador "
+"del sitio web."
+
+#: src/templates/single-group.php:96
+msgid ""
+"Congratulations! You are now registered on this site. You will receive an "
+"email shortly with login details."
+msgstr ""
+"¡Felicitaciones! Ahora estás registrado en este sitio web. Recibirás en "
+"breve un correo electrónico con los datos para iniciar sesión."
+
+#: src/templates/single-group.php:101
+msgid "Congratulations!  You are now registered on this site."
+msgstr "¡Felicitaciones! Ahora estás registrado en este sitio web."
+
+#: src/templates/single-group.php:106
+msgid ""
+"Congratulations! You have successfully joined the new group and have been "
+"removed from the previous group."
+msgstr ""
+
+#: src/templates/single-group.php:108
+msgid "Congratulations! You are now a member of this group."
+msgstr ""
+
+#: src/templates/single-group.php:118
+msgid "You are already in this group."
+msgstr ""
+
+#: src/templates/single-ld30-course.php:65
+msgid "You've earned a certificate!"
+msgstr ""
+
+#: src/templates/single-ld30-course.php:69
+msgid "Download Certificate"
+msgstr "Descargar certificado"
+
+#: src/templates/single-ld30-course.php:137
+#, php-format
+msgctxt "Course Content Label"
+msgid "%s Content"
+msgstr "Contenido de %s"
+
+#: src/templates/single-lesson.php:41
+#, php-format
+msgctxt "placeholders: quiz URL, quiz label"
+msgid ""
+"Please go back and complete the previous <a class=\"learndash-link-previous-"
+"incomplete\" href=\"%s\">%s</a>."
+msgstr ""
+"Por favor, vuelve atrás y completa el anterior <a class=\"learndash-link-"
+"previous-incomplete\" href=\"%s\">%s</a>."
+
+#: src/templates/single-lesson.php:44
+#, php-format
+msgctxt "placeholders: topic URL, topic label"
+msgid ""
+"Please go back and complete the previous <a class=\"learndash-link-previous-"
+"incomplete\" href=\"%s\">%s</a>."
+msgstr ""
+"Por favor, vuelve atrás y completa el anterior <a class=\"learndash-link-"
+"previous-incomplete\" href=\"%s\">%s</a>."
+
+#: src/templates/single-lesson.php:46
+#, php-format
+msgctxt "placeholders: lesson URL, lesson label"
+msgid ""
+"Please go back and complete the previous <a class=\"learndash-link-previous-"
+"incomplete\" href=\"%s\">%s</a>."
+msgstr ""
+"Por favor, vuelve atrás y completa la anterior <a class=\"learndash-link-"
+"previous-incomplete\" href=\"%s\">%s</a>."
+
+#: src/templates/single-lesson.php:50
+#, php-format
+msgctxt "placeholder lesson"
+msgid "Please go back and complete the previous %s."
+msgstr "Por favor, vuelve atrás y completa la anterior %s."
+
+#: src/templates/single-lesson.php:141
+msgid "Files you have uploaded"
+msgstr "Archivos que subiste"
+
+#: src/templates/single-lesson.php:147
+msgid "Download"
+msgstr "Descargar"
+
+#: src/templates/single-lesson.php:152
+msgid "Comments"
+msgstr "Comentarios"
+
+#: src/templates/transcript.php:35
+msgid "Print"
+msgstr "Imprimir"
+
+#: src/templates/transcript.php:57
+msgid "Student Name"
+msgstr ""
+
+#: src/templates/transcript.php:148
+msgid "Total Avg. Score"
+msgstr ""
+
+#: src/templates/transcript.php:159
+msgid "Total Final Score"
+msgstr ""
+
+#: uncanny-toolkit-pro.php:45
+msgid ""
+"Uncanny LearnDash Toolkit PRO needs Uncanny LearnDash Toolkit 1.3 or higher "
+"to work properly.<br>Please, upgrade the standard Uncanny LearnDash Toolkit."
+msgstr ""
+
+#: uncanny-toolkit-pro.php:91
+msgid "Licensing"
+msgstr ""
+
+#: uncanny-toolkit-pro.php:93
+msgid "Settings"
+msgstr ""
+
+#: uncanny-toolkit-pro.php:126
+msgid ""
+"Please download and activate Uncanny LearnDash Toolkit Free <br />before "
+"activating Uncanny LearnDash Toolkit Pro. "
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "Uncanny LearnDash Toolkit Pro"
+msgstr "Uncanny LearnDash Toolkit Pro"
+
+#. Plugin URI of the plugin/theme
+msgid "uncannyowl.com/downloads/uncanny-learndash-toolkit-pro/"
+msgstr "uncannyowl.com/downloads/uncanny-learndash-toolkit-pro/"
+
+#. Description of the plugin/theme
+msgid ""
+"This plugin adds the Pro suite of modules to the Uncanny LearnDash Toolkit."
+msgstr ""
+"Este plugin agrega el conjunto de módulos Pro a Uncanny LearnDash Toolkit."
+
+#. Author URI of the plugin/theme
+msgid "uncannyowl.com"
+msgstr "uncannyowl.com"
+
+#~ msgid "Thanks for using the Uncanny LearnDash Toolkit Pro!"
+#~ msgstr "¡Gracias por utilizar Uncanny LearnDash Toolkit Pro!"
+
+#~ msgid "%s %s day"
+#~ msgstr "%s %s día"
+
+#~ msgid "%s %s days"
+#~ msgstr "%s %s días"
+
+#~ msgid ""
+#~ "<div style=\"margin-top: -26px;font-style: italic;\">WARNING! This is a "
+#~ "BETA version. Enable under staging before using it on a production site.</"
+#~ "div>"
+#~ msgstr ""
+#~ "<div style=\"margin-top: -26px;font-style: italic;\">¡ATENCIÓN! Esto está "
+#~ "en versión BETA. Habilítelo en un sitio web de prueba antes de usarlo en "
+#~ "un sitio web en producción.</div>"
+
+#~ msgid "LearnDash Table Colors"
+#~ msgstr "Colores de tabla LearnDash"
+
+#~ msgid "Transcript for "
+#~ msgstr "Transcripción para "
+
+#~ msgid "Published: "
+#~ msgstr "Publicado: "
+
+#~ msgid "Total Completed: "
+#~ msgstr "Total completado: "
+
+#~ msgid "Show"
+#~ msgstr "Mostrar"
+
+#~ msgid "ALL"
+#~ msgstr "TODO"
+
+#~ msgid "entries"
+#~ msgstr "entradas"
+
+#~ msgid "No data available."
+#~ msgstr "No hay datos disponibles."
+
+#~ msgid "Showing _START_ to _END_ of _TOTAL_ entries"
+#~ msgstr "Mostrando _START_ a _END_ de _TOTAL_ entradas"
+
+#~ msgid "Showing 0 to 0 of 0 entries"
+#~ msgstr "Mostrando 0 de 0 entradas"
+
+#~ msgid "Previous"
+#~ msgstr "Anterior"
+
+#~ msgid "Next"
+#~ msgstr "Siguiente"
+
+#~ msgid "Courses"
+#~ msgstr "Cursos"

@@ -1,0 +1,457 @@
+/** social inline and general settings **/
+.social-networks.inline{
+	font-size: 0;
+}
+.social-networks a{
+	display: inline-block;
+	width: calc(33.33% - 6.67px);
+	color: #fff !important;
+	text-align: center;
+	font-size: 12px;
+	text-decoration: none;
+	margin: 0  0  0 10px;
+	font-weight: bold;
+	transition:all .3s linear;
+	-transition:all .3s linear;
+	position: relative;
+	top: 0;
+}
+.social-networks a > div{
+	padding: 12px 5px;
+}
+.social-networks a:hover{
+	color: #fff;
+	box-shadow: 0 6.14px 14.33px 0 #00000024;
+}
+.social-networks a:active{
+	/*opacity: .8;*/
+	color: #fff;
+	top: 0;
+	box-shadow: none;
+}
+.social-networks a span{
+	padding:0;
+	font-weight: bold;
+}
+.social-networks a.first-one{
+	margin-left: 0;
+}
+.social-networks a .icon-google-plus{
+	background-color: #4285f4;
+}
+.social-networks a .icon-twitter,
+.social-networks a .icon-github {
+	background-color: #14171A;
+}
+.social-networks a .icon-twitter svg path{
+	fill: #fff;
+	stroke: #fff;
+}
+.social-networks a .icon-amazon,
+.social-networks a .icon-github{
+	background-color: #24292e;
+
+}
+.social-networks a .icon-facebook,
+.social-networks a .icon-discord{
+	background-color: #43609c;
+}
+.social-networks a .icon-facebook{
+	background: #1877F2;
+}
+.social-networks a .icon-linkedin{
+	background-color: #0076b4;
+}
+.social-networks a .icon-microsoft{
+	background-color: #fff;
+	color: #000;
+	border: 1px solid #ccc;
+}
+
+.social-sep{
+	display: block;
+	padding: 20px 0 !important;
+	position: relative;
+	text-align: center;
+	font-size: 14px;
+	line-height: 20px;
+	text-transform: uppercase;
+}
+.social-sep:before{
+	border-bottom: 1px solid #b4b4b4;
+	content: "";
+	display: block;
+	width: 45%;
+	top: 50%;
+	position: absolute;
+	left: 0;
+}
+.social-sep:after{
+	border-bottom: 1px solid #b4b4b4;
+	content: "";
+	display: block;
+	width: 45%;
+	top: 50%;
+	position: absolute;
+	right: 0;
+}
+.social-sep span{
+	display: inline-block;
+	padding: 0 10px;
+	background-color: transparent;
+	position: relative;
+}
+/** social inline and general settings Ends**/
+/** social block level settings **/
+.social-networks.block{
+	font-size: 0;
+}
+.social-networks.block a{
+	width: 100%;
+	display: block;
+	margin: 0  0 10px;
+}
+.social-networks.block a > div{
+	overflow: hidden;
+	padding: 11px 20px 11px 20px;
+}
+.lpsl-google-svg{
+	position: absolute;
+	right: 15px;
+	z-index: 1;
+}
+.social-networks a .icon-google-plus:after{
+	content: "";
+}
+.social-networks.block .fa-facebook-f:before, .social-networks.block .fa-facebook:before{
+	content: "\f09a";
+}
+.social-networks.block .fa-twitter:before {
+	content: "\f099";
+}
+.social-networks.block .fa-linkedin:before {
+	content: "\f0e1";
+}
+.social-networks a .icon-google-plus:after, .social-networks a .fa-facebook:before, .social-networks a .fa-twitter:before, .social-networks a .fa-linkedin:before{
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	bottom: 2px;
+	background-color: #fff;
+	width: 45px;
+	height: 36px;
+}
+.social-networks a:before {
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	bottom: 2px;
+	background-color: #fff;
+	width: 45px;
+	height: 36px;
+	content: "";
+}
+.social-networks a svg {
+	top: 10px;
+	right: 15px;
+	position: absolute;
+	min-width: 20px;
+	width: 20px;
+	height: 20px;
+}
+.social-networks.block a span{
+	float: left;
+}
+.social-networks.block.loginpress-full_width a span{
+	text-align: center;
+}
+.social-networks.block a i{
+	float: right;
+	margin: 3px 0 0;
+	line-height: 38px;
+	font-size: 18px;
+}
+/* .social-networks.block a i.fa-facebook{
+	color: #43609c;
+}
+.social-networks.block a i.fa-twitter{
+	color: #1da1f3;
+}
+.social-networks.block a i.fa-linkedin{
+	color: #0076b4;
+} */
+.social-networks.block{
+	padding-top: 20px;
+}
+.social-networks.block:has(.social-sep){
+	padding-top: 0;
+}
+.social-networks.block:first-child{
+	padding-top: 0;
+	padding-bottom: 20px;
+}
+.social-networks.block:first-child:has(~.social-sep){
+	padding-bottom: 0;
+}
+.loginpress-sl-shortcode-wrapper .social-networks.block a {
+	max-width: 275px;
+	display: inline-block;
+	margin: 0 5px 10px;
+	width: 100%;
+	text-decoration: none;
+}
+.loginpress-sl-shortcode-wrapper .social-networks {
+	margin: 0 -5px;
+}
+.social-networks a:before{
+	display: none;
+}
+.social-networks.block a{
+	border-radius: 5px;
+}
+.social-networks.block a > div{
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+		padding: 11px 20px 11px 20px;
+	flex-direction: row-reverse;
+	text-align: left;
+	border-radius: 5px;
+}
+/* .social-networks a svg:not(.lpsl-google-svg) path{
+	fill: #ffffff;
+} */
+.social-networks a svg{
+	position: static;
+	margin-right: auto;
+}
+.social-networks.loginpress-full_width a svg{
+	margin-right: 0;
+}
+.social-networks.loginpress-full_width a span{
+	width: auto;
+}
+.social-networks.block a span{
+	float: none;
+	width: 100%;
+}
+.social-networks.block a > div.icon-apple{
+	background: #1d2731;
+}
+.social-networks.block a > div.icon-apple path,
+.social-networks.block a > div.icon-facebook path,
+.social-networks.block a > div.twitter-facebook path,
+.social-networks.block a > div.icon-linkedin path,
+.social-networks.block a > div.icon-amazon path,
+.social-networks.block a > div.icon-github path{
+	fill: #fff;
+}
+.social-networks.block a > div.icon-apple .lpsl-login-text,
+.social-networks.block a > div.icon-discord .lpsl-login-text,
+.social-networks.block a > div.icon-amazon .lpsl-login-text,
+.social-networks.block a > div.icon-github .lpsl-login-text{
+	color: #fff;
+}
+.social-networks a .icon-google-plus:after, .social-networks a .fa-facebook:before, .social-networks a .fa-twitter:before, .social-networks a .fa-linkedin:before{
+	display: none;
+}
+.social-networks a .icon-wordpress-plus,
+.social-networks a .icon-wordpress,
+.social-networks a .icon-pinterest,
+.social-networks a .icon-reddit,
+.social-networks a .icon-spotify,
+.social-networks a .icon-twitch,
+.social-networks a .icon-disqus,
+.social-networks a .icon-google-plus{
+	background: #fff;
+	color: #000;
+	border: 1px solid #ccc;
+}
+.social-networks.block.loginpress-default a{
+	max-width: 240px;
+	margin-inline: auto;
+}
+.social-networks.block.loginpress-full_width a{
+	max-width: 100%;
+	margin-inline: auto;
+}
+.social-networks.block.loginpress-icons a .lpsl-login-text{
+		position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
+}
+.social-networks.block.loginpress-icons a {
+	width: 40px;
+	display: inline-block;
+	margin: 0 5px 5px;
+	vertical-align: top;
+}
+.social-networks.block.loginpress-icons a div{
+	min-height: 40px;
+	padding: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.social-networks.block.loginpress-icons a svg{
+	margin: auto;
+	height: 20px;
+	width: 20px;
+}
+.social-networks.block.loginpress-icons{
+	text-align: center;
+	padding: 0;
+}
+.social-networks.block.loginpress-round_icons a .lpsl-login-text{
+		position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
+}
+.social-networks.block.loginpress-round_icons a {
+	width: 40px;
+	display: inline-block;
+	margin: 0 5px 5px;
+	vertical-align: top;
+	border-radius: 50%;
+}
+.loginpress-sl-shortcode-wrapper .social-networks.block.loginpress-icons,
+.loginpress-sl-shortcode-wrapper .social-networks.block.loginpress-round_icons{
+	gap: 10px;
+}
+.loginpress-sl-shortcode-wrapper .social-networks.block.loginpress-round_icons a,
+.loginpress-sl-shortcode-wrapper .social-networks.block.loginpress-icons a{
+	margin: 0;
+}
+.social-networks.block.loginpress-round_icons a div{
+	height: 40px;
+	padding: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-radius: 50%;
+	box-sizing: border-box;
+}
+.social-networks.block.loginpress-round_icons a div:after{
+	display: none;
+}
+.social-networks.block.loginpress-round_icons a svg{
+	margin: auto;
+	height: 20px;
+	width: 20px;
+}
+.social-networks.block.loginpress-round_icons,
+.social-networks.block.loginpress-icons{
+	text-align: center;
+	padding: 0;
+}
+.social-networks.block a div.icon-amazon,
+.social-networks.block a div.icon-github{
+	background: #24292e;
+}
+.social-networks.block a div.icon-discord{
+	background: #5865f2;
+}
+/**
+ * This style call on frontend only
+ * for column based design.
+ * @since 1.3.0
+ */
+@media only screen and (min-width: 1024px) {
+	.loginpress-social-display-col{
+	display: flex;
+	}
+	.loginpress-social-display-col.social-networks.block a {
+	display: inline-block;
+	margin: 0 5px 5px;
+	}
+	.loginpress-social-display-col.social-networks.block a > div {
+	padding: 6px 50px 6px 15px;
+	display: flex;
+	align-items: center;
+	text-align: left;
+	}
+	.loginpress-social-display-col.social-networks a span{
+	line-height: 1.2;
+	}
+	.loginpress-social-display-col .social-networks a .icon-google-plus:after, .loginpress-social-display-col .fa-facebook:before, .loginpress-social-display-col .fa-twitter:before, .loginpress-social-display-col .fa-linkedin:before{
+	text-align: center;
+	}
+}
+.loginpress-sl-shortcode-wrapper .social-networks.block{
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	margin: 0;
+	justify-content: center;
+}
+.loginpress-login-widget .social-networks.block a > div .lpsl-icon-block{
+	background: none;
+	border: 0;
+}
+/* Styles for browsers that support container queries */
+@supports (container: inline-size) {
+	.loginpress-sl-shortcode-wrapper {
+		container-type: inline-size;
+		container-name: social-container;
+	}
+
+	.loginpress-sl-shortcode-wrapper .social-networks.block:is(.loginpress-default, .loginpress-full_width) a {
+		width: calc(33.3333% - 14px);
+		max-width: none;
+		margin: 0;
+	}
+
+	@container social-container (max-width: 900px) {
+		.loginpress-sl-shortcode-wrapper .social-networks.block:is(.loginpress-default, .loginpress-full_width) a {
+			width: calc(50% - 20px);
+		}
+	}
+
+	@container social-container (max-width: 600px) {
+		.loginpress-sl-shortcode-wrapper .social-networks.block:is(.loginpress-default, .loginpress-full_width) a {
+			width: 100%;
+		}
+	}
+}
+
+/* Fallback styles for browsers that do not support container queries */
+@supports not (container: inline-size) {
+	.loginpress-sl-shortcode-wrapper .social-networks.block:is(.loginpress-default, .loginpress-full_width) a {
+		/* Fallback for all screen sizes */
+		width: calc(100% - 20px);
+		max-width: none;
+		margin: 0;
+	}
+
+	@media (max-width: 900px) {
+		.loginpress-sl-shortcode-wrapper .social-networks.block:is(.loginpress-default, .loginpress-full_width) a {
+			width: calc(50% - 20px);
+		}
+	}
+
+	@media (max-width: 600px) {
+		.loginpress-sl-shortcode-wrapper .social-networks.block:is(.loginpress-default, .loginpress-full_width) a {
+			width: 100%;
+		}
+	}
+}
+
+
+.loginpress-sl-shortcode-wrapper .social-networks.block.loginpress-full_width{
+	gap: 10px;
+}
+.loginpress-sl-shortcode-wrapper .social-networks.block.loginpress-full_width a{
+	width: 100%;
+	gap: 10px;
+}

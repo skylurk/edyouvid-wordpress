@@ -1,0 +1,134 @@
+:root {
+  --wpt_primary: #03204C;
+  --wpt_primary_deep: #34435c;
+  --wpt_primary_deepest: #040e1e;
+  --wpt_primary_light: #3e4550;
+
+  --wpt_secondary: #8e9cb1;
+  --wpt_secondary_deep: #c4c4ca;
+  --wpt_secondary_light: #a9a9b6;
+
+  --wpt_link: var(--wpt_white);
+  --wpt_link_hover: var(--wpt_white);
+  --wpt_link_deep: #012774;
+  --wpt_link_light: #2b364d;
+  
+
+  --wpt_text: var(--wpt_white);
+  --wpt_text_deep: #0b2e74;
+  --wpt_text_light: #a7b9db;  
+
+  --wpt_warning: #ffeb3b;
+  --wpt_danger: #d00;
+  --wpt_cart_highliter: #ffc107;
+
+  --wpt_off_white: #eaeaf5;
+  --wpt_deep_off_white: #b6b6bd;
+  --wpt_white: #ffffff;
+  --wpt_gray: gray;
+  --wpt_black: #000000;
+
+  --wpt_review: #ffc107;
+  --wpt_thead_bg: var(--wpt_primary);
+  --wpt_thead_text: var(--wpt_white);
+
+  --wpt_product_title: var(--wpt_white);
+  --wpt_product_title_hover: var(--wpt_white);
+  
+  --wpt_table_bg: var(--wpt_primary);
+  --wpt_table_tr_odd: #dd000005;
+  --wpt_table_tr_boder: #0000000d;
+
+  --wpt_btn_color: var(--wpt_white);
+  --wpt_btn_color_hover: #03204c;
+
+  --wpt_btn_bg: var(--wpt_primary);
+  --wpt_btn_bg_hover: var(--wpt_white);
+  
+  --wpt_sorted_head_bg: #3f4c87;
+  --wpt_sorted_head_text: inherit;
+  --wpt_sorted_td_bg: rgba(0, 0, 0, 0.03);
+  
+}
+
+body.wpt_table_body .wpt-wrap table:not( .has-background ) .wpt-tbody-tag .wpt-td-tag{
+  background: transparent;
+}
+
+body.wpt_table_body .wpt-wrap .all_check_header_footer.all_check_header>span{
+  color: var(--wpt_white) !important;
+}
+
+body.wpt_table_body .wpt-wrap span.wpt_product_price .amount {
+  color: var(--wpt_white) !important;
+}
+
+body.wpt_table_body .wpt-wrap .wpt-table-tag .wpt-tbody-tag .wpt-tr-tag a.button.add_to_cart_button,
+body.wpt_table_body .wpt-wrap .wpt-table-tag .wpt-tbody-tag .wpt-tr-tag .button.single_add_to_cart_button,
+body.wpt_table_body .wpt-wrap .wpt_action .wpt_woo_add_cart_button{
+  background: #03204c !important;
+  border: 1px solid #42597c !important;
+  line-height: 16px !important;
+}
+
+body.wpt_table_body .wpt-wrap .wpt-table-tag .wpt-tbody-tag .wpt-tr-tag a.button.add_to_cart_button:hover,
+body.wpt_table_body .wpt-wrap .wpt-table-tag .wpt-tbody-tag .wpt-tr-tag .button.single_add_to_cart_button:hover,
+body.wpt_table_body .wpt-wrap .wpt_action .wpt_woo_add_cart_button:hover{
+  background:  var(--wpt_white) !important;  
+}
+
+body.wpt_table_body .wpt-wrap .wpt-table-tag .wpt-tbody-tag.wpt-tr-tag.wpt_row>.wpt-td-tag .product_description {
+  color: #b3b3b3 !important;
+}
+
+body.wpt_table_body .wpt-wrap .wpt-table-tag.wpt-tbl.wpt-tr-tag.wpt-row {
+  border-bottom: 1px solid #21385a !important;
+}
+
+body.wpt_table_body .wpt-wrap .qib-button-wrapper .minus.qib-button, 
+body.wpt_table_body .wpt-wrap .qib-button-wrapper .plus.qib-button {
+  background: var(--wpt_primary) !important;
+  border: 2px solid #21385a !important;
+  color: var(--wpt_white) !important;
+  border-radius: 0 !important;
+} 
+
+body.wpt_table_body .wpt-wrap .wpt_each_attribute_wrapper>label{
+  margin-bottom: 0 !important;
+}
+
+div.wpt-wrap .wpt-table-tag.wpt_product_table .wpt-tbody-tag.wpt-tr-tag.wpt_row>.wpt-td-tag,
+body.wpt_table_body .wpt-wrap .wpt-table-tag thead.wpt-tr-tag.wpt_table_header_row th,
+.wpt-wrap .wpt-table-tag.wpt-tbl thead {
+  border-bottom: 1px solid #42597c !important;
+}
+
+body.wpt_table_body .wpt-wrap div.tables_cart_message_box div.widget_shopping_cart_content .total *{
+  color: var(--wpt_primary) !important;
+}
+
+body.wpt_table_body .wpt-wrap a.button.add_to_cart_all_selected{
+  background: var(--wpt_secondary) !important;
+  color: var(--wpt_white) !important;
+  font-weight: bold !important;
+}
+
+body.wpt_table_body .wpt-wrap .widget_shopping_cart_content>ul>li,
+body.wpt_table_body .wpt-wrap .search_single .query_box_direct_value, .wpt-wrap .instance_search_input,
+body.wpt_table_body .wpt-wrap span.select2.select2-container.select2-container--default{
+  border: 1px solid var(--wpt_primary) !important;
+}
+
+body.wpt_table_body .wpt-wrap .wpt-table-tag .wpt-tbody-tag .wpt-tr-tag .button.single_add_to_cart_button{
+  border: 1px solid #42597c !important;
+  background: var(--wpt_btn_bg) !important;
+}
+
+body.wpt_table_body .wpt-wrap .wpt-table-tag .wpt-tbody-tag .wpt-tr-tag .button.single_add_to_cart_button:hover{
+  border: 1px solid #42597c !important;
+  background: var(--wpt_btn_bg_hover) !important;
+}
+
+body.wpt_table_body label.wpt-checkbox-item.wpt-checkbox-checked .wpt-checkbox-label {
+    color: var(--wpt_link_deep);
+}

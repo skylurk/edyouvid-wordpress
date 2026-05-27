@@ -1,0 +1,1711 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Product Table for WooCommerce - (wooproducttable)\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-12-15 06:11+0000\n"
+"PO-Revision-Date: 2025-05-10 11:27+0000\n"
+"Last-Translator: \n"
+"Language-Team: English (United States)\n"
+"Language: en_US\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.6.3; wp-6.1.1"
+
+#: admin/page-loader.php:224
+msgid " Please Activate License to get Pro Feature"
+msgstr ""
+
+#: admin/page-loader.php:50
+msgid " Pro"
+msgstr ""
+
+#: admin/page-loader.php:247
+msgid " Renew it to enable pro features."
+msgstr ""
+
+#. 1: Plugin name 2: PHP 3: Required PHP version
+#: woo-product-table.php:566
+#, php-format
+msgid "\"%1$s\" requires \"%2$s\" version %3$s or greater."
+msgstr ""
+
+#. 1: "type => link", 2: "taxonomy => link_category"
+#: includes/functions.php:614
+#, php-format
+msgid "%1$s is deprecated. Use %2$s instead."
+msgstr ""
+
+#. 1: Singular product count 2: Plural products count
+#: inc/handle/fragment.php:147
+msgid "%d item"
+msgid_plural "%d items"
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/tabs/options.php:202
+msgid "(Add to cart) Text"
+msgstr ""
+
+#: admin/tabs/options.php:284
+msgid "(Add to cart[Selected]) Text"
+msgstr ""
+
+#: admin/tabs/options.php:303
+msgid "(Select All) Text"
+msgstr ""
+
+#. Description of the plugin
+msgid ""
+"(WooProductTable - woo product table) WooCommerce product table plugin helps "
+"you to display your products in a searchable table layout with filters. "
+"Boost conversions & sales. Woo Product Table is best for Wholesale. "
+"wooproducttable, woo-product-table"
+msgstr ""
+
+#: admin/functions.php:448
+msgid "About Product Table"
+msgstr ""
+
+#: woo-product-table.php:133
+msgid "Action"
+msgstr ""
+
+#: admin/tabs/inc-column/add-new-column.php:40
+msgid "Action Hooks"
+msgstr ""
+
+#: admin/page-loader.php:222
+msgid "Activate License"
+msgstr ""
+
+#: admin/tabs/options.php:31
+msgid "Active"
+msgstr ""
+
+#: admin/tabs/mobile.php:77 admin/tabs/responsive.php:93
+#: admin/tabs/inc-column/column-list.php:120
+msgid "Active Inactive Column"
+msgstr ""
+
+#: admin/handle/action-feature.php:36
+msgid "Actually this will override the same option from Option tab."
+msgstr ""
+
+#: inc/features/basics.php:66
+msgid "Add a Product Table"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:23 admin/wpt_product_table_post.php:24
+msgid "Add New"
+msgstr ""
+
+#: admin/tabs/inc-column/add-new-column.php:5
+#: admin/tabs/inc-column/add-new-column.php:85
+msgid "Add New Column"
+msgstr ""
+
+#: admin/menu_plugin_setting_link.php:17
+msgid "Add new Shortcode"
+msgstr ""
+
+#: inc/shortcode.php:605 admin/tabs/options.php:208
+msgid "Add to cart"
+msgstr ""
+
+#: admin/tabs/options.php:290 inc/handle/checkbox-box.php:19
+msgid "Add to Cart (Selected)"
+msgstr ""
+
+#: woo-product-table.php:225 includes/items/quoterequest.php:57
+msgid "Add to Quote"
+msgstr ""
+
+#: includes/items/quoterequest.php:12
+msgid "Add to quote"
+msgstr ""
+
+#: woo-product-table.php:230 includes/items/quoterequest.php:59
+msgid "Added"
+msgstr ""
+
+#: woo-product-table.php:237
+msgid "Adding in Progress"
+msgstr ""
+
+#: woo-product-table.php:226
+msgid "Adding.."
+msgstr ""
+
+#: includes/items/quoterequest.php:58
+msgid "Adding..."
+msgstr ""
+
+#: modules/elementor-widget.php:187
+msgid "Additional Information"
+msgstr ""
+
+#: admin/page-loader.php:122
+msgid "Addons"
+msgstr ""
+
+#: admin/tabs/inc-column/add-new-column.php:39
+msgid "Advance Custom Field"
+msgstr ""
+
+#: admin/tabs/search_n_filter.php:27
+msgid "Advance Search Box"
+msgstr ""
+
+#: admin/tabs/options.php:20
+msgid "Ajax Action"
+msgstr ""
+
+#: admin/tabs/options.php:98
+msgid "Ajax for Pagination"
+msgstr ""
+
+#: admin/functions.php:595
+msgid "All categories"
+msgstr ""
+
+#: admin/functions.php:597
+msgid "All Color"
+msgstr ""
+
+#: admin/functions.php:598
+msgid "All Size"
+msgstr ""
+
+#: admin/functions.php:596
+msgid "All tags"
+msgstr ""
+
+#: admin/tabs/inc-column/add-new-column.php:43
+msgid "All Type Content"
+msgstr ""
+
+#: admin/tabs/query.php:234
+msgid "AND Operation"
+msgstr ""
+
+#: admin/tabs/inc-column/add-new-column.php:41
+msgid "Array type Custom Field"
+msgstr ""
+
+#: admin/tabs/query.php:274
+msgid "ASCENDING (Default)"
+msgstr ""
+
+#: woo-product-table.php:125
+msgid "Attributes"
+msgstr ""
+
+#: admin/tabs/inc-column/available-column-list.php:15
+msgid "Audio"
+msgstr ""
+
+#: admin/tabs/inc-column/add-new-column.php:42
+msgid "Audio File Type"
+msgstr ""
+
+#: admin/tabs/query.php:331
+msgid "Author"
+msgstr ""
+
+#: admin/tabs/mobile.php:12 admin/tabs/responsive.php:16
+msgid "Auto Responsive (Not Recommended)"
+msgstr ""
+
+#: admin/post_metabox.php:66
+msgid ""
+"Available columns for WOO Product Table. Add them in your table to enable "
+"column."
+msgstr ""
+
+#: admin/post_metabox_form.php:23 modules/elementor-widget.php:243
+#: modules/elementor-widget.php:321
+msgid "Background Color"
+msgstr ""
+
+#: admin/functions.php:559
+msgid "Beautiful Blacky"
+msgstr ""
+
+#: woo-product-table.php:130 admin/tabs/inc-column/add-new-column.php:38
+msgid "Blank"
+msgstr ""
+
+#: admin/functions.php:561
+msgid "Blue Border"
+msgstr ""
+
+#: admin/functions.php:576
+msgid "Blue Style"
+msgstr ""
+
+#: includes/functions.php:299
+msgid "Bold"
+msgstr ""
+
+#: admin/post_metabox_form.php:24
+msgid "Border"
+msgstr ""
+
+#: admin/tabs/options.php:143
+msgid "Both"
+msgstr ""
+
+#: admin/tabs/options.php:141
+msgid "Bottom"
+msgstr ""
+
+#: admin/page-loader.php:113
+msgid "Browse our Plugins"
+msgstr ""
+
+#: woo-product-table.php:224 includes/items/quoterequest.php:65
+msgid "Browse the list"
+msgstr ""
+
+#: admin/page-loader.php:58
+msgid "Bulk Edit"
+msgstr ""
+
+#: woo-product-table.php:134
+msgid "Buy Link"
+msgstr ""
+
+#: admin/functions.php:588
+msgid "Categories"
+msgstr ""
+
+#: woo-product-table.php:107 admin/tabs/inc-column/available-column-list.php:7
+msgid "Category"
+msgstr ""
+
+#: admin/tabs/query.php:160
+msgid "Category Exclude"
+msgstr ""
+
+#: woo-product-table.php:104
+msgid "Check"
+msgstr ""
+
+#: admin/functions.php:594
+msgid "Choose"
+msgstr ""
+
+#: admin/tabs/search_n_filter.php:314 admin/tabs/search_n_filter.php:465
+msgid "Choose Taxonomy"
+msgstr ""
+
+#: admin/tabs/query.php:370
+msgid ""
+"Chose [custom_meta or custom_meta_value] - if you want to sort by price, "
+"model, sku, color itc. For price or any number, Please chose Custom Meta "
+"value(if number)"
+msgstr ""
+
+#: admin/functions.php:560
+msgid "Classic"
+msgstr ""
+
+#: includes/variation_html.php:58 includes/variation_html.php:60
+msgid "Clear"
+msgstr ""
+
+#: admin/tabs/inc-column/column-list.php:40
+msgid "Click for Expand/Collapse. Edit your Column Title here."
+msgstr ""
+
+#: framework/ca-framework/app/notice.php:98
+msgid "Click here"
+msgstr ""
+
+#: inc/handle/message.php:36
+msgid "Click here to create a new Product Table"
+msgstr ""
+
+#: admin/tabs/query.php:177
+msgid ""
+"Click to choose. Selected Categories products will be exclude from your "
+"table."
+msgstr ""
+
+#: admin/menu_plugin_setting_link.php:19
+msgid "CodeAstrology Support"
+msgstr ""
+
+#. Author of the plugin
+msgid "CodeAstrology Team"
+msgstr ""
+
+#: admin/functions.php:442
+msgid "CodeAstrology.com support"
+msgstr ""
+
+#: admin/functions.php:592 modules/elementor-widget.php:231
+msgid "Color"
+msgstr ""
+
+#: admin/post_metabox_form.php:10
+msgid "Column"
+msgstr ""
+
+#: admin/tabs/inc-column/add-new-column.php:10
+msgid "Column Keyword"
+msgstr ""
+
+#: admin/tabs/inc-column/add-new-column.php:16
+msgid "Column Label"
+msgstr ""
+
+#: admin/tabs/inc-column/add-new-column.php:22
+msgid "Column Type"
+msgstr ""
+
+#: inc/handle/message.php:46
+msgid ""
+"Column's not found. Not set propertly. It's also override by filter hook."
+msgstr ""
+
+#: admin/functions.php:442
+msgid "Community forum"
+msgstr ""
+
+#: admin/post_metabox_form.php:17
+msgid "Configuration"
+msgstr ""
+
+#: admin/menu_plugin_setting_link.php:18
+msgid "Configure"
+msgstr ""
+
+#: admin/menu_plugin_setting_link.php:18
+msgid "Configure for Universal"
+msgstr ""
+
+#: admin/tabs/inc-column/available-column-list.php:14
+msgid "Content"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:105
+msgid "Copy"
+msgstr ""
+
+#. 1: open anchor tag, 2: close anchor tag
+#: modules/elementor-widget.php:191
+#, php-format
+msgid "Create %1$sa new table%2$s."
+msgstr ""
+
+#: admin/menu_plugin_setting_link.php:17
+msgid "Create Table"
+msgstr ""
+
+#: includes/functions.php:31 admin/tabs/inc-column/add-new-column.php:32
+msgid "Custom Field"
+msgstr ""
+
+#: admin/tabs/query.php:329
+msgid "Custom Meta Number"
+msgstr ""
+
+#: admin/tabs/query.php:328
+msgid "Custom Meta Value"
+msgstr ""
+
+#: admin/functions.php:579
+msgid "Customized Design"
+msgstr ""
+
+#: admin/functions.php:577
+msgid "Dark Style"
+msgstr ""
+
+#: admin/tabs/options.php:386
+msgid "DataTable"
+msgstr ""
+
+#: woo-product-table.php:123 admin/tabs/query.php:327
+msgid "Date"
+msgstr ""
+
+#: admin/functions.php:56 admin/tabs/column_settings.php:68
+#: admin/tabs/options.php:376 admin/tabs/query.php:424 admin/tabs/query.php:438
+#: admin/tabs/inc-column/column-list.php:47
+msgid "Default"
+msgstr ""
+
+#: includes/functions.php:267
+msgid "Default Popup"
+msgstr ""
+
+#: admin/tabs/query.php:248
+msgid "Default sorting (Menu Order)"
+msgstr ""
+
+#: admin/functions.php:558
+msgid "Default Style"
+msgstr ""
+
+#: admin/tabs/query.php:275
+msgid "DESCENDING"
+msgstr ""
+
+#: woo-product-table.php:128
+msgid "Description"
+msgstr ""
+
+#: admin/tabs/options.php:351
+msgid "Description Type"
+msgstr ""
+
+#: admin/post_metabox_form.php:13
+msgid "Design"
+msgstr ""
+
+#: admin/tabs/options.php:32 admin/tabs/options.php:74
+#: admin/tabs/options.php:110
+msgid "Disable"
+msgstr ""
+
+#: includes/functions.php:233
+msgid "Disable Description"
+msgstr ""
+
+#: includes/functions.php:302
+msgid "Div"
+msgstr ""
+
+#: admin/functions.php:546
+msgid "Don't change for auto translate. Leave empty to get translated text."
+msgstr ""
+
+#: admin/wpt_product_table_post.php:26
+msgid "Edit Product Table"
+msgstr ""
+
+#: inc/features/basics.php:49
+msgid "Edit Table - "
+msgstr ""
+
+#: inc/handle/message.php:49
+msgid "Edit your Table Post"
+msgstr ""
+
+#: admin/tabs/query.php:449
+msgid "Eg: 50 (for display 50 products"
+msgstr ""
+
+#: woo-product-table.php:220 inc/features/basics.php:81
+msgid "Empty Cart"
+msgstr ""
+
+#: inc/handle/fragment.php:150
+msgid "Empty Cart."
+msgstr ""
+
+#: admin/tabs/options.php:109 admin/tabs/options.php:377
+msgid "Enable"
+msgstr ""
+
+#: inc/shortcode.php:960
+msgid "Error: on assing_property on the table_body!!"
+msgstr ""
+
+#: admin/duplicate.php:103
+msgid "Failed"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:33
+msgid "Featured Image"
+msgstr ""
+
+#: framework/ca-framework/form/inc/field.php:14
+msgid "Fields args Should be an array!"
+msgstr ""
+
+#: admin/post_metabox_form.php:108
+msgid "file is not found in tabs folder"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:41
+msgid "Filter Product Table list"
+msgstr ""
+
+#: woo-product-table.php:221
+msgid "Filter:"
+msgstr ""
+
+#. %s: Forum URL
+#: admin/functions.php:438
+#, php-format
+msgid ""
+"For further assistance with Product Table for WooCommerce, use the <a "
+"href=\"%1$s\">community forum</a>. For help with premium support, <a "
+"href=\"%2$s\">open a support request at CodeAstrology.com</a>."
+msgstr ""
+
+#: admin/functions.php:447
+msgid "For more information:"
+msgstr ""
+
+#: templates/table-preview.php:55
+msgid "For perfect view paste shortcode on a page."
+msgstr ""
+
+#: framework/ca-framework/form/inc/field-base.php:30
+msgid "Form Label"
+msgstr ""
+
+#: modules/elementor-widget.php:127
+msgid "General"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:45
+msgid "Generate your shortcode for Product Table."
+msgstr ""
+
+#: admin/page-loader.php:54
+msgid "Get <strong>Premium</strong>"
+msgstr ""
+
+#: admin/menu_plugin_setting_link.php:15 admin/page-loader.php:54
+msgid "GET PRO VERSION"
+msgstr ""
+
+#: inc/shortcode.php:961
+msgid "Get Tutorial for this issue from wpOrg"
+msgstr ""
+
+#: admin/functions.php:451
+msgid "Github project"
+msgstr ""
+
+#: admin/menu_plugin_setting_link.php:20
+msgid "Github Repo Link"
+msgstr ""
+
+#: admin/menu_plugin_setting_link.php:20
+msgid "Github Repository"
+msgstr ""
+
+#: inc/handle/message.php:30
+msgid "Go here to publish your post"
+msgstr ""
+
+#: admin/functions.php:575
+msgid "Green Style"
+msgstr ""
+
+#: includes/functions.php:292
+msgid "Heading 1"
+msgstr ""
+
+#: includes/functions.php:293
+msgid "Heading 2"
+msgstr ""
+
+#: includes/functions.php:294
+msgid "Heading 3"
+msgstr ""
+
+#: includes/functions.php:295
+msgid "Heading 4"
+msgstr ""
+
+#: includes/functions.php:296
+msgid "Heading 5"
+msgstr ""
+
+#: includes/functions.php:297
+msgid "Heading 6"
+msgstr ""
+
+#: woo-product-table.php:113
+msgid "Height(cm)"
+msgstr ""
+
+#: admin/functions.php:428 admin/functions.php:430
+msgid "Help &amp; Support"
+msgstr ""
+
+#: framework/recommeded.php:39
+msgid ""
+"Help you to connect your WooCommerce website with Google Sheet as well as "
+"Manage your Stock easy from one menu with Advance Filter"
+msgstr ""
+
+#: admin/tabs/search_n_filter.php:37 admin/tabs/search_n_filter.php:434
+msgid "Hide"
+msgstr ""
+
+#: admin/tabs/mobile.php:60 admin/tabs/responsive.php:76
+msgid "Hide On Mobile"
+msgstr ""
+
+#: admin/tabs/search_n_filter.php:61
+msgid "Hide Search Box"
+msgstr ""
+
+#: admin/tabs/search_n_filter.php:261
+msgid "Hide Search Input Box"
+msgstr ""
+
+#: includes/functions.php:235
+msgid "Hide Variation Name From Title"
+msgstr ""
+
+#. Author URI of the plugin
+msgid ""
+"https://wooproducttable.com/?"
+"utm_source=WPT+Plugin+Dashboard&utm_medium=Free+Version"
+msgstr ""
+
+#. URI of the plugin
+msgid ""
+"https://wooproducttable.com/pricing/?"
+"utm_source=WPT+Plugin+Dashboard&utm_medium=Free+Version"
+msgstr ""
+
+#: admin/functions.php:505
+msgid ""
+"I have found an issue with your WooProductTable plugin. I will explain here "
+"with screenshot.Issues And Screenshots:"
+msgstr ""
+
+#: woo-product-table.php:131 admin/tabs/query.php:315
+msgid "ID"
+msgstr ""
+
+#: admin/handle/action-feature.php:49
+msgid "If any feature do not work for Add To Cart Button, Enable this feature."
+msgstr ""
+
+#: framework/recommeded.php:64
+msgid ""
+"If you want to set CONDITION for minimum and maximum limit and want to "
+"control step, then you can install it. Otherwise ignore it."
+msgstr ""
+
+#: framework/recommeded.php:86
+msgid ""
+"If you want to set plus minus button for your Quantity Box, you can Install "
+"this plugin. If already by your theme, ignore it."
+msgstr ""
+
+#: admin/tabs/mobile.php:16
+msgid ""
+"If you want to work with [Responsive] Tab, Please select [No Responsive]."
+msgstr ""
+
+#: admin/tabs/query.php:233
+msgid "IN/OR Operation"
+msgstr ""
+
+#: admin/tabs/options.php:85
+msgid "Infinite Scroll"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:37
+msgid "Insert into Product Table"
+msgstr ""
+
+#: woo-product-table.php:223
+msgid "Instant Search.."
+msgstr ""
+
+#: admin/tabs/query.php:425
+msgid "instock"
+msgstr ""
+
+#: framework/recommeded.php:15
+msgid "It's"
+msgstr ""
+
+#: woo-product-table.php:228
+msgid "Item"
+msgstr ""
+
+#: woo-product-table.php:229
+msgid "Items"
+msgstr ""
+
+#: admin/tabs/options.php:257
+msgid "Leave as empty to hide Stats."
+msgstr ""
+
+#: woo-product-table.php:111
+msgid "Length(cm)"
+msgstr ""
+
+#: includes/functions.php:239
+msgid "Link Disable"
+msgstr ""
+
+#: includes/functions.php:240 includes/functions.php:241
+msgid "Link Disable + Quick View"
+msgstr ""
+
+#: includes/functions.php:238
+msgid "Link Enable"
+msgstr ""
+
+#: admin/tabs/options.php:81
+msgid "Load More"
+msgstr ""
+
+#: woo-product-table.php:212
+msgid "Load more"
+msgstr ""
+
+#: woo-product-table.php:214
+msgid "Loading.."
+msgstr ""
+
+#: admin/tabs/options.php:356
+msgid "Long Description"
+msgstr ""
+
+#: admin/page-loader.php:27 admin/page/topbar.php:30
+msgid "Manage and Settings"
+msgstr ""
+
+#: admin/tabs/responsive.php:17
+msgid "Manual Responsive"
+msgstr ""
+
+#: admin/menu_plugin_setting_link.php:15
+msgid "Many awesome features is waiting for you"
+msgstr ""
+
+#: admin/tabs/query.php:400
+msgid "Maximum Price"
+msgstr ""
+
+#: includes/functions.php:433 admin/tabs/query.php:318
+msgid "Menu Order"
+msgstr ""
+
+#: includes/helper-functions.php:234 includes/helper-functions.php:298
+#: includes/helper-functions.php:328
+msgid "Message"
+msgstr ""
+
+#: admin/tabs/query.php:380
+msgid "Meta Value for [Custom Meta Value] of Custom Meta Value"
+msgstr ""
+
+#: admin/tabs/options.php:136
+msgid "Mini Cart Position"
+msgstr ""
+
+#: admin/tabs/search_n_filter.php:422
+msgid "Mini Filter"
+msgstr ""
+
+#: admin/tabs/query.php:390
+msgid "Minimum Price"
+msgstr ""
+
+#: admin/functions.php:210 admin/tabs/column_settings.php:98
+msgid "Mobile"
+msgstr ""
+
+#: admin/tabs/mobile.php:8 admin/tabs/responsive.php:12
+msgid "Mobile Responsive"
+msgstr ""
+
+#: admin/functions.php:564
+msgid "Modern Style"
+msgstr ""
+
+#: admin/tabs/query.php:333
+msgid "Modified"
+msgstr ""
+
+#: woo-product-table.php:124
+msgid "Modified Date"
+msgstr ""
+
+#: admin/tabs/mobile.php:76 admin/tabs/responsive.php:92
+#: admin/tabs/inc-column/column-list.php:32
+#: admin/tabs/inc-column/column-list.php:117
+msgid "Move Handle"
+msgstr ""
+
+#: admin/tabs/query.php:313
+msgid "Name"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:25
+msgid "New Product Table"
+msgstr ""
+
+#: includes/functions.php:268
+msgid "No Action"
+msgstr ""
+
+#: admin/duplicate.php:13
+msgid "No product for duplicating!"
+msgstr ""
+
+#: templates/store.php:62
+msgid "No products were found of this vendor!"
+msgstr ""
+
+#: admin/tabs/mobile.php:13
+msgid "No Responsive"
+msgstr ""
+
+#: woo-product-table.php:238
+msgid "No Right Combination"
+msgstr ""
+
+#. 1: method name
+#: modules/Mobile_Detect.php:1088
+#, php-format
+msgid "No such method exists: %s"
+msgstr ""
+
+#: includes/functions.php:290
+msgid "No Tag"
+msgstr ""
+
+#: includes/functions.php:1043 admin/tabs/options.php:142
+#: admin/tabs/query.php:343
+msgid "None"
+msgstr ""
+
+#: woo-product-table.php:231
+msgid "Not available"
+msgstr ""
+
+#: admin/tabs/search_n_filter.php:55 admin/tabs/search_n_filter.php:65
+msgid ""
+"Not for WooCommerce Archive page. Such: shop page, product category page."
+msgstr ""
+
+#: admin/wpt_product_table_post.php:31
+msgid "Not found"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:32
+msgid "Not found in Trash"
+msgstr ""
+
+#: admin/tabs/options.php:70
+msgid "Number/Paging"
+msgstr ""
+
+#: admin/functions.php:452
+msgid "Official theme"
+msgstr ""
+
+#: admin/tabs/query.php:426
+msgid "onbackorder"
+msgstr ""
+
+#: admin/tabs/search_n_filter.php:451
+msgid "Only for Visible products of current table."
+msgstr ""
+
+#: admin/tabs/query.php:439
+msgid "Only Sale"
+msgstr ""
+
+#: admin/post_metabox_form.php:14
+msgid "Options"
+msgstr ""
+
+#: admin/functions.php:565
+msgid "Orange Style"
+msgstr ""
+
+#: woo-product-table.php:249
+msgid "Order"
+msgstr ""
+
+#: admin/tabs/query.php:300
+msgid "Order By"
+msgstr ""
+
+#: admin/functions.php:453
+msgid "Other Premium Plugins"
+msgstr ""
+
+#: includes/items/rating.php:4
+msgid "out of 5"
+msgstr ""
+
+#: woo-product-table.php:236
+msgid "Out of Stock"
+msgstr ""
+
+#: admin/tabs/query.php:427
+msgid "outofstock"
+msgstr ""
+
+#. 1: current page number 2: total page count
+#: admin/tabs/options.php:265
+#, php-format
+msgid "Page %1$s out of %2$s"
+msgstr ""
+
+#: admin/tabs/options.php:59
+msgid "Pagination"
+msgstr ""
+
+#: includes/functions.php:298
+msgid "Paragraph"
+msgstr ""
+
+#: admin/tabs/query.php:335
+msgid "Parent"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:21
+msgid "Parent Shortcode:"
+msgstr ""
+
+#: woo-product-table.php:568
+msgid "PHP"
+msgstr ""
+
+#: admin/functions.php:563
+msgid "Pink Style"
+msgstr ""
+
+#: admin/tabs/mobile.php:61 admin/tabs/responsive.php:77
+msgid ""
+"Pleach check you column to hide from Mobile. For all type Table(Responsive "
+"or Non-Responsive)."
+msgstr ""
+
+#: admin/handle/plugin-deactive/deactive-form.php:184
+msgid "Please let us know why you are deactivating. (All Optional)"
+msgstr ""
+
+#: modules/elementor-widget.php:118
+msgid "Please select a Table."
+msgstr ""
+
+#: woo-product-table.php:234
+msgid "Please select all items."
+msgstr ""
+
+#: woo-product-table.php:235
+msgid "Please select some items."
+msgstr ""
+
+#: admin/tabs/query.php:446
+msgid "Posts per page"
+msgstr ""
+
+#: admin/page/topbar.php:52
+msgid "Premium"
+msgstr ""
+
+#: admin/tabs/query.php:63
+msgid "Premium Feature"
+msgstr ""
+
+#: admin/functions.php:450
+msgid "Premium Plugin "
+msgstr ""
+
+#: woo-product-table.php:116
+msgid "Price"
+msgstr ""
+
+#: admin/page-loader.php:58 admin/page-loader.php:143
+msgid "Product Bulk Edit"
+msgstr ""
+
+#: admin/post_metabox_form.php:38
+msgid "Product Categories"
+msgstr ""
+
+#: admin/functions.php:590
+msgid "Product Color"
+msgstr ""
+
+#: includes/functions.php:269
+msgid "Product Link"
+msgstr ""
+
+#: inc/handle/message.php:56
+msgid "Product not found!"
+msgstr ""
+
+#: woo-product-table.php:246
+msgid "Product Search & Filter"
+msgstr ""
+
+#: admin/functions.php:591
+msgid "Product Size"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:44
+msgid "PRODUCT TABLE"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:18 admin/wpt_product_table_post.php:22
+msgid "Product Table"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:16
+msgctxt "PRODUCT TABLE"
+msgid "PRODUCT TABLE"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:15
+msgctxt "Product Table"
+msgid "Product Table"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:19
+msgid "Product Table Archives"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:20
+msgid "Product Table Attributes"
+msgstr ""
+
+#: admin/tabs/options.php:188
+msgid "Product Table Class Name (Optional)"
+msgstr ""
+
+#. Name of the plugin
+msgid "Product Table for WooCommerce"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:39
+msgid "Product Table list"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:40
+msgid "Product Table list navigation"
+msgstr ""
+
+#: admin/post_metabox_form.php:39
+msgid "Product Tags"
+msgstr ""
+
+#: admin/tabs/query.php:312
+msgid "Product Title"
+msgstr ""
+
+#: modules/elementor-widget.php:308
+msgid "Product Title Color"
+msgstr ""
+
+#: woo-product-table.php:232
+msgid "Product variations is not set Properly. Price empty or out of stock."
+msgstr ""
+
+#: woo-product-table.php:106
+msgid "Products"
+msgstr ""
+
+#: woo-product-table.php:211
+msgid "Products not found!"
+msgstr ""
+
+#: admin/tabs/options.php:217
+msgid "Put a Space (\" \") for getting default Add to Cart Text"
+msgstr ""
+
+#: includes/items/quick.php:2 includes/items/quick_view.php:3
+msgid "Qiuck View"
+msgstr ""
+
+#: woo-product-table.php:118
+msgid "Quantity"
+msgstr ""
+
+#: admin/post_metabox_form.php:11
+msgid "Query"
+msgstr ""
+
+#: woo-product-table.php:122
+msgid "Quick"
+msgstr ""
+
+#: admin/tabs/inc-column/available-column-list.php:16
+msgid "Quick Qty"
+msgstr ""
+
+#: woo-product-table.php:121 woo-product-table.php:213
+#: includes/functions.php:271 includes/functions.php:272
+msgid "Quick View"
+msgstr ""
+
+#: includes/functions.php:240
+msgid "Quick View by Code Astrology"
+msgstr ""
+
+#: woo-product-table.php:127
+msgid "Quote Request"
+msgstr ""
+
+#: woo-product-table.php:227
+msgid "Quoted"
+msgstr ""
+
+#: admin/tabs/query.php:276 admin/tabs/query.php:314
+msgid "Random"
+msgstr ""
+
+#. 1: current rating count
+#: includes/items/rating.php:4
+#, php-format
+msgid "Rated %s out of 5"
+msgstr ""
+
+#: woo-product-table.php:114
+msgid "Rating"
+msgstr ""
+
+#: admin/handle/pro-version-update.php:29
+msgid "RECOMMED UPDATE: Woo Product table Pro - CodeAstrology"
+msgstr ""
+
+#: admin/page/configure.php:113
+msgid "Recommendation Area"
+msgstr ""
+
+#: framework/ca-framework/app/require-control.php:346
+msgid "Recommends"
+msgstr ""
+
+#: admin/tabs/query.php:337
+msgid "Relevance"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:35
+msgid "Remove featured image"
+msgstr ""
+
+#: admin/page-loader.php:245
+msgid "Renew License"
+msgstr ""
+
+#: framework/ca-framework/app/require-control.php:346
+msgid "Requires"
+msgstr ""
+
+#: woo-product-table.php:222 inc/handle/search-box.php:23
+msgid "Reset"
+msgstr ""
+
+#: admin/page/configure.php:100
+msgid "Reset Settings"
+msgstr ""
+
+#: admin/functions.php:209
+msgid "Responsive <small>New</small>"
+msgstr ""
+
+#: admin/tabs/query.php:336
+msgid "Reviews Count"
+msgstr ""
+
+#: admin/tabs/query.php:434
+msgid "Sale Products"
+msgstr ""
+
+#: admin/post_metabox_form.php:164 admin/page/configure.php:95
+msgid "Save Change"
+msgstr ""
+
+#: woo-product-table.php:215
+msgid "Search"
+msgstr ""
+
+#: admin/post_metabox_form.php:16
+msgid "Search & Filter"
+msgstr ""
+
+#: woo-product-table.php:216 woo-product-table.php:247
+msgid "Search Keyword"
+msgstr ""
+
+#: admin/tabs/search_n_filter.php:287
+msgid "Search on Whole Site"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:30
+msgid "Search Product Table"
+msgstr ""
+
+#: includes/functions.php:291
+msgid "Section"
+msgstr ""
+
+#: admin/tabs/options.php:309 inc/handle/checkbox-box.php:20
+msgid "Select All"
+msgstr ""
+
+#: woo-product-table.php:250
+msgid "Select inner Item."
+msgstr ""
+
+#: includes/functions.php:372
+msgid "Select multiple inner items:"
+msgstr ""
+
+#: admin/functions.php:557
+msgid "Select None"
+msgstr ""
+
+#: includes/functions.php:307
+msgid "Select wrapper tag"
+msgstr ""
+
+#: admin/tabs/search_n_filter.php:388
+msgid "Selected"
+msgstr ""
+
+#: admin/tabs/options.php:185
+msgid "Set a Class name for Table"
+msgstr ""
+
+#: admin/tabs/section/column-section-mobile.php:7
+msgid ""
+"Set columns for mobile, otherwise tablet columns will be shown on mobile."
+msgstr ""
+
+#: admin/tabs/section/column-section-tablet.php:8
+msgid ""
+"Set columns for tablet, otherwise desktop columns will be shown on tablet."
+msgstr ""
+
+#: admin/wpt_product_table_post.php:34
+msgid "Set featured image"
+msgstr ""
+
+#: admin/page/configure.php:58
+msgid "Settings"
+msgstr ""
+
+#: woo-product-table.php:129 admin/tabs/options.php:355
+#: admin/tabs/inc-column/available-column-list.php:12
+msgid "Short Description"
+msgstr ""
+
+#: woo-product-table.php:120 admin/tabs/inc-column/available-column-list.php:11
+msgid "Short Message"
+msgstr ""
+
+#: templates/table-preview.php:45
+#: admin/tabs/inc-column/available-column-list.php:13
+msgid "Shortcode"
+msgstr ""
+
+#. %s: Documentation URL
+#: admin/functions.php:433
+#, php-format
+msgid ""
+"Should you need help understanding, using, or extending Product Table for "
+"WooCommerce, <a href=\"%s\">please read our documentation</a>. You will find "
+"all kinds of resources including snippets, tutorials and much more."
+msgstr ""
+
+#: admin/tabs/search_n_filter.php:36 admin/tabs/search_n_filter.php:433
+msgid "Show"
+msgstr ""
+
+#: admin/tabs/search_n_filter.php:60
+msgid "Show Search Box"
+msgstr ""
+
+#: includes/functions.php:234
+msgid "Show Variation Name With Title"
+msgstr ""
+
+#. 1: showing number 2: total product number
+#: admin/tabs/options.php:236
+#, php-format
+msgid "Showing %1$s out of %2$s"
+msgstr ""
+
+#: admin/functions.php:593
+msgid "Size"
+msgstr ""
+
+#: templates/table-preview.php:32
+msgid "Skip to content"
+msgstr ""
+
+#: woo-product-table.php:109 admin/tabs/inc-column/available-column-list.php:10
+msgid "SKU"
+msgstr ""
+
+#: woo-product-table.php:132
+msgid "SL"
+msgstr ""
+
+#: admin/functions.php:562
+msgid "Smart Border"
+msgstr ""
+
+#: admin/functions.php:578
+msgid "Smart Light"
+msgstr ""
+
+#: admin/functions.php:574
+msgid "Smart Thin"
+msgstr ""
+
+#: woo-product-table.php:239
+msgid "Sorry! Out of Stock!"
+msgstr ""
+
+#: woo-product-table.php:241
+msgid "Sorry, Please choose right combination."
+msgstr ""
+
+#: woo-product-table.php:248
+msgid "Sort By"
+msgstr ""
+
+#: admin/tabs/query.php:250 admin/tabs/query.php:320
+msgid "Sort by average rating"
+msgstr ""
+
+#: admin/tabs/query.php:324
+msgid "Sort by Featured Products"
+msgstr ""
+
+#: admin/tabs/query.php:251 admin/tabs/query.php:321
+msgid "Sort by latest"
+msgstr ""
+
+#: admin/tabs/query.php:249 admin/tabs/query.php:319
+msgid "Sort by popularity"
+msgstr ""
+
+#: admin/tabs/query.php:253 admin/tabs/query.php:323
+msgid "Sort by price: high to low"
+msgstr ""
+
+#: admin/tabs/query.php:252 admin/tabs/query.php:322
+msgid "Sort by price: low to high"
+msgstr ""
+
+#: admin/tabs/query.php:264
+msgid "Sorting/Order"
+msgstr ""
+
+#: includes/functions.php:301
+msgid "Span"
+msgstr ""
+
+#: admin/functions.php:599
+msgid "sss"
+msgstr ""
+
+#: admin/tabs/options.php:256
+msgid "Stats Page Count Text"
+msgstr ""
+
+#: admin/tabs/options.php:227
+msgid "Stats Post Count Text"
+msgstr ""
+
+#: woo-product-table.php:115 admin/tabs/inc-column/available-column-list.php:8
+msgid "Stock"
+msgstr ""
+
+#: admin/tabs/query.php:420
+msgid "Stock Status"
+msgstr ""
+
+#: includes/functions.php:300
+msgid "Strong"
+msgstr ""
+
+#: inc/handle/fragment.php:209
+msgid "Subtotal:"
+msgstr ""
+
+#: admin/menu_plugin_setting_link.php:19
+msgid "Support"
+msgstr ""
+
+#: modules/elementor-widget.php:270
+msgid "Table Body"
+msgstr ""
+
+#: modules/elementor-widget.php:212 admin/tabs/options.php:155
+msgid "Table Head"
+msgstr ""
+
+#: modules/elementor-widget.php:159
+msgid "Table List"
+msgstr ""
+
+#: admin/page-loader.php:51
+msgid "Table Settings"
+msgstr ""
+
+#: admin/page-loader.php:51
+msgid "Table Settings "
+msgstr ""
+
+#: admin/tabs/column_settings.php:83
+msgid "Tablet"
+msgstr ""
+
+#: woo-product-table.php:108 admin/functions.php:589
+msgid "Tags"
+msgstr ""
+
+#: includes/functions.php:36 admin/tabs/inc-column/add-new-column.php:33
+msgid "Taxonomy"
+msgstr ""
+
+#: admin/tabs/query.php:229
+msgid "Taxonomy Query Operation"
+msgstr ""
+
+#: admin/tabs/query.php:24
+msgid "Terms"
+msgstr ""
+
+#: admin/post_metabox_form.php:25
+msgid "Text Align"
+msgstr ""
+
+#: admin/post_metabox_form.php:22 modules/elementor-widget.php:294
+msgid "Text Color"
+msgstr ""
+
+#. 1: Plugin review submit link 2: star rating
+#: admin/page-loader.php:103
+#, php-format
+msgid ""
+"Thank you for using Woo Product Table. <a href=\"%1$s\" target=\"_blank\">"
+"%2$sPlease review us</a>."
+msgstr ""
+
+#: framework/recommeded.php:106
+msgid ""
+"There are many WooCommerce Widget available at UltraAddons. You can Try it. "
+"Just Recommended"
+msgstr ""
+
+#: woo-product-table.php:233
+msgid "There is no more products based on current Query."
+msgstr ""
+
+#: modules/elementor-widget.php:181
+msgid "There is no table found to your. "
+msgstr ""
+
+#: admin/handle/action-feature.php:46
+msgid "Third Party Plugin Supporting"
+msgstr ""
+
+#: admin/tabs/options.php:371
+msgid "Third Party Plugin Supporting "
+msgstr ""
+
+#: includes/variation_html.php:14
+msgid "This product is currently out of stock and unavailable."
+msgstr ""
+
+#: woo-product-table.php:105
+msgid "Thumbnails"
+msgstr ""
+
+#: wpml/admin-area.php:147
+msgid ""
+"TIPS for WPML USER: to change Message's value based on your language, First "
+"change language from admin bar and then change your message."
+msgstr ""
+
+#: admin/tabs/search_n_filter.php:54 admin/tabs/search_n_filter.php:64
+msgid "Tips:"
+msgstr ""
+
+#: framework/ca-framework/app/require-control.php:321
+msgid "to be Activated."
+msgstr ""
+
+#: framework/ca-framework/app/require-control.php:320
+msgid "to be Install and Activated."
+msgstr ""
+
+#: framework/ca-framework/app/require-control.php:322
+msgid "to be Upgrade Version."
+msgstr ""
+
+#: framework/recommeded.php:123
+msgid ""
+"To Display Quick View at Shop Page or Anywhere. There are many customizing "
+"option to this plugin."
+msgstr ""
+
+#: admin/tabs/search_n_filter.php:411
+msgid "To get Taxonomy customization, Please save/update this shortcode."
+msgstr ""
+
+#: admin/tabs/inc-column/available-column-list.php:19
+msgid "Toggle Description"
+msgstr ""
+
+#: admin/tabs/options.php:140
+msgid "Top (Default)"
+msgstr ""
+
+#: admin/tabs/inc-column/available-column-list.php:9
+msgid "Total"
+msgstr ""
+
+#: woo-product-table.php:119
+msgid "Total Price"
+msgstr ""
+
+#: admin/page-loader.php:133
+msgid "Tutorial"
+msgstr ""
+
+#: inc/shortcode.php:963
+msgid "Tutorial from website with Screenshot"
+msgstr ""
+
+#: admin/tabs/inc-column/add-new-column.php:66
+msgid "Tutorials"
+msgstr ""
+
+#: admin/tabs/query.php:332
+msgid "Type"
+msgstr ""
+
+#: admin/tabs/inc-column/add-new-column.php:34
+msgid "Type None"
+msgstr ""
+
+#: woo-product-table.php:240
+msgid "Type your Message."
+msgstr ""
+
+#: admin/tabs/query.php:384
+msgid ""
+"Type your Right meta value here. EG: \"_sku,_price,_customNumber\" - use any "
+"one only, there should no any space or comma"
+msgstr ""
+
+#: framework/ca-framework/form/fields/select.php:31
+msgid "Undefined"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:27
+msgid "Update Product Table"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:38
+msgid "Uploaded to this Product Table"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:36
+msgid "Use as featured image"
+msgstr ""
+
+#: admin/tabs/inc-column/available-column-list.php:17
+msgid "Variation Name"
+msgstr ""
+
+#: woo-product-table.php:126
+msgid "Variations"
+msgstr ""
+
+#: admin/post_metabox_form.php:26
+msgid "Vertical Align"
+msgstr ""
+
+#: inc/handle/fragment.php:156 includes/items/action.php:71
+#: includes/items/action.php:72
+#: compatible/plugins/waitlist-woocommerce/waitlist-col.php:65
+#: compatible/plugins/waitlist-woocommerce/waitlist-col.php:66
+msgid "View Cart"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:28
+msgid "View Product Table"
+msgstr ""
+
+#: admin/wpt_product_table_post.php:29
+msgid "View Product Tables"
+msgstr ""
+
+#: admin/tabs/inc-column/available-column-list.php:18
+msgid "Viewed"
+msgstr ""
+
+#: woo-product-table.php:110
+msgid "Weight(kg)"
+msgstr ""
+
+#: woo-product-table.php:112
+msgid "Width(cm)"
+msgstr ""
+
+#: woo-product-table.php:117
+msgid "Wish List"
+msgstr ""
+
+#: woo-product-table.php:567 admin/wpt_product_table_post.php:17
+#: framework/recommeded.php:16 modules/elementor-widget.php:41
+#: admin/page/topbar.php:44
+msgid "Woo Product Table"
+msgstr ""
+
+#: admin/functions.php:449
+msgid "WordPress.org"
+msgstr ""
+
+#: admin/tabs/options.php:408
+msgid "WP Force"
+msgstr ""
+
+#: wpml/admin-area.php:28 wpml/admin-area.php:91
+msgid "WPML Translate Area"
+msgstr ""
+
+#: admin/functions.php:548
+msgid "Write with default or English language."
+msgstr ""
+
+#: admin/admin-enqueue.php:92 includes/enqueue.php:53
+msgid "WTP Pro: "
+msgstr ""
+
+#: includes/functions.php:241 includes/functions.php:271
+#: includes/functions.php:272
+msgid "YITH WooCommerce Quick View"
+msgstr ""
+
+#: includes/functions.php:240 includes/functions.php:241
+#: includes/functions.php:271 includes/functions.php:272
+msgid "You have to install"
+msgstr ""
+
+#. 1: Minimum Request version 2: Current Pro version
+#: admin/handle/pro-version-update.php:31
+#, php-format
+msgid ""
+"Your pro version need to update. Minimum Request version: <code>v%2$s</code> "
+"and your current pro version is: <code>v%1$s</code>. To get all perfect "
+"result, Please update your pro version."
+msgstr ""
+
+#: inc/handle/message.php:25
+msgid "Your Product Table post is not published properly. "
+msgstr ""

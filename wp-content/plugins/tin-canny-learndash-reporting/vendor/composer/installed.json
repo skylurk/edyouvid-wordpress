@@ -1,0 +1,70 @@
+{
+    "packages": [
+        {
+            "name": "opigno/tincan",
+            "version": "1.1.4",
+            "version_normalized": "1.1.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/opigno/TinCanPHP.git",
+                "reference": "cf662853a45b7ba6b98e2359527e573d3ad75808"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/opigno/TinCanPHP/zipball/cf662853a45b7ba6b98e2359527e573d3ad75808",
+                "reference": "cf662853a45b7ba6b98e2359527e573d3ad75808",
+                "shasum": ""
+            },
+            "require": {
+                "ext-openssl": "*",
+                "namshi/jose": "^7.2.1",
+                "php": "~5.5 || ^7 || ^8",
+                "willdurand/negotiation": "^2.0"
+            },
+            "replace": {
+                "rusticisoftware/tincan": "*"
+            },
+            "require-dev": {
+                "phpdocumentor/phpdocumentor": "2.*",
+                "phpunit/phpunit": "^4"
+            },
+            "time": "2024-06-18T11:36:46+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "TinCan\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Brian J. Miller",
+                    "email": "brian.miller@tincanapi.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Experience API (Tin Can API) Library",
+            "homepage": "http://rusticisoftware.github.io/TinCanPHP/",
+            "keywords": [
+                "Experience API",
+                "e-learning",
+                "scorm",
+                "tin can",
+                "tincan",
+                "xAPI"
+            ],
+            "support": {
+                "email": "support@tincanapi.com",
+                "issues": "https://github.com/RusticiSoftware/TinCanPHP/issues",
+                "source": "https://github.com/opigno/TinCanPHP/tree/1.1.4"
+            },
+            "install-path": "../opigno/tincan"
+        }
+    ],
+    "dev": false,
+    "dev-package-names": []
+}

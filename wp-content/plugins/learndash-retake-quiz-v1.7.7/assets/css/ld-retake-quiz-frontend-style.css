@@ -1,0 +1,50 @@
+.choose-point-type {
+    background-color: #FFF;
+    max-width: 200px;
+}
+.learndash-error {
+    color: red;
+    font-weight: bold;
+}
+.learndash-success {
+    color: green;
+    font-weight: bold;
+}
+.swal-content a.point-purchase-link {
+    background: #59adc7;
+    color: #fff;
+    padding: 10px 15px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+.ld-mycred-checkout-button {
+    min-width: 210px;
+}
+
+.unlmt-bg{
+            background: #074b79;
+    border: 1px solid #074b79;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 20px;
+    border-radius: 5px;
+    padding: 4px 10px;
+    transition: .3s;
+    margin-left: 10px;
+    display: inline-block;
+}
+span.rtk-pnl{
+        border: 1px solid #d7d7d7;
+    padding: 30px;
+    border-radius: 10px;
+    background: #fbfbfb;
+    font-size: 22px;
+    font-weight: 100;
+    margin: 24px 0;
+}
+
+.retaking_quiz_timer{
+    color: #FF0000;
+}

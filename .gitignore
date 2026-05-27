@@ -1,0 +1,73 @@
+# ============================================================
+# WordPress site — .gitignore
+# ============================================================
+
+# --- Sensitive config (NEVER commit live credentials) -------
+wp-config.php
+
+# --- Site backups (All-in-One WP Migration — gigabytes, never commit) ------
+wp-content/ai1wm-backups/
+wp-content/updraft/
+wp-content/wpvivid/
+*.wpress
+*.zip.bak
+
+# --- User-uploaded media (846 MB — tracked outside git) -----
+wp-content/uploads/
+
+# --- Cache directories --------------------------------------
+wp-content/cache/
+wp-content/advanced-cache.php
+wp-content/object-cache.php
+
+# --- Logs ---------------------------------------------------
+*.log
+wp-content/mc_data/
+wp-content/uploads/is_iu_errors.log
+
+# --- WordPress core (auto-generated, not custom code) -------
+# Uncomment the block below if you want a lighter repo that
+# only tracks wp-content. Leave commented to commit WP core
+# (easier for full-site deploys to a fresh server).
+#
+# wp-admin/
+# wp-includes/
+# *.php
+# !index.php
+# !wp-config-sample.php
+# wp-activate.php
+# wp-blog-header.php
+# wp-comments-post.php
+# wp-cron.php
+# wp-links-opml.php
+# wp-load.php
+# wp-login.php
+# wp-mail.php
+# wp-settings.php
+# wp-signup.php
+# wp-trackback.php
+# xmlrpc.php
+
+# --- MalCare connector (auto-regenerated, contains hashes) --
+bv_connector_*.php
+malcare-waf.php
+
+# --- OS / editor junk ---------------------------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Node (if a build step is ever added) -------------------
+node_modules/
+npm-debug.log
+package-lock.json
+
+# --- Misc ---------------------------------------------------
+*.bak
+*.sql
+*.tar.gz
+*.zip
+fielde

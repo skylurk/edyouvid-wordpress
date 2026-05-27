@@ -1,0 +1,13 @@
+= [1.8.2.2] =
+
+* Fix - Fixed an issue of an untranslatable string.
+* Tweak - Code improvements.
+
+= [1.8.2.1] =
+
+* Security - Tightened security around the plugin settings.
+
+= [1.8.2] =
+
+* Tweak - Updated branding.
+* Deprecated classes: `bfcm_banner\BfcmBanners`, `WisdmReportsLearndash\Learner_Activity_Onboarding`.

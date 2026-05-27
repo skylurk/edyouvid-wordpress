@@ -1,0 +1,35 @@
+# Copyright (C) 2023 WP White Security
+# This file is distributed under the GPL v3.
+msgid ""
+msgstr ""
+"Project-Id-Version: CAPTCHA 4WP 7.2.2\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/advanced-nocaptcha-recaptcha\n"
+"Last-Translator: WP White Security <info@wpwhitesecurity.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2023-06-06T12:46:44+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.7.1\n"
+"X-Domain: advanced-nocaptcha-recaptcha\n"
+
+#. Plugin Name of the plugin
+msgid "CAPTCHA 4WP"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://www.wpwhitesecurity.com/wordpress-plugins/captcha-plugin-wordpress/"
+msgstr ""
+
+#. Description of the plugin
+msgid "Easily add any type of CAPTCHA (such as noCaptcha or invisible Captcha) on any website form, including login pages, comments and password reset forms, and also forms by third party plugins such as Contact Form 7, WooCommerce & BuddyPress."
+msgstr ""
+
+#. Author of the plugin
+msgid "WP White Security"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://www.wpwhitesecurity.com/"
+msgstr ""

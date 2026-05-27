@@ -1,0 +1,547 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: LearnDash Retake Quiz\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-02-28 17:59+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.5.8; wp-5.9.1\n"
+"X-Domain: ld_retake_quiz"
+
+#: includes/quiz_handler.php:290
+msgid "\">Back</a>"
+msgstr ""
+
+#: license/LRTQ_License.php:53
+msgid ""
+"\">here</a> to update your license key or renew it <a href=\"https:"
+"//wooninjas.com/wn-products/learndash-retake-quiz/\" target=\"_blank\">"
+"here</a>."
+msgstr ""
+
+#: learndash-retake-quiz.php:347
+msgid ""
+"<strong>LearnDash Retake Quiz</strong> requires <a href=\"https://www."
+"learndash.com\" target=\"_blank\">LearnDash LMS</a> plugin to be activated."
+msgstr ""
+
+#: includes/settings/templates/license.php:32
+msgid "Activate"
+msgstr ""
+
+#: includes/settings/templates/general.php:112
+msgid "Allow Negative Marking?"
+msgstr ""
+
+#: includes/settings/templates/general.php:32
+msgid "Allow Quiz Delay?"
+msgstr ""
+
+#: includes/settings/templates/general.php:67
+msgid "Allow Retake Limit?"
+msgstr ""
+
+#: includes/settings/templates/general.php:126
+msgid "Allow Retake Logs?"
+msgstr ""
+
+#: includes/settings/templates/general.php:22
+msgid "Allow Retake Quizzes"
+msgstr ""
+
+#: includes/settings/templates/features.php:146
+msgid "Allow Retake Quizzes for specific Groups,Quiz Categories, Quiz Tags"
+msgstr ""
+
+#. Description of the plugin
+msgid ""
+"Allow users to reattempt only incorrectly answered questions in subsequent "
+"attempts, with other features like retake quiz delay, limit, logs and "
+"negative marking on incorrect questions."
+msgstr ""
+
+#: includes/settings/templates/features.php:103
+msgid ""
+"Apply retake quiz feature on selected quizzes only, leave it blank to apply "
+"on all quizzes."
+msgstr ""
+
+#: includes/settings/templates/retake_quiz_logs.php:194
+msgid "Are you sure you want to clear logs?"
+msgstr ""
+
+#: includes/settings/templates/delete_retake_quiz_data.php:68
+msgid "Are you sure you want to proceed with deleting data?"
+msgstr ""
+
+#: includes/ld_retake_meta_boxes.php:71
+msgid ""
+"Check and click update profile to permanently delete user LearnDash Retake "
+"Quiz data"
+msgstr ""
+
+#: includes/settings/templates/features.php:52
+msgid ""
+"Choose course(s) to narrow down the allowed quizzes for retake quiz option."
+msgstr ""
+
+#: includes/settings/templates/features.php:167
+msgid ""
+"Choose group(s) to narrow down the allowed quizzes for retake quiz option."
+msgstr ""
+
+#: includes/settings/templates/features.php:69
+msgid ""
+"Choose lesson(s) to narrow down the allowed quizzes for retake quiz option."
+msgstr ""
+
+#: includes/settings/templates/features.php:211
+msgid ""
+"Choose quiz category to narrow down the allowed quizzes for retake quiz "
+"option."
+msgstr ""
+
+#: includes/settings/templates/features.php:255
+msgid ""
+"Choose quiz tags to narrow down the allowed quizzes for retake quiz option."
+msgstr ""
+
+#: includes/settings/templates/features.php:86
+msgid ""
+"Choose topic(s) to narrow down the allowed quizzes for retake quiz option."
+msgstr ""
+
+#: includes/settings/templates/general.php:54
+msgid "Day(s)"
+msgstr ""
+
+#: includes/settings/templates/license.php:37
+msgid "Deactivate"
+msgstr ""
+
+#: includes/settings/templates/retake_quiz_logs.php:123
+msgid "Delete"
+msgstr ""
+
+#: includes/settings/templates/delete_retake_quiz_data.php:45
+#, php-format
+msgid "Delete %s Retake Quiz Data"
+msgstr ""
+
+#: includes/settings/templates/delete_retake_quiz_data.php:46
+#, php-format
+msgid "Delete all %s data"
+msgstr ""
+
+#: includes/settings/templates/delete_retake_quiz_data.php:24
+msgid "Delete all users data"
+msgstr ""
+
+#: includes/settings/templates/general.php:95
+msgid "Delete Previous Quiz Attempt ?"
+msgstr ""
+
+#: includes/settings/options.php:411
+#: includes/settings/templates/delete_retake_quiz_data.php:18
+#: includes/settings/templates/delete_retake_quiz_data.php:68
+msgid "Delete Retake Quiz Data"
+msgstr ""
+
+#: includes/settings/templates/delete_retake_quiz_data.php:62
+#, php-format
+msgid "Delete Retake Quiz data for selected %s"
+msgstr ""
+
+#: includes/settings/templates/delete_retake_quiz_data.php:41
+msgid "Delete Retake Quiz data for selected users"
+msgstr ""
+
+#: includes/settings/templates/delete_retake_quiz_data.php:47
+#, php-format
+msgid "Delete specific %s data"
+msgstr ""
+
+#: includes/settings/templates/delete_retake_quiz_data.php:25
+msgid "Delete specific users data"
+msgstr ""
+
+#: includes/settings/templates/delete_retake_quiz_data.php:23
+msgid "Delete Users Retake Quiz Data"
+msgstr ""
+
+#: includes/settings/templates/quiz_completion.php:35
+msgid "Disable Completion Message"
+msgstr ""
+
+#: includes/settings/templates/license.php:23
+msgid "Enter license key provided with plugin"
+msgstr ""
+
+#: license/LRTQ_Plugin_Updater.php:393
+msgid "Error"
+msgstr ""
+
+#: includes/settings/templates/features.php:266
+msgid "Exclude Groups"
+msgstr ""
+
+#: includes/settings/templates/features.php:109
+msgid "Exclude Quizzes"
+msgstr ""
+
+#: includes/settings/templates/features.php:126
+msgid "Exclude Users"
+msgstr ""
+
+#: includes/settings/options.php:391 includes/settings/templates/general.php:17
+msgid "General Settings"
+msgstr ""
+
+#: includes/settings/templates/general.php:53
+msgid "Hour(s)"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://wooninjas.com/"
+msgstr ""
+
+#. URI of the plugin
+msgid "https://wooninjas.com/downloads/learndash-retake-quiz/"
+msgstr ""
+
+#: includes/settings/templates/general.php:119
+msgid ""
+"If this option is selected, a negative points field will be displayed "
+"against each question. User will get the negative points if they attempt a "
+"question incorrectly."
+msgstr ""
+
+#: includes/settings/templates/general.php:102
+msgid ""
+"If this option is selected, than save only last quiz attempt and remove all "
+"previous quiz attempts"
+msgstr ""
+
+#: includes/settings/templates/quiz_completion.php:42
+msgid ""
+"If this option is selected, the \"completion message\" will not be displayed."
+msgstr ""
+
+#: includes/settings/templates/general.php:39
+msgid ""
+"If this option is selected, the individual quiz delay options will start "
+"working."
+msgstr ""
+
+#: includes/settings/templates/general.php:74
+msgid ""
+"If this option is selected, the limit option on quiz retake will start "
+"working."
+msgstr ""
+
+#: includes/settings/templates/general.php:133
+msgid ""
+"If this option is selected, the logs feature on quiz retake will start "
+"working."
+msgstr ""
+
+#. Name of the plugin
+msgid "LearnDash Retake Quiz"
+msgstr ""
+
+#: includes/settings/options.php:300
+msgid "LearnDash Retake Quiz data deleted successfully."
+msgstr ""
+
+#: includes/settings/options.php:347
+msgid "Learndash Retake Quiz Settings"
+msgstr ""
+
+#: license/LRTQ_License.php:58
+msgid "License Activated!"
+msgstr ""
+
+#: includes/settings/templates/license.php:14
+msgid "License Configuration"
+msgstr ""
+
+#: license/LRTQ_License.php:64
+msgid "License Deactivated!"
+msgstr ""
+
+#: includes/settings/templates/license.php:19
+msgid "License Key"
+msgstr ""
+
+#: includes/settings/options.php:387
+msgid "License Option"
+msgstr ""
+
+#: includes/settings/templates/general.php:52
+msgid "Minute(s)"
+msgstr ""
+
+#: includes/settings/templates/general.php:55
+msgid "Month(s)"
+msgstr ""
+
+#: includes/ld_retake_meta_boxes.php:98
+msgid "Negative Marking"
+msgstr ""
+
+#: includes/ld_retake_meta_boxes.php:62
+msgid "Permanently Delete Retake Quiz Data"
+msgstr ""
+
+#: includes/settings/templates/license.php:15
+msgid ""
+"Please enter a valid license key to receive latest add-on updates "
+"automatically."
+msgstr ""
+
+#: includes/settings/options.php:406
+msgid "Quiz Completion"
+msgstr ""
+
+#: includes/settings/templates/quiz_completion.php:47
+msgid "Quiz Completion Message"
+msgstr ""
+
+#: includes/settings/templates/general.php:46
+msgid "Quiz Retake Delay"
+msgstr ""
+
+#: includes/settings/templates/general.php:60
+msgid ""
+"Quiz retake delay will stop the user to retake a particular quiz repeatedly "
+"for the specified delay."
+msgstr ""
+
+#: includes/settings/templates/general.php:81
+msgid "Quiz Retake Limit (Number of retakes allowed)"
+msgstr ""
+
+#: includes/settings/templates/quiz_completion.php:59
+msgid "Quiz Retake Limit Reached Message"
+msgstr ""
+
+#: includes/settings/templates/general.php:88
+msgid ""
+"Quiz retake limit will restrict the user from retaking a particular quiz "
+"when specified limit reaches."
+msgstr ""
+
+#. placeholder: courses.
+#: includes/class-retake-quiz-admin-binary-selector.php:22
+#, php-format
+msgctxt "Quizzes label"
+msgid "%s"
+msgstr ""
+
+#: includes/settings/templates/quiz_completion.php:52
+#, php-format
+msgid "Render link to previous %s or %s"
+msgstr ""
+
+#: includes/settings/templates/features.php:306
+msgid "Restart Quiz Button is disabled by LearnDash Quiz Settings for Quizzes:"
+msgstr ""
+
+#: includes/settings/templates/features.php:283
+msgid "Restricted Quizzes for retake by LearnDash Quiz Settings:"
+msgstr ""
+
+#: includes/settings/options.php:332 includes/settings/options.php:333
+msgid "Retake Quiz"
+msgstr ""
+
+#: includes/settings/templates/quiz_completion.php:20
+msgid "Retake Quiz Attempts reaches limit."
+msgstr ""
+
+#: includes/quiz_handler.php:237
+#, php-format
+msgid "Retake Quiz Attempts reaches limit. <a href=\"%s\">Back</a>"
+msgstr ""
+
+#: includes/settings/options.php:419
+msgid "Retake Quiz Logs"
+msgstr ""
+
+#: includes/settings/templates/features.php:278
+msgid "Retake quiz option will be disabled for the selected groups."
+msgstr ""
+
+#: includes/settings/templates/features.php:120
+msgid "Retake quiz option will be disabled for the selected quizzes."
+msgstr ""
+
+#: includes/settings/templates/features.php:137
+msgid "Retake quiz option will be disabled for the selected users."
+msgstr ""
+
+#: includes/settings/options.php:401
+#: includes/settings/templates/features.php:36
+msgid "Retake Settings"
+msgstr ""
+
+#: includes/quiz_handler.php:335 includes/quiz_handler.php:340
+msgid "Retries left"
+msgstr ""
+
+#. placeholder: courses.
+#: includes/class-retake-quiz-admin-binary-selector.php:30
+#, php-format
+msgctxt "Search All Quizzes Label"
+msgid "Search All %s"
+msgstr ""
+
+#. placeholder: courses.
+#: includes/class-retake-quiz-admin-binary-selector.php:35
+#, php-format
+msgctxt "Search Selected Quizzes Label"
+msgid "Search Selected %s"
+msgstr ""
+
+#: includes/settings/templates/delete_retake_quiz_data.php:51
+#, php-format
+msgid "Select %s to delete Retake Quiz Data"
+msgstr ""
+
+#: learndash-retake-quiz.php:266
+msgid "select an option"
+msgstr ""
+
+#: includes/settings/templates/delete_retake_quiz_data.php:29
+msgid "Select Users to delete Retake Quiz data"
+msgstr ""
+
+#: learndash-retake-quiz.php:329
+msgid "Settings"
+msgstr ""
+
+#: includes/settings/options.php:79 includes/settings/options.php:111
+#: includes/settings/options.php:144 includes/settings/options.php:321
+msgid "Settings Updated."
+msgstr ""
+
+#: includes/settings/templates/features.php:339
+msgid ""
+"Settings will be shown only if <b>Allow Retake Quizzes</b> or <b>Allow Quiz "
+"Delay</b> features are enabled."
+msgstr ""
+
+#: includes/settings/templates/features.php:41
+msgid "Specific Courses"
+msgstr ""
+
+#: includes/settings/templates/features.php:156
+msgid "Specific Groups"
+msgstr ""
+
+#: includes/settings/templates/features.php:58
+msgid "Specific Lessons"
+msgstr ""
+
+#: includes/settings/templates/features.php:175
+msgid "Specific Quiz Categories"
+msgstr ""
+
+#: includes/settings/templates/features.php:219
+msgid "Specific Quiz Tags"
+msgstr ""
+
+#: includes/settings/templates/features.php:92
+msgid "Specific Quizzes"
+msgstr ""
+
+#: includes/settings/templates/features.php:75
+msgid "Specific Topics"
+msgstr ""
+
+#: license/LRTQ_Plugin_Updater.php:203
+#, php-format
+msgid ""
+"There is a new version of %1$s available. %2$sView version %3$s details%4$s "
+"or %5$supdate now%6$s."
+msgstr ""
+
+#: license/LRTQ_Plugin_Updater.php:195
+#, php-format
+msgid ""
+"There is a new version of %1$s available. %2$sView version %3$s details%4$s."
+msgstr ""
+
+#: includes/ld_retake_meta_boxes.php:118
+msgid ""
+"These points will be deducted only if user answered the question incorrectly."
+msgstr ""
+
+#: includes/settings/templates/quiz_completion.php:63
+msgid ""
+"This message will be displayed only when <strong>Allow Retake "
+"Quizzes</strong> feature is enabled and Allowed retake limit is reached"
+msgstr ""
+
+#: includes/settings/templates/quiz_completion.php:51
+#, php-format
+msgid ""
+"This message will be displayed only when <strong>Allow Retake "
+"Quizzes</strong> feature is enabled and user has completed the %s."
+msgstr ""
+
+#: includes/quiz_handler.php:335
+msgid "Unlimited"
+msgstr ""
+
+#: includes/settings/templates/features.php:335
+#: includes/settings/templates/general.php:141
+#: includes/settings/templates/quiz_completion.php:74
+msgid "Update Settings"
+msgstr ""
+
+#. Author of the plugin
+msgid "WooNinjas"
+msgstr ""
+
+#: includes/settings/templates/general.php:56
+msgid "Year(s)"
+msgstr ""
+
+#: includes/settings/templates/features.php:150
+#: includes/settings/templates/general.php:26
+#: includes/settings/templates/general.php:36
+#: includes/settings/templates/general.php:71
+#: includes/settings/templates/general.php:99
+#: includes/settings/templates/general.php:116
+#: includes/settings/templates/general.php:130
+#: includes/settings/templates/quiz_completion.php:39
+msgid "Yes"
+msgstr ""
+
+#: license/LRTQ_Plugin_Updater.php:393
+msgid "You do not have permission to install plugin updates"
+msgstr ""
+
+#: includes/quiz_handler.php:205
+#: includes/settings/templates/quiz_completion.php:16
+msgid ""
+"You have already completed this quiz. [ld_rtq_back_link]"
+"Back[/ld_rtq_back_link]"
+msgstr ""
+
+#: license/LRTQ_License.php:54
+msgid ""
+"Your license for <strong>LearnDash Retake Quiz</strong> is expired. Click <a "
+"href=\"https://wooninjas.com/wn-products/learndash-retake-quiz/\" "
+"target=\"_blank\">here</a> to renew your license key and receive latest add-"
+"on updates automatically."
+msgstr ""

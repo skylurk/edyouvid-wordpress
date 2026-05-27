@@ -1,0 +1,188 @@
+/**
+ * Export Button Styles for Woo Product Table
+ * 
+ * @package WOO_PRODUCT_TABLE
+ * @since 5.0.7
+ */
+
+/* Export Wrapper */
+.wpt-export-wrapper {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+/* Export Buttons Container */
+.wpt-export-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Base Export Button */
+.wpt-export-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-width: 90px;
+    position: relative;
+}
+
+.wpt-export-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    color: white;
+}
+
+.wpt-export-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.wpt-export-btn:active {
+    transform: translateY(0);
+}
+
+/* Button Loading State */
+.wpt-export-btn.wpt-export-loading {
+    cursor: wait;
+    pointer-events: none;
+    opacity: 0.9;
+}
+
+/* Inline Button Spinner */
+.wpt-export-btn-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: wpt-spin 0.8s linear infinite;
+}
+
+/* HTML Button - Blue */
+.wpt-export-btn-html {
+    background: #3498db;
+}
+.wpt-export-btn-html:hover {
+    background: #2980b9;
+}
+
+/* CSV Button - Green */
+.wpt-export-btn-csv {
+    background: #27ae60;
+}
+.wpt-export-btn-csv:hover {
+    background: #219a52;
+}
+
+/* PDF Button - Red */
+.wpt-export-btn-pdf {
+    background: #e74c3c;
+}
+.wpt-export-btn-pdf:hover {
+    background: #c0392b;
+}
+
+/* Excel Button - Dark Green */
+.wpt-export-btn-excel {
+    background: #1d8348;
+}
+.wpt-export-btn-excel:hover {
+    background: #186a3b;
+}
+
+/* XML Button - Purple */
+.wpt-export-btn-xml {
+    background: #8e44ad;
+}
+.wpt-export-btn-xml:hover {
+    background: #7d3c98;
+}
+
+/* JSON Button - Orange */
+.wpt-export-btn-json {
+    background: #e67e22;
+}
+.wpt-export-btn-json:hover {
+    background: #d35400;
+}
+
+/* ODS Button - Teal */
+.wpt-export-btn-ods {
+    background: #16a085;
+}
+.wpt-export-btn-ods:hover {
+    background: #138d75;
+}
+
+/* Export Icon */
+.wpt-export-icon {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+}
+
+/* Export Text */
+.wpt-export-text {
+    white-space: nowrap;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .wpt-export-wrapper {
+        margin: 10px 0;
+    }
+
+    .wpt-export-buttons {
+        gap: 6px;
+    }
+
+    .wpt-export-btn {
+        padding: 8px 14px;
+        font-size: 13px;
+        min-width: 80px;
+    }
+
+    .wpt-export-icon {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .wpt-export-buttons {
+        flex-direction: row;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        width: 100%;
+        align-items: center;
+    }
+
+    .wpt-export-btn {
+        justify-content: center;
+        width: 40px;
+    }
+}
+
+/* RTL Support */
+[dir="rtl"] .wpt-export-buttons {
+    flex-direction: row-reverse;
+}
+
+@keyframes wpt-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

@@ -1,0 +1,383 @@
+.loginpress-limit-login-tabs .button{
+        border: 1px solid #EAEDF4;
+    border-bottom: 0;
+    background-color: #EAEDF4;
+    color: #424A67 !important;
+    font-size: 16px;
+    font-weight: 500 !important;
+    line-height: 24px;
+    padding: 9px 30px;
+    border-radius: 5px 5px 0 0;
+    margin: 0 10px 0 0;
+    transition: all 0.3s;
+    text-decoration: none;
+    outline: none !important;
+    box-shadow: none !important;
+    display: inline-block;
+    position: relative;
+	min-width: 0;
+	border-bottom: 0 !important;
+}
+#loginpress_limit_login_blacklist tbody tr:nth-child(even) td{
+	background: #000;
+}
+.bulk_option{
+	align-items: center;
+}
+.bulk_option_wrapper .select{
+	margin-left: 0;
+}
+.loginpress-limit-login-tabs{
+	margin-bottom: 20px;
+}
+.loginpress-limit-login-tabs:after{
+        content: "";
+    display: block;
+    border-bottom: 1px solid #3C50E0;
+}
+.loginpress-limit-login-tabs .button.button-primary,
+.loginpress-limit-login-tabs .button:hover{
+        background-color: #ffff;
+    color: #3C50E0 !important;
+    text-decoration: none;
+    border-color: #3C50E0;
+}
+
+.loginpress-limit-login-tabs .button.button-primary:after{
+        background: #fff !important;
+    content: "";
+    height: 2px;
+    top: 100%;
+    left: 0;
+    position: absolute;
+    width: 100%;
+}
+.loginpress-ip-buttons {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+}
+.loginpress-ip-input-wrapper{
+	max-width: 300px;
+	width: 100%;
+}
+.loginpress-ip-buttons + .message,
+.loginpress-ip-buttons + .message.message{
+	margin-top: 10px !important;
+}
+.loginpress-limit-login-settings .loginpress-setting-input{
+	gap: 0;
+}
+.loginpress-ip-buttons button{
+        display: inline-block;
+    background-color: #ffffff !important;
+    color: #3a3a3a !important;
+    border: 1px solid #a5a5a5 !important;
+    cursor: pointer;
+    box-shadow: none;
+    border-radius: 5px !important;
+    padding: 12px 20px 10px !important;
+    font-size: 14px;
+    line-height: 21px;
+    font-family: "Poppins", sans-serif;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+.loginpress-ip-buttons button:disabled{
+	opacity: 0.5;
+	pointer-events: none;
+}
+#wpcontent #loginpress_limit_login_blacklist tbody .loginpress_limit_login_blacklist_actions .button-primary{
+	min-width: 0;
+}
+input[type=checkbox].llla_inside_check{
+    border-radius: 50%;
+    margin: 0;
+        border: 2px solid #D2DDF2;
+    border-radius: 50%;
+    background: #fff;
+    clear: none;
+    cursor: pointer;
+    display: inline-block;
+    height: 20px;
+    margin: 0 !important;
+    outline: 0;
+    padding: 0 !important;
+    text-align: center;
+    vertical-align: middle;
+    width: 20px;
+    -webkit-appearance: none;
+    box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.1);
+    transition: .05s border-color ease-in-out;
+    position: relative;
+	margin-inline: auto;
+}
+[data-label="Exclude Roles"] .loginpress-multicheck-options{
+	display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 20px;
+}
+.toplevel_page_loginpress-settings table:is(.loginpress_limit_login_blacklist, .loginpress_limit_login_whitelist).dataTable thead tr th:first-child{
+	width: auto;
+	text-align: left;
+}
+input[type=checkbox].llla_inside_check::before {
+    content: "";
+    border-radius: 50%;
+    width: 10px !important;
+    height: 10px !important;
+    margin: 0 !important;
+    background-color: #D2DDF2;
+    line-height: 1.14285714;
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+input[type=checkbox].llla_inside_check:checked{
+        border-color: #07003B;
+    border-width: 6px;
+    border-style: solid;
+}
+
+input[type=checkbox].llla_inside_check:checked:before{
+    background: #fff;
+}
+.loginpress-ip-buttons button:not(:disabled):hover{
+    
+        background-color: #515E81 !important;
+    color: #fff !important;
+    border: 1px solid #515E81 !important;
+}
+.loginpress-ip-buttons button.blacklist-btn{
+        background-color: #515E81 !important;
+    color: #fff !important;
+    border: 1px solid #515E81 !important;
+}
+
+.loginpress-ip-buttons button.blacklist-btn:not(:disabled):hover{
+    
+        background-color: #fff !important;
+    color: #515E81 !important;
+    border: 1px solid #515E81 !important;
+}
+#loginpress_limit_logs .bulk_option_wrapper{
+	justify-content: space-between;
+}
+/* Pagination Controls Styling */
+.loginpress-pagination {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 20px 0;
+    justify-content: end;
+}
+.loginpress-pagination button {
+    display: inline-flex;
+    align-items: center;
+    background: #fff;
+    /* color: #3C50E0; */
+    border: 0;
+    /* border-radius: 4px; */
+    /* padding: 7px 16px; */
+    font-size: 15px;
+    font-family: "Poppins", sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    outline: none;
+    box-shadow: none;
+    position: relative;
+}
+.loginpress-pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.loginpress-pagination button:not(:disabled):hover {
+    /* background: #3C50E0; */
+    color: #fff;
+}
+.loginpress-pagination button:first-child::before {
+    content: ""; /* Left arrow */
+    /* margin-right: 8px; */
+    font-size: 16px;
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+}
+.loginpress-pagination button:last-child::after {
+    content: ""; /* Right arrow */
+    /* margin-left: 8px; */
+    font-size: 16px;
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+}
+.loginpress-pagination span {
+    font-size: 15px;
+    color: #424A67;
+    font-family: "Poppins", sans-serif;
+    font-weight: 500;
+}
+.loginpress-row-per-page-search{
+    width: 300px;
+	max-width: 100%;
+}
+.loginpress-table-filter-wrapper{
+	display: flex;
+	justify-content: space-between;
+}
+.loginpress-limit-login-content :is(.loginpress-limit-bw-table-search){
+	width: auto;
+}.loginpress-limit-login-content .row-per-page{
+	max-width: none;
+	width: auto;
+	margin-bottom: 0;
+}
+.loginpress-limit-bw-table-search input[type="text"]{
+	height: 40px;
+    min-width: 200px;
+}
+.loginpress-limit-login-content :is(.loginpress-row-per-page-search, .loginpress-show-entries){
+	gap: 0;
+}
+.loginpress-limit-login-content :is(.loginpress-row-per-page-search){
+	gap: 5px;
+}
+.loginpress-limit-login-content :is(.loginpress-row-per-page-search) span{
+	color: #5C7697;
+}
+.toplevel_page_loginpress-settings #loginpress_limit_login_log tbody .loginpress_limit_login_log_actions .button{
+	min-width: 0;
+}
+.loginpress-limit-login-notifications h3{
+	margin-bottom: 20px;
+}
+#wpcontent #loginpress_limit_login_blacklist tbody .loginpress_limit_login_blacklist_actions .button-primary:focus{
+    outline: none;
+    box-shadow: none;
+}
+#wpcontent #loginpress_limit_login_blacklist tbody .loginpress_limit_login_blacklist_actions .button-primary:focus-visible{
+    outline: 2px solid currentColor;
+}
+.loginpress-limit-login-content .bulk_option_wrapper{
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  z-index: 51;
+}
+.loginpress-log-status-filters {
+    display: flex;
+    margin-bottom: 16px;
+    margin-top: 16px;
+    gap: 10px;
+    position: relative;
+/*     top: 55px; */
+	z-index: 99;
+	justify-content: end;
+
+}
+
+.loginpress-log-status-filters .button {
+    padding: 10px 25px;
+    border: 1px solid #EAEDF4;
+    background-color: #EAEDF4;
+    color: #424A67 !important;
+    font-size: 14px;
+    font-weight: 500 !important;
+    line-height: 24px;
+    border-radius: 5px;
+	cursor: pointer;
+	width: auto !important;
+    max-width: none;
+    min-width: 0;
+}
+
+.loginpress-log-status-filters .button:is(.button-primary,:hover) {
+    background-color: #fff;
+	width: auto !important;
+}
+
+@media (max-width: 1320px){
+	.loginpress-limit-login-tabs .button{
+			font-size: 14px;
+		line-height: 20px;
+		padding: 12px 9px;
+		margin: 0 2px 0 0;
+	}
+}
+
+@media (max-width: 640px){
+	.bulk_option_wrapper .select{
+		width: calc(100% - 200px);
+	}
+}
+
+/* Cross icon (clear button) styles */
+
+.clear-search-btn {
+  position: absolute !important;
+  right: 8px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  background: none !important;
+  border: none !important;
+  font-size: 18px !important;
+  color: #999 !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  width: 20px !important;
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  transition: all 0.2s ease !important;
+  z-index: 999 !important;
+}
+
+.clear-search-btn:hover {
+  background-color: #f0f0f0 !important;
+  color: #666 !important;
+}
+
+.clear-search-btn.show-on-hover {
+  opacity: 0 !important;
+  transition: opacity 0.2s ease !important;
+}
+
+.search-input-wrapper:hover .clear-search-btn.show-on-hover {
+  opacity: 1 !important;
+}
+
+/* Ensure search input has right padding to accommodate the clear button */
+.search-input-wrapper input[type=search]:not(.loginpress-autologin-search-input) {
+  height: 40px !important;
+}
+
+/* Additional positioning for the specific search inputs in LimitLoginSettings */
+.loginpress-limit-bw-table-search .search-input-wrapper {
+  position: relative !important;
+  display: inline-block !important;
+}
+
+.loginpress-row-per-page-search .search-input-wrapper {
+  position: relative !important;
+  display: inline-block !important;
+}
+
+/* Force positioning for all search inputs in the LimitLoginSettings context */
+.loginpress-limit-login-content .search-input-wrapper {
+  position: relative !important;
+  display: inline-block !important;
+}
+
+/* Ensure the cross icon is positioned correctly in all contexts */
+.loginpress-limit-login-content .clear-search-btn {
+  position: absolute !important;
+  right: 8px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 999 !important;
+}

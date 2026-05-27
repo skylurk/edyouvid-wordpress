@@ -1,0 +1,27 @@
+.woocommerce-page.woocommerce-checkout form #order_review td.product-name{
+	display: block;
+}
+
+.woocommerce-checkout-review-order-table .cart_item p.courses-assigned-heading {
+	margin: 0;
+	font-weight: bold;
+}
+
+.woocommerce-checkout-review-order-table .cart_item ul.courses-assigned {
+	margin-left: 2rem;
+	margin-top: 0;
+	display: inline-block;
+}
+
+.woocommerce-checkout-review-order-table .cart_item p.product-quantity {
+}
+
+.woocommerce-checkout-review-order-table .cart_item dl.variation dt.variation-GroupName,
+.woocommerce-checkout-review-order-table .cart_item dl.variation dt.variation-Courses {
+	font-weight: bold;
+}
+
+.woocommerce-checkout-review-order-table .cart_item dl.variation dd.variation-GroupName p,
+.woocommerce-checkout-review-order-table .cart_item dl.variation dd.variation-Courses p {
+	display: inline;
+}

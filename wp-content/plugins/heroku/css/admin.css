@@ -1,0 +1,26 @@
+/* Dashboard Style */
+.lp-credits {
+	background: none repeat scroll 0 0 #fff;
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+	float: right;
+	position: relative;
+	width: 280px;
+}
+.lp-credits h3 {
+	border-bottom: 1px solid #eee;
+	font-size: 14px;
+	line-height: 1.4;
+	margin: 0;
+	padding: 8px 12px;
+}
+.lp-credits h4 {
+	margin-top: 0;
+}
+.lp-credits .inside div {
+	padding: 5px 15px;
+}
+.linkpreview-form {
+	float: left;
+	min-width: 463px;
+	width: auto;
+}

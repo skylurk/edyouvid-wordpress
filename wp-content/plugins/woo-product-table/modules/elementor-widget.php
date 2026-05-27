@@ -1,0 +1,334 @@
+<?php
+use Elementor\Widget_Base;
+use Elementor\Controls_Manager;
+use Elementor\Scheme_Color;
+use Elementor\Group_Control_Typography;
+use Elementor\Scheme_Typography;
+use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
+use Elementor\Group_Control_Border;
+use Elementor\Group_Control_Box_Shadow;
+use Elementor\Group_Control_Background;
+use Elementor\Repeater;
+
+
+class WPT_Elementor_Widget extends \Elementor\Widget_Base{
+    
+	/**
+	 * Get widget name.
+	 *
+	 * Retrieve oEmbed widget name.
+	 *
+	 * @since 1.0.0
+	 * @access public
+	 *
+	 * @return string Widget name.
+	 */
+	public function get_name() {
+		return 'wpt-table';
+	}
+
+	/**
+	 * Get widget title.
+	 *
+	 * Retrieve oEmbed widget title.
+	 *
+	 * @since 1.0.0
+	 * @access public
+	 *
+	 * @return string Widget title.
+	 */
+	public function get_title() {
+		return __( 'Woo Product Table', 'woo-product-table' );
+	}
+
+	/**
+	 * Get widget icon.
+	 *
+	 * Retrieve oEmbed widget icon.
+	 *
+	 * @since 1.0.0
+	 * @access public
+	 *
+	 * @return string Widget icon.
+	 */
+	public function get_icon() {
+		return 'eicon-table';
+	}
+
+	/**
+	 * Get widget categories.
+	 *
+	 * Retrieve the list of categories the oEmbed widget belongs to.
+	 *
+	 * @since 1.0.0
+	 * @access public
+	 *
+	 * @return array Widget categories.
+	 */
+	public function get_categories() {
+        if( defined('ULTRA_ADDONS_VERSION') ) return ['general'];
+
+		return [ 'basic' ];
+	}
+
+	/**
+	 * Register oEmbed widget controls.
+	 *
+	 * Adds different input fields to allow the user to change and customize the widget settings.
+	 *
+	 * @since 1.0.0
+	 * @access protected
+	 */
+	protected function _register_controls() {
+
+                //For General/Content Tab
+		$this->content_general();
+                
+                //For Typography Section Style Tab
+                $this->style_table_head();
+                
+                //For Typography Section Style Tab
+                $this->style_table_body();
+                
+                
+	}
+
+	/**
+	 * Render oEmbed widget output on the frontend.
+	 *
+	 * Written in PHP and used to generate the final HTML.
+	 *
+	 * @since 1.0.0
+	 * @access protected
+	 */
+	protected function render() {
+            $settings = $this->get_settings_for_display();
+            $table_id = isset( $settings['table_id'] ) && !empty( $settings['table_id'] ) ? $settings['table_id'] : false;
+            if( $table_id && is_numeric( $table_id ) ){
+                $name = get_the_title( $table_id );
+                $shortcode = "[Product_Table id='{$table_id}' name='{$name}']";
+
+		?>
+                <div class="wpt-elementor-wrapper wpt-elementor-wrapper-<?php echo esc_attr( $table_id ); ?>">
+                    <?php echo do_shortcode( shortcode_unautop( $shortcode ) ); ?>
+                </div>
+		<?php
+            }else{
+                echo '<h2 class="wpt_elmnt_select_note">';
+                echo esc_html__( 'Please select a Table.', 'woo-product-table' );
+                echo '</h2>';
+            }
+	}
+        
+        protected function content_general() {
+                $this->start_controls_section(
+			'general',
+			[
+				'label' => __( 'General', 'woo-product-table' ),
+				'tab' => Controls_Manager::TAB_CONTENT,
+			]
+		);
+                
+                $args = array(
+                    'post_type' => 'wpt_product_table',
+                    'posts_per_page'=> '-1',
+                    'post_status' => 'publish',
+                );
+                $productTable = new WP_Query( $args );
+                $table_options = array();
+                $wpt_extra_msg = false;
+                if ($productTable->have_posts()) : 
+                    
+                    while ($productTable->have_posts()): $productTable->the_post();
+
+                    $id = get_the_id();
+                    $table_options[$id] = get_the_title();
+                    endwhile;
+                    //$table_options[''] = esc_html__( 'Please Choose a Table', 'woo-product-table' );
+                else:
+                    $table_options = false;
+                    //Controls_Manager::HEADING
+                endif;
+                
+		
+                wp_reset_postdata();
+                if( $table_options && is_array( $table_options ) ){
+                    $this->add_control(
+                            'table_id',
+                            [
+                                    'label' => __( 'Table List', 'woo-product-table' ),
+                                    'type' => Controls_Manager::SELECT,
+                                    'options' => $table_options,
+                                    //'default' => '',
+                            ]
+                    );
+                    /****************************
+                    $this->add_control(
+                            'table_edit',
+                            [
+				'label' => __( 'Additional Info', 'woo-product-table' ),
+				'type' => Controls_Manager::RAW_HTML,
+				'raw' => sprintf( 
+                                        __( 'Edit your %sTable%s.', 'woo-product-table' ), 
+                                        '<a href="' . esc_attr( admin_url( 'post.php?post=' . $table_ID . '&action=edit&classic-editor' ) ) . '">',
+                                        '</a>'
+                                        ),
+				'content_classes' => 'wpt_add_new_table',
+                            ]
+                    );
+                    //***************************************/
+                }else{
+                    $wpt_extra_msg = __( 'There is no table found to your. ', 'woo-product-table' );
+                }
+                
+                $this->add_control(
+                        'table_notification',
+                        [
+                            'label' => __( 'Additional Information', 'woo-product-table' ),
+                            'type' => Controls_Manager::RAW_HTML,
+                            'raw' => $wpt_extra_msg . sprintf( 
+                                    /* translators: 1: open anchor tag, 2: close anchor tag */
+                                    __( 'Create %1$sa new table%2$s.', 'woo-product-table' ), 
+                                    '<a href="' . admin_url( 'post-new.php?post_type=wpt_product_table' ) . '">',
+                                    '</a>'
+                                    ),
+                            'content_classes' => 'wpt_elementor_additional_info',
+                        ]
+                );
+                
+		$this->end_controls_section();
+
+        }
+        
+        /**
+         * Typography Section for Style Tab
+         * 
+         * @since 1.0.0.9
+         */
+        protected function style_table_head() {
+            $this->start_controls_section(
+                'thead',
+                [
+                    'label'     => esc_html__( 'Table Head', 'woo-product-table' ),
+                    'tab'       => Controls_Manager::TAB_STYLE,
+                ]
+            );
+
+            $this->add_group_control(
+                    Group_Control_Typography::get_type(),
+                    [
+                            'name' => 'thead_typography',
+                            'global' => [
+                                    'default' => Global_Typography::TYPOGRAPHY_PRIMARY,
+                            ],
+                            'selector' => '{{WRAPPER}} .wpt-table-tag.wpt_product_table thead tr th',
+                    ]
+            );
+
+            $this->add_control(
+                'thead-color',
+                [
+                    'label'     => __( 'Color', 'woo-product-table' ),
+                    'type'      => Controls_Manager::COLOR,
+                    'selectors' => [
+                        '{{WRAPPER}} .wpt-table-tag.wpt_product_table thead tr th' => 'color: {{VALUE}}',
+                    ],
+                    'default'   => '#ffffff',
+                ]
+            );
+            
+            $this->add_control(
+                'thead-bg-color',
+                [
+                    'label'     => __( 'Background Color', 'woo-product-table' ),
+                    'type'      => Controls_Manager::COLOR,
+                    'selectors' => [
+                        '{{WRAPPER}} .wpt-table-tag.wpt_product_table thead tr th' => 'background-color: {{VALUE}}',
+                    ],
+                    'default'   => '#0a7f9c',
+                ]
+            );
+            
+            
+            
+            $this->end_controls_section();
+        }
+    
+        
+        
+        /**
+         * Typography Section for Style Tab
+         * 
+         * @since 1.0.0.9
+         */
+        protected function style_table_body() {
+            
+            
+            $this->start_controls_section(
+                'tbody',
+                [
+                    'label'     => esc_html__( 'Table Body', 'woo-product-table' ),
+                    'tab'       => Controls_Manager::TAB_STYLE,
+                ]
+            );
+
+            $this->add_group_control(
+                    Group_Control_Typography::get_type(),
+                    [
+                            'name' => 'tbody_typography',
+                            'global' => [
+                                    'default' => Global_Typography::TYPOGRAPHY_PRIMARY,
+                            ],
+                            'selectors' => [
+                                '{{WRAPPER}} .wpt-table-tag.wpt_product_table .wpt-tbody-tag .wpt-td-tag',
+                                '{{WRAPPER}} .wpt-table-tag.wpt_product_table .wpt-tbody-tag .wpt-td-tag a',
+                                '{{WRAPPER}} .wpt-table-tag.wpt_product_table .wpt-tbody-tag .wpt-td-tag p',
+                                '{{WRAPPER}} .wpt-table-tag.wpt_product_table .wpt-tbody-tag .wpt-td-tag div',
+                            ],
+                    ]
+            );
+
+            $this->add_control(
+                'tbody-text-color',
+                [
+                    'label'     => __( 'Text Color', 'woo-product-table' ),
+                    'type'      => Controls_Manager::COLOR,
+                    'selectors' => [
+                        '{{WRAPPER}} .wpt-table-tag.wpt_product_table .wpt-tbody-tag .wpt-td-tag' => 'color: {{VALUE}}',
+                        '{{WRAPPER}} .wpt-table-tag.wpt_product_table .wpt-tbody-tag .wpt-td-tag p' => 'color: {{VALUE}}',
+                        '{{WRAPPER}} .wpt-table-tag.wpt_product_table .wpt-tbody-tag .wpt-td-tag div' => 'color: {{VALUE}}',
+                    ],
+                    'default'   => '#535353',
+                ]
+            );
+            
+            $this->add_control(
+                'tbody-title-color',
+                [
+                    'label'     => __( 'Product Title Color', 'woo-product-table' ),
+                    'type'      => Controls_Manager::COLOR,
+                    'selectors' => [
+                        '{{WRAPPER}} .wpt-table-tag.wpt_product_table .wpt-tbody-tag .wpt-td-tag .product_title a' => 'color: {{VALUE}}',
+                    ],
+                    'default'   => '#000',
+                ]
+            );
+            
+            
+            $this->add_control(
+                'tbody-bg-color',
+                [
+                    'label'     => __( 'Background Color', 'woo-product-table' ),
+                    'type'      => Controls_Manager::COLOR,
+                    'selectors' => [
+                        '{{WRAPPER}} .wpt-table-tag.wpt_product_table .wpt-tbody-tag .wpt-td-tag' => 'background-color: {{VALUE}}',
+                    ],
+                    //'default'   => '#fff',
+                ]
+            );
+            
+            $this->end_controls_section();
+        }
+    
+
+}

@@ -1,0 +1,1620 @@
+# Copyright (C) 2024 Uncanny Owl
+# This file is distributed under the GPLv3.
+msgid ""
+msgstr ""
+"Project-Id-Version: Uncanny Continuing Education Credits 5.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/uncanny-continuing-education-credits\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2024-10-28T14:58:42+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.10.0\n"
+"X-Domain: uncanny-ceu\n"
+
+#. Plugin Name of the plugin
+#: uncanny-continuing-education-credits.php
+#: src/blocks/blocks.php:88
+#: src/templates/admin-header.php:54
+msgid "Uncanny Continuing Education Credits"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: uncanny-continuing-education-credits.php
+msgid "https://www.uncannyowl.com/uncanny-continuing-education-credits/"
+msgstr ""
+
+#. Description of the plugin
+#: uncanny-continuing-education-credits.php
+msgid "Track CPD/CEU credits for your LearnDash courses."
+msgstr ""
+
+#. Author of the plugin
+#: uncanny-continuing-education-credits.php
+#: src/blocks/src/ceu-available-credits/block.js:24
+#: src/blocks/src/ceu-certificate-trigger-description/block.js:24
+#: src/blocks/src/ceu-course-report/block.js:23
+#: src/blocks/src/ceu-credits-remaining/block.js:24
+#: src/blocks/src/ceu-earned-credits/block.js:24
+#: src/blocks/src/ceu-total-credits/block.js:24
+#: src/blocks/src/ceu-total-days-remaining/block.js:24
+#: src/blocks/src/ceu-total-rollover-credits/block.js:24
+msgid "Uncanny Owl"
+msgstr ""
+
+#. Author URI of the plugin
+#: uncanny-continuing-education-credits.php
+msgid "https://www.uncannyowl.com/"
+msgstr ""
+
+#: src/boot.php:42
+msgid "Please contact your hosting company to update to php version 5.3+ and enable spl extensions."
+msgstr ""
+
+#: src/boot.php:225
+msgid "Uncanny Continuing Education Credits Support"
+msgstr ""
+
+#: src/boot.php:226
+#: src/templates/admin-header.php:40
+msgid "Help"
+msgstr ""
+
+#: src/boot.php:239
+msgid "Uncanny LearnDash Plugins"
+msgstr ""
+
+#: src/boot.php:240
+#: src/templates/admin-header.php:45
+msgid "LearnDash Plugins"
+msgstr ""
+
+#: src/classes/admin-page.php:67
+#: src/classes/admin-page.php:68
+#: src/classes/backend-course-report.php:43
+msgid "Uncanny CEUs"
+msgstr ""
+
+#: src/classes/admin-page.php:74
+#: src/templates/admin-header.php:35
+#: uncanny-continuing-education-credits.php:203
+msgid "Settings"
+msgstr ""
+
+#: src/classes/admin-page.php:109
+msgid "Credit Designation Label"
+msgstr ""
+
+#: src/classes/admin-page.php:110
+#: src/classes/award-certificate.php:165
+#: src/classes/award-certificate.php:193
+#: src/classes/ceu-certificate-meta-box.php:44
+#: src/classes/ceu-course-meta-box.php:40
+#: src/classes/send-reminder-emails.php:114
+#: src/utilities.php:584
+msgid "CEU"
+msgstr ""
+
+#: src/classes/admin-page.php:114
+msgid "Credit Designation Label Plural"
+msgstr ""
+
+#. translators: %s: CEUs label.
+#: src/classes/admin-page.php:115
+#: src/classes/ceu-certificate-meta-box.php:80
+#: src/classes/ceu-group-meta-box.php:45
+#: src/classes/ceu-group-meta-box.php:71
+#: src/classes/ceu-user-profiles.php:22
+#: src/classes/ceus-column-uo-pro-transcript.php:107
+#: src/classes/ceus-column-uo-pro-transcript.php:137
+#: src/classes/ceus-column-uo-pro-transcript.php:142
+#: src/classes/course-report-api.php:254
+#: src/classes/course-report.php:383
+#: src/classes/course-report.php:1338
+#: src/classes/send-reminder-emails.php:112
+#: src/templates/admin-deficiency-report.php:13
+#: src/templates/frontend-course-report.php:69
+#: src/utilities.php:569
+#: src/utilities.php:597
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:28
+msgid "CEUs"
+msgstr ""
+
+#: src/classes/admin-page.php:119
+msgid "Credit Rollover Date (dd/mm)"
+msgstr ""
+
+#: src/classes/admin-page.php:123
+msgid "General Settings"
+msgstr ""
+
+#: src/classes/admin-page.php:125
+msgid "Email Reminder Settings"
+msgstr ""
+
+#: src/classes/admin-page.php:127
+msgid "Send Email Reminders"
+msgstr ""
+
+#: src/classes/admin-page.php:135
+msgid "Days Before Rollover Date for Reminder"
+msgstr ""
+
+#: src/classes/admin-page.php:139
+msgid "Reminder Email Subject"
+msgstr ""
+
+#: src/classes/admin-page.php:140
+#: src/classes/send-reminder-emails.php:105
+msgid "You Have Not Earned Enough #ceu_plural"
+msgstr ""
+
+#: src/classes/admin-page.php:147
+msgid "Reminder Email Body"
+msgstr ""
+
+#: src/classes/admin-page.php:148
+#: src/classes/send-reminder-emails.php:109
+msgid ""
+"Hi #first_name,\r\n"
+"This is a friendly reminder that you must earn #credits_required #ceu_plural before #rollover_date. You currently have #earned_since_rollover #ceu_plural."
+msgstr ""
+
+#: src/classes/admin-page.php:155
+msgid "Save Changes"
+msgstr ""
+
+#: src/classes/admin-page.php:157
+#: src/classes/award-certificate.php:652
+msgid "You earned a Certificate"
+msgstr ""
+
+#: src/classes/admin-page.php:164
+#: src/classes/award-certificate.php:658
+msgid ""
+"Congratulations, you earned a certificate!\r\n"
+"Your certificate is attached to this email."
+msgstr ""
+
+#: src/classes/admin-page.php:250
+#: src/classes/admin-page.php:267
+#: src/classes/admin-page.php:284
+#: src/classes/course-report-api.php:100
+msgid "Sorry, you cannot view this resource."
+msgstr ""
+
+#: src/classes/admin-page.php:316
+msgid "Course completions are scheduled to migrate in the background."
+msgstr ""
+
+#: src/classes/admin-page.php:319
+msgid "Course completions are already migrating."
+msgstr ""
+
+#: src/classes/admin-page.php:324
+#: src/classes/admin-page.php:359
+msgid "Something went wrong! Please try again."
+msgstr ""
+
+#: src/classes/admin-page.php:351
+msgid "Quiz results are scheduled to migrate in the background."
+msgstr ""
+
+#: src/classes/admin-page.php:354
+msgid "Quiz results are already migrating."
+msgstr ""
+
+#: src/classes/admin-page.php:395
+msgid "Select an action."
+msgstr ""
+
+#: src/classes/admin-page.php:402
+msgid "You do not have permission to save settings."
+msgstr ""
+
+#: src/classes/admin-page.php:484
+msgid "Settings have been saved."
+msgstr ""
+
+#: src/classes/award-certificate.php:135
+msgid "User does not exist"
+msgstr ""
+
+#: src/classes/award-certificate.php:155
+#: src/classes/award-certificate.php:178
+msgid "%1$s does not exist"
+msgstr ""
+
+#: src/classes/award-certificate.php:165
+#: src/classes/award-certificate.php:193
+msgid "%1$s value is not setup for this %2$s"
+msgstr ""
+
+#: src/classes/award-certificate.php:209
+msgid "Use the calendar to select a date."
+msgstr ""
+
+#: src/classes/backend-course-report.php:44
+#: src/classes/course-report.php:1427
+#: src/templates/admin-header.php:20
+msgid "Credit Report"
+msgstr ""
+
+#: src/classes/backend-deficiency-report.php:36
+#: src/classes/backend-deficiency-report.php:37
+#: src/templates/admin-deficiency-report.php:86
+#: src/templates/admin-header.php:25
+msgid "Deficiency Report"
+msgstr ""
+
+#: src/classes/backend-deficiency-report.php:89
+#: src/classes/backend-deficiency-report.php:305
+#: src/classes/course-report.php:400
+#: src/classes/course-report.php:1665
+#: src/classes/historical-completions-credits.php:237
+msgid "All users"
+msgstr ""
+
+#: src/classes/backend-deficiency-report.php:390
+msgid "Select a group"
+msgstr ""
+
+#: src/classes/backend-deficiency-report.php:394
+#: src/classes/course-report.php:1711
+#: src/classes/course-report.php:1728
+msgid "All groups"
+msgstr ""
+
+#: src/classes/ceu-archived-quiz-results.php:46
+msgid "Archived course results:"
+msgstr ""
+
+#: src/classes/ceu-archived-quiz-results.php:52
+msgid "Completed on: %1$s"
+msgstr ""
+
+#: src/classes/ceu-archived-quiz-results.php:62
+msgid "Archived quiz results:"
+msgstr ""
+
+#: src/classes/ceu-archived-quiz-results.php:73
+msgid "Score %1$s out of %2$s question(s) . Points: %3$s on %4$s"
+msgstr ""
+
+#: src/classes/ceu-certificate-meta-box.php:53
+#: src/blocks/src/ceu-certificate-trigger-description/block.js:15
+#: src/blocks/src/ceu-certificate-trigger-description/block.js:42
+msgid "Certificate Trigger Description"
+msgstr ""
+
+#: src/classes/ceu-certificate-meta-box.php:77
+msgid "Amount of %s needed to award the certificate"
+msgstr ""
+
+#: src/classes/ceu-course-meta-box.php:40
+msgid "%s Value"
+msgstr ""
+
+#: src/classes/ceu-course-meta-box.php:64
+msgid "Enter a number"
+msgstr ""
+
+#: src/classes/ceu-migrate-user-records.php:539
+msgid "Every one minute"
+msgstr ""
+
+#: src/classes/ceu-migrate-user-records.php:546
+msgid "Every two minutes"
+msgstr ""
+
+#: src/classes/ceu-multi-course.php:104
+msgid "Award Certificate For Multiple Course Completions"
+msgstr ""
+
+#: src/classes/ceu-multi-course.php:121
+msgid "Choose ALL courses that must be completed to award this certificate."
+msgstr ""
+
+#: src/classes/ceu-shortcodes.php:143
+#: src/classes/ceu-shortcodes.php:164
+#: src/classes/ceu-shortcodes.php:237
+#: src/classes/ceu-shortcodes.php:247
+#: src/classes/ceu-shortcodes.php:257
+#: src/classes/ceu-shortcodes.php:267
+#: src/classes/ceu-shortcodes.php:273
+#: src/classes/ceu-shortcodes.php:301
+#: src/classes/ceu-shortcodes.php:355
+#: src/classes/ceu-shortcodes.php:364
+#: src/classes/ceu-shortcodes.php:442
+#: src/classes/ceu-shortcodes.php:451
+#: src/classes/ceu-shortcodes.php:607
+#: src/classes/ceus-column-uo-pro-transcript.php:151
+msgid "0"
+msgstr ""
+
+#: src/classes/ceu-user-profiles.php:55
+msgid "Required %1$s - Personal:"
+msgstr ""
+
+#: src/classes/ceu-user-profiles.php:65
+msgid "Required %1$s - Group:"
+msgstr ""
+
+#: src/classes/ceu-user-profiles.php:82
+msgid "%1$s Earned"
+msgstr ""
+
+#: src/classes/ceu-user-profiles.php:88
+#: src/classes/ceu-user-profiles.php:109
+msgid "Total Earned: %s"
+msgstr ""
+
+#: src/classes/ceu-user-profiles.php:103
+msgid "%1$s Earned Since Rollover"
+msgstr ""
+
+#: src/classes/ceus-column-uo-pro-transcript.php:78
+msgid "%1$s / %2$s courses completed"
+msgstr ""
+
+#. Translators: %1$s credit designation label plural
+#: src/classes/ceus-column-uo-pro-transcript.php:111
+msgid "Total %1$s Earned"
+msgstr ""
+
+#: src/classes/course-report-api.php:160
+msgid "You do not have permission to modify this user's data"
+msgstr ""
+
+#: src/classes/course-report-api.php:167
+msgid "Invalid action"
+msgstr ""
+
+#: src/classes/course-report-api.php:199
+#: src/classes/course-report-api.php:293
+#: src/classes/course-report-api.php:403
+msgid "A user is required"
+msgstr ""
+
+#. translators: %s: course label
+#: src/classes/course-report-api.php:210
+msgid "A %s is required"
+msgstr ""
+
+#: src/classes/course-report-api.php:221
+#: src/classes/course-report-api.php:345
+msgid "A date is required"
+msgstr ""
+
+#. translators: %s: plural credit designation label
+#: src/classes/course-report-api.php:253
+msgid "%s already removed. Please refresh list."
+msgstr ""
+
+#. translators: %1$s: deleted entries, %2$s: total entries
+#: src/classes/course-report-api.php:272
+msgid "%1$s of %2$s rows could not be removed, possibly because they were previously deleted. Please refresh the page or check the Javascript Console in your browser for troubleshooting information."
+msgstr ""
+
+#: src/classes/course-report-api.php:298
+#: src/classes/course-report-api.php:408
+msgid "This user no longer exists"
+msgstr ""
+
+#: src/classes/course-report-api.php:305
+msgid "A title is required"
+msgstr ""
+
+#: src/classes/course-report-api.php:314
+#: src/classes/course-report-api.php:441
+msgid "This % no longer exists"
+msgstr ""
+
+#. translators: %s: course label
+#: src/classes/course-report-api.php:324
+#: src/classes/course-report-api.php:447
+msgid "This user already completed this %s"
+msgstr ""
+
+#. translators: %s: plural credit designation label
+#: src/classes/course-report-api.php:355
+msgid "A valid %s value is required"
+msgstr ""
+
+#: src/classes/course-report-api.php:388
+#: src/classes/course-report-api.php:394
+msgid "Invalid request."
+msgstr ""
+
+#: src/classes/course-report-api.php:486
+msgid "Nothing to update."
+msgstr ""
+
+#: src/classes/course-report.php:360
+#: src/classes/course-report.php:361
+#: src/classes/course-report.php:362
+msgid "Add credits"
+msgstr ""
+
+#: src/classes/course-report.php:365
+#: src/classes/course-report.php:366
+msgid "Edit credits"
+msgstr ""
+
+#: src/classes/course-report.php:367
+msgid "Update credits"
+msgstr ""
+
+#: src/classes/course-report.php:370
+#: src/classes/course-report.php:371
+#: src/classes/course-report.php:372
+msgid "Delete credits"
+msgstr ""
+
+#. translators: %d: number of credits
+#: src/classes/course-report.php:374
+msgid "Are you sure you wish to delete %d credits?"
+msgstr ""
+
+#: src/classes/course-report.php:375
+msgid "Are you sure you wish to delete 1 credit?"
+msgstr ""
+
+#: src/classes/course-report.php:378
+#: src/classes/course-report.php:1553
+msgid "No LearnDash association"
+msgstr ""
+
+#: src/classes/course-report.php:379
+#: src/classes/course-report.php:1336
+#: src/templates/frontend-course-report.php:67
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:26
+msgid "Title"
+msgstr ""
+
+#: src/classes/course-report.php:380
+#: src/classes/course-report.php:634
+#: src/classes/course-report.php:1335
+#: src/templates/admin-deficiency-report.php:90
+#: src/templates/frontend-course-report.php:33
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:25
+msgid "User"
+msgstr ""
+
+#: src/classes/course-report.php:381
+msgid "LearnDash course"
+msgstr ""
+
+#: src/classes/course-report.php:384
+msgid "Date and time"
+msgstr ""
+
+#: src/classes/course-report.php:385
+msgid "Create"
+msgstr ""
+
+#. translators: %s: Course label.
+#: src/classes/course-report.php:387
+msgid "Complete %s"
+msgstr ""
+
+#: src/classes/course-report.php:388
+#: src/templates/admin-siteinfo.php:182
+#: src/templates/admin-siteinfo.php:215
+msgid "Yes"
+msgstr ""
+
+#: src/classes/course-report.php:389
+#: src/templates/admin-siteinfo.php:182
+#: src/templates/admin-siteinfo.php:215
+msgid "No"
+msgstr ""
+
+#: src/classes/course-report.php:390
+msgid "Generate Certificates"
+msgstr ""
+
+#: src/classes/course-report.php:391
+msgid "Refresh Page"
+msgstr ""
+
+#. translators: %s: User's first name.
+#: src/classes/course-report.php:396
+#: src/templates/admin-deficiency-report.php:132
+msgid "%s's avatar"
+msgstr ""
+
+#: src/classes/course-report.php:643
+#: src/templates/admin-send-ticket.php:88
+msgid "Email"
+msgstr ""
+
+#: src/classes/course-report.php:1337
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:27
+msgid "Date"
+msgstr ""
+
+#: src/classes/course-report.php:1339
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:29
+msgid "Total"
+msgstr ""
+
+#: src/classes/course-report.php:1607
+msgid "Last 7 days"
+msgstr ""
+
+#: src/classes/course-report.php:1611
+msgid "Last 30 days"
+msgstr ""
+
+#: src/classes/course-report.php:1615
+msgid "Last 90 days"
+msgstr ""
+
+#: src/classes/course-report.php:1619
+msgid "Last 180 days"
+msgstr ""
+
+#: src/classes/course-report.php:1623
+msgid "Last 365 days"
+msgstr ""
+
+#: src/classes/course-report.php:1627
+#: src/templates/admin-settings.php:190
+msgid "All time"
+msgstr ""
+
+#: src/classes/course-report.php:1631
+msgid "Custom range"
+msgstr ""
+
+#: src/classes/course-report.php:1803
+msgid "All courses"
+msgstr ""
+
+#: src/classes/course-report.php:1870
+msgid "day"
+msgid_plural "days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/classes/course-report.php:1875
+msgid "hour"
+msgid_plural "hours"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/classes/course-report.php:1880
+msgid "minute"
+msgid_plural "minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/classes/course-report.php:1885
+msgid "Less than a minute"
+msgstr ""
+
+#: src/classes/course-report.php:1888
+msgid "Last updated"
+msgstr ""
+
+#: src/classes/course-report.php:1888
+msgid "ago"
+msgstr ""
+
+#: src/classes/frontend-course-report.php:151
+msgid "You must be logged in to view this content."
+msgstr ""
+
+#: src/classes/frontend-course-report.php:156
+msgid "You must be a Group Leader or Administrator to use this report."
+msgstr ""
+
+#: src/classes/historical-completions-credits.php:58
+#: src/classes/historical-completions-credits.php:59
+#: src/templates/admin-header.php:30
+msgid "Generate Records"
+msgstr ""
+
+#: src/classes/historical-completions-credits.php:75
+#: src/templates/admin-header.php:14
+msgid "credits"
+msgstr ""
+
+#: src/classes/historical-completions-credits.php:76
+msgid "credit"
+msgstr ""
+
+#: src/classes/historical-completions-credits.php:82
+msgid "You do not have permission to generate %s."
+msgstr ""
+
+#: src/classes/historical-completions-credits.php:91
+msgid "Please choose a %s."
+msgstr ""
+
+#: src/classes/historical-completions-credits.php:101
+msgid "This %s no longer exists."
+msgstr ""
+
+#: src/classes/historical-completions-credits.php:113
+msgid "Sorry, the associated %1$s must have a %2$s value greater than 0."
+msgstr ""
+
+#: src/classes/historical-completions-credits.php:165
+msgid "Update complete! There were no users updated. All %1$s completions had %2$s records."
+msgstr ""
+
+#: src/classes/historical-completions-credits.php:182
+msgid "Sorry, the process failed. Error: %s"
+msgstr ""
+
+#: src/classes/historical-completions-credits.php:191
+msgid "Update complete! We added %1$d historical records for this %2$s."
+msgstr ""
+
+#: src/classes/historical-completions-credits.php:262
+msgid "Choose a course"
+msgstr ""
+
+#: src/includes/licensing.php:108
+msgid "Licensing"
+msgstr ""
+
+#: src/includes/licensing.php:176
+msgid "License cleared"
+msgstr ""
+
+#: src/includes/licensing.php:198
+#: src/includes/licensing.php:317
+msgctxt "Your license has expired. Please renew %s license to get instant access to updates and support."
+msgid "Your license for %s has expired. Click %s to renew."
+msgstr ""
+
+#: src/includes/licensing.php:207
+#: src/includes/licensing.php:215
+#: src/includes/licensing.php:282
+#: src/includes/licensing.php:326
+#: src/templates/admin-license.php:80
+msgid "here"
+msgstr ""
+
+#: src/includes/licensing.php:212
+#: src/includes/licensing.php:279
+msgid "%s your copy of %s to get access to automatic updates and support. Don't have a license key? Click %s to buy one."
+msgstr ""
+
+#: src/includes/licensing.php:213
+#: src/includes/licensing.php:280
+msgid "Register"
+msgstr ""
+
+#: src/includes/licensing.php:369
+msgid "Error: Licensed plugin store URL not set."
+msgstr ""
+
+#: src/includes/licensing.php:373
+msgid "Error: Licensed plugin item name not set"
+msgstr ""
+
+#: src/includes/licensing.php:397
+msgid "There may be an issue with the configuration of %s."
+msgstr ""
+
+#: src/includes/licensing.php:495
+#: src/templates/admin-license.php:107
+msgid "Please enter a valid license code and click \"Activate now\"."
+msgstr ""
+
+#: src/includes/licensing.php:616
+msgid "License is activated."
+msgstr ""
+
+#: src/includes/licensing.php:728
+msgid "There was an issue in activating your license. Error: %s"
+msgstr ""
+
+#: src/includes/tcpdf-certificate-code.php:744
+msgid "Certificate Preview"
+msgstr ""
+
+#. translators: Trademarked term
+#: src/install-automator/install-automator.php:123
+msgid "%s"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:6
+msgid "Take your site to the next level with Uncanny Automator"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:11
+msgid "Finding Uncanny Continuing Education Credits useful for your LearnDash site?"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:13
+msgid "You'll love"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:15
+#: src/install-automator/views/template-install-automator.php:35
+#: src/install-automator/views/template-install-automator.php:158
+#: src/install-automator/views/template-install-automator.php:221
+msgid "Uncanny Automator"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:17
+msgid "Best of all,"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:20
+msgid "it's free!"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:37
+#: src/install-automator/views/template-install-automator.php:222
+msgid "By the creators of Uncanny Toolkit"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:62
+msgid "How it works"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:66
+msgid "Use Uncanny Automator to connect LearnDash and Uncanny Continuing Education Credits to your favourite plugins and apps"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:66
+msgid "without hiring a developer to write custom code."
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:70
+msgid "Here are a few examples:"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:75
+msgid "When users earns 10 credits, add a CRM tag."
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:77
+#: src/install-automator/views/template-install-automator.php:97
+#: src/install-automator/views/template-install-automator.php:117
+#: src/install-automator/views/template-install-automator.php:137
+msgid "Requires"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:95
+msgid "When users earn more than 50 credits, send them a coupon code for a new course."
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:115
+msgid "When users attend a live event, award credits that are included in a student’s transcript."
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:135
+msgid "When users complete a course in another LMS, add credits to LearnDash."
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:158
+msgid "supports"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:158
+msgid "all of the most popular WordPress plugins"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:158
+msgid "and we're adding new integrations all the time. The possibilities are limitless."
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:162
+msgid "Choose any combination of triggers"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:166
+msgid "Users complete a lesson"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:167
+msgid "Users are added to a group"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:168
+msgid "Users fill out a form"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:169
+msgid "Users register for an event"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:170
+msgid "Users buy a product"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:171
+msgid "Users complete a course"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:172
+msgid "Users fail a quiz"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:180
+msgid "...to initiate any combination of actions"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:184
+msgid "Add users to a group"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:185
+msgid "Send an email"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:186
+msgid "Mark a lesson complete"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:187
+msgid "Unlock a new course"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:188
+msgid "Reset course progress"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:189
+msgid "Trigger a Zapier webhook"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:190
+msgid "Add a tag in Infusionsoft"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:211
+msgid "Build better experiences for your users while saving money on custom development. And save"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:212
+msgid "your"
+msgstr ""
+
+#: src/install-automator/views/template-install-automator.php:213
+msgid "time by automating routine tasks — all with no code."
+msgstr ""
+
+#: src/templates/admin-deficiency-report.php:47
+msgid "Rollover date: %s"
+msgstr ""
+
+#: src/templates/admin-deficiency-report.php:69
+#: src/templates/course-report-toolbar.php:53
+msgid "Filter"
+msgstr ""
+
+#: src/templates/admin-deficiency-report.php:76
+#: src/templates/course-report-toolbar.php:67
+msgid "Export CSV"
+msgstr ""
+
+#: src/templates/admin-deficiency-report.php:93
+msgid "Required %s"
+msgstr ""
+
+#: src/templates/admin-deficiency-report.php:96
+msgid "Earned %s"
+msgstr ""
+
+#: src/templates/admin-deficiency-report.php:179
+msgid "Please select a user or group to display results."
+msgstr ""
+
+#: src/templates/admin-deficiency-report.php:186
+msgid "No Results"
+msgstr ""
+
+#: src/templates/admin-deficiency-report.php:207
+msgid "This report requires that a Rollover Date be set from the %s."
+msgstr ""
+
+#: src/templates/admin-deficiency-report.php:208
+msgid "Uncanny CEUs Settings page"
+msgstr ""
+
+#: src/templates/admin-header.php:57
+msgid "by"
+msgstr ""
+
+#: src/templates/admin-historical-completions-credits.php:38
+msgid "Add credits to historical course completions"
+msgstr ""
+
+#: src/templates/admin-historical-completions-credits.php:48
+msgid "Choose a LearnDash course from the list above to generate missing historical records with credits. When a course is processed, the system will look up all users with completion records for the course that do not have associated credits in this plugin. This will only work for courses that have a credit value assigned, and there is no way to undo credit records once processed. Please verify that the credit value assigned to the course is correct before you proceed."
+msgstr ""
+
+#: src/templates/admin-historical-completions-credits.php:52
+msgid "Add missing records"
+msgstr ""
+
+#: src/templates/admin-historical-completions-credits.php:60
+msgid "Generate historical course records"
+msgstr ""
+
+#: src/templates/admin-historical-completions-credits.php:63
+msgid "Create an archive of current course records that will restore progress records. The archive will copy course completions, enrolled and completion dates to a table that will survive progress resets. Any existing records in the archive will not be overridden, so it is safe to run this process more than once."
+msgstr ""
+
+#: src/templates/admin-historical-completions-credits.php:67
+msgid "Add course records"
+msgstr ""
+
+#: src/templates/admin-historical-completions-credits.php:75
+msgid "Generate historical quiz records"
+msgstr ""
+
+#: src/templates/admin-historical-completions-credits.php:78
+msgid "Create an archive of current quiz records that will restore progress records. The archive will copy quiz scores, dates and multiple choice answers to a table that will survive progress resets. Any existing records in the archive will not be overridden, so it is safe to run this process more than once."
+msgstr ""
+
+#: src/templates/admin-historical-completions-credits.php:82
+msgid "Add quiz records"
+msgstr ""
+
+#: src/templates/admin-kb-articles.php:42
+msgid "I can't find the answer to my question."
+msgstr ""
+
+#: src/templates/admin-license.php:49
+msgid "Your license is active"
+msgstr ""
+
+#: src/templates/admin-license.php:51
+msgid "Your license has expired!"
+msgstr ""
+
+#: src/templates/admin-license.php:54
+#: src/templates/admin-license.php:125
+#: src/templates/admin-license.php:159
+msgid "Enter your license key"
+msgstr ""
+
+#: src/templates/admin-license.php:56
+msgid "Your license is not active"
+msgstr ""
+
+#: src/templates/admin-license.php:72
+msgctxt "Your license has expired. Please renew your license to get instant access to updates and support."
+msgid "You must renew your license to get access to plugin updates and support. Click %s to renew your license."
+msgstr ""
+
+#: src/templates/admin-license.php:87
+msgctxt "Your license has disabled. Please renew your license to get instant access to updates and support."
+msgid "Your license is disabled. Please %s to get instant access to updates and support."
+msgstr ""
+
+#: src/templates/admin-license.php:93
+msgctxt "Your license has expired. Please renew your license to get instant access to updates and support."
+msgid "renew your license"
+msgstr ""
+
+#: src/templates/admin-license.php:101
+msgid "The license code you entered is invalid."
+msgstr ""
+
+#: src/templates/admin-license.php:104
+msgid "The license code you entered is deactivated."
+msgstr ""
+
+#: src/templates/admin-license.php:132
+msgid "Lifetime"
+msgstr ""
+
+#: src/templates/admin-license.php:136
+msgid "Expires"
+msgstr ""
+
+#: src/templates/admin-license.php:142
+msgid "Activations"
+msgstr ""
+
+#: src/templates/admin-license.php:148
+msgid "Account"
+msgstr ""
+
+#: src/templates/admin-license.php:165
+msgid "Expired"
+msgstr ""
+
+#: src/templates/admin-license.php:182
+#: src/templates/admin-license.php:242
+msgid "Deactivate license"
+msgstr ""
+
+#: src/templates/admin-license.php:186
+#: src/templates/admin-license.php:246
+msgid "Are you sure you want to clear your license?"
+msgstr ""
+
+#: src/templates/admin-license.php:188
+#: src/templates/admin-license.php:248
+msgid "Clear license"
+msgstr ""
+
+#: src/templates/admin-license.php:191
+#: src/templates/admin-license.php:251
+msgid "Your license is managed by your site administrator."
+msgstr ""
+
+#: src/templates/admin-license.php:197
+#: src/templates/admin-license.php:257
+msgid "Activate now"
+msgstr ""
+
+#: src/templates/admin-license.php:202
+#: src/templates/admin-license.php:262
+msgid "Buy license"
+msgstr ""
+
+#: src/templates/admin-license.php:212
+msgid "Need help?"
+msgstr ""
+
+#: src/templates/admin-license.php:219
+msgid "Where to get my license key"
+msgstr ""
+
+#: src/templates/admin-license.php:224
+msgid "Buy a new license"
+msgstr ""
+
+#: src/templates/admin-license.php:229
+msgid "Knowledge base"
+msgstr ""
+
+#: src/templates/admin-send-ticket.php:51
+msgid "Your ticket has been created. Someone at Uncanny Owl will contact you regarding your issue."
+msgstr ""
+
+#: src/templates/admin-send-ticket.php:55
+msgid "Dismiss this notice."
+msgstr ""
+
+#: src/templates/admin-send-ticket.php:66
+msgid "Submit a Ticket"
+msgstr ""
+
+#: src/templates/admin-send-ticket.php:79
+msgid "Full Name"
+msgstr ""
+
+#: src/templates/admin-send-ticket.php:97
+msgid "Site URL"
+msgstr ""
+
+#: src/templates/admin-send-ticket.php:106
+msgid "License Key"
+msgstr ""
+
+#: src/templates/admin-send-ticket.php:115
+msgid "Subject"
+msgstr ""
+
+#: src/templates/admin-send-ticket.php:124
+msgid "Message"
+msgstr ""
+
+#: src/templates/admin-send-ticket.php:132
+msgid "Send site data"
+msgstr ""
+
+#: src/templates/admin-send-ticket.php:137
+msgid "Emails must be enabled on your site to create a ticket using this form. If you don’t receive a confirmation email shortly after submitting this form, please log the ticket through your <a href=\"https://www.uncannyowl.com/my-account/submit-a-request/\" target=\"_blank\" rel=\"noreferrer\">My Account</a> page."
+msgstr ""
+
+#: src/templates/admin-send-ticket.php:140
+msgid "Create ticket"
+msgstr ""
+
+#: src/templates/admin-send-ticket.php:147
+msgid "Site Data"
+msgstr ""
+
+#: src/templates/admin-settings.php:42
+msgid "License"
+msgstr ""
+
+#: src/templates/admin-settings.php:119
+msgid "Credit Report Settings"
+msgstr ""
+
+#: src/templates/admin-settings.php:130
+msgid "Show user avatars"
+msgstr ""
+
+#: src/templates/admin-settings.php:135
+msgid "Report Mode"
+msgstr ""
+
+#: src/templates/admin-settings.php:141
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:126
+msgid "Legacy"
+msgstr ""
+
+#: src/templates/admin-settings.php:144
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:118
+msgid "Performance (Recommended)"
+msgstr ""
+
+#: src/templates/admin-settings.php:155
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:122
+msgid "Ludicrous (Fastest, report updates hourly)"
+msgstr ""
+
+#: src/templates/admin-settings.php:163
+msgid "Default Date Range"
+msgstr ""
+
+#: src/templates/admin-settings.php:170
+msgid "Last 7 Days"
+msgstr ""
+
+#: src/templates/admin-settings.php:174
+msgid "Last 30 Days"
+msgstr ""
+
+#: src/templates/admin-settings.php:178
+msgid "Last 90 Days"
+msgstr ""
+
+#: src/templates/admin-settings.php:182
+msgid "Last 180 Days"
+msgstr ""
+
+#: src/templates/admin-settings.php:186
+msgid "Last 365 Days"
+msgstr ""
+
+#: src/templates/admin-settings.php:196
+msgid "Default Page Length"
+msgstr ""
+
+#: src/templates/admin-settings.php:203
+msgid "10"
+msgstr ""
+
+#: src/templates/admin-settings.php:207
+msgid "25"
+msgstr ""
+
+#: src/templates/admin-settings.php:211
+msgid "50"
+msgstr ""
+
+#: src/templates/admin-settings.php:215
+msgid "100"
+msgstr ""
+
+#: src/templates/admin-settings.php:219
+msgid "200"
+msgstr ""
+
+#: src/templates/admin-settings.php:231
+msgid "Include results for child groups when a parent group is selected"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:70
+msgid "MySQL Version"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:74
+msgid "MariaDB Version"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:91
+msgid "WordPress Minimum Requirements"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:98
+msgid "Environment"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:100
+#: src/templates/admin-siteinfo.php:158
+#: src/templates/admin-siteinfo.php:259
+#: src/templates/admin-siteinfo.php:285
+msgid "Setting"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:101
+#: src/templates/admin-siteinfo.php:159
+#: src/templates/admin-siteinfo.php:260
+#: src/templates/admin-siteinfo.php:286
+msgid "Value"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:107
+msgid "Server info"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:132
+msgid "PHP Version"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:156
+msgid "WordPress Settings"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:165
+msgid "WordPress address (URL)"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:169
+msgid "Site address"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:175
+msgid "WordPress Version"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:181
+msgid "Multisite"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:187
+msgid "Site Language"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:208
+msgid "Not defined"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:214
+msgid "Object Cache"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:226
+msgid "Active WordPress Plugins"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:228
+msgid "Plugin"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:229
+#: src/templates/admin-siteinfo.php:264
+msgid "Version"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:257
+msgid "LearnDash Settings"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:265
+#: src/templates/admin-siteinfo.php:269
+msgid "LearnDash not active"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:268
+msgid "DB Version"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:272
+msgid "Script Debug"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:273
+msgid "not defined"
+msgstr ""
+
+#: src/templates/admin-siteinfo.php:283
+msgid "PHP Settings"
+msgstr ""
+
+#: src/templates/course-report-last-updated.php:21
+msgid "Refresh report"
+msgstr ""
+
+#: src/templates/course-report-toolbar.php:57
+msgid "Reset"
+msgstr ""
+
+#: src/templates/course-report-toolbar.php:70
+msgid "Export Excel"
+msgstr ""
+
+#: src/templates/frontend-course-report.php:41
+msgid "3 characters minimum"
+msgstr ""
+
+#: src/templates/frontend-course-report.php:48
+msgid "Search"
+msgstr ""
+
+#: src/templates/frontend-course-report.php:65
+msgid "First Name"
+msgstr ""
+
+#: src/templates/frontend-course-report.php:66
+msgid "Last Name"
+msgstr ""
+
+#: src/templates/frontend-course-report.php:68
+msgid "Completion Date"
+msgstr ""
+
+#: src/templates/frontend-course-report.php:105
+msgid "No results"
+msgstr ""
+
+#: src/utilities.php:707
+msgid "Set range"
+msgstr ""
+
+#: src/utilities.php:708
+msgid "Start"
+msgstr ""
+
+#: src/utilities.php:709
+msgid "End"
+msgstr ""
+
+#: src/utilities.php:710
+msgctxt "%1$s and %2$s are dates"
+msgid "%1$s - %2$s"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-available-credits/sidebar.js:33
+msgid "Available Credits Settings"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-available-credits/sidebar.js:35
+#: src/blocks/src/ceu-earned-credits/sidebar.js:37
+msgid "Course ID"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/components/add-column/index.js:136
+#: src/blocks/src/ceu-course-report/components/column/index.js:86
+msgid "Label"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/components/add-column/index.js:146
+#: src/blocks/src/ceu-course-report/components/column/index.js:96
+msgid "Data key"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/components/column/index.js:113
+#: src/blocks/src/ceu-course-report/components/column/index.js:114
+msgid "Remove column"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/components/add-column/index.js:37
+msgid "New Column"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/components/add-column/index.js:58
+msgid "Add Custom Column"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/components/add-column/index.js:124
+msgid "Add Column"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/components/add-column/index.js:88
+msgid "Data key must be unique."
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/components/add-column/index.js:82
+msgid "Both label and data key are required."
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/components/add-column/index.js:166
+msgid "Add custom column"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/components/add-column/index.js:167
+msgid "Add column"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/components/columns/index.js:110
+msgid "Columns"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:66
+msgid "Enhanced"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:73
+msgid "Enabling the enhanced report will show the full Continuing Education Report table."
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:80
+msgid "Customize report columns"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:89
+msgid "Disabling custom columns will revert to the default columns. Note: custom columns will not be populated by default; you will need to use a filter. "
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:91
+msgid "More info"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:96
+msgid "Enabling custom columns will allow you to specify which columns to display in the report and control their order."
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:114
+msgid "Default - Use global setting"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:136
+msgid "Action buttons"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:140
+msgid "Allow adding CEUs"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:146
+msgid "Enable to allow users to add CEUs."
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:149
+msgid "Allow editing CEUs"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:155
+msgid "Enable to allow users to edit CEUs."
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:158
+msgid "Allow deleting CEUs"
+msgstr ""
+
+#: src/blocks/dist/index.js:1
+#: src/blocks/src/ceu-course-report/sidebar.js:164
+msgid "Enable to allow users to delete CEUs."
+msgstr ""
+
+#: src/blocks/src/ceu-available-credits/block.js:15
+#: src/blocks/src/ceu-available-credits/block.js:42
+msgid "Available Credits"
+msgstr ""
+
+#: src/blocks/src/ceu-available-credits/block.js:17
+msgid "Displays the number of credits available for the course."
+msgstr ""
+
+#: src/blocks/src/ceu-certificate-trigger-description/block.js:17
+msgid "Displays the certificate's trigger description from the Edit Certificate screen."
+msgstr ""
+
+#: src/blocks/src/ceu-certificate-trigger-description/sidebar.js:34
+msgid "Certificate Trigger Description Settings"
+msgstr ""
+
+#: src/blocks/src/ceu-certificate-trigger-description/sidebar.js:37
+msgid "Certificate ID"
+msgstr ""
+
+#: src/blocks/src/ceu-course-report/block.js:18
+#: src/blocks/src/ceu-course-report/block.js:59
+msgid "Continuing Education Report"
+msgstr ""
+
+#: src/blocks/src/ceu-course-report/block.js:19
+msgid "Displays a front end report that allows anyone with access to the page to look up course completions and earned credits for any user on the site."
+msgstr ""
+
+#: src/blocks/src/ceu-credits-remaining/block.js:15
+#: src/blocks/src/ceu-credits-remaining/block.js:42
+msgid "Credits Remaining"
+msgstr ""
+
+#: src/blocks/src/ceu-credits-remaining/block.js:17
+msgid "Displays the difference between required and earned credits for the current user."
+msgstr ""
+
+#: src/blocks/src/ceu-credits-remaining/sidebar.js:33
+msgid "Credits Remaining Settings"
+msgstr ""
+
+#: src/blocks/src/ceu-credits-remaining/sidebar.js:35
+#: src/blocks/src/ceu-earned-credits/sidebar.js:48
+#: src/blocks/src/ceu-total-credits/sidebar.js:35
+#: src/blocks/src/ceu-total-days-remaining/sidebar.js:35
+#: src/blocks/src/ceu-total-rollover-credits/sidebar.js:35
+msgid "User ID"
+msgstr ""
+
+#: src/blocks/src/ceu-earned-credits/block.js:15
+#: src/blocks/src/ceu-earned-credits/block.js:50
+msgid "Earned Credits"
+msgstr ""
+
+#: src/blocks/src/ceu-earned-credits/block.js:17
+msgid "Displays the number of credits earned for the course."
+msgstr ""
+
+#: src/blocks/src/ceu-earned-credits/sidebar.js:34
+msgid "Earned Credits Settings"
+msgstr ""
+
+#: src/blocks/src/ceu-earned-credits/sidebar.js:59
+msgid "Since Rollover"
+msgstr ""
+
+#: src/blocks/src/ceu-total-credits/block.js:15
+#: src/blocks/src/ceu-total-credits/block.js:42
+msgid "Total Credits"
+msgstr ""
+
+#: src/blocks/src/ceu-total-credits/block.js:17
+msgid "Displays the total number of credits earned by the current user regardless of rollover date."
+msgstr ""
+
+#: src/blocks/src/ceu-total-credits/sidebar.js:33
+msgid "Total Credits Settings"
+msgstr ""
+
+#: src/blocks/src/ceu-total-days-remaining/block.js:17
+msgid "Displays the number of days until the rollover date."
+msgstr ""
+
+#: src/blocks/src/ceu-total-days-remaining/block.js:42
+#: src/blocks/src/ceu-total-days-remaining/sidebar.js:33
+msgid "Days Remaining"
+msgstr ""
+
+#: src/blocks/src/ceu-total-rollover-credits/block.js:15
+#: src/blocks/src/ceu-total-rollover-credits/block.js:46
+msgid "Total Rollover Credits"
+msgstr ""
+
+#: src/blocks/src/ceu-total-rollover-credits/block.js:17
+msgid "Displays the total number of credits earned by the current user on or after the rollover date."
+msgstr ""
+
+#: src/blocks/src/ceu-total-rollover-credits/sidebar.js:33
+msgid "Total Rollover Credits Settings"
+msgstr ""
+
+#: src/blocks/src/ceu-total-rollover-credits/sidebar.js:46
+msgid "On or After Rollover"
+msgstr ""

@@ -1,0 +1,40 @@
+.ceu-course-report-add-column{
+	padding:7px;
+	border-radius: 2px;
+	box-shadow: inset 0 0 0 1px #ccc;
+
+	 &__form {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		justify-content: center;
+		align-items: center;
+		padding: 7px;
+		margin-bottom: 7px;
+		background: #fff;
+		border-radius: 2px;
+		box-shadow: inset 0 0 0 1px #ccc;
+    }
+
+	&__error {
+		color: #dc3232;
+		font-size: 12px;
+		margin-bottom: 7px;
+		font-style:italic;
+		//flex: 1 0 100%;
+		grid-column: 1 / -1;
+	}
+
+	&__button.components-button.has-icon {
+		width:100%;
+		justify-content: center;
+	}
+}
+
+.block-editor-block-inspector {
+	.ceu-course-report-add-column,
+	.ceu-course-report-add-column__form{
+		.components-base-control{
+			margin-bottom: 0;
+		}
+	}
+}

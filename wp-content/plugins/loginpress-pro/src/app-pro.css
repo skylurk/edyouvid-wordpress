@@ -1,0 +1,72 @@
+.toplevel_page_loginpress-settings .dataTable tbody tr th .lp-tbody-cell, .toplevel_page_loginpress-settings .dataTable tbody tr td .lp-tbody-cell {
+    padding: 15px 15px;
+    color: #07003B;
+    text-align: start;
+}
+.recaptcha-v3-validation-prograssbar{
+	margin-top: -20px;
+}
+.recaptcha-v3-validation-prograssbar:has(.loginpress-setting-field:empty){
+	display: none;
+}
+.loginpress-license-settings input[type=text]:is(:read-only, :disabled){
+	opacity: 1;
+}
+.loginpress-setting-field[data-label="License Status"],
+.loginpress-setting-field[data-label="License Key"],
+.loginpress-setting-field[data-label="License Action"] {
+    margin-bottom: 20px;
+}
+
+.lp-tags-input input:is([type="text"], [type="search"]) {
+    border: 0;
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+}
+
+.loginpress-license-settings .button-secondary {
+    border: none;
+    background-color: #516885 !important;
+    border: 1px solid #516885 !important;
+    padding: 13px 25px;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #fff;
+    font-family: "Poppins", sans-serif;
+    transition: all 0.3s;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.loginpress-license-settings .button-secondary:hover {
+    background-color: #fff !important;
+    color: #516885 !important;
+    border: 1px solid #516885 !important;
+}
+.loginpress-license-settings .loginpress-license-desc p{
+	margin: 0;
+}
+.loginpress-skeleton {
+    background: #f0f0f0;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.loginpress-skeleton::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: loginpress-shimmer 1.2s infinite;
+}
+
+@keyframes loginpress-shimmer {
+    100% {
+        left: 100%;
+    }
+}

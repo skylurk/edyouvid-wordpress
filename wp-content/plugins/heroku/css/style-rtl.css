@@ -1,0 +1,101 @@
+/* Link Preview Style */
+
+/* static link preview */
+#lp-wrapper {
+	display: block;
+	padding: 0;
+	margin: 0 0 5px;
+	border: 1px solid #CCC;
+}
+
+#lp-wrapper .lp-thumb-preview {
+	width: 200px;
+	position: relative;
+}
+
+#lp-wrapper .lp-thumb-preview .lp-thumb-holder {
+	background-repeat: no-repeat;
+	background-size: 90%;
+	background-position: center;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	left: 0;
+	top: 0;
+}
+#lp-wrapper .lp-thumb-preview a,
+#lp-wrapper .lp-thumb-preview a:visited,
+#lp-wrapper .lp-thumb-preview a:hover,
+#lp-wrapper .lp-thumb-preview a:active,
+#lp-wrapper .lp-thumb-preview a:focus {
+	display: block;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+#lp-wrapper .lp-content {
+	display: inline-block;
+	float: right;
+	padding: 10px;
+	font-size: 12px;
+}
+#lp-wrapper .lp-content .lp-content-title {
+	font-size: 18px;
+	line-height: 1em;
+	word-wrap: break-word;
+	margin-bottom: 10px;
+	position: relative;
+	display: block;
+	text-align: right;
+}
+#lp-wrapper .lp-content .lp-content-description {
+	font-size: 12px;
+	color: #222;
+	line-height: 1em;
+	height: 2em;
+	overflow: hidden;
+	text-align: right;
+}
+#lp-wrapper .lp-content .lp-content-source,
+#lp-wrapper .lp-content .lp-content-source a,
+#lp-wrapper .lp-content .lp-content-source a:visited,
+#lp-wrapper .lp-content .lp-content-source a:hover,
+#lp-wrapper .lp-content .lp-content-source a:focus,
+#lp-wrapper .lp-content .lp-content-source a:active {
+	text-transform: uppercase;
+	color: #A0A0A0;
+	text-decoration: none;
+	text-align: right;
+}
+
+/* tooltip link preview */
+[data-button="LinkPreview"] {
+	border-bottom: 1px dashed;
+}
+.lp-tooltip h4 {
+	margin-top: 0;
+	text-align: right;
+}
+.lp-tooltip p {
+	font-size: 10px;
+	line-height: 12px;
+	text-align: right;
+}
+.lp-tooltip .lp-image {
+	max-width: 80px;
+	height: auto;
+	float: right;
+	margin-left: 10px;
+}
+.lp-tooltip .lp-favicon {
+	max-width: 16px;
+	height: auto;
+	vertical-align: middle;
+}
+.lp-loading {
+	max-height: 30px;
+	width: auto;
+	position: relative;
+}

@@ -1,0 +1,2077 @@
+# Copyright (C) 2022 WP White Security
+# This file is distributed under the GPL2.
+msgid ""
+msgstr ""
+"Project-Id-Version: WP Activity Log for WooCommerce 1.4.4\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wsal-woocommerce\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2022-11-16T13:25:04+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.6.0\n"
+"X-Domain: wsal-woocommerce\n"
+
+#. Plugin Name of the plugin
+msgid "WP Activity Log for WooCommerce"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://wpactivitylog.com/extensions/"
+msgstr ""
+
+#. Description of the plugin
+msgid "A WP Activity Log plugin extension for WooCommerce"
+msgstr ""
+
+#. Author of the plugin
+msgid "WP White Security"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "http://www.wpwhitesecurity.com/"
+msgstr ""
+
+#: includes/wsal-functions.php:68
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:669
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce_Public.php:429
+msgid "Not provided"
+msgstr ""
+
+#: includes/wsal-functions.php:92
+msgid "Keep a log of visitor orders, stock changes and other public events?"
+msgstr ""
+
+#: includes/wsal-functions.php:111
+msgid "Log all stock changes. Disable this setting to only keep a log of stock changes done manually via the WooCommerce dashboard. Therefore automated stock changes typically done via customers placing orders or via other plugins will not be logged."
+msgstr ""
+
+#: includes/wsal-functions.php:140
+msgid "Downloaded"
+msgstr ""
+
+#: includes/wsal-functions.php:159
+msgid "WooCommerce Product"
+msgstr ""
+
+#: includes/wsal-functions.php:160
+msgid "WooCommerce Store"
+msgstr ""
+
+#: includes/wsal-functions.php:161
+msgid "WooCommerce Coupon"
+msgstr ""
+
+#: includes/wsal-functions.php:162
+msgid "WooCommerce Category"
+msgstr ""
+
+#: includes/wsal-functions.php:163
+msgid "WooCommerce Tag"
+msgstr ""
+
+#: includes/wsal-functions.php:164
+msgid "WooCommerce Order"
+msgstr ""
+
+#: includes/wsal-functions.php:340
+msgid "Product stock changes:"
+msgstr ""
+
+#: includes/wsal-functions.php:343
+msgid "Product admin:"
+msgstr ""
+
+#: includes/wsal-functions.php:346
+msgid "Product changes:"
+msgstr ""
+
+#: includes/wsal-functions.php:349
+msgid "Product attributes:"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:10
+msgid "WooCommerce"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:11
+msgid "Products"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:15
+msgid "User created a new product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:16
+msgid "Created a new product called %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:18
+#: wp-security-audit-log/custom-alerts.php:34
+#: wp-security-audit-log/custom-alerts.php:50
+#: wp-security-audit-log/custom-alerts.php:67
+#: wp-security-audit-log/custom-alerts.php:83
+#: wp-security-audit-log/custom-alerts.php:99
+#: wp-security-audit-log/custom-alerts.php:117
+#: wp-security-audit-log/custom-alerts.php:134
+#: wp-security-audit-log/custom-alerts.php:151
+#: wp-security-audit-log/custom-alerts.php:168
+#: wp-security-audit-log/custom-alerts.php:196
+#: wp-security-audit-log/custom-alerts.php:210
+#: wp-security-audit-log/custom-alerts.php:223
+#: wp-security-audit-log/custom-alerts.php:239
+#: wp-security-audit-log/custom-alerts.php:255
+#: wp-security-audit-log/custom-alerts.php:271
+#: wp-security-audit-log/custom-alerts.php:287
+#: wp-security-audit-log/custom-alerts.php:304
+#: wp-security-audit-log/custom-alerts.php:321
+#: wp-security-audit-log/custom-alerts.php:338
+#: wp-security-audit-log/custom-alerts.php:355
+#: wp-security-audit-log/custom-alerts.php:372
+#: wp-security-audit-log/custom-alerts.php:389
+#: wp-security-audit-log/custom-alerts.php:406
+#: wp-security-audit-log/custom-alerts.php:423
+#: wp-security-audit-log/custom-alerts.php:440
+#: wp-security-audit-log/custom-alerts.php:457
+#: wp-security-audit-log/custom-alerts.php:476
+#: wp-security-audit-log/custom-alerts.php:493
+#: wp-security-audit-log/custom-alerts.php:509
+#: wp-security-audit-log/custom-alerts.php:526
+#: wp-security-audit-log/custom-alerts.php:543
+#: wp-security-audit-log/custom-alerts.php:561
+#: wp-security-audit-log/custom-alerts.php:579
+#: wp-security-audit-log/custom-alerts.php:599
+#: wp-security-audit-log/custom-alerts.php:616
+#: wp-security-audit-log/custom-alerts.php:633
+#: wp-security-audit-log/custom-alerts.php:648
+#: wp-security-audit-log/custom-alerts.php:667
+#: wp-security-audit-log/custom-alerts.php:684
+#: wp-security-audit-log/custom-alerts.php:701
+#: wp-security-audit-log/custom-alerts.php:719
+#: wp-security-audit-log/custom-alerts.php:793
+#: wp-security-audit-log/custom-alerts.php:811
+#: wp-security-audit-log/custom-alerts.php:828
+#: wp-security-audit-log/custom-alerts.php:846
+#: wp-security-audit-log/custom-alerts.php:862
+#: wp-security-audit-log/custom-alerts.php:879
+#: wp-security-audit-log/custom-alerts.php:1913
+#: wp-security-audit-log/custom-alerts.php:1930
+msgid "Product ID"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:19
+#: wp-security-audit-log/custom-alerts.php:35
+#: wp-security-audit-log/custom-alerts.php:51
+#: wp-security-audit-log/custom-alerts.php:68
+#: wp-security-audit-log/custom-alerts.php:84
+#: wp-security-audit-log/custom-alerts.php:100
+#: wp-security-audit-log/custom-alerts.php:118
+#: wp-security-audit-log/custom-alerts.php:135
+#: wp-security-audit-log/custom-alerts.php:152
+#: wp-security-audit-log/custom-alerts.php:169
+#: wp-security-audit-log/custom-alerts.php:197
+#: wp-security-audit-log/custom-alerts.php:211
+#: wp-security-audit-log/custom-alerts.php:224
+#: wp-security-audit-log/custom-alerts.php:240
+#: wp-security-audit-log/custom-alerts.php:256
+#: wp-security-audit-log/custom-alerts.php:272
+#: wp-security-audit-log/custom-alerts.php:288
+#: wp-security-audit-log/custom-alerts.php:305
+#: wp-security-audit-log/custom-alerts.php:322
+#: wp-security-audit-log/custom-alerts.php:339
+#: wp-security-audit-log/custom-alerts.php:356
+#: wp-security-audit-log/custom-alerts.php:373
+#: wp-security-audit-log/custom-alerts.php:390
+#: wp-security-audit-log/custom-alerts.php:407
+#: wp-security-audit-log/custom-alerts.php:424
+#: wp-security-audit-log/custom-alerts.php:441
+#: wp-security-audit-log/custom-alerts.php:458
+#: wp-security-audit-log/custom-alerts.php:477
+#: wp-security-audit-log/custom-alerts.php:494
+#: wp-security-audit-log/custom-alerts.php:510
+#: wp-security-audit-log/custom-alerts.php:527
+#: wp-security-audit-log/custom-alerts.php:544
+#: wp-security-audit-log/custom-alerts.php:562
+#: wp-security-audit-log/custom-alerts.php:580
+#: wp-security-audit-log/custom-alerts.php:600
+#: wp-security-audit-log/custom-alerts.php:617
+#: wp-security-audit-log/custom-alerts.php:634
+#: wp-security-audit-log/custom-alerts.php:649
+#: wp-security-audit-log/custom-alerts.php:668
+#: wp-security-audit-log/custom-alerts.php:685
+#: wp-security-audit-log/custom-alerts.php:702
+#: wp-security-audit-log/custom-alerts.php:720
+#: wp-security-audit-log/custom-alerts.php:794
+#: wp-security-audit-log/custom-alerts.php:812
+#: wp-security-audit-log/custom-alerts.php:829
+#: wp-security-audit-log/custom-alerts.php:847
+#: wp-security-audit-log/custom-alerts.php:863
+#: wp-security-audit-log/custom-alerts.php:880
+#: wp-security-audit-log/custom-alerts.php:1914
+#: wp-security-audit-log/custom-alerts.php:1931
+msgid "Product SKU"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:20
+#: wp-security-audit-log/custom-alerts.php:36
+#: wp-security-audit-log/custom-alerts.php:52
+#: wp-security-audit-log/custom-alerts.php:69
+#: wp-security-audit-log/custom-alerts.php:85
+#: wp-security-audit-log/custom-alerts.php:101
+#: wp-security-audit-log/custom-alerts.php:119
+#: wp-security-audit-log/custom-alerts.php:136
+#: wp-security-audit-log/custom-alerts.php:153
+#: wp-security-audit-log/custom-alerts.php:170
+#: wp-security-audit-log/custom-alerts.php:198
+#: wp-security-audit-log/custom-alerts.php:225
+#: wp-security-audit-log/custom-alerts.php:257
+#: wp-security-audit-log/custom-alerts.php:273
+#: wp-security-audit-log/custom-alerts.php:289
+#: wp-security-audit-log/custom-alerts.php:306
+#: wp-security-audit-log/custom-alerts.php:323
+#: wp-security-audit-log/custom-alerts.php:340
+#: wp-security-audit-log/custom-alerts.php:357
+#: wp-security-audit-log/custom-alerts.php:374
+#: wp-security-audit-log/custom-alerts.php:391
+#: wp-security-audit-log/custom-alerts.php:408
+#: wp-security-audit-log/custom-alerts.php:425
+#: wp-security-audit-log/custom-alerts.php:442
+#: wp-security-audit-log/custom-alerts.php:459
+#: wp-security-audit-log/custom-alerts.php:478
+#: wp-security-audit-log/custom-alerts.php:495
+#: wp-security-audit-log/custom-alerts.php:511
+#: wp-security-audit-log/custom-alerts.php:528
+#: wp-security-audit-log/custom-alerts.php:545
+#: wp-security-audit-log/custom-alerts.php:563
+#: wp-security-audit-log/custom-alerts.php:581
+#: wp-security-audit-log/custom-alerts.php:601
+#: wp-security-audit-log/custom-alerts.php:618
+#: wp-security-audit-log/custom-alerts.php:652
+#: wp-security-audit-log/custom-alerts.php:669
+#: wp-security-audit-log/custom-alerts.php:686
+#: wp-security-audit-log/custom-alerts.php:703
+#: wp-security-audit-log/custom-alerts.php:721
+#: wp-security-audit-log/custom-alerts.php:795
+#: wp-security-audit-log/custom-alerts.php:813
+#: wp-security-audit-log/custom-alerts.php:830
+#: wp-security-audit-log/custom-alerts.php:848
+#: wp-security-audit-log/custom-alerts.php:864
+#: wp-security-audit-log/custom-alerts.php:881
+msgid "Product status"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:23
+#: wp-security-audit-log/custom-alerts.php:39
+#: wp-security-audit-log/custom-alerts.php:56
+#: wp-security-audit-log/custom-alerts.php:72
+#: wp-security-audit-log/custom-alerts.php:88
+#: wp-security-audit-log/custom-alerts.php:106
+#: wp-security-audit-log/custom-alerts.php:123
+#: wp-security-audit-log/custom-alerts.php:140
+#: wp-security-audit-log/custom-alerts.php:157
+#: wp-security-audit-log/custom-alerts.php:173
+#: wp-security-audit-log/custom-alerts.php:185
+#: wp-security-audit-log/custom-alerts.php:228
+#: wp-security-audit-log/custom-alerts.php:244
+#: wp-security-audit-log/custom-alerts.php:260
+#: wp-security-audit-log/custom-alerts.php:276
+#: wp-security-audit-log/custom-alerts.php:292
+#: wp-security-audit-log/custom-alerts.php:310
+#: wp-security-audit-log/custom-alerts.php:327
+#: wp-security-audit-log/custom-alerts.php:344
+#: wp-security-audit-log/custom-alerts.php:361
+#: wp-security-audit-log/custom-alerts.php:378
+#: wp-security-audit-log/custom-alerts.php:395
+#: wp-security-audit-log/custom-alerts.php:412
+#: wp-security-audit-log/custom-alerts.php:429
+#: wp-security-audit-log/custom-alerts.php:446
+#: wp-security-audit-log/custom-alerts.php:465
+#: wp-security-audit-log/custom-alerts.php:482
+#: wp-security-audit-log/custom-alerts.php:498
+#: wp-security-audit-log/custom-alerts.php:515
+#: wp-security-audit-log/custom-alerts.php:532
+#: wp-security-audit-log/custom-alerts.php:549
+#: wp-security-audit-log/custom-alerts.php:568
+#: wp-security-audit-log/custom-alerts.php:588
+#: wp-security-audit-log/custom-alerts.php:605
+#: wp-security-audit-log/custom-alerts.php:622
+#: wp-security-audit-log/custom-alerts.php:656
+#: wp-security-audit-log/custom-alerts.php:673
+#: wp-security-audit-log/custom-alerts.php:690
+#: wp-security-audit-log/custom-alerts.php:707
+#: wp-security-audit-log/custom-alerts.php:725
+#: wp-security-audit-log/custom-alerts.php:799
+#: wp-security-audit-log/custom-alerts.php:817
+#: wp-security-audit-log/custom-alerts.php:835
+#: wp-security-audit-log/custom-alerts.php:851
+#: wp-security-audit-log/custom-alerts.php:868
+#: wp-security-audit-log/custom-alerts.php:885
+msgid "View product in editor"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:31
+msgid "User published a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:32
+msgid "Published the product called %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:47
+msgid "User changed the category of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:48
+msgid "Changed the category(ies) of the product %ProductTitle% to %NewCategories%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:53
+msgid "Previous categories"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:64
+msgid "User modified the short description of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:65
+msgid "Changed the short description of the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:80
+msgid "User modified the text of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:81
+msgid "Changed the text of the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:96
+msgid "User changed the URL of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:97
+msgid "Changed the URL of the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:102
+#: wp-security-audit-log/custom-alerts.php:461
+msgid "Previous URL"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:103
+#: wp-security-audit-log/custom-alerts.php:462
+msgid "New URL"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:114
+msgid "User changed the Product Data of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:115
+#: wp-security-audit-log/custom-alerts.php:353
+msgid "Changed the type of the product %ProductTitle% to %NewType%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:120
+#: wp-security-audit-log/custom-alerts.php:358
+msgid "Previous type"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:131
+msgid "User changed the date of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:132
+msgid "Changed the date of the product %ProductTitle% to %NewDate%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:137
+#: wp-security-audit-log/custom-alerts.php:1738
+msgid "Previous date"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:148
+msgid "User changed the visibility of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:149
+msgid "Changed the visibility of the product %ProductTitle% to %NewVisibility%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:154
+#: wp-security-audit-log/custom-alerts.php:882
+msgid "Previous visibility"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:165
+msgid "User modified the product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:166
+msgid "Modified the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:181
+msgid "User modified the draft product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:182
+msgid "Modified the draft product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:193
+msgid "User moved a product to trash"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:194
+msgid "Moved the product %ProductTitle% to trash."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:207
+msgid "User permanently deleted a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:208
+msgid "Permanently deleted the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:220
+msgid "User restored a product from the trash"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:221
+msgid "Restored the product %ProductTitle% from trash."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:236
+msgid "User changed status of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:237
+msgid "Changed the status of the product %ProductTitle% to %NewStatus%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:241
+#: wp-security-audit-log/custom-alerts.php:512
+msgid "Previous status"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:252
+msgid "User opened a product in the editor"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:253
+msgid "Opened the product %ProductTitle% in the editor."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:268
+msgid "User viewed a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:269
+msgid "Viewed the product %ProductTitle% page."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:284
+msgid "User renamed a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:285
+msgid "Renamed the product %OldTitle% to %NewTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:301
+msgid "User changed type of a price"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:302
+msgid "Changed the %PriceType% price of the product %ProductTitle% to %NewPrice%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:307
+msgid "Previous price"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:318
+msgid "User changed the SKU of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:319
+msgid "Changed the SKU of the product %ProductTitle% to %NewSku%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:324
+msgid "Previous SKU"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:335
+msgid "User changed the stock status of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:336
+msgid "Changed the stock status of the product %ProductTitle% to %NewStatus%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:341
+msgid "Previous stock status"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:352
+msgid "User set a product type"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:369
+msgid "User changed the weight of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:370
+msgid "Changed the weight of the product %ProductTitle% to %NewWeight%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:375
+msgid "Previous weight"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:386
+msgid "User changed the dimensions of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:387
+msgid "Changed the %DimensionType% dimensions of the product %ProductTitle% to %NewDimension%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:392
+#: wp-security-audit-log/custom-alerts.php:602
+#: wp-security-audit-log/custom-alerts.php:619
+#: wp-security-audit-log/custom-alerts.php:1753
+msgid "Previous value"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:403
+msgid "User added the Downloadable File to a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:404
+msgid "Added the downloadable file %FileName% to the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:409
+#: wp-security-audit-log/custom-alerts.php:426
+msgid "File URL"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:420
+msgid "User Removed the Downloadable File from a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:421
+msgid "Removed the downloadable file %FileName% from the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:437
+msgid "User changed the name of a Downloadable File in a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:438
+msgid "Changed the name of the downloadable file %OldName% to %NewName% in the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:443
+msgid "Previous file name"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:454
+msgid "User changed the URL of the Downloadable File in a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:455
+msgid "Changed the URL of the downloadable file to the product %ProductTitle%"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:460
+msgid "File name"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:473
+msgid "User changed the catalog visibility of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:474
+msgid "Changed the product visibility of the product %ProductTitle% to %NewVisibility%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:479
+msgid "Previous visibility setting"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:490
+msgid "User changed the setting Featured Product of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:491
+msgid "Changed the status of the setting <strong>Featured Product</strong> for the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:506
+msgid "User changed the Allow Backorders setting of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:507
+msgid "Changed the Allow Backorders setting for the product %ProductTitle% to %NewStatus%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:523
+msgid "User added/removed products to upsell of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:524
+msgid "Products to the Upsell setting in product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:529
+msgid "New product in Upsells"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:540
+msgid "User added/removed products to cross-sells of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:541
+msgid "Products to the Cross-sell setting in product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:546
+msgid "New product in Cross-sells"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:558
+msgid "Added or deleted a product image"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:559
+msgid "The product image of the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:564
+msgid "Image name"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:565
+msgid "Image path"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:576
+msgid "Modified a product image"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:577
+msgid "Changed the product image of the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:582
+msgid "Previous image name"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:583
+msgid "Previous image path"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:584
+msgid "New image name"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:585
+msgid "New image path"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:596
+msgid "Modified the download limit of the product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:597
+msgid "Changed the download limit of the product %product_name% to %new_value%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:613
+msgid "Modified the download expiry setting of the product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:614
+msgid "Changed the download expire setting of the product %product_name% to %new_value%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:630
+msgid "A product was downloaded"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:631
+msgid "Downloaded the product %product_name%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:635
+msgid "User email"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:645
+msgid "System changed the stock quantity of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:646
+msgid "The stock quantity of the product %ProductTitle% was changed to %NewValue% due to a purchase."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:650
+msgid "User name"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:651
+#: wp-security-audit-log/custom-alerts.php:1824
+msgid "Order name"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:653
+#: wp-security-audit-log/custom-alerts.php:670
+#: wp-security-audit-log/custom-alerts.php:796
+#: wp-security-audit-log/custom-alerts.php:1929
+msgid "Previous quantity"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:664
+msgid "Third-party plugin changed the stock quantity of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:665
+msgid "The stock quantity of the product %ProductTitle% was changed to %NewValue% via third party system."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:681
+msgid "The Tax status of a product has been modified"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:682
+msgid "Changed the Tax status of the product %ProductTitle% to %new_tax_status%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:687
+msgid "Previous tax status"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:698
+msgid "The Tax class of a product has been modified"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:699
+msgid "Changed the Tax class of the product %ProductTitle% to %new_tax_class%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:704
+msgid "Previous tax class"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:716
+msgid "User changed the low stock threshold of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:717
+msgid "Changed the Low stock threshold of the product %ProductTitle% to %new_low_stock_amount%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:722
+msgid "Previous Low stock treshold value"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:735
+msgid "User added a webhook"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:736
+msgid "The webhook %HookName% was %EventType%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:738
+#: wp-security-audit-log/custom-alerts.php:755
+#: wp-security-audit-log/custom-alerts.php:771
+msgid "Topic"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:739
+#: wp-security-audit-log/custom-alerts.php:756
+#: wp-security-audit-log/custom-alerts.php:773
+msgid "Delivery URL"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:740
+#: wp-security-audit-log/custom-alerts.php:757
+#: wp-security-audit-log/custom-alerts.php:775
+msgid "Status"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:743
+#: wp-security-audit-log/custom-alerts.php:781
+msgid "View details"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:752
+msgid "User removed a webhook"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:753
+msgid "The webhook %HookName% was deleted."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:767
+msgid "User modified a webhook"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:768
+msgid "The webhook %HookName% was modified."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:770
+msgid "Previous Name"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:772
+msgid "Previous Topic"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:774
+msgid "Previous Delivery URL"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:776
+msgid "Previous Status"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:777
+msgid "Secret"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:778
+msgid "Previous Secret"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:790
+msgid "User changed the stock quantity"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:791
+msgid "Changed the stock quantity of the product %ProductTitle% to %NewValue%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:808
+msgid "Added a new attribute of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:809
+msgid "Added a new attribute caled %AttributeName% to the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:814
+#: wp-security-audit-log/custom-alerts.php:865
+msgid "Attribute value"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:825
+msgid "Modified the value of an attribute of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:826
+msgid "Modified the value of the attribute %AttributeName$ in the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:831
+msgid "Previous attribute value"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:832
+msgid "New attribute value"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:843
+msgid "Changed the name of an attribute of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:844
+msgid "Renamed the attribute %OldValue% to %NewValue% in the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:859
+msgid "Deleted an attribute of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:860
+msgid "Deleted the attribute %AttributeName% from the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:876
+msgid "Set the attribute visibility of a product"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:877
+msgid "Changed the visibility of the attribute %AttributeName% to %AttributeVisiblilty% in the the product %ProductTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:892
+msgid "Store"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:896
+msgid "User changed the Weight Unit"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:897
+msgid "Changed the <strong>weight unit</strong> of the store to %NewUnit%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:899
+msgid "Previous weight unit"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:908
+msgid "User changed the Dimensions Unit"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:909
+msgid "Changed the <strong>dimensions unit</strong> of the store to %NewUnit%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:911
+msgid "Previous dimensions unit"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:920
+msgid "User changed the Base Location"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:921
+msgid "Changed the <strong>base location</strong> of the store to %NewLocation%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:923
+msgid "Previous address"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:932
+msgid "User enabled/disabled taxes"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:933
+msgid "Changed the status of the <strong>Taxes</strong> store setting."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:942
+msgid "User changed the currency"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:943
+msgid "Changed the <strong>currency</strong> of the store to %NewCurrency%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:945
+msgid "Previous currency"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:954
+msgid "User enabled/disabled the use of coupons during checkout"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:955
+msgid "Changed the status of the store setting <strong>use of coupons during checkout</strong>."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:964
+msgid "User enabled/disabled guest checkout"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:965
+msgid "Changed the status of the store setting <strong>Guest checkout</strong>."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:974
+msgid "User enabled/disabled Cash on delivery"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:975
+msgid "Changed the status of the store setting <strong>cash on delivery</strong>"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:984
+msgid "User enabled/disabled the store setting Allow customers to log into an existing account during checkout"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:985
+msgid "Changed the status of the store setting <strong>Allow customers to log into an existing account during checkout.</strong>"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:994
+msgid "User enabled/disabled the store setting Allow customers to create an account during checkout"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:995
+msgid "Changed the status of the store setting <strong>Changed the status of the store setting Allow customers to create an account during checkout.</strong>"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1004
+msgid "User enabled/disabled the store setting Allow customers to create an account on the \"My account\" page"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1005
+msgid "Changed the status of the store setting <strong>Allow customers to create an account on the \"My account\" page.</strong>"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1014
+msgid "User enabled/disabled the store setting When creating an account, automatically generate an account username for the customer based on their name, surname or email"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1015
+msgid "Changed the status of the store setting <strong>When creating an account, automatically generate an account username for the customer based on their name, surname or email.</strong>"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1024
+msgid "User enabled/disabled the store setting When creating an account, send the new user a link to set their password"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1025
+msgid "Changed the status of the store setting <strong>When creating an account, send the new user a link to set their password.</strong>"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1034
+msgid "User enabled/disabled the store setting Remove personal data from orders on request"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1035
+msgid "Changed the status of the store setting <strong>Remove personal data from orders on request.</strong>"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1044
+msgid "User enabled/disabled the store setting Remove access to downloads on request"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1045
+msgid "Changed the status of the store setting <strong>Remove access to downloads on request.</strong>"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1054
+msgid "User enabled/disabled the store setting Allow personal data to be removed in bulk from orders"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1055
+msgid "Changed the status of the store setting <strong>Allow personal data to be removed in bulk from orders.</strong>"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1064
+msgid "Changed the setting Registration privacy policy message"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1065
+msgid "Changed the store <strong>Registration privacy policy</strong> message to %new_setting%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1067
+#: wp-security-audit-log/custom-alerts.php:1079
+msgid "Previous message"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1076
+msgid "Changed the setting Checkout privacy policy message"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1077
+msgid "Changed the store <strong>Checkout privacy policy</strong> message to %new_setting%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1089
+msgid "User modified selling location(s)"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1090
+msgid "Changed the store setting <strong>Selling location(s)</strong> to %new%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1092
+#: wp-security-audit-log/custom-alerts.php:1130
+#: wp-security-audit-log/custom-alerts.php:1290
+#: wp-security-audit-log/custom-alerts.php:1302
+#: wp-security-audit-log/custom-alerts.php:1314
+#: wp-security-audit-log/custom-alerts.php:1326
+#: wp-security-audit-log/custom-alerts.php:1361
+msgid "Previous setting"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1101
+msgid "User modified excluded selling location(s)"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1102
+msgid "Changed the <strong>list of excluded countries to sell to</strong> setting in the store."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1104
+#: wp-security-audit-log/custom-alerts.php:1117
+#: wp-security-audit-log/custom-alerts.php:1143
+msgid "Previous list of countries"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1105
+#: wp-security-audit-log/custom-alerts.php:1118
+#: wp-security-audit-log/custom-alerts.php:1144
+msgid "New list of countries"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1114
+msgid "User modified exclusive selling location(s)"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1115
+msgid "Changed the <strong>list of countries to sell to</strong> setting in the store."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1127
+msgid "User modified shipping location(s)"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1128
+msgid "Changed the <strong>Shipping location(s)</strong> setting in the store."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1131
+msgid "New Setting"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1140
+msgid "User modified exclusive shipping location(s)"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1141
+msgid "Changed the <strong>List of specific countries to</strong> ship to setting in the store."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1153
+msgid "User modified default customer location"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1154
+msgid "Changed the <strong>Default customer location</strong> setting to %new%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1156
+msgid "Previous location"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1165
+msgid "User modified the cart page"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1166
+msgid "Changed the store's <strong>Cart page</strong> to %new%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1168
+#: wp-security-audit-log/custom-alerts.php:1180
+#: wp-security-audit-log/custom-alerts.php:1192
+#: wp-security-audit-log/custom-alerts.php:1204
+msgid "Previous page"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1177
+msgid "User modified the checkout page"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1178
+msgid "Changed the store's <strong>Checkout page</strong> to %new%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1189
+msgid "User modified the my account page"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1190
+msgid "Changed the store's <strong>My account page</strong> to %new%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1201
+msgid "User modified the terms and conditions page"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1202
+msgid "Changed the store's <strong>Terms and conditions page</strong> to %new%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1213
+msgid "Changed the status of the Enable product reviews setting in the store"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1214
+msgid "Changed the status of the <strong>Enable product reviews</strong> setting in the store."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1223
+msgid "Changed the status of the Show \"verified owner\" label on customer reviews setting in the store"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1224
+msgid "Changed the status of the <strong>Show \"verified owner\" label on customer reviews</strong> setting in the store."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1233
+msgid "Changed the status of the Reviews can only be left by \"verified owners\" setting in the store"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1234
+msgid "Changed the status of the <strong>Reviews can only be left by \"verified owners\"</strong> setting in the store."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1243
+msgid "Changed the status of the Star rating on reviews setting in the store"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1244
+msgid "Changed the status of the <strong>Star rating on reviews</strong> setting in the store."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1253
+msgid "Changed the status of the Star ratings should be required setting in the store"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1254
+msgid "Changed the status of the <strong>Star ratings should be required</strong> setting in the store."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1263
+msgid "A Checkout endpoint has been modified"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1264
+msgid "Changed the <strong>Checkout endpoint</strong> %endpoint_name% to %new_value%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1266
+#: wp-security-audit-log/custom-alerts.php:1278
+msgid "Previous endpoint value"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1275
+msgid "An Account endpoint has been modified"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1276
+msgid "Changed the <strong>Account endpoint</strong> %endpoint_name% to %new_value%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1287
+msgid "The Currency position setting has been modified"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1288
+msgid "Changed the <strong>Currency position</strong> setting to %new_setting%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1299
+msgid "The Thousand separator setting has been modified"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1300
+msgid "Changed the <strong>Thousand separator</strong> setting in the Currency options to %new_setting%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1311
+msgid "The Decimal separator setting has been modified"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1312
+msgid "Changed the <strong>Decimal separator</strong> setting in the Currency options to %new_setting%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1323
+msgid "The Number of decimals position setting has been modified"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1324
+msgid "Changed the <strong>Number of decimals</strong> setting in the Currency options to %new_setting%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1336
+msgid "Changed the status of the Shipping options: Enable the shipping calculator on the cart page setting in the store."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1337
+msgid "Changed the status of the <strong>Shipping options: Enable the shipping calculator on the cart page</strong> setting in the store."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1347
+msgid "Changed the status of the Shipping option: Hide shipping costs until an address is entered setting in the store."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1348
+msgid "Changed the status of the <strong>Shipping option: Hide shipping costs until an address is entered</strong> setting in the store."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1358
+msgid "Changed the setting Shipping option: Shipping destination"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1359
+msgid "Changed the setting Shipping option: Shipping destination to %new_setting%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1371
+msgid "Changed the status of the Debug mode setting in the store."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1372
+msgid "Changed the status of the <strong>Debug mode</strong> setting in the store."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1380
+msgid "Payment Gateways"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1384
+msgid "User enabled/disabled a payment gateway"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1385
+msgid "Changed the status of the payment gateway %GatewayName%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1394
+#: wp-security-audit-log/custom-alerts.php:1395
+msgid "User disabled a payment gateway"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1397
+msgid "The payment gateway"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1406
+msgid "User modified a payment gateway"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1407
+msgid "Changed the settings of the %GatewayName% payment gateway."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1415
+msgid "Tax Settings"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1419
+msgid "User modified prices with tax option"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1420
+msgid "Changed the store setting <strong>Prices entered with tax</strong> to %TaxStatus% taxes."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1429
+msgid "User modified tax calculation base"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1430
+msgid "Changed the store setting <strong>Calculate tax based on</strong> to %Setting%"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1439
+msgid "User modified shipping tax class"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1440
+msgid "Changed the store setting <strong>Shipping tax class</strong> to %Setting%"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1449
+msgid "User enabled/disabled rounding of tax"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1450
+msgid "Changed the status of the store tax setting <strong>Rounding</strong> of tax at subtotal level."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1459
+msgid "User modified a shipping zone"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1460
+msgid "The shipping zone %ShippingZoneName% on the WooCommerce store"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1468
+msgid "WC Categories"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1472
+msgid "User created a new product category"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1473
+msgid "Created new product category called %CategoryName%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1475
+#: wp-security-audit-log/custom-alerts.php:1489
+#: wp-security-audit-log/custom-alerts.php:1516
+#: wp-security-audit-log/custom-alerts.php:1531
+#: wp-security-audit-log/custom-alerts.php:1547
+msgid "Category slug"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1478
+#: wp-security-audit-log/custom-alerts.php:1505
+#: wp-security-audit-log/custom-alerts.php:1520
+#: wp-security-audit-log/custom-alerts.php:1535
+#: wp-security-audit-log/custom-alerts.php:1550
+msgid "View category"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1486
+msgid "User deleted a product category"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1487
+msgid "Deleted the product category called %CategoryName%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1498
+msgid "User changed the slug of a product category"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1499
+msgid "Changed the slug of the product category called %CategoryName%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1501
+msgid "Previous category slug"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1502
+msgid "New category slug"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1513
+msgid "User changed the parent category of a product category"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1514
+msgid "Changed the parent of the product category %CategoryName% to %NewParentCat%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1517
+msgid "Previous parent"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1528
+msgid "User changed the display type of a product category"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1529
+msgid "Changed the display type of the product category %name% to %NewDisplayType%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1532
+msgid "Previous display type"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1543
+msgid "User changed the name of a product category"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1544
+msgid "Renamed the product category %OldName% to %NewName%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1546
+msgid "Previous category name"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1557
+msgid "WC Tags"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1561
+msgid "User created a new product tag"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1562
+msgid "Created the tag %CategoryName%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1564
+#: wp-security-audit-log/custom-alerts.php:1578
+#: wp-security-audit-log/custom-alerts.php:1590
+msgid "Slug"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1567
+#: wp-security-audit-log/custom-alerts.php:1593
+#: wp-security-audit-log/custom-alerts.php:1607
+msgid "View product tag"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1575
+msgid "User deleted a product tag"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1576
+msgid "Deleted the tag %Name%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1587
+msgid "User renamed product tag"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1588
+msgid "Renamed the tag %OldName% to %NewName%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1601
+msgid "User changed product tag slug"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1602
+msgid "Changed the slug of the tag %TagName% to %NewSlug%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1604
+#: wp-security-audit-log/custom-alerts.php:1645
+msgid "Previous slug"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1614
+msgid "Attributes"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1618
+msgid "User created a new attribute"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1619
+msgid "Created a new attribute in WooCommerce called %AttributeName%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1621
+#: wp-security-audit-log/custom-alerts.php:1633
+#: wp-security-audit-log/custom-alerts.php:1657
+#: wp-security-audit-log/custom-alerts.php:1670
+#: wp-security-audit-log/custom-alerts.php:1683
+msgid "Attribute slug"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1630
+msgid "User deleted an attribute"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1631
+msgid "Deleted the WooCommerce attribute %AttributeName%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1642
+msgid "User changed the slug of an attribute"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1643
+msgid "Changed the slug of the WooCommerce attribute %AttributeName% to %NewSlug%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1654
+msgid "User changed the name of an attribute"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1655
+msgid "Renamed the WooCommerce attribute %AttributeName% to %NewName%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1658
+msgid "Previous name"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1667
+msgid "User changed the default sort order of an attribute"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1668
+msgid "Changed the Default Sorting Order of the attribute %AttributeName% in WooCommerce to %NewSortOrder%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1671
+msgid "Previous sorting order"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1680
+msgid "User enabled/disabled the option Enable Archives of an attribute"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1681
+msgid "Changed the status of the option Enable Archives in WooCommerce attribute %AttributeName%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1691
+msgid "Coupons"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1695
+msgid "User published a new coupon"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1696
+msgid "Created the WooCommerce coupon: %CouponName%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1699
+#: wp-security-audit-log/custom-alerts.php:1727
+#: wp-security-audit-log/custom-alerts.php:1741
+#: wp-security-audit-log/custom-alerts.php:1756
+#: wp-security-audit-log/custom-alerts.php:1770
+#: wp-security-audit-log/custom-alerts.php:1785
+#: wp-security-audit-log/custom-alerts.php:1810
+msgid "View coupon in editor"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1707
+msgid "User changed the discount type of a coupon"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1708
+msgid "Changed the Discount Type in the coupon %CouponName% to %NewDiscountType%.%"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1710
+msgid "Previous discount type"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1721
+msgid "User changed the coupon amount of a coupon"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1722
+msgid "Changed the Coupon amount in the coupon %CouponName% to %NewAmount%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1724
+msgid "Previous amount"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1735
+msgid "User changed the coupon expire date of a coupon"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1736
+msgid "Changed the expire date of the coupon %CouponName% to %NewDate%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1749
+msgid "User changed the usage restriction settings of a coupon"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1750
+msgid "Changed the <strong>Usage restriction</strong> of the coupon %CouponName% to %NewMetaValue%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1752
+msgid "Usage restriction parameter"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1764
+msgid "User changed the usage limits settings of a coupon"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1765
+msgid "Change the <strong>Usage limits</strong> of the coupon %CouponName% to %NewMetaValue%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1767
+msgid "Previous usage limits"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1778
+msgid "User changed the description of a coupon"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1779
+msgid "Changed the description of the coupon %CouponName%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1781
+msgid "Previous description"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1782
+msgid "New description"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1793
+msgid "User changed the status of a coupon"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1794
+msgid "Changed the status of WooCommerce coupon %CouponName%"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1796
+msgid "Old status"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1797
+msgid "New status"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1806
+msgid "User renamed a WooCommerce coupon"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1807
+msgid "Renamed the coupon %OldName% to %NewName%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1817
+msgid "Orders"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1821
+msgid "A WooCommerce order has been placed"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1822
+msgid "A new order has been placed."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1827
+#: wp-security-audit-log/custom-alerts.php:1839
+#: wp-security-audit-log/custom-alerts.php:1851
+#: wp-security-audit-log/custom-alerts.php:1863
+#: wp-security-audit-log/custom-alerts.php:1885
+#: wp-security-audit-log/custom-alerts.php:1902
+#: wp-security-audit-log/custom-alerts.php:1917
+#: wp-security-audit-log/custom-alerts.php:1934
+#: wp-security-audit-log/custom-alerts.php:1948
+#: wp-security-audit-log/custom-alerts.php:1963
+#: wp-security-audit-log/custom-alerts.php:1975
+#: wp-security-audit-log/custom-alerts.php:1988
+#: wp-security-audit-log/custom-alerts.php:2003
+#: wp-security-audit-log/custom-alerts.php:2016
+#: wp-security-audit-log/custom-alerts.php:2031
+msgid "View order"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1835
+msgid "WooCommerce order status changed"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1836
+msgid "Marked the order %OrderTitle% as %OrderStatus%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1847
+msgid "User moved a WooCommerce order to trash"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1848
+msgid "Moved the order %OrderTitle% to trash"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1859
+msgid "User moved a WooCommerce order out of trash"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1860
+msgid "Restored the order %OrderTitle% out of the trash."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1871
+msgid "User permanently deleted a WooCommerce order"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1872
+msgid "Permanently deleted the order %OrderTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1881
+msgid "User edited a WooCommerce order"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1882
+msgid "Changed the details in order %OrderTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1893
+msgid "User refunded a WooCommerce order"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1894
+msgid "Refunded the order %OrderTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1896
+msgid "Customer"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1897
+msgid "Order date"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1898
+msgid "Refund amount"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1899
+msgid "Refund reason"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1910
+msgid "User added/removed a product from an order"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1911
+msgid "The product %ProductTitle% to/from the order %OrderTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1925
+msgid "User modified a quantity in an order"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1926
+msgid "The quantity of the %ProductTitle% was modified in order %OrderTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1928
+msgid "New quantity"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1942
+msgid "User added/removed a fee from an order"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1943
+msgid "Added/Removed a fee in order %OrderTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1945
+msgid "Fee amount"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1956
+msgid "User modified a fee from an order"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1957
+msgid "User modified a fee in order %OrderTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1959
+msgid "New fee amount"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1960
+msgid "Previous fee amount"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1971
+msgid "User added/removed a coupon from an order"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1972
+msgid "Added/Removed a coupon %CouponName% in order %OrderTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1984
+msgid "User added/removed a tax from an order"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1985
+msgid "Added/Removed the tax %TaxName% in order %OrderTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1997
+msgid "User removed a refund from an order"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:1998
+msgid "A refund was reversed in order %OrderTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:2000
+msgid "Order ID"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:2012
+msgid "User added/removed shipping from an order"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:2013
+msgid "Added/Removed shipping in order %OrderTitle%."
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:2038
+msgid "User Profile"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:2042
+msgid "User changed the billing address details"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:2043
+msgid "Changed <strong>billing address</strong> details of the user %TargetUsername%"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:2045
+#: wp-security-audit-log/custom-alerts.php:2061
+msgid "Role"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:2046
+msgid "Previous billing address"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:2047
+msgid "New Billing address"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:2050
+#: wp-security-audit-log/custom-alerts.php:2066
+msgid "User profile page"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:2058
+msgid "User changed the shipping address details"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:2059
+msgid "Changed the <strong>shipping address</strong> details of the user %TargetUsername%"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:2062
+msgid "Previous shipping address"
+msgstr ""
+
+#: wp-security-audit-log/custom-alerts.php:2063
+msgid "New Shipping address"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:735
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:736
+msgid "no categories"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:920
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:928
+msgid "Password Protected"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:922
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:930
+msgid "Public"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:924
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:932
+msgid "Private"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2231
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2237
+msgid "Customer shipping address"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2233
+msgid "Customer billing address"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2235
+msgid "Shop base address"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2257
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2265
+msgid "Shipping tax class based on cart items"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2261
+msgid "Zero rate"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2263
+msgid "Standard"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2360
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2394
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2443
+msgid "None, "
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2369
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2403
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2452
+msgid "None"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2417
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2418
+msgid "Ship to all countries you sell to"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2466
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2467
+msgid "No default location"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2895
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce_Public.php:407
+msgid "In stock"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2897
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce_Public.php:409
+msgid "Out of stock"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:2899
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce_Public.php:411
+msgid "On backorder"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:3814
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:3870
+msgid "Guest"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:3836
+msgid "None supplied"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:4327
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:4328
+msgid "Visible"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:4327
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:4328
+msgid "Non-Visible"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:4454
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:4462
+msgid "Unlimited"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:4458
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:4466
+msgid "Never"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:4566
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:4567
+msgid "Store Default"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:5060
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:5061
+msgid "Does not expire"
+msgstr ""
+
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:5244
+#: wp-security-audit-log/custom-sensors/WSAL_Sensors_WooCommerce.php:5301
+msgid "Not supplied"
+msgstr ""

@@ -1,0 +1,207 @@
+/**
+ * Checkbox Filter Styles
+ * 
+ * Styles for checkbox-based taxonomy filters in advanced search
+ * 
+ * @since 8.2.0
+ * @author Saiful Islam <codersaiful@gmail.com>
+ */
+
+/* Main checkbox filter container */
+.search_single.search_single_checkbox {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+
+.wpt-filter-type-checkbox .search_single.search_single_checkbox {
+    min-width: 200px;
+    flex-basis: 0;
+    flex-grow: 1;
+}
+
+/* Checkbox filter wrapper */
+.wpt-checkbox-filter-wrapper {
+    width: 100%;
+}
+
+/* Checkbox list container */
+.wpt-checkbox-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Individual checkbox item */
+.wpt-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    margin: 0;
+    font-weight: normal;
+}
+
+.wpt-checkbox-item:hover {
+    background-color: #f0f0f0;
+}
+
+/* Checkbox input */
+.wpt-checkbox-input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--wpt_primary);
+}
+
+/* Checkbox label text */
+.wpt-checkbox-label {
+    flex: 1;
+    font-size: 14px;
+    color: #333;
+}
+
+/* Count badge */
+.wpt-checkbox-count {
+    font-size: 12px;
+    color: #888;
+    background: #e9e9e9;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+/* Selected items display area */
+.wpt-filter-type-checkbox .search_single.search_single_checkbox .wpt-selected-items {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-bottom: 3px;
+    background: transparent;
+    min-height: 0;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: -8px;
+}
+.wpt-filter-type-checkbox .search_single.search_single_checkbox label.search_keyword_label {
+    font-weight: 600;
+}
+
+.wpt-selected-items:empty {
+    display: none;
+}
+
+/* Individual selected item tag */
+.wpt-selected-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    background: var(--wpt_primary);
+    color: #fff;
+    border-radius: 6px;
+    font-size: 13px;
+    animation: wpt-tag-appear 0.2s ease;
+}
+
+@keyframes wpt-tag-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Selected tag text */
+.wpt-selected-tag-text {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Remove button on selected tag */
+.wpt-selected-tag-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: rgba(255, 255, 255, 0.3);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: background-color 0.2s ease;
+}
+
+.wpt-selected-tag-remove:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Scrollbar styling for checkbox list */
+.wpt-checkbox-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.wpt-checkbox-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.wpt-checkbox-list::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+.wpt-checkbox-list::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+
+/* Checkbox checked state styling */
+.wpt-checkbox-item.wpt-checkbox-checked {
+    background-color: var(--wpt_secondary);
+    border-left: 3px solid var(--wpt_primary);
+    padding-left: 5px;
+}
+
+/* Responsive styles */
+@media only screen and (max-width: 768px) {
+    .wpt-checkbox-list {
+        max-height: 150px;
+    }
+    
+    .wpt-selected-tag-text {
+        max-width: 100px;
+    }
+}
+
+@media only screen and (max-width: 480px) {
+    .search_single.search_single_checkbox {
+        flex: 1 100%;
+    }
+    
+    .wpt-checkbox-list {
+        max-height: 120px;
+    }
+}

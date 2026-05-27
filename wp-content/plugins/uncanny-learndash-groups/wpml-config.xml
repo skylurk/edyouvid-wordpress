@@ -1,0 +1,19 @@
+<wpml-config>
+	<admin-texts>
+		<key name="ulgm_invitation_user_email_subject"/>
+		<key name="ulgm_invitation_user_email_body"/>
+		<key name="ulgm_user_welcome_email_subject"/>
+		<key name="ulgm_user_welcome_email_body"/>
+		<key name="ulgm_existing_user_welcome_email_subject"/>
+		<key name="ulgm_existing_user_welcome_email_body"/>
+		<key name="ulgm_group_leader_welcome_email_subject"/>
+		<key name="ulgm_group_leader_welcome_email_body"/>
+		<key name="ulgm_existing_group_leader_welcome_email_subject"/>
+		<key name="ulgm_existing_group_leader_welcome_email_body"/>
+		<key name="ulgm_new_group_purchase_email_subject"/>
+		<key name="ulgm_new_group_purchase_email_body"/>
+		<key name="ulgm_term_condition"/>
+		<key name="ulgm_per_seat_text"/>
+		<key name="ulgm_per_seat_text_plural"/>
+	</admin-texts>
+</wpml-config>

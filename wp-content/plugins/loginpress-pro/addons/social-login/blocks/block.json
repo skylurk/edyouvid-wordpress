@@ -1,0 +1,11 @@
+{
+  "apiVersion": 2,
+  "name": "loginpress/social-login",
+  "title": "LoginPress Social Login",
+  "category": "widgets",
+  "icon": "buddicons-community",
+  "editorScript": "loginpress-block-social-login",
+  "supports": {
+    "html": false
+  }
+}

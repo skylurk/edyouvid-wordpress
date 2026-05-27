@@ -1,0 +1,94 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: New Users Monitor\n"
+"POT-Creation-Date: 2025-09-04 19:01+0300\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: WPGear Team <wpgear.xyz@gmail.com>\n"
+"Language: ru_RU\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: "
+"__;_e;_x:1,2c;_ex:1,2c;_n:1,2;_nx:1,2,4c;_n_noop:1,2;_nx_noop:1,2,3c;esc_attr__;esc_attr_e;esc_html__;esc_html_e\n"
+"X-Poedit-Basepath: ..\n"
+"X-Generator: Poedit 3.7\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: includes/admin.php:12 includes/admin.php:13 includes/widgets.php:113
+msgid "New Users Monitor"
+msgstr ""
+
+#: includes/admin.php:40
+msgid "Confirmation (new User)"
+msgstr ""
+
+#: includes/admin.php:43
+msgid "Confirm the credentials of this User"
+msgstr ""
+
+#: includes/admin.php:72 includes/options.php:25
+msgid "Warning! Data Incorrect. Update Disable."
+msgstr ""
+
+#: includes/admin.php:119
+msgid "User Profile - No Confirm!"
+msgstr ""
+
+#: includes/options.php:53
+msgid "Sorry, you are not allowed to view this page."
+msgstr ""
+
+#: includes/options.php:78
+msgid "Enable this Page for Admin only"
+msgstr ""
+
+#: includes/options.php:85
+msgid "Disable Login for Non-Confirmed User"
+msgstr ""
+
+#: includes/options.php:91
+msgid "Number of new users in the widget:"
+msgstr ""
+
+#: includes/options.php:96
+msgid "DB scanning period for finding new users (Hour):"
+msgstr ""
+
+#: includes/options.php:98
+msgid "(notification will be sent to the Administrator automatically)"
+msgstr ""
+
+#: includes/options.php:108
+msgid "Save"
+msgstr ""
+
+#: includes/widgets.php:75
+msgid "Unconfirmed User!"
+msgstr ""
+
+#: includes/widgets.php:106
+msgid "Count of Unconfirmed Users"
+msgstr ""
+
+#: includes/widgets.php:112
+msgid "Click to open Setup-Option Page!"
+msgstr ""
+
+#: new-users-monitor.php:67
+msgid "Authentication Impossible."
+msgstr ""
+
+#~ msgid ""
+#~ "Ext Security. Automatic scanning of the Users list, and detect "
+#~ "unauthorized addition to the DB. Informs immediately Admin by email. "
+#~ "Informative Widget in the console. (It is convenient to use with the "
+#~ "plugin \"Users Login Monitor\")"
+msgstr ""
+#~ "Дополнительный уровень безопасности. Вы можете не знать, что вас уже "
+#~ "взломали. Автоматическое обнаружение Неподтвержденных Пользователей с "
+#~ "уведомлением Администратора. Информативный Виджет в Консоли. (Удобно "
+#~ "использовать вместе с плагином \"Users Login Monitor\")"

@@ -1,0 +1,512 @@
+<?php
+/**
+ * All metabox will control from here
+ * This page added at 4.1.1 date: 19.1.2019
+ * 
+ * @since 4.1.1
+ * @author Saiful Islam<codersaiful@gmail.com>
+ */
+
+if( ! function_exists( 'wpt_shortcode_metabox' ) ){
+
+    /**
+     * Our total metabox or register_meta_box_cb will controll from here. 
+     * 
+     * @since 4.1.1
+     */
+    function wpt_shortcode_metabox(){
+
+        add_meta_box( 'wpt_shortcode_metabox_id', 'Shortcode', 'wpt_shortcode_metabox_render', 'wpt_product_table', 'normal' );
+        add_meta_box( 'wpt_shortcode_configuration_metabox_id', 'Table Modification', 'wpt_shortcode_configuration_metabox_render', 'wpt_product_table', 'normal' ); //Added at 4.1.4
+        //add_meta_box( 'wpt_column_panel_metabox_id', __( 'Available Columns', 'woo-product-table' ), 'wpt_column_panel_metabox_render', 'wpt_product_table', 'side', 'low' ); //Added at 4.1.4
+        
+    }
+}
+
+if( ! function_exists( 'wpt_column_panel_metabox_render' ) ){
+
+    /**
+     * HAS BEEN REMOVED
+     * it was removed from 4.1.4
+     * It's a Deprecated function. Now it's not using.
+     * 
+     * This function showing column panel 
+     * 
+     * @since 2.7.8.1
+     * @deprecated version 4.1.4
+     */
+    function wpt_column_panel_metabox_render(){
+
+        global $post;
+
+        /**
+         * Filter Hook was not working from theme's function file, so need this filter inside function
+         */
+        WPT_Product_Table::$columns_array = apply_filters( 'wpto_default_column_arr', WPT_Product_Table::$columns_array );
+        WPT_Product_Table::$default_enable_columns_array = apply_filters( 'wpto_default_enable_column_arr', WPT_Product_Table::$default_enable_columns_array );
+        
+        $default_enable_array = WPT_Product_Table::$default_enable_columns_array;
+        $columns_array = WPT_Product_Table::$columns_array;
+        $for_add =  $meta_column_array = $updated_columns_array = get_post_meta( $post->ID, 'column_array', true );
+        if( ! $meta_column_array && empty( $meta_column_array ) ){
+            $for_add = $updated_columns_array = WPT_Product_Table::$columns_array;
+        }
+        if( $updated_columns_array && !empty( $updated_columns_array ) && !empty( $columns_array ) ){
+            $columns_array = array_merge( $columns_array, $updated_columns_array );
+        }
+        ksort($columns_array);
+//        $meta_enable_column_array = get_post_meta( $post->ID, 'enabled_column_array', true );
+//        if( $meta_enable_column_array && !empty( $meta_enable_column_array ) && !empty( $columns_array ) ){
+//            $columns_array = array_merge($meta_enable_column_array,$columns_array);
+//        }
+//
+//        $column_settings = get_post_meta( $post->ID, 'column_settings', true ); 
+//        if( empty( $column_settings ) ){
+//            $column_settings = array();
+//        }
+//        $additional_collumn = array_diff(array_keys($for_add), array_keys( WPT_Product_Table::$columns_array ));
+
+        ?>
+        <div class="section">
+            <p><?php echo esc_html__( 'Available columns for WOO Product Table. Add them in your table to enable column.', 'woo-product-table' ); ?></p>
+            <ul id="wpt_column_sortable">
+                <?php foreach( $columns_array as $keyword => $title ){ ?>
+                <li data-column_key = "<?php echo esc_attr( $keyword ); ?>"><?php echo esc_html( $title ); ?></li>
+                <?php } ?>
+            </ul>
+        </div>
+        <?php
+    }
+    
+}
+
+if( ! function_exists( 'wpt_shortcode_metabox_render' ) ){
+
+    function wpt_shortcode_metabox_render(){
+        global $post;
+        $curent_post_id = $post->ID;
+        $post_title = preg_replace( '/[#$%^&*()+=\-\[\]\';,.\/{}|":<>?~\\\\]/',"$1", $post->post_title );
+        ?>
+        <div class="wpt-shortcode-box-inside">
+            <input type="text" value="[Product_Table id='<?php echo esc_attr( absint( $curent_post_id ) ); ?>' name='<?php echo esc_attr( $post_title ); ?>']" class="wpt_auto_select_n_copy wpt_meta_box_shortcode mb-text-input mb-field" id="wpt_metabox_copy_content" readonly>
+            <a  class="button button-primary wpt_copy_button_metabox" data-target_id="wpt_metabox_copy_content">Copy</a>
+            <p class="wpt_metabox_copy_content"></p>
+        </div>
+
+        <p class="wpt-shorcode-render-box">
+            <strong>First Publish Product Table</strong> and then 
+            copy this shortcode and paste to your desired page. 
+            You can 
+            <a href="<?php echo esc_attr( admin_url('post-new.php?post_type=page') ); ?>">
+                Create new page
+            </a> or  Go to 
+            <a href="<?php echo esc_attr( admin_url('edit.php?post_type=page') ); ?>">
+                All Pages
+            </a>
+        </p>
+
+        <?php
+    }
+}
+
+
+if( ! function_exists( 'wpt_shortcode_configuration_metabox_render' ) ){
+
+    //Now start metabox for shortcode Generator
+    function wpt_shortcode_configuration_metabox_render(){
+        global $post;
+        /**
+         * Filter Hook was not working from theme's function file, so need this filter inside function
+         */
+        WPT_Product_Table::$columns_array = apply_filters( 'wpto_default_column_arr', WPT_Product_Table::$columns_array );
+        WPT_Product_Table::$default_enable_columns_array = apply_filters( 'wpto_default_enable_column_arr', WPT_Product_Table::$default_enable_columns_array );
+        ?>
+        <input type="hidden" name="wpt_shortcode_nonce_value" value="<?php echo esc_attr( wp_create_nonce( plugin_basename( __FILE__ ) ) ); ?>" />
+        <?php 
+        include __DIR__ . '/post_metabox_form.php';
+        ?> 
+        <br style="clear: both;">
+        <?php
+    }
+}
+
+/**
+ * To remove unnecessary array index,
+ * Actually when we are saving data in Database, It's saving a huge empty value
+ * 
+ * So I would like to remvoe empty array 
+ * 
+ * ************************
+ * CURRENT STATUS
+ * ************************
+ * Curently it's inactivated, I would like enable later. because, if i
+ * enable it, I have to check all situation after enable.
+ * please check in this file.
+ * 
+ * 
+ * @since 3.0.4.1
+ * 
+ *
+ * @param Array $array  Full array of submission
+ * @return Array
+ */
+function wpt_array_filter_recursive($array) {
+
+    foreach( $array as $key => &$value ) {
+       if( empty( $value ) ) {
+          unset( $array[$key] );
+       }
+       else{
+          if( is_array( $value ) ) {
+             $value = wpt_array_filter_recursive( $value );
+             if ( empty( $value ) ) {
+                unset( $array[$key] );
+             }
+          }
+       }
+    }
+ 
+    return $array;
+ }
+
+add_filter('redirect_post_location', 'wpt_redirect_after_save', 10, 2);
+
+/**
+ * actually redirect to last active tab, we will use this. 
+ * See from post_metabox.php file and admin.js file 
+ * using: setLastActiveTab(tabName); from js code
+ * 
+ * value taken from <input type="text" name="wpt_last_active_tab" id="wpt-last-active-tab" value=""> file post_metabox_form.php 
+ * 
+ * @since 3.4.8.0
+ * @link https://github.com/codersaiful/woo-product-table/issues/321
+ * 
+ * Redirects the user after saving a post based on specific conditions.
+ * @author Saiful Islam <codersaiful@gmail.com>
+ *
+ * @param string $location The URL to redirect to.
+ * @param int $post_id The ID of the post being saved.
+ * @return string The updated redirect URL.
+ */
+function wpt_redirect_after_save($location, $post_id) {
+
+    $nonce = sanitize_text_field(wp_unslash($_POST['wpt_shortcode_nonce_value'] ?? ''));
+    if ( empty($nonce) || ! wp_verify_nonce( $nonce, plugin_basename(__FILE__) ) ) {
+        return $location;
+    }
+
+    $wpt_last_active_tab = sanitize_text_field( wp_unslash( $_POST['wpt_last_active_tab'] ?? 'column_settings' ) );
+    if( empty( $wpt_last_active_tab ) ){
+        $wpt_last_active_tab = 'column_settings';
+    }
+
+    // Check if it's the desired post type
+    if ( get_post_type($post_id) == 'wpt_product_table' ) {
+        // Append the desired anchor to the redirect location
+        $location = add_query_arg('message', 'updated', $location);
+        $location = add_query_arg('wpt_active_tab', $wpt_last_active_tab, $location);
+    }
+    return $location;
+}
+
+
+if( ! function_exists( 'wpt_shortcode_configuration_metabox_save_meta' ) ){
+
+    function wpt_shortcode_configuration_metabox_save_meta( $post_id, $post ) { // save the data
+        
+        $nonce = sanitize_text_field( wp_unslash( $_POST['wpt_shortcode_nonce_value'] ?? '' ) );
+        if ( empty($nonce) || ! wp_verify_nonce( $nonce, plugin_basename(__FILE__) ) ) {
+            return;
+        }
+        
+
+        $wpt_import_data = sanitize_text_field( wp_unslash( $_POST['wpt-import-data'] ?? '' ) );
+        if( ! empty( $wpt_import_data ) ){
+            /**
+             * Do something, when something importing on Import Box
+             * 
+             * @Hooked wpt_importing_data admin/action-hook.php 10 (top side of this file)
+             * 
+             * @since 2.8.7.1
+             * @by Saiful Islam
+             * @Date 10.5.2021
+             */
+            do_action( 'wpto_import_data', $wpt_import_data, $post_id );
+            return;
+        }
+
+        /**
+         * @Hook Filter: wpto_on_save_global_post
+         * To change/Modify $_POST
+         * Before Save Data on Database by update_post_meta() func
+         * @since 6.1.0.5
+         * @Hook_Version: 6.1.0.5
+         */
+
+        $save_tab_array = array(
+            'column_array' => 'column_array',
+            'column_array_tablet' => 'column_array_tablet',
+            'column_array_mobile' => 'column_array_mobile',
+            
+            'enabled_column_array' => 'enabled_column_array',
+            'enabled_column_array_tablet' => 'enabled_column_array_tablet',
+            'enabled_column_array_mobile' => 'enabled_column_array_mobile',
+            
+            'column_settings' => 'column_settings',
+            'column_settings_tablet' => 'column_settings_tablet',
+            'column_settings_mobile' => 'column_settings_mobile',
+            
+            'basics' => 'basics',
+            'table_style' => 'table_style',
+            'conditions' => 'conditions',
+            'mobile' => 'mobile',
+            'search_n_filter' => 'search_n_filter',
+            'pagination' => 'pagination',
+            'config' => 'config',
+        );
+
+        $save_tab_array = apply_filters( 'wpto_save_tab_array', $save_tab_array, $post_id, $post );
+
+        if( ! is_array( $save_tab_array ) || ( is_array( $save_tab_array ) && count( $save_tab_array ) < 1 )){
+            return;
+        }
+
+        /**
+         * @Hook Action: wpto_on_save_post_before_update_meta
+         * To change data Just before update_post_meta() of our Product Table Form Data
+         * @since 6.1.0.5
+         * @Hook_Version: 6.1.0.5
+         */
+        do_action( 'wpto_on_save_post_before_update_meta', $post_id );
+        
+        /**
+         * In Filter, Availabe Tabs:
+         * tabs: column_array,column_array_tablet,column_array_mobile,enabled_column_array,
+         * enabled_column_array_tablet,enabled_column_array_mobile,
+         * column_settings,column_settings_tablet,column_settings_mobile,
+         * basics,table_style,conditions,mobile,search_n_filter,pagination,config
+         * 
+         * @since 2.9.1
+         */
+        $filtar_args = array(
+            'column_array' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'sanitize_text_field'
+            ),
+            'column_array_tablet' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'sanitize_text_field'
+            ),
+            'column_array_mobile' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'sanitize_text_field'
+            ),
+            'enabled_column_array' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'sanitize_text_field'
+            ),
+            'enabled_column_array_tablet' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'sanitize_text_field'
+            ),
+            'enabled_column_array_mobile' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'sanitize_text_field'
+            ),
+            'column_settings' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'wp_kses_post'
+            ),
+            'column_settings_tablet' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'wp_kses_post'
+            ),
+            'column_settings_mobile' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'wp_kses_post'
+            ),
+            'basics' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'wp_kses_post'
+            ),
+            'table_style' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'wp_kses_post'
+            ),
+            'conditions' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'sanitize_text_field'
+            ),
+            'mobile' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'sanitize_text_field'
+            ),
+            'search_n_filter' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'wp_kses_post'
+            ),
+            'pagination' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'wp_kses_post'
+            ),
+            'config' => array(
+                'filter' => FILTER_CALLBACK,
+                'flags' => FILTER_REQUIRE_ARRAY,
+                'options' => 'wp_kses_post'
+            ),
+        );
+        $filtar_args = apply_filters('wpt_data_save_filter_arr', $filtar_args);
+        $submitte_data = filter_input_array( INPUT_POST, $filtar_args );
+
+        $submitte_data = wpt_remove_empty_value_from_array($submitte_data);
+
+        //Some special Sanitizzze 
+        $table_class = $submitte_data['basics']['table_class'] ?? '';
+        $submitte_data['basics']['table_class'] = sanitize_html_class( $table_class );
+        /********* Column Setting Optimizing Start here ***********/
+
+        //Fixing for tablet setting
+        if( isset( $submitte_data['column_settings_tablet'] ) && ! isset( $submitte_data['enabled_column_array_tablet'] ) ){
+            unset( $submitte_data['column_settings_tablet'] );
+        }
+
+        
+        //Fixing for mobile setting
+        if( isset( $submitte_data['column_settings_mobile'] ) && ! isset( $submitte_data['enabled_column_array_mobile'] ) ){
+            unset( $submitte_data['column_settings_mobile'] );
+        }
+
+        //Optimize for Desktop
+        if( isset( $submitte_data['column_settings'] ) && is_array( $submitte_data['column_settings'] ) ){
+            $total_enable_coll_arr = $submitte_data['enabled_column_array'];
+            
+            foreach( $submitte_data['column_settings'] as $each_settings ){
+                $each_settings = isset( $each_settings['items'] ) && is_array( $each_settings['items'] ) ? array_flip( $each_settings['items'] ) : array();
+                $total_enable_coll_arr += $each_settings;
+            }
+            $total_enable_coll_arr = array_keys($total_enable_coll_arr);
+            $total_enable_coll_arr['thumb_variation'] = 'thumb_variation';
+            $total_enable_coll_arr['title_variation'] = 'title_variation';
+            $total_enable_coll_arr['description_off'] = 'description_off';
+
+            foreach( $submitte_data['column_settings'] as $u_key => $Ueach_settings ){
+                if( isset( $submitte_data['column_settings'][$u_key] ) && ! in_array($u_key,$total_enable_coll_arr)){
+                    unset( $submitte_data['column_settings'][$u_key] );
+                }
+            }
+        }
+
+        
+        //Optimize setting for Tablet
+        if( isset( $submitte_data['enabled_column_array_tablet'] ) && isset( $submitte_data['column_settings_tablet'] ) && is_array( $submitte_data['column_settings'] ) ){
+            $total_enable_coll_arr = $submitte_data['enabled_column_array_tablet'];
+            foreach( $submitte_data['column_settings_tablet'] as $each_settings ){
+                $each_settings = isset( $each_settings['items'] ) && is_array( $each_settings['items'] ) ? array_flip( $each_settings['items'] ) : array();
+                $total_enable_coll_arr += $each_settings;
+            }
+            $total_enable_coll_arr = array_keys($total_enable_coll_arr);
+            $total_enable_coll_arr['thumb_variation'] = 'thumb_variation';
+            $total_enable_coll_arr['title_variation'] = 'title_variation';
+            $total_enable_coll_arr['description_off'] = 'description_off';
+
+            foreach( $submitte_data['column_settings_tablet'] as $u_key => $Ueach_settings ){
+                if( isset( $submitte_data['column_settings_tablet'][$u_key] ) && ! in_array($u_key,$total_enable_coll_arr)){
+                    unset( $submitte_data['column_settings_tablet'][$u_key] );
+                }
+            }
+        }
+        //Optimize setting for Mobile
+        if( isset( $submitte_data['enabled_column_array_mobile'] ) && isset( $submitte_data['column_settings_mobile'] ) && is_array( $submitte_data['column_settings'] ) ){
+            $total_enable_coll_arr = $submitte_data['enabled_column_array_mobile'];
+            foreach( $submitte_data['column_settings_mobile'] as $each_settings ){
+                $each_settings = isset( $each_settings['items'] ) && is_array( $each_settings['items'] ) ? array_flip( $each_settings['items'] ) : array();
+                $total_enable_coll_arr += $each_settings;
+            }
+            $total_enable_coll_arr = array_keys($total_enable_coll_arr);
+            $total_enable_coll_arr['thumb_variation'] = 'thumb_variation';
+            $total_enable_coll_arr['title_variation'] = 'title_variation';
+            $total_enable_coll_arr['description_off'] = 'description_off';
+
+            foreach( $submitte_data['column_settings_mobile'] as $u_key => $Ueach_settings ){
+                if( isset( $submitte_data['column_settings_mobile'][$u_key] ) && ! in_array($u_key,$total_enable_coll_arr)){
+                    unset( $submitte_data['column_settings_mobile'][$u_key] );
+                }
+            }
+        }
+        /********* Column Setting Optimizing End here ***********/
+
+
+
+
+
+        /**
+         * @Hook wpto_table_data_on_submit
+         * Save or change data before updated to database.
+         * 
+         * 
+         * Submitted Tata is optimized for column setting actually
+         * We only saving data for column setting for desktop,tablet,mobile
+         * 
+         * @author Saiful Islam <codersaiful@gmail.com>
+         * @since 3.1.0.1
+         */
+        $submitte_data = apply_filters( 'wpto_table_data_on_submit', $submitte_data, $post_id, $save_tab_array );
+
+        /**
+         * To removed empty/false value from full array
+         * currently it's inactivated
+         * 
+         * @since 1.0.4.1
+         */
+        foreach( $save_tab_array as $tab ){
+            
+            /**
+             * Already Filtered using filter_input_arry/filter_var_array
+             * 
+             * @since 2.9.1
+             */
+            $tab_data = isset( $submitte_data[$tab] ) ? $submitte_data[$tab] : false;
+            
+            /**
+             * Hook before save tab data
+             * @Hooked: wpt_data_manipulation_on_save at admin/functions.php
+             */
+            $tab_data = apply_filters( 'wpto_tab_data_on_save', $tab_data, $tab, $post_id, $save_tab_array );
+            
+            /**
+             * Hook for Individual Tab data save.
+             * 
+             * Only for customer use at this moment.
+             */
+            $tab_data = apply_filters( 'wpto_tab_data_on_save_' . $tab, $tab_data, $post_id, $save_tab_array );
+            $tab_data = wpt_remove_empty_value_from_array( $tab_data );
+            update_post_meta( $post_id, $tab, $tab_data );
+        }
+        
+        /**
+         * @Hook Action: wpto_on_save_post
+         * To change data when Form will save.
+         * @since 6.1.0.5
+         * @Hook_Version: 6.1.0.5
+         */
+        do_action( 'wpto_on_save_post', $post_id );
+        //flash rewrite rules
+        flush_rewrite_rules();
+    }
+}
+add_action( 'save_post', 'wpt_shortcode_configuration_metabox_save_meta', 10, 2 ); // 

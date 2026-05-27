@@ -1,0 +1,67 @@
+.wisdm-reports-for-ld-notice-structure {
+    width: 100%;
+}
+
+.wisdm-reports-for-ld-notice-image > img {
+    max-height: 50px;
+    margin-left: 10px;
+    margin-right: 20px
+}
+
+.wisdm-reports-for-ld-notice-image {
+    width: 10%;
+    text-align: left;
+}
+
+div.wisdm-reports-for-ld-after-update-notice {
+    border-left-color: #ffff00;
+}
+
+.wisdm-reports-for-ld-update-notice-text {
+    width: 80%;
+    text-align: left;
+}
+
+.wisdm-reports-for-ld-update-notice-dismiss {
+    width: 10%;
+    text-align: right;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+div.wisdm-reports-for-ld-notice {
+    border: 1px solid #235AF370;
+    background-color: #ffffff;
+    border-left: 4px solid #235AF3;
+    padding: 5px;
+    margin-top: 40px;
+}
+
+.wisdm-reports-for-ld-notice-text {
+    width: 70%;
+    text-align: left;
+}
+
+.wisdm-reports-for-ld-notice-button-div {
+    width: 20%;
+    text-align: right;
+    cursor: pointer;
+}
+
+.wisdm-reports-for-ld-notice-button {
+    text-align: center;
+    cursor: pointer;
+    border: #6D6D6D 1px solid;
+    box-shadow: -2px -2px 3px rgba(109, 109, 109, 0.568);
+    background-color: #235AF3c7;
+    color: white;
+    border-radius: 4px;
+    padding: 8px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.wisdm-reports-for-ld-message-head {
+    font-weight: 600;
+    font-size: 18px;
+}

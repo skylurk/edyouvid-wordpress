@@ -1,0 +1,253 @@
+*{
+	box-sizing: border-box;
+}
+.loginpress-tab-socialloginsettings{
+    padding-top: 30px;
+}
+.loginpress-tab-socialloginsettings .loginpress-form-field{
+    display: flex;
+}
+.loginpress-copy-btn[data-tooltip]{
+	border: 0;
+	padding: 0;
+	background: none;
+	cursor: pointer;
+	width: 22px;
+	height: 22px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	vertical-align: middle;
+}
+.loginpress-shortcode-field input[type=text]{
+	font-family: "Poppins", sans-serif;
+    color: #515E81;
+    font-size: 14px;
+    line-height: 24px;
+    margin: 0 0 0 0;
+    max-width: 600px;
+    width: 100%;
+}
+.loginpress-shortcode-field input[type=text]:is(:read-only, :disabled){
+	opacity: 1;
+}
+.loginpress-copy-link button{
+	border: 0;
+	background: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	width: 22px;
+	height: 22px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	vertical-align: middle;
+}
+[data-tooltip="Copied"]::after{
+	left: 0;
+}
+.skeleton-loader {
+	position: relative;
+	width: 100%;      /* Full width */
+	height: 700px;     /* Updated height */
+  }
+  
+  .skeleton-loader:after {
+	content: "";
+	display: block;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	left: 0;
+	top: 0;
+	background-repeat: no-repeat;
+	background-image:
+	  linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.8) 50%, rgba(255, 255, 255, 0) 100%),
+	  linear-gradient(#eeeeee 43px, transparent 0),
+	  linear-gradient(#eeeeee 24px, transparent 0),
+	  linear-gradient(#eeeeee 23px, transparent 0),
+	  linear-gradient(#eeeeee 32px, transparent 0),
+	  linear-gradient(#eeeeee 128px, transparent 0),
+	  linear-gradient(#ffffff 100%, transparent 0);
+	background-size:
+	  264px 100%,
+	  207px 43px,
+	  390px 24px,
+	  390px 23px,
+	  68px 32px,
+	  493px 128px,
+	  100% 100%;
+	background-position:
+	  0 0,
+	  16px 9px,
+	  16px 69px,
+	  16px 110px,
+	  432px 84px,
+	  16px 167px,
+	  0 0;
+	animation: skeleton-animation 2000ms infinite;
+  }
+  
+  @keyframes skeleton-animation {
+	to {
+	  background-position:
+		100% 0,
+		16px 9px,
+		16px 69px,
+		16px 110px,
+		432px 84px,
+		16px 167px,
+		0 0;
+	}
+  }
+  
+.loginpress-checkbox-group{
+    display: flex;
+    flex-direction: column;
+	gap: 7px;
+	margin-bottom: 4px;
+}
+.provider-container button[type="button"]{
+	width: auto !important;
+	min-width: 0 !important;
+}
+.loginpress-tab-socialloginsettings .loginpress-setting-field{
+    margin-bottom: 20px;
+}
+/* .loginpress-tab-socialloginsettings .loginpress-form-field{
+	margin-bottom: 0;
+} */
+.loginpress-shortcode-field{
+    width:100%;
+	position: relative;
+	max-width: 370px;
+}
+.loginpress-provider-description{
+        background: #E9EFFF;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
+.loginpress-provider-description h4{
+        color: #314359;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    margin-bottom: 10px;
+    margin-top: 0;
+}
+
+.loginpress-provider-description p{
+    color: #314359;
+    font-weight: 500;
+    margin: 0;
+}
+
+.loginpress-provider-description a{
+        line-height: 24px;
+    display: inline-block;
+    vertical-align: top;
+    word-break: break-word;
+    padding-right: 30px;
+    position: relative;
+    font-weight: 400;
+    text-underline-offset: 0;
+    text-decoration-thickness: 1px;
+}
+.toplevel_page_loginpress-settings a{
+        color: #3C50E0;
+}
+.loginpress-provider-description a[target="_blank"]::after{
+	content: "";
+	background-image: url('data:image/svg+xml,<svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.0858 0.0190022C11.5461 0.153506 11.4296 0.873694 11.9014 1.15882L12.0479 1.24734L13.9655 1.25254C15.7447 1.25736 16.2779 1.27325 16.571 1.33022C16.6807 1.35157 16.5025 1.53017 12.0559 5.85616C9.5098 8.33318 7.40734 10.3969 7.38382 10.4421C7.36035 10.4873 7.34109 10.6077 7.34109 10.7095C7.34109 11.048 7.62095 11.32 7.96921 11.32C8.07397 11.32 8.19777 11.3013 8.24434 11.2785C8.29087 11.2557 10.4141 9.21193 12.9626 6.73691C17.4557 2.37349 17.5972 2.24012 17.6263 2.34457C17.6427 2.40384 17.6669 3.41815 17.68 4.59864L17.7039 6.74497L17.7949 6.88734C17.9577 7.14189 18.3491 7.25478 18.6116 7.12287C18.7633 7.04658 18.9135 6.86351 18.9612 6.69673C19.0118 6.5196 19.0134 3.4296 18.9632 2.76307C18.89 1.79018 18.6904 1.29242 18.1733 0.793C17.7316 0.366407 17.3961 0.201403 16.716 0.0762001C16.4453 0.0263449 16.0144 0.0132787 14.2948 0.00269763C13.1442 -0.0043815 12.1502 0.00296122 12.0858 0.0190022ZM5.37798 2.70041C3.49777 2.79553 2.46661 3.129 1.56561 3.93324C1.07815 4.36834 0.64098 4.97082 0.440659 5.48353C0.296743 5.85198 0.14074 6.5196 0.069537 7.07181C0.0075929 7.55225 0 7.9578 0 10.7929C0 14.1257 0.012784 14.4462 0.177775 15.2464C0.395528 16.3027 0.79249 17.0244 1.51784 17.6828C2.46808 18.5454 3.44361 18.8622 5.46224 18.9639C6.42929 19.0126 10.3741 19.0118 11.3119 18.9628C13.4356 18.8516 14.4298 18.4962 15.4116 17.4974C16.2357 16.659 16.5815 15.759 16.7146 14.1065C16.766 13.4682 16.815 9.63209 16.7767 9.24055C16.7448 8.91352 16.6635 8.7609 16.4439 8.61586C16.2574 8.49265 15.9319 8.51174 15.7354 8.65746C15.4767 8.84928 15.481 8.80372 15.4625 11.546C15.4492 13.5216 15.4335 14.105 15.3836 14.4776C15.2406 15.5455 15.0267 16.0581 14.4886 16.6229C13.9239 17.2155 13.3079 17.4893 12.2236 17.6297C10.9496 17.7946 5.78579 17.7947 4.51313 17.6298C3.6184 17.5139 3.11092 17.3297 2.6149 16.9411C1.89145 16.3743 1.55217 15.7585 1.39616 14.7291C1.29719 14.076 1.25941 12.9896 1.25996 10.8117C1.26085 7.39422 1.33918 6.57782 1.74404 5.76594C1.94924 5.35448 2.21875 5.03009 2.61072 4.72282C3.11026 4.33121 3.6346 4.1426 4.5325 4.03148C5.14872 3.95523 7.05931 3.89999 8.83345 3.90707C10.0574 3.91196 10.2846 3.90428 10.3831 3.85476C10.7556 3.66754 10.8541 3.19659 10.5835 2.89697C10.3628 2.65263 10.4295 2.65884 8.08807 2.66505C6.92085 2.66814 5.7013 2.68407 5.37798 2.70041Z" fill="%233C50E0"/></svg>');
+	position: absolute;
+	top: 3px;
+    right: 0;
+    width: 19px;
+    height: 19px;
+}
+a:hover{
+    color: #3C50E0;
+    text-decoration: none;
+}
+.loginpress-shortcode-field .button.loginpress-copy-btn{
+	padding: 0;
+	border: 0;
+	background: none;
+	position: absolute;
+	top: 5px;
+	inset-inline-end: 5px;
+	min-width: 40px;
+	height: 40px;
+	box-shadow: none;
+}
+.loginpress-shortcode-field .button.loginpress-copy-btn:hover:before{
+	--tooltip-arrow-size: 6px;
+	content: attr(aria-label);
+	position: absolute;
+	left: 50%;
+	top: -35px;
+	font-size: 12px;
+	line-height: 12px;
+	font-weight: 500;
+	color: #fff;
+	padding: 7px 8px 14px;
+	border-radius: 0;
+	z-index: 3;
+	transform: translatex(-50%);
+	background-color: #516885;
+	clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--tooltip-arrow-size)), calc(50% + var(--tooltip-arrow-size)) calc(100% - var(--tooltip-arrow-size)), 50% 100%, calc(50% - var(--tooltip-arrow-size)) calc(100% - var(--tooltip-arrow-size)), 0 calc(100% - var(--tooltip-arrow-size)));
+}
+.loginpress-providers-grid > div:hover .dashicons-screenoptions::before{
+	content: "\f545";
+
+}
+
+.loginpress-provider-button, .loginpress-provider-comingsoon, .loginpress-provider-foot .btn {
+    background: rgba(60, 80, 224, 1);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 21px;
+    padding: 3px 8px;
+    border: 1px solid rgba(60, 80, 224, 1);
+    border-radius: 4px;
+    color: #fff !important;
+    cursor: pointer;
+    text-decoration: none !important;
+    display: inline-block !important;
+    max-width: fit-content;
+    min-width: max-content;
+	position: relative;
+	z-index: 2;
+}
+.loginpress-radio-option{
+	cursor: pointer;
+}
+
+@media (max-width: 767px) {
+	.provider-container{
+		flex-direction: column;
+		gap: 20px;
+		padding: 15px;
+	}
+	.provider-description{
+		width: 100%;
+	}
+	.not-verified::before{
+		top: 15px;
+		left: 15px;
+	}
+	.loginpress-tab-socialloginsettings .loginpress-form-field{
+		flex-direction: column;
+	}
+}
+
+@media (max-width: 640px) {
+	.loginpress-provider-card{
+		width: 100% !important;
+	}
+    .loginpress-providers-grid{
+		grid-template-columns: repeat(1, 1fr) !important;
+    }
+}

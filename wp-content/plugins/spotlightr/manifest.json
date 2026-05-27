@@ -1,0 +1,10 @@
+{
+    "name": "Spotlightr",
+    "manifest_version": 2,
+    "version": "1.0",
+    "description": "Spotlightr",
+    "permissions": [
+        "clipboardWrite",
+        "clipboardRead"
+    ]
+}

@@ -1,0 +1,13 @@
+.ceu-course-report-inner-column-item{
+	display:flex;
+	justify-content:center;
+	align-items:center;
+	position: relative;
+
+	.ceu-course-report-inner-column-item__remove{
+		margin-top: 14px;
+		padding: 0;
+		cursor: pointer;
+	}
+
+}
