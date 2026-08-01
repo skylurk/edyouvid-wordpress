@@ -1,0 +1,191 @@
+/* ── Group Leader auth forms ─────────────────────────────────────────────── */
+
+:root {
+  --ga-bg:        #f5f6fa;
+  --ga-card:      #ffffff;
+  --ga-border:    #e2e5ed;
+  --ga-text:      #1a1d23;
+  --ga-muted:     #6b7280;
+  --ga-accent:    #4f46e5;
+  --ga-accent-h:  #4338ca;
+  --ga-danger:    #dc2626;
+  --ga-danger-bg: #fef2f2;
+  --ga-input-bg:  #ffffff;
+  --ga-shadow:    0 4px 24px rgba(0,0,0,.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ga-bg:       #111318;
+    --ga-card:     #1c1f27;
+    --ga-border:   #2e3340;
+    --ga-text:     #e8eaf0;
+    --ga-muted:    #8a90a0;
+    --ga-input-bg: #242836;
+    --ga-shadow:   0 4px 24px rgba(0,0,0,.4);
+  }
+}
+
+.gld-auth-wrap {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 80vh;
+  padding: 48px 16px 64px;
+  background: var(--ga-bg);
+}
+
+.gld-auth-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--ga-card);
+  border: 1px solid var(--ga-border);
+  border-radius: 14px;
+  padding: 40px 40px 36px;
+  box-shadow: var(--ga-shadow);
+}
+
+@media (max-width: 520px) {
+  .gld-auth-card { padding: 28px 20px 24px; }
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+
+.gld-auth-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ga-text);
+  margin: 0 0 6px;
+  line-height: 1.3;
+}
+
+.gld-auth-sub {
+  font-size: 14px;
+  color: var(--ga-muted);
+  margin: 0 0 28px;
+}
+
+/* ── Error banner ────────────────────────────────────────────────────────── */
+
+.gld-auth-error {
+  background: var(--ga-danger-bg);
+  color: var(--ga-danger);
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+/* ── Form fields ─────────────────────────────────────────────────────────── */
+
+.gld-auth-field {
+  margin-bottom: 16px;
+}
+
+.gld-auth-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ga-text);
+  margin-bottom: 6px;
+}
+
+.gld-auth-hint {
+  font-weight: 400;
+  color: var(--ga-muted);
+}
+
+.gld-auth-field input[type="text"],
+.gld-auth-field input[type="email"],
+.gld-auth-field input[type="password"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 13px;
+  font-size: 14px;
+  color: var(--ga-text);
+  background: var(--ga-input-bg);
+  border: 1px solid var(--ga-border);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color .15s;
+  -webkit-appearance: none;
+}
+
+.gld-auth-field input:focus {
+  border-color: var(--ga-accent);
+  box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+}
+
+.gld-auth-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 420px) {
+  .gld-auth-row { grid-template-columns: 1fr; }
+}
+
+/* ── Submit button ───────────────────────────────────────────────────────── */
+
+.gld-auth-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-top: 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--ga-accent);
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background .15s, opacity .15s;
+}
+
+.gld-auth-btn:hover:not(:disabled) {
+  background: var(--ga-accent-h);
+}
+
+.gld-auth-btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+/* ── Footer link ─────────────────────────────────────────────────────────── */
+
+.gld-auth-footer {
+  margin: 22px 0 0;
+  font-size: 13px;
+  color: var(--ga-muted);
+  text-align: center;
+}
+
+.gld-auth-footer a {
+  color: var(--ga-accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.gld-auth-footer a:hover { text-decoration: underline; }
+
+/* ── Remember checkbox ───────────────────────────────────────────────────── */
+
+.gld-auth-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ga-muted);
+  margin-top: 4px;
+  cursor: pointer;
+}
+
+.gld-auth-check input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--ga-accent);
+  cursor: pointer;
+}

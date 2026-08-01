@@ -78,6 +78,25 @@
         You are not currently assigned as a leader of any group.
       </div>
 
+      <!-- ── WELCOME banner (shown after self-registration) ───────── -->
+      <template x-if="!loading && showWelcome">
+        <div style="background:#ede9fe;border:1px solid #c4b5fd;border-radius:10px;padding:20px 24px;margin-bottom:24px;display:flex;gap:16px;align-items:flex-start">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="#7c3aed" style="width:24px;height:24px;flex-shrink:0;margin-top:2px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"/></svg>
+          <div style="flex:1">
+            <div style="font-weight:700;color:#4c1d95;font-size:15px;margin-bottom:6px">Welcome to your group leader dashboard!</div>
+            <div style="font-size:13px;color:#5b21b6;line-height:1.6">
+              Your group <strong x-text="activeGroup()?.name"></strong> is ready. Here's how to get started:
+              <ol style="margin:8px 0 0 18px;padding:0">
+                <li>Purchase a <strong>subscription bundle</strong> to assign courses to your group.</li>
+                <li>Go to <strong>Billing</strong> and set up your payment card for per-seat charging.</li>
+                <li>Add learners individually or use <strong>Bulk Import</strong> in the Users tab.</li>
+              </ol>
+            </div>
+          </div>
+          <button @click="showWelcome = false" style="background:none;border:none;cursor:pointer;color:#7c3aed;padding:0;line-height:1;font-size:18px" title="Dismiss">&times;</button>
+        </div>
+      </template>
+
       <!-- ── OVERVIEW ──────────────────────────────────────────────── -->
       <div x-show="!loading && view === 'overview'">
         <div class="gld-page-header">

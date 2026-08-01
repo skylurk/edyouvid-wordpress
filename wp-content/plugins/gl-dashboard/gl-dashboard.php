@@ -21,6 +21,7 @@ require_once GLD_PLUGIN_DIR . 'includes/class-subscription.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-seat-charges-db.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-billing.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-csv-import.php';
+require_once GLD_PLUGIN_DIR . 'includes/class-auth.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-woo.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-cron.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-admin.php';
@@ -70,6 +71,7 @@ add_action( 'plugins_loaded', function () {
 // ── Feature hooks ──────────────────────────────────────────────────────────
 add_action( 'init', array( 'GLD_Shortcode', 'register' ) );
 add_action( 'init', array( 'GLD_Cron', 'register' ) );
+GLD_Auth::register();
 
 add_action( 'plugins_loaded', function () {
 	if ( class_exists( 'WooCommerce' ) ) {

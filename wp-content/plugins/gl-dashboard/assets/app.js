@@ -143,6 +143,7 @@ document.addEventListener('alpine:init', () => {
     loadingMsg: 'Loading…',
     _loadingTimer: null,
     toasts: [],
+    showWelcome: new URLSearchParams(window.location.search).get('gld_welcome') === '1',
 
     /* per-view data */
     overview: { summary: null },

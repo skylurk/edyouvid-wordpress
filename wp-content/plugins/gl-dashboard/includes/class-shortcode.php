@@ -8,6 +8,8 @@ class GLD_Shortcode {
 
 	public static function register(): void {
 		add_shortcode( 'gl_dashboard', array( __CLASS__, 'render' ) );
+		add_shortcode( 'gl_register',  array( __CLASS__, 'render_register' ) );
+		add_shortcode( 'gl_login',     array( __CLASS__, 'render_login' ) );
 	}
 
 	public static function render(): string {
@@ -24,6 +26,43 @@ class GLD_Shortcode {
 		ob_start();
 		include GLD_PLUGIN_DIR . 'templates/dashboard.php';
 		return ob_get_clean();
+	}
+
+	public static function render_register(): string {
+		self::enqueue_auth_assets();
+		ob_start();
+		include GLD_PLUGIN_DIR . 'templates/register.php';
+		return ob_get_clean();
+	}
+
+	public static function render_login(): string {
+		self::enqueue_auth_assets();
+		ob_start();
+		include GLD_PLUGIN_DIR . 'templates/login.php';
+		return ob_get_clean();
+	}
+
+	private static function enqueue_auth_assets(): void {
+		wp_enqueue_style(
+			'gld-auth',
+			GLD_PLUGIN_URL . 'assets/auth.css',
+			array(),
+			GLD_VERSION
+		);
+		wp_enqueue_script(
+			'gld-auth-alpine',
+			GLD_PLUGIN_URL . 'assets/alpine.min.js',
+			array(),
+			'3.14.1',
+			true
+		);
+		wp_localize_script( 'gld-auth-alpine', 'GLD_AUTH', array(
+			'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
+			'nonce'       => wp_create_nonce( 'gld_auth' ),
+			'dashUrl'     => GLD_Auth::dashboard_url(),
+			'loginUrl'    => GLD_Auth::login_url(),
+			'registerUrl' => GLD_Auth::register_url(),
+		) );
 	}
 
 	private static function enqueue_assets(): void {
