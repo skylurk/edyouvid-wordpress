@@ -73,8 +73,9 @@ class GLD_Api_Users {
 	}
 
 	public function add_user( WP_REST_Request $request ): WP_REST_Response {
-		$group_id = (int) $request['id'];
-		$user_id  = (int) $request['user_id'];
+		$group_id  = (int) $request['id'];
+		$user_id   = (int) $request['user_id'];
+		$leader_id = get_current_user_id();
 
 		if ( ! GLD_Access::leads_group( $group_id ) ) {
 			return new WP_REST_Response( array( 'message' => 'Forbidden' ), 403 );
@@ -82,6 +83,64 @@ class GLD_Api_Users {
 
 		if ( ! get_userdata( $user_id ) ) {
 			return new WP_REST_Response( array( 'message' => 'User not found' ), 404 );
+		}
+
+		// Per-seat billing: only active if per_seat_price > 0 on the subscription.
+		$per_seat = GLD_Billing::get_per_seat_price( $group_id );
+
+		if ( $per_seat > 0 ) {
+			if ( ! GLD_Billing::has_saved_card( $leader_id ) ) {
+				return new WP_REST_Response( array(
+					'message'          => 'No payment card on file. Please set up a card in the Billing section before adding learners.',
+					'requires_card'    => true,
+				), 402 );
+			}
+
+			$prorated = GLD_Billing::calculate_prorated_amount( $group_id );
+			$credit   = GLD_Billing::apply_credit( $group_id, $prorated );
+			$owed     = $credit['owed'];
+
+			$charge_result = array( 'success' => true );
+
+			if ( $owed > 0 ) {
+				$sub       = GLD_Subscription::get_for_group( $group_id );
+				$currency  = get_woocommerce_currency();
+				$user_data = get_userdata( $user_id );
+				$desc      = sprintf(
+					'1 seat — %s — %s',
+					get_the_title( $group_id ),
+					$user_data ? $user_data->display_name : "user #{$user_id}"
+				);
+
+				$charge_result = GLD_Billing::charge( $leader_id, $owed, $currency, $desc );
+			}
+
+			if ( ! $charge_result['success'] ) {
+				// Restore credit that was optimistically deducted.
+				if ( $credit['credit_used'] > 0 ) {
+					GLD_Billing::add_credit( $group_id, $credit['credit_used'] );
+				}
+				return new WP_REST_Response( array(
+					'message' => 'Payment failed: ' . ( $charge_result['error'] ?? 'Unknown error.' ),
+				), 402 );
+			}
+
+			// Record the charge in the ledger.
+			$sub        = GLD_Subscription::get_for_group( $group_id );
+			$period_end = $sub ? $sub->expiry_date : date( 'Y-m-d', strtotime( '+1 year' ) );
+
+			GLD_Seat_Charges_DB::insert( array(
+				'group_id'    => $group_id,
+				'user_id'     => $user_id,
+				'leader_id'   => $leader_id,
+				'amount'      => $owed + ( $credit['credit_used'] ?? 0 ),
+				'currency'    => get_woocommerce_currency(),
+				'period_start'=> date( 'Y-m-d' ),
+				'period_end'  => $period_end,
+				'flw_txn_ref' => $charge_result['txn_ref'] ?? '',
+				'flw_txn_id'  => $charge_result['txn_id'] ?? '',
+				'status'      => 'completed',
+			) );
 		}
 
 		ld_update_group_access( $user_id, $group_id, false );
@@ -97,9 +156,19 @@ class GLD_Api_Users {
 			return new WP_REST_Response( array( 'message' => 'Forbidden' ), 403 );
 		}
 
+		// Award credit for the unused portion of this seat's charge.
+		$credit = GLD_Billing::calculate_removal_credit( $group_id, $user_id );
+		if ( $credit > 0 ) {
+			GLD_Billing::add_credit( $group_id, $credit );
+		}
+
 		ld_update_group_access( $user_id, $group_id, true );
 
-		return new WP_REST_Response( array( 'success' => true ), 200 );
+		return new WP_REST_Response( array(
+			'success'       => true,
+			'credit_added'  => $credit,
+			'credit_balance'=> GLD_Billing::get_credit_balance( $group_id ),
+		), 200 );
 	}
 
 	public function search_users( WP_REST_Request $request ): WP_REST_Response {

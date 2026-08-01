@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Group Leader Dashboard
- * Description: A clean portal for LearnDash group leaders to view course progress, analytics, and manage users.
- * Version: 1.1.3
+ * Description: A clean portal for LearnDash group leaders to view course progress, analytics, manage users, and handle per-seat billing.
+ * Version: 2.0.0
  * Author: Custom
  * Text Domain: gl-dashboard
  */
@@ -11,13 +11,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'GLD_VERSION',    '1.1.3' );
+define( 'GLD_VERSION',    '2.0.0' );
 define( 'GLD_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GLD_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 require_once GLD_PLUGIN_DIR . 'includes/class-access.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-shortcode.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-subscription.php';
+require_once GLD_PLUGIN_DIR . 'includes/class-seat-charges-db.php';
+require_once GLD_PLUGIN_DIR . 'includes/class-billing.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-woo.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-cron.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-admin.php';
@@ -27,6 +29,7 @@ require_once GLD_PLUGIN_DIR . 'includes/Api/class-analytics.php';
 require_once GLD_PLUGIN_DIR . 'includes/Api/class-users.php';
 require_once GLD_PLUGIN_DIR . 'includes/Api/class-subscription.php';
 require_once GLD_PLUGIN_DIR . 'includes/Api/class-course-stats.php';
+require_once GLD_PLUGIN_DIR . 'includes/Api/class-billing.php';
 
 // ── Custom cron interval ───────────────────────────────────────────────────
 // Must be registered before any wp_schedule_event() calls.
@@ -41,6 +44,7 @@ add_filter( 'cron_schedules', function ( $schedules ) {
 // ── Activation / deactivation ──────────────────────────────────────────────
 register_activation_hook( __FILE__, function () {
 	GLD_Subscription::install();
+	GLD_Seat_Charges_DB::install();
 	GLD_Cron::schedule();
 } );
 
@@ -54,6 +58,7 @@ register_deactivation_hook( __FILE__, function () {
 add_action( 'plugins_loaded', function () {
 	if ( get_option( 'gld_db_version' ) !== GLD_Subscription::DB_VERSION ) {
 		GLD_Subscription::install();
+		GLD_Seat_Charges_DB::install();
 	}
 	if ( ! wp_next_scheduled( 'gld_cache_warm' ) ) {
 		wp_schedule_event( time(), 'gld_5min', 'gld_cache_warm' );
@@ -110,4 +115,5 @@ add_action( 'rest_api_init', function () {
 	( new GLD_Api_Users() )->register_routes();
 	( new GLD_Api_Subscription() )->register_routes();
 	( new GLD_Api_CourseStats() )->register_routes();
+	( new GLD_Api_Billing() )->register_routes();
 } );

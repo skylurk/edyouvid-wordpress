@@ -52,12 +52,18 @@ class GLD_Shortcode {
 			true
 		);
 
-		// Pass nonce and the REST path (not full URL) to the frontend.
+		// Flutterwave inline checkout SDK — loaded before app.js so FlutterwaveCheckout() is available.
+		wp_enqueue_script( 'flutterwave-inline', 'https://checkout.flutterwave.com/v3.js', array(), null, true );
+
+		// Pass nonce, REST path, and payment config to the frontend.
 		// The JS constructs the full URL from window.location.origin so it
 		// always matches the actual domain serving the page, even on staging.
 		wp_localize_script( 'gld-app', 'GLD', array(
-			'restPath' => '/wp-json/gl-dashboard/v1',
-			'nonce'    => wp_create_nonce( 'wp_rest' ),
+			'restPath'    => '/wp-json/gl-dashboard/v1',
+			'nonce'       => wp_create_nonce( 'wp_rest' ),
+			'flwPublicKey'=> GLD_Billing::get_public_key(),
+			'currency'    => get_woocommerce_currency(),
+			'siteName'    => get_bloginfo( 'name' ),
 		) );
 
 		// Alpine loads last — its alpine:init event fires after app.js has

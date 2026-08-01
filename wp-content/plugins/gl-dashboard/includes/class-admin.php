@@ -32,10 +32,11 @@ class GLD_Admin {
 		}
 		check_admin_referer( 'gld_save_bundle' );
 
-		$name       = sanitize_text_field( $_POST['gld_bundle_name'] ?? '' );
-		$price      = (float) ( $_POST['gld_bundle_price'] ?? 0 );
-		$course_ids = array_map( 'absint', (array) ( $_POST['gld_bundle_courses'] ?? array() ) );
-		$edit_id    = absint( $_POST['gld_bundle_edit_id'] ?? 0 );
+		$name           = sanitize_text_field( $_POST['gld_bundle_name'] ?? '' );
+		$price          = (float) ( $_POST['gld_bundle_price'] ?? 0 );
+		$seat_price     = (float) ( $_POST['gld_seat_price'] ?? 0 );
+		$course_ids     = array_map( 'absint', (array) ( $_POST['gld_bundle_courses'] ?? array() ) );
+		$edit_id        = absint( $_POST['gld_bundle_edit_id'] ?? 0 );
 
 		if ( ! $name || $price < 0 ) {
 			wp_safe_redirect( add_query_arg( 'gld_error', 'invalid', admin_url( 'admin.php?page=gld-bundles' ) ) );
@@ -50,6 +51,7 @@ class GLD_Admin {
 				$product->set_regular_price( (string) $price );
 				$product->save();
 				update_post_meta( $edit_id, '_gld_bundle_courses', $course_ids );
+				update_post_meta( $edit_id, '_gld_seat_price', $seat_price );
 			}
 		} else {
 			// Create a new simple WooCommerce product for this bundle.
@@ -61,6 +63,7 @@ class GLD_Admin {
 			$product_id = $product->save();
 			update_post_meta( $product_id, '_gld_is_bundle', 1 );
 			update_post_meta( $product_id, '_gld_bundle_courses', $course_ids );
+			update_post_meta( $product_id, '_gld_seat_price', $seat_price );
 		}
 
 		wp_safe_redirect( add_query_arg( 'gld_saved', '1', admin_url( 'admin.php?page=gld-bundles' ) ) );
@@ -198,6 +201,15 @@ class GLD_Admin {
 							</td>
 						</tr>
 						<tr>
+							<th scope="row"><label for="gld_seat_price">Per-seat price (<?php echo esc_html( $currency ); ?>)</label></th>
+							<td>
+								<input type="number" id="gld_seat_price" name="gld_seat_price"
+								       min="0" step="0.01" style="width:120px"
+								       value="<?php echo esc_attr( $editing['seat_price'] ?? '' ); ?>">
+								<p class="description">Optional. Each learner added mid-year is charged this amount prorated to the subscription end date. Leave blank to disable per-seat billing.</p>
+							</td>
+						</tr>
+						<tr>
 							<th scope="row"><label>Included Courses</label></th>
 							<td>
 								<input type="search" id="gld-course-filter" placeholder="Filter courses…"
@@ -288,6 +300,7 @@ class GLD_Admin {
 				'price'      => (float) $product->get_regular_price(),
 				'price_html' => $product->get_price_html(),
 				'course_ids' => array_values( $course_ids ),
+				'seat_price' => (float) get_post_meta( $post->ID, '_gld_seat_price', true ),
 			);
 		}
 		return $bundles;

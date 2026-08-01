@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class GLD_Subscription {
 
 	const TABLE      = 'gld_subscriptions';
-	const DB_VERSION = '1.1';
+	const DB_VERSION = '1.2';
 
 	public static function install(): void {
 		global $wpdb;
@@ -27,6 +27,8 @@ class GLD_Subscription {
 			expiry_date date NOT NULL,
 			status varchar(20) NOT NULL DEFAULT 'active',
 			notifications_sent varchar(100) NOT NULL DEFAULT '',
+			per_seat_price decimal(10,2) NOT NULL DEFAULT 0.00,
+			credit_balance decimal(10,2) NOT NULL DEFAULT 0.00,
 			PRIMARY KEY (id),
 			UNIQUE KEY group_id (group_id),
 			KEY expiry_date (expiry_date),
@@ -43,6 +45,12 @@ class GLD_Subscription {
 		}
 		if ( ! in_array( 'course_ids', $cols, true ) ) {
 			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN course_ids text NOT NULL AFTER bundle_name" );
+		}
+		if ( ! in_array( 'per_seat_price', $cols, true ) ) {
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN per_seat_price decimal(10,2) NOT NULL DEFAULT 0.00" );
+		}
+		if ( ! in_array( 'credit_balance', $cols, true ) ) {
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN credit_balance decimal(10,2) NOT NULL DEFAULT 0.00" );
 		}
 
 		update_option( 'gld_db_version', self::DB_VERSION );
@@ -71,7 +79,8 @@ class GLD_Subscription {
 		string $bundle_name,
 		array $course_ids,
 		string $start,
-		string $expiry
+		string $expiry,
+		float $per_seat_price = 0.0
 	): void {
 		global $wpdb;
 		$table = $wpdb->prefix . self::TABLE;
@@ -91,8 +100,9 @@ class GLD_Subscription {
 			'expiry_date'        => $expiry,
 			'status'             => 'active',
 			'notifications_sent' => '',
+			'per_seat_price'     => $per_seat_price,
 		);
-		$format = array( '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s' );
+		$format = array( '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%f' );
 
 		if ( $existing_id ) {
 			$wpdb->update( $table, $data, array( 'id' => $existing_id ), $format, array( '%d' ) );

@@ -51,6 +51,11 @@
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
           Subscription
         </div>
+        <div class="gld-nav-item" :class="{ active: view === 'billing' }" @click="switchView('billing')">
+          <!-- receipt icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185zM9.75 9h.008v.008H9.75V9zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 4.5h.008v.008h-.008V13.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
+          Billing
+        </div>
         <div class="gld-nav-item" :class="{ active: view === 'course-stats' }" @click="switchView('course-stats')">
           <!-- table/stats icon -->
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75.125v-5.25A2.25 2.25 0 014.5 11.25h15a2.25 2.25 0 012.25 2.25v5.25m-18-.125A2.25 2.25 0 013.375 19.5m18 0a1.125 1.125 0 001.125-1.125M21.375 19.5h-1.5a1.125 1.125 0 01-1.125-1.125M3.375 4.5h17.25m0 0a1.125 1.125 0 011.125 1.125M20.625 4.5h-1.5A1.125 1.125 0 0018 5.625m3.75-.125v5.25A2.25 2.25 0 0119.5 12.75h-15A2.25 2.25 0 012.25 10.5V5.625A2.25 2.25 0 014.5 3.375h15A2.25 2.25 0 0121.75 5.625"/></svg>
@@ -599,6 +604,105 @@
           </div>
         </template>
       </div><!-- /course-stats -->
+
+      <!-- ── BILLING ──────────────────────────────────────────────────── -->
+      <div x-show="!loading && view === 'billing'">
+        <div class="gld-page-header">
+          <div class="gld-page-title">Billing</div>
+          <div class="gld-page-sub">Payment card, credit balance and seat charge history</div>
+        </div>
+
+        <!-- Credit balance -->
+        <template x-if="billing.perSeatPrice > 0">
+          <div class="gld-cards" style="margin-bottom:20px">
+            <div class="gld-card">
+              <div class="gld-card-label">Per-Seat Price</div>
+              <div class="gld-card-value accent" x-text="billing.currency + ' ' + billing.perSeatPrice.toFixed(2)"></div>
+            </div>
+            <div class="gld-card">
+              <div class="gld-card-label">Credit Balance</div>
+              <div class="gld-card-value green" x-text="billing.currency + ' ' + billing.creditBalance.toFixed(2)"></div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Saved card panel -->
+        <div class="gld-panel" style="margin-bottom:20px">
+          <div class="gld-panel-header"><div class="gld-panel-title">Payment Card</div></div>
+          <div class="gld-panel-body">
+
+            <!-- Has saved card -->
+            <template x-if="billing.card">
+              <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+                <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:10px;padding:18px 24px;color:#fff;min-width:220px">
+                  <div style="font-size:11px;opacity:.7;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em" x-text="billing.card.brand"></div>
+                  <div style="font-size:18px;letter-spacing:.15em">•••• •••• •••• <span x-text="billing.card.last4"></span></div>
+                  <div style="font-size:11px;opacity:.7;margin-top:8px">Expires <span x-text="billing.card.exp_month + '/' + billing.card.exp_year"></span></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <button class="gld-btn gld-btn-ghost" @click="openCardSetup(true)">Replace Card</button>
+                  <button class="gld-btn gld-btn-danger" @click="removeCard()">Remove Card</button>
+                </div>
+              </div>
+            </template>
+
+            <!-- No saved card -->
+            <template x-if="!billing.card">
+              <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+                <div style="color:var(--gld-muted);font-size:13px">No payment card saved. Add a card to enable automatic per-seat billing when adding learners.</div>
+                <button class="gld-btn gld-btn-primary" @click="openCardSetup(false)">
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                  Set Up Card
+                </button>
+              </div>
+            </template>
+
+            <!-- Card setup in progress -->
+            <template x-if="billing.settingUpCard">
+              <div style="margin-top:16px;padding:12px 16px;background:var(--gld-bg);border-radius:8px;font-size:13px;color:var(--gld-muted)">
+                A payment window will open. Complete the card entry there — the first charge of <strong x-text="billing.currency + ' 1'"></strong> will be immediately refunded.
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Charge history -->
+        <div class="gld-panel">
+          <div class="gld-panel-header"><div class="gld-panel-title">Seat Charge History</div></div>
+          <template x-if="billing.charges.length === 0">
+            <div class="gld-empty" style="padding:24px">No seat charges yet.</div>
+          </template>
+          <template x-if="billing.charges.length > 0">
+            <div class="gld-table-wrap">
+              <table class="gld-table">
+                <thead>
+                  <tr>
+                    <th>Learner</th>
+                    <th>Amount</th>
+                    <th>Period</th>
+                    <th>Date</th>
+                    <th>Ref</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="c in billing.charges" :key="c.id">
+                    <tr>
+                      <td>
+                        <div class="gld-user-name" x-text="c.user_name"></div>
+                        <div class="gld-user-email" x-text="c.user_email"></div>
+                      </td>
+                      <td style="font-weight:600" x-text="c.currency + ' ' + c.amount.toFixed(2)"></td>
+                      <td style="font-size:12px;color:var(--gld-muted)" x-text="formatDate(c.period_start) + ' → ' + formatDate(c.period_end)"></td>
+                      <td style="font-size:12px;color:var(--gld-muted)" x-text="formatDate(c.charged_at.split(' ')[0])"></td>
+                      <td style="font-size:11px;color:var(--gld-muted);font-family:monospace" x-text="c.flw_txn_ref || '—'"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </template>
+        </div>
+      </div><!-- /billing -->
 
     </main><!-- /gld-content -->
   </div><!-- /gld-layout -->

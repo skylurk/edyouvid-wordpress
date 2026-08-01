@@ -156,6 +156,10 @@ document.addEventListener('alpine:init', () => {
     selectedLearner: null,
     subscription: { sub: null, bundles: [] },
     courseStats: { rows: [], page: 1 },
+    billing: {
+      card: null, charges: [], creditBalance: 0,
+      perSeatPrice: 0, currency: 'KES', settingUpCard: false,
+    },
 
     /* ── init ──────────────────────────────────────────────────────── */
     async init() {
@@ -196,6 +200,7 @@ document.addEventListener('alpine:init', () => {
         'users':        ['Loading…', 'Loading members…'],
         'subscription': ['Loading…', 'Checking subscription…'],
         'course-stats': ['Loading…', 'Loading course data…', 'Almost done…'],
+        'billing':      ['Loading…', 'Fetching billing info…'],
       };
       this.startLoadingMessages(viewMessages[this.view] || ['Loading…']);
 
@@ -206,6 +211,7 @@ document.addEventListener('alpine:init', () => {
         else if (this.view === 'users') await this.loadUsers();
         else if (this.view === 'subscription') await this.loadSubscription();
         else if (this.view === 'course-stats') await this.loadCourseStats();
+        else if (this.view === 'billing') await this.loadBilling();
       } catch (e) {
         this.toast('Failed to load data.', 'error');
       } finally {
@@ -373,11 +379,20 @@ document.addEventListener('alpine:init', () => {
       this.users.searchResults = [];
       this.users.adding        = true;
       try {
-        await api.post(`/groups/${this.activeGroupId}/users`, { user_id: user.id });
+        const result = await api.post(`/groups/${this.activeGroupId}/users`, { user_id: user.id });
         this.toast(`${user.name} added to group.`, 'success');
         await this.loadUsers();
-      } catch (_) {
-        this.toast('Could not add user.', 'error');
+      } catch (err) {
+        try {
+          const body = JSON.parse(err.message);
+          if (body.requires_card) {
+            this.toast('No payment card on file. Go to Billing to set up a card first.', 'error');
+          } else {
+            this.toast(body.message || 'Could not add user.', 'error');
+          }
+        } catch (_) {
+          this.toast('Could not add user.', 'error');
+        }
       } finally {
         this.users.adding = false;
       }
@@ -504,6 +519,73 @@ document.addEventListener('alpine:init', () => {
       const id = Date.now();
       this.toasts.push({ id, msg, type });
       setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 3500);
+    },
+
+    /* ── billing ───────────────────────────────────────────────────── */
+    async loadBilling() {
+      const [cardData, billingData] = await Promise.all([
+        api.get(`/groups/${this.activeGroupId}/card`),
+        api.get(`/groups/${this.activeGroupId}/billing`),
+      ]);
+      this.billing.card          = cardData.card ?? null;
+      this.billing.charges       = billingData.charges ?? [];
+      this.billing.creditBalance = billingData.credit_balance ?? 0;
+      this.billing.perSeatPrice  = billingData.per_seat_price ?? 0;
+      this.billing.currency      = billingData.currency ?? (GLD.currency || 'KES');
+    },
+
+    openCardSetup(isReplacement = false) {
+      if (!GLD.flwPublicKey) {
+        this.toast('Payment gateway not configured. Contact the site administrator.', 'error');
+        return;
+      }
+      const currentUser = this.activeGroup();
+      this.billing.settingUpCard = true;
+
+      FlutterwaveCheckout({
+        public_key: GLD.flwPublicKey,
+        tx_ref: 'GLD-CARD-SETUP-' + Date.now(),
+        amount: 1,
+        currency: GLD.currency || 'KES',
+        payment_options: 'card',
+        customer: {
+          email: currentUser?.leader_email || '',
+          name: currentUser?.leader_name || '',
+        },
+        customizations: {
+          title: GLD.siteName || 'Card Setup',
+          description: isReplacement ? 'Replace saved payment card' : 'Set up payment card for seat billing',
+          logo: '',
+        },
+        callback: async (response) => {
+          this.billing.settingUpCard = false;
+          if (response.status !== 'successful') {
+            this.toast('Card setup was not completed.', 'error');
+            return;
+          }
+          try {
+            const result = await api.post(`/groups/${this.activeGroupId}/card-setup`, { txn_id: response.transaction_id });
+            this.billing.card = result.card;
+            this.toast('Card saved successfully.', 'success');
+          } catch (e) {
+            this.toast('Card verification failed. Please try again.', 'error');
+          }
+        },
+        onclose: () => {
+          this.billing.settingUpCard = false;
+        },
+      });
+    },
+
+    async removeCard() {
+      if (!confirm('Remove your saved card? You will need to add a new card before adding learners.')) return;
+      try {
+        await api.del(`/groups/${this.activeGroupId}/card`);
+        this.billing.card = null;
+        this.toast('Card removed.', 'success');
+      } catch (_) {
+        this.toast('Could not remove card.', 'error');
+      }
     },
 
     /* ── helpers ───────────────────────────────────────────────────── */

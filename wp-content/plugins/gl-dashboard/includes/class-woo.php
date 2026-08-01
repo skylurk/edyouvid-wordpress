@@ -58,9 +58,10 @@ class GLD_Woo {
 				continue;
 			}
 
-			$bundle_name = get_the_title( $product_id );
-			$course_ids  = (array) get_post_meta( $product_id, '_gld_bundle_courses', true );
-			$course_ids  = array_values( array_filter( array_map( 'intval', $course_ids ) ) );
+			$bundle_name    = get_the_title( $product_id );
+			$course_ids     = (array) get_post_meta( $product_id, '_gld_bundle_courses', true );
+			$course_ids     = array_values( array_filter( array_map( 'intval', $course_ids ) ) );
+			$per_seat_price = (float) get_post_meta( $product_id, '_gld_seat_price', true );
 
 			$start  = date( 'Y-m-d' );
 			$expiry = date( 'Y-m-d', strtotime( '+1 year' ) );
@@ -73,7 +74,8 @@ class GLD_Woo {
 				$bundle_name,
 				$course_ids,
 				$start,
-				$expiry
+				$expiry,
+				$per_seat_price
 			);
 			GLD_Subscription::grant_group_access( $group_id );
 		}
