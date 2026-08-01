@@ -7,11 +7,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class GLD_Auth {
 
 	public static function register(): void {
-		add_action( 'wp_ajax_nopriv_gld_register', array( __CLASS__, 'handle_register' ) );
-		add_action( 'wp_ajax_nopriv_gld_login',    array( __CLASS__, 'handle_login' ) );
+		add_action( 'wp_ajax_nopriv_gld_register',       array( __CLASS__, 'handle_register' ) );
+		add_action( 'wp_ajax_nopriv_gld_login',          array( __CLASS__, 'handle_login' ) );
+		add_action( 'wp_ajax_nopriv_gld_login_standard', array( __CLASS__, 'handle_login_standard' ) );
 		// Also handle already-logged-in users submitting the form (edge case).
-		add_action( 'wp_ajax_gld_register', array( __CLASS__, 'handle_register' ) );
-		add_action( 'wp_ajax_gld_login',    array( __CLASS__, 'handle_login' ) );
+		add_action( 'wp_ajax_gld_register',       array( __CLASS__, 'handle_register' ) );
+		add_action( 'wp_ajax_gld_login',          array( __CLASS__, 'handle_login' ) );
+		add_action( 'wp_ajax_gld_login_standard', array( __CLASS__, 'handle_login_standard' ) );
 
 		// Redirect logged-in group leaders away from auth pages.
 		add_action( 'template_redirect', array( __CLASS__, 'maybe_redirect_leader' ) );
@@ -132,6 +134,50 @@ class GLD_Auth {
 		wp_send_json_success( array( 'redirect' => self::dashboard_url() ) );
 	}
 
+	// ── Standard user login ───────────────────────────────────────────────────
+
+	public static function handle_login_standard(): void {
+		check_ajax_referer( 'gld_auth', 'nonce' );
+
+		$email    = sanitize_email( $_POST['email']    ?? '' );
+		$pass     =                 $_POST['password'] ?? '';
+		$remember = ! empty(        $_POST['remember'] );
+
+		if ( ! $email || ! $pass ) {
+			wp_send_json_error( array( 'message' => 'Email and password are required.' ) );
+		}
+
+		$wp_user = get_user_by( 'email', $email );
+		if ( ! $wp_user ) {
+			wp_send_json_error( array( 'message' => 'Invalid email or password.' ) );
+		}
+
+		$result = wp_signon( array(
+			'user_login'    => $wp_user->user_login,
+			'user_password' => $pass,
+			'remember'      => $remember,
+		), is_ssl() );
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => 'Invalid email or password.' ) );
+		}
+
+		// Group leaders who accidentally use the learner form still land in the right place.
+		$is_leader = in_array( 'group_leader',  $result->roles, true );
+		$is_admin  = in_array( 'administrator', $result->roles, true );
+
+		if ( $is_leader || $is_admin ) {
+			wp_send_json_success( array( 'redirect' => self::dashboard_url() ) );
+		}
+
+		// Standard users go to My Account.
+		$redirect = function_exists( 'wc_get_page_permalink' )
+			? wc_get_page_permalink( 'myaccount' )
+			: home_url( '/my-account/' );
+
+		wp_send_json_success( array( 'redirect' => $redirect ) );
+	}
+
 	// ── Redirect already-logged-in leaders away from auth pages ──────────────
 
 	public static function maybe_redirect_leader(): void {
@@ -148,7 +194,7 @@ class GLD_Auth {
 		}
 
 		$content = $post->post_content;
-		if ( has_shortcode( $content, 'gl_login' ) || has_shortcode( $content, 'gl_register' ) ) {
+		if ( has_shortcode( $content, 'gl_login' ) || has_shortcode( $content, 'gl_register' ) || has_shortcode( $content, 'gl_portal_login' ) ) {
 			wp_safe_redirect( self::dashboard_url() );
 			exit;
 		}
@@ -161,7 +207,10 @@ class GLD_Auth {
 	}
 
 	public static function login_url(): string {
-		return self::find_page_url( 'gl_login' ) ?? home_url( '/group-login/' );
+		// Prefer the combined portal login over the leader-only login.
+		return self::find_page_url( 'gl_portal_login' )
+			?? self::find_page_url( 'gl_login' )
+			?? home_url( '/portal-login/' );
 	}
 
 	public static function register_url(): string {

@@ -189,3 +189,48 @@
   accent-color: var(--ga-accent);
   cursor: pointer;
 }
+
+/* ── Portal login tabs ───────────────────────────────────────────────────── */
+
+.gld-portal-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: var(--ga-bg);
+  border: 1px solid var(--ga-border);
+  border-radius: 10px;
+  padding: 5px;
+}
+
+.gld-portal-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ga-muted);
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+
+.gld-portal-tab svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+.gld-portal-tab.active {
+  background: var(--ga-card);
+  color: var(--ga-accent);
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+
+.gld-portal-tab:not(.active):hover {
+  color: var(--ga-text);
+}
