@@ -25,7 +25,7 @@ class GLD_Api_CourseStats {
 		}
 
 		$user_ids   = learndash_get_groups_user_ids( $group_id );
-		$course_ids = learndash_group_enrolled_courses( $group_id );
+		$course_ids = array_diff( learndash_group_enrolled_courses( $group_id ), GLD_Course_Visibility::get_hidden_ids_for_group( $group_id ) );
 
 		if ( empty( $course_ids ) ) {
 			return new WP_REST_Response( array(), 200 );

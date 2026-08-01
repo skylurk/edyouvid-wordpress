@@ -14,17 +14,6 @@
   --ga-shadow:    0 4px 24px rgba(0,0,0,.08);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ga-bg:       #111318;
-    --ga-card:     #1c1f27;
-    --ga-border:   #2e3340;
-    --ga-text:     #e8eaf0;
-    --ga-muted:    #8a90a0;
-    --ga-input-bg: #242836;
-    --ga-shadow:   0 4px 24px rgba(0,0,0,.4);
-  }
-}
 
 .gld-auth-wrap {
   display: flex;

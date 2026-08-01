@@ -8,6 +8,34 @@ class GLD_Billing {
 
 	const FLW_TOKENIZED_URL = 'https://api.flutterwave.com/v3/tokenized-charges';
 	const FLW_VERIFY_URL    = 'https://api.flutterwave.com/v3/transactions/%d/verify';
+	const FLW_REFUND_URL    = 'https://api.flutterwave.com/v3/transactions/%d/refund';
+
+	// ── Global pricing ──────────────────────────────────────────────────────
+
+	/**
+	 * The single site-wide per-student price, sourced from whichever bundle
+	 * the admin has marked as the Active Plan (see GLD_Admin::handle_set_active()).
+	 */
+	public static function get_global_seat_price(): float {
+		$product_id = (int) get_option( 'gld_access_product_id', 0 );
+		if ( ! $product_id ) {
+			return 0.0;
+		}
+		return (float) get_post_meta( $product_id, '_gld_seat_price', true );
+	}
+
+	/**
+	 * Course IDs included in the Active Plan bundle — what a group should be
+	 * granted access to when it activates.
+	 */
+	public static function get_active_plan_course_ids(): array {
+		$product_id = (int) get_option( 'gld_access_product_id', 0 );
+		if ( ! $product_id ) {
+			return array();
+		}
+		$course_ids = (array) get_post_meta( $product_id, '_gld_bundle_courses', true );
+		return array_values( array_filter( array_map( 'intval', $course_ids ) ) );
+	}
 
 	// ── Gateway config ──────────────────────────────────────────────────────
 
@@ -144,6 +172,38 @@ class GLD_Billing {
 			'last4'   => $txn->card->last_4digits ?? '****',
 			'brand'   => $txn->card->type ?? 'card',
 		);
+	}
+
+	/**
+	 * Refund a completed Flutterwave transaction — used to return the small
+	 * card-verification charge once the card has been successfully tokenized.
+	 */
+	public static function refund_transaction( int $txn_id ): array {
+		$secret_key = self::get_secret_key();
+		if ( ! $secret_key ) {
+			return array( 'success' => false, 'error' => 'Payment gateway not configured.' );
+		}
+
+		$url      = sprintf( self::FLW_REFUND_URL, $txn_id );
+		$response = wp_remote_post( $url, array(
+			'headers' => array(
+				'Content-Type'  => 'application/json',
+				'Authorization' => 'Bearer ' . $secret_key,
+			),
+			'timeout' => 60,
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			return array( 'success' => false, 'error' => $response->get_error_message() );
+		}
+
+		$body = json_decode( wp_remote_retrieve_body( $response ) );
+
+		if ( ! $body || ( $body->status ?? '' ) !== 'success' ) {
+			return array( 'success' => false, 'error' => $body->message ?? 'Refund failed.' );
+		}
+
+		return array( 'success' => true );
 	}
 
 	// ── Off-session charge ───────────────────────────────────────────────────

@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'GLD_VERSION',    '2.0.0' );
+define( 'GLD_VERSION',    '2.1.3' );
 define( 'GLD_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GLD_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -26,14 +26,16 @@ require_once GLD_PLUGIN_DIR . 'includes/class-auth.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-woo.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-cron.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-admin.php';
+require_once GLD_PLUGIN_DIR . 'includes/class-admin-groups.php';
+require_once GLD_PLUGIN_DIR . 'includes/class-course-visibility.php';
 require_once GLD_PLUGIN_DIR . 'includes/Api/class-groups.php';
 require_once GLD_PLUGIN_DIR . 'includes/Api/class-progress.php';
 require_once GLD_PLUGIN_DIR . 'includes/Api/class-analytics.php';
 require_once GLD_PLUGIN_DIR . 'includes/Api/class-users.php';
-require_once GLD_PLUGIN_DIR . 'includes/Api/class-subscription.php';
 require_once GLD_PLUGIN_DIR . 'includes/Api/class-course-stats.php';
 require_once GLD_PLUGIN_DIR . 'includes/Api/class-billing.php';
 require_once GLD_PLUGIN_DIR . 'includes/Api/class-import.php';
+require_once GLD_PLUGIN_DIR . 'includes/Api/class-course-visibility.php';
 
 // ── Custom cron interval ───────────────────────────────────────────────────
 // Must be registered before any wp_schedule_event() calls.
@@ -67,12 +69,19 @@ add_action( 'plugins_loaded', function () {
 	if ( ! wp_next_scheduled( 'gld_cache_warm' ) ) {
 		wp_schedule_event( time(), 'gld_5min', 'gld_cache_warm' );
 	}
+	// One-time: grandfather everyone currently in a group so course-visibility
+	// hiding only ever applies to members added after this feature shipped.
+	if ( get_option( 'gld_legacy_snapshot_done' ) !== '1' ) {
+		GLD_Course_Visibility::snapshot_legacy_members();
+		update_option( 'gld_legacy_snapshot_done', '1' );
+	}
 } );
 
 // ── Feature hooks ──────────────────────────────────────────────────────────
 add_action( 'init', array( 'GLD_Shortcode', 'register' ) );
 add_action( 'init', array( 'GLD_Cron', 'register' ) );
 GLD_Auth::register();
+GLD_Course_Visibility::register();
 
 add_action( 'plugins_loaded', function () {
 	if ( class_exists( 'WooCommerce' ) ) {
@@ -81,6 +90,7 @@ add_action( 'plugins_loaded', function () {
 } );
 
 GLD_Admin::register();
+GLD_Admin_Groups::register();
 
 // ── Cache busting ──────────────────────────────────────────────────────────
 // When a student makes progress, immediately clear the cached response for
@@ -118,8 +128,8 @@ add_action( 'rest_api_init', function () {
 	( new GLD_Api_Progress() )->register_routes();
 	( new GLD_Api_Analytics() )->register_routes();
 	( new GLD_Api_Users() )->register_routes();
-	( new GLD_Api_Subscription() )->register_routes();
 	( new GLD_Api_CourseStats() )->register_routes();
 	( new GLD_Api_Billing() )->register_routes();
 	( new GLD_Api_Import() )->register_routes();
+	( new GLD_Api_CourseVisibility() )->register_routes();
 } );

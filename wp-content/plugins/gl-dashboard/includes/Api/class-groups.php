@@ -30,7 +30,7 @@ class GLD_Api_Groups {
 			}
 
 			$user_ids   = learndash_get_groups_user_ids( $group_id );
-			$course_ids = learndash_group_enrolled_courses( $group_id );
+			$course_ids = array_diff( learndash_group_enrolled_courses( $group_id ), GLD_Course_Visibility::get_hidden_ids_for_group( $group_id ) );
 
 			$groups[] = array(
 				'id'           => $group_id,

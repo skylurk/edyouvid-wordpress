@@ -8,8 +8,9 @@ class GLD_Admin {
 
 	public static function register(): void {
 		add_action( 'admin_menu',              array( __CLASS__, 'add_menu' ) );
-		add_action( 'admin_post_gld_save_bundle',   array( __CLASS__, 'handle_save' ) );
-		add_action( 'admin_post_gld_delete_bundle', array( __CLASS__, 'handle_delete' ) );
+		add_action( 'admin_post_gld_save_bundle',        array( __CLASS__, 'handle_save' ) );
+		add_action( 'admin_post_gld_delete_bundle',      array( __CLASS__, 'handle_delete' ) );
+		add_action( 'admin_post_gld_set_active_bundle',  array( __CLASS__, 'handle_set_active' ) );
 	}
 
 	public static function add_menu(): void {
@@ -85,6 +86,21 @@ class GLD_Admin {
 		exit;
 	}
 
+	public static function handle_set_active(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Forbidden' );
+		}
+		$product_id = absint( $_POST['product_id'] ?? 0 );
+		check_admin_referer( 'gld_set_active_bundle_' . $product_id );
+
+		if ( $product_id && get_post_type( $product_id ) === 'product' && get_post_meta( $product_id, '_gld_is_bundle', true ) ) {
+			update_option( 'gld_access_product_id', $product_id );
+		}
+
+		wp_safe_redirect( add_query_arg( 'gld_active_saved', '1', admin_url( 'admin.php?page=gld-bundles' ) ) );
+		exit;
+	}
+
 	// ── Render ────────────────────────────────────────────────────────────
 
 	public static function render_page(): void {
@@ -111,9 +127,11 @@ class GLD_Admin {
 			}
 		}
 
-		$currency   = get_woocommerce_currency_symbol();
-		$saved      = ! empty( $_GET['gld_saved'] );
-		$has_error  = ! empty( $_GET['gld_error'] );
+		$currency     = get_woocommerce_currency_symbol();
+		$saved        = ! empty( $_GET['gld_saved'] );
+		$has_error    = ! empty( $_GET['gld_error'] );
+		$active_saved = ! empty( $_GET['gld_active_saved'] );
+		$active_id    = (int) get_option( 'gld_access_product_id', 0 );
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline">Course Bundles</h1>
@@ -125,22 +143,53 @@ class GLD_Admin {
 			<?php if ( $has_error ) : ?>
 				<div class="notice notice-error is-dismissible"><p>Please enter a valid bundle name and price.</p></div>
 			<?php endif; ?>
+			<?php if ( $active_saved ) : ?>
+				<div class="notice notice-success is-dismissible"><p>Active plan updated.</p></div>
+			<?php endif; ?>
+			<?php if ( ! $active_id && ! empty( $bundles ) ) : ?>
+				<div class="notice notice-warning"><p>No bundle is marked as the <strong>Active Plan</strong> yet — leaders won't be able to activate their group's access until you set one below.</p></div>
+			<?php endif; ?>
 
+			<?php
+			$bundles_per_page  = 20;
+			$bundles_paged     = max( 1, (int) ( $_GET['bundle_paged'] ?? 1 ) );
+			$bundles_total     = count( $bundles );
+			$bundles_pages     = max( 1, (int) ceil( $bundles_total / $bundles_per_page ) );
+			$bundles_page_rows = array_slice( $bundles, ( $bundles_paged - 1 ) * $bundles_per_page, $bundles_per_page );
+			?>
 			<?php if ( ! empty( $bundles ) ) : ?>
-			<table class="wp-list-table widefat fixed striped" style="max-width:900px;margin-bottom:30px">
+			<div style="max-width:1000px;max-height:480px;overflow-y:auto;margin-bottom:8px">
+			<table class="wp-list-table widefat fixed striped">
 				<thead>
 					<tr>
+						<th style="width:100px">Active Plan</th>
 						<th>Bundle Name</th>
 						<th style="width:90px">Price/yr</th>
+						<th style="width:110px">Per-student</th>
 						<th>Courses</th>
 						<th style="width:140px">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
-					<?php foreach ( $bundles as $b ) : ?>
-					<tr>
+					<?php foreach ( $bundles_page_rows as $b ) :
+						$is_active = $active_id === (int) $b['id'];
+					?>
+					<tr<?php echo $is_active ? ' style="background:#f0f6fc"' : ''; ?>>
+						<td>
+							<?php if ( $is_active ) : ?>
+								<span style="color:#2271b1;font-weight:600">&#10003; Active</span>
+							<?php else : ?>
+								<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+									<input type="hidden" name="action" value="gld_set_active_bundle">
+									<input type="hidden" name="product_id" value="<?php echo esc_attr( $b['id'] ); ?>">
+									<?php wp_nonce_field( 'gld_set_active_bundle_' . $b['id'] ); ?>
+									<button type="submit" class="button button-small">Set Active</button>
+								</form>
+							<?php endif; ?>
+						</td>
 						<td><strong><?php echo esc_html( $b['name'] ); ?></strong></td>
 						<td><?php echo esc_html( $currency . number_format( $b['price'], 2 ) ); ?></td>
+						<td><?php echo $b['seat_price'] > 0 ? esc_html( $currency . number_format( $b['seat_price'], 2 ) ) : '—'; ?></td>
 						<td style="font-size:12px;color:#666">
 							<?php echo esc_html( count( $b['course_ids'] ) . ' course' . ( count( $b['course_ids'] ) !== 1 ? 's' : '' ) ); ?>
 							<?php if ( ! empty( $b['course_ids'] ) ) : ?>
@@ -169,6 +218,25 @@ class GLD_Admin {
 					<?php endforeach; ?>
 				</tbody>
 			</table>
+			</div>
+			<?php if ( $bundles_pages > 1 ) : ?>
+				<div style="max-width:1000px;display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:18px;font-size:13px;color:#666">
+					<?php if ( $bundles_paged > 1 ) : ?>
+						<a class="button button-small" href="<?php echo esc_url( add_query_arg( 'bundle_paged', $bundles_paged - 1 ) ); ?>">&larr; Prev</a>
+					<?php else : ?>
+						<span class="button button-small" style="opacity:.4;cursor:not-allowed">&larr; Prev</span>
+					<?php endif; ?>
+					<span>Page <?php echo (int) $bundles_paged; ?> of <?php echo (int) $bundles_pages; ?></span>
+					<?php if ( $bundles_paged < $bundles_pages ) : ?>
+						<a class="button button-small" href="<?php echo esc_url( add_query_arg( 'bundle_paged', $bundles_paged + 1 ) ); ?>">Next &rarr;</a>
+					<?php else : ?>
+						<span class="button button-small" style="opacity:.4;cursor:not-allowed">Next &rarr;</span>
+					<?php endif; ?>
+				</div>
+			<?php endif; ?>
+			<p style="max-width:1000px;color:#666;font-size:13px;margin-bottom:30px">
+				The <strong>Active Plan</strong> is the single plan offered to group leaders going forward — its per-student price is what's charged when a leader adds a learner. Only one bundle can be active at a time; other bundles stay listed for reference (e.g. groups that already purchased them keep their original terms).
+			</p>
 			<?php else : ?>
 				<p style="color:#666;margin-bottom:24px">No bundles yet. Create your first bundle below.</p>
 			<?php endif; ?>
@@ -192,12 +260,12 @@ class GLD_Admin {
 							</td>
 						</tr>
 						<tr>
-							<th scope="row"><label for="gld_bundle_price">Price / year (<?php echo esc_html( $currency ); ?>)</label></th>
+							<th scope="row"><label for="gld_bundle_price">Price / year (<?php echo esc_html( $currency ); ?>) — optional</label></th>
 							<td>
 								<input type="number" id="gld_bundle_price" name="gld_bundle_price"
 								       min="0" step="0.01" style="width:120px"
-								       value="<?php echo esc_attr( $editing['price'] ?? '' ); ?>" required>
-								<p class="description">Annual price the group leader pays. A WooCommerce product is created automatically.</p>
+								       value="<?php echo esc_attr( $editing['price'] ?? '' ); ?>">
+								<p class="description">Only charged if a leader renews via the emailed renewal link. Since pricing is now per-student (below), this can be left blank/0 for plans billed purely per seat.</p>
 							</td>
 						</tr>
 						<tr>
@@ -215,13 +283,13 @@ class GLD_Admin {
 								<input type="search" id="gld-course-filter" placeholder="Filter courses…"
 								       style="width:300px;margin-bottom:10px;padding:6px 10px;border:1px solid #ccc;border-radius:4px">
 								<div id="gld-course-list"
-								     style="max-height:340px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;padding:8px 12px;column-count:2;column-gap:24px;background:#fafafa">
+								     style="max-height:340px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;padding:8px 12px;display:grid;grid-template-columns:1fr 1fr;column-gap:24px;background:#fafafa">
 									<?php
 									$selected_courses = $editing['course_ids'] ?? array();
 									foreach ( $courses as $cid => $ctitle ) :
 									?>
 										<label class="gld-course-item"
-										       style="display:flex;align-items:baseline;gap:6px;padding:3px 0;font-size:13px;break-inside:avoid;cursor:pointer"
+										       style="display:flex;align-items:baseline;gap:6px;padding:3px 0;font-size:13px;cursor:pointer"
 										       data-title="<?php echo esc_attr( strtolower( $ctitle ) ); ?>">
 											<input type="checkbox" name="gld_bundle_courses[]"
 											       value="<?php echo esc_attr( $cid ); ?>"

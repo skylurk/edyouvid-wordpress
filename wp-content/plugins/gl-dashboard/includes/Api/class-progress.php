@@ -89,7 +89,7 @@ class GLD_Api_Progress {
 		set_transient( self::total_cache_key( $group_id ), $total_users, self::TTL );
 
 		$user_ids   = array_slice( $all_user_ids, ( $page - 1 ) * self::PER_PAGE, self::PER_PAGE );
-		$course_ids = learndash_group_enrolled_courses( $group_id );
+		$course_ids = array_diff( learndash_group_enrolled_courses( $group_id ), GLD_Course_Visibility::get_hidden_ids_for_group( $group_id ) );
 
 		// Course metadata is small — returned on every page so the client stays simple.
 		$courses = array();

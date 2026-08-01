@@ -46,11 +46,6 @@
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
           Manage Users
         </div>
-        <div class="gld-nav-item" :class="{ active: view === 'subscription' }" @click="switchView('subscription')">
-          <!-- credit card icon -->
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
-          Subscription
-        </div>
         <div class="gld-nav-item" :class="{ active: view === 'billing' }" @click="switchView('billing')">
           <!-- receipt icon -->
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185zM9.75 9h.008v.008H9.75V9zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 4.5h.008v.008h-.008V13.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
@@ -60,6 +55,11 @@
           <!-- table/stats icon -->
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75.125v-5.25A2.25 2.25 0 014.5 11.25h15a2.25 2.25 0 012.25 2.25v5.25m-18-.125A2.25 2.25 0 013.375 19.5m18 0a1.125 1.125 0 001.125-1.125M21.375 19.5h-1.5a1.125 1.125 0 01-1.125-1.125M3.375 4.5h17.25m0 0a1.125 1.125 0 011.125 1.125M20.625 4.5h-1.5A1.125 1.125 0 0018 5.625m3.75-.125v5.25A2.25 2.25 0 0119.5 12.75h-15A2.25 2.25 0 012.25 10.5V5.625A2.25 2.25 0 014.5 3.375h15A2.25 2.25 0 0121.75 5.625"/></svg>
           Course Stats
+        </div>
+        <div class="gld-nav-item" :class="{ active: view === 'courses' }" @click="switchView('courses')">
+          <!-- eye icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Courses
         </div>
       </nav>
     </aside>
@@ -354,28 +354,41 @@
         <div class="gld-panel" style="margin-bottom:20px">
           <div class="gld-panel-header"><div class="gld-panel-title">Add a Learner</div></div>
           <div class="gld-panel-body">
-            <div class="gld-input-row">
-              <div class="gld-autocomplete" style="flex:1;position:relative">
-                <input class="gld-input" type="search"
-                       placeholder="Search by name or email…"
-                       x-model="users.searchQuery"
-                       @input="onSearchInput()"
-                       @keydown.escape="users.showDropdown = false"
-                       autocomplete="off">
-                <div class="gld-autocomplete-list" x-show="users.showDropdown" @click.outside="users.showDropdown = false">
-                  <template x-for="u in users.searchResults" :key="u.id">
-                    <div class="gld-autocomplete-item" @click="addUser(u)">
-                      <img class="gld-avatar" :src="u.avatar" :alt="u.name">
-                      <div>
-                        <div class="gld-user-name" x-text="u.name"></div>
-                        <div class="gld-user-email" x-text="u.email"></div>
+            <div class="gld-add-learner-choice">
+              <button class="gld-btn gld-btn-primary" @click="openNewLearner()">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                Add New Learner
+              </button>
+              <span class="gld-add-learner-divider">or</span>
+              <button class="gld-link-btn" @click="users.showSearch = !users.showSearch">
+                <span x-text="users.showSearch ? 'Hide search' : 'Search for someone who already has an account'"></span>
+              </button>
+            </div>
+
+            <div x-show="users.showSearch" x-transition style="margin-top:16px">
+              <div class="gld-input-row" style="padding:0 !important;margin-bottom:8px">
+                <div class="gld-autocomplete" style="flex:1;position:relative">
+                  <input class="gld-input" type="search"
+                         placeholder="Search by name or email…"
+                         x-model="users.searchQuery"
+                         @input="onSearchInput()"
+                         @keydown.escape="users.showDropdown = false"
+                         autocomplete="off">
+                  <div class="gld-autocomplete-list" x-show="users.showDropdown" @click.outside="users.showDropdown = false">
+                    <template x-for="u in users.searchResults" :key="u.id">
+                      <div class="gld-autocomplete-item" @click="addUser(u)">
+                        <img class="gld-avatar" :src="u.avatar" :alt="u.name">
+                        <div>
+                          <div class="gld-user-name" x-text="u.name"></div>
+                          <div class="gld-user-email" x-text="u.email"></div>
+                        </div>
                       </div>
-                    </div>
-                  </template>
+                    </template>
+                  </div>
                 </div>
               </div>
+              <p style="font-size:12px;color:var(--gld-muted)">Type at least 2 characters to search all site users. Use this only if the learner already has an account on this site.</p>
             </div>
-            <p style="font-size:12px;color:var(--gld-muted)">Type at least 2 characters to search all site users.</p>
           </div>
         </div>
 
@@ -383,8 +396,7 @@
         <div class="gld-panel" style="margin-bottom:20px">
           <div class="gld-panel-header" style="cursor:pointer" @click="users.showImport = !users.showImport; users.importResults = null">
             <div class="gld-panel-title">Bulk Import from CSV / Excel</div>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"
-                 style="width:18px;height:18px;transition:transform .2s"
+            <svg class="gld-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"
                  :style="users.showImport ? 'transform:rotate(180deg)' : ''">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
             </svg>
@@ -430,7 +442,7 @@
                       <table class="gld-table">
                         <thead><tr><th>Name</th><th>Email</th><th>Account</th></tr></thead>
                         <tbody>
-                          <template x-for="r in users.importResults.succeeded" :key="r.email">
+                          <template x-for="r in paginate(users.importResults.succeeded, users.importPage.succeeded)" :key="r.email">
                             <tr>
                               <td x-text="r.name || '—'"></td>
                               <td style="color:var(--gld-muted)" x-text="r.email"></td>
@@ -439,6 +451,11 @@
                           </template>
                         </tbody>
                       </table>
+                    </div>
+                    <div class="gld-pagination-simple" x-show="totalPages(users.importResults.succeeded) > 1">
+                      <button class="gld-page-btn" @click="gotoImportPage('succeeded', users.importPage.succeeded - 1)" :disabled="users.importPage.succeeded <= 1">&#8592;</button>
+                      <span x-text="`Page ${users.importPage.succeeded} of ${totalPages(users.importResults.succeeded)}`"></span>
+                      <button class="gld-page-btn" @click="gotoImportPage('succeeded', users.importPage.succeeded + 1)" :disabled="users.importPage.succeeded >= totalPages(users.importResults.succeeded)">&#8594;</button>
                     </div>
                   </div>
                 </template>
@@ -451,7 +468,7 @@
                       <table class="gld-table">
                         <thead><tr><th>Name</th><th>Email</th></tr></thead>
                         <tbody>
-                          <template x-for="r in users.importResults.skipped" :key="r.email">
+                          <template x-for="r in paginate(users.importResults.skipped, users.importPage.skipped)" :key="r.email">
                             <tr>
                               <td x-text="r.name || '—'"></td>
                               <td style="color:var(--gld-muted)" x-text="r.email"></td>
@@ -459,6 +476,11 @@
                           </template>
                         </tbody>
                       </table>
+                    </div>
+                    <div class="gld-pagination-simple" x-show="totalPages(users.importResults.skipped) > 1">
+                      <button class="gld-page-btn" @click="gotoImportPage('skipped', users.importPage.skipped - 1)" :disabled="users.importPage.skipped <= 1">&#8592;</button>
+                      <span x-text="`Page ${users.importPage.skipped} of ${totalPages(users.importResults.skipped)}`"></span>
+                      <button class="gld-page-btn" @click="gotoImportPage('skipped', users.importPage.skipped + 1)" :disabled="users.importPage.skipped >= totalPages(users.importResults.skipped)">&#8594;</button>
                     </div>
                   </div>
                 </template>
@@ -471,7 +493,7 @@
                       <table class="gld-table">
                         <thead><tr><th>Email</th><th>Reason</th></tr></thead>
                         <tbody>
-                          <template x-for="r in users.importResults.failed" :key="r.email">
+                          <template x-for="r in paginate(users.importResults.failed, users.importPage.failed)" :key="r.email">
                             <tr>
                               <td x-text="r.email"></td>
                               <td style="color:var(--gld-danger,#e74c3c)" x-text="r.reason"></td>
@@ -479,6 +501,11 @@
                           </template>
                         </tbody>
                       </table>
+                    </div>
+                    <div class="gld-pagination-simple" x-show="totalPages(users.importResults.failed) > 1">
+                      <button class="gld-page-btn" @click="gotoImportPage('failed', users.importPage.failed - 1)" :disabled="users.importPage.failed <= 1">&#8592;</button>
+                      <span x-text="`Page ${users.importPage.failed} of ${totalPages(users.importResults.failed)}`"></span>
+                      <button class="gld-page-btn" @click="gotoImportPage('failed', users.importPage.failed + 1)" :disabled="users.importPage.failed >= totalPages(users.importResults.failed)">&#8594;</button>
                     </div>
                   </div>
                 </template>
@@ -546,116 +573,6 @@
         </div>
       </div>
 
-      <!-- ── SUBSCRIPTION ─────────────────────────────────────────────── -->
-      <div x-show="!loading && view === 'subscription'">
-        <div class="gld-page-header">
-          <div class="gld-page-title">Subscription</div>
-          <div class="gld-page-sub">Annual course access bundles for your group</div>
-        </div>
-
-        <!-- Active subscription status banner -->
-        <template x-if="subscription.sub && subscription.sub.status !== 'none'">
-          <div class="gld-sub-banner" :class="'gld-sub-' + subscription.sub.status">
-            <div class="gld-sub-banner-icon">
-              <template x-if="subscription.sub.status === 'active' || subscription.sub.status === 'expiring'">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              </template>
-              <template x-if="subscription.sub.status === 'expired'">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
-              </template>
-            </div>
-            <div class="gld-sub-banner-body">
-              <div class="gld-sub-banner-title" x-text="subStatusLabel()"></div>
-              <div class="gld-sub-banner-desc" x-text="subStatusDesc()"></div>
-            </div>
-            <div class="gld-sub-banner-right">
-              <template x-if="subscription.sub.status === 'active' || subscription.sub.status === 'expiring'">
-                <div class="gld-sub-days-wrap">
-                  <div class="gld-sub-days-num" x-text="subscription.sub.days_remaining"></div>
-                  <div class="gld-sub-days-label">days left</div>
-                </div>
-              </template>
-            </div>
-          </div>
-        </template>
-
-        <!-- No subscription notice -->
-        <template x-if="!subscription.sub || subscription.sub.status === 'none'">
-          <div class="gld-sub-empty-notice">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="color:var(--gld-muted)"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
-            <div>
-              <div style="font-weight:600;margin-bottom:4px">No active subscription</div>
-              <div style="font-size:12px;color:var(--gld-muted)">Choose a bundle below to get started.</div>
-            </div>
-          </div>
-        </template>
-
-        <!-- Bundle cards -->
-        <template x-if="subscription.bundles.length === 0">
-          <div class="gld-empty">No course bundles have been set up yet. Contact your administrator.</div>
-        </template>
-
-        <div class="gld-bundle-grid">
-          <template x-for="b in subscription.bundles" :key="b.id">
-            <div class="gld-bundle-card" :class="{ 'gld-bundle-current': b.is_current }">
-
-              <!-- Card header -->
-              <div class="gld-bundle-card-header">
-                <div>
-                  <div class="gld-bundle-name" x-text="b.name"></div>
-                  <template x-if="b.is_current && subscription.sub">
-                    <div class="gld-bundle-active-tag">
-                      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                      Current plan
-                    </div>
-                  </template>
-                </div>
-                <div class="gld-bundle-price">
-                  <span x-html="b.price_html"></span>
-                  <span class="gld-bundle-period">/yr</span>
-                </div>
-              </div>
-
-              <!-- Course list -->
-              <div class="gld-bundle-courses">
-                <div class="gld-bundle-courses-label" x-text="b.courses.length + ' course' + (b.courses.length !== 1 ? 's' : '') + ' included'"></div>
-                <ul class="gld-bundle-course-list">
-                  <template x-for="c in b.courses.slice(0, 8)" :key="c.id">
-                    <li>
-                      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="color:var(--gld-green);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"/></svg>
-                      <span x-text="c.title"></span>
-                    </li>
-                  </template>
-                  <template x-if="b.courses.length > 8">
-                    <li style="color:var(--gld-muted);font-style:italic" x-text="'+ ' + (b.courses.length - 8) + ' more courses'"></li>
-                  </template>
-                </ul>
-              </div>
-
-              <!-- Action button -->
-              <div class="gld-bundle-card-footer">
-                <template x-if="b.is_current && subscription.sub && subscription.sub.status !== 'expired'">
-                  <div class="gld-bundle-status-info">
-                    <div style="font-size:12px;color:var(--gld-muted)">
-                      Expires <strong x-text="formatDate(subscription.sub.expiry_date)"></strong>
-                    </div>
-                    <a :href="b.checkout_url" class="gld-btn gld-btn-ghost" style="margin-top:10px">
-                      Renew
-                    </a>
-                  </div>
-                </template>
-                <template x-if="!b.is_current || (subscription.sub && subscription.sub.status === 'expired')">
-                  <a :href="b.checkout_url" class="gld-btn gld-btn-primary" style="width:100%;justify-content:center">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/></svg>
-                    <span x-text="b.is_current ? 'Renew Access' : 'Purchase'"></span>
-                  </a>
-                </template>
-              </div>
-            </div>
-          </template>
-        </div>
-      </div><!-- /subscription -->
-
       <!-- ── COURSE STATS ────────────────────────────────────────────── -->
       <div x-show="!loading && view === 'course-stats'">
         <div class="gld-page-header">
@@ -668,6 +585,7 @@
         </template>
 
         <template x-if="courseStats.rows.length > 0">
+          <div>
           <div class="gld-table-wrap">
             <table class="gld-table gld-stats-table">
               <thead>
@@ -730,6 +648,7 @@
               <button class="gld-page-btn" @click="gotoCourseStatsPage(courseStats.page+1)" :disabled="courseStats.page >= courseStatsTotalPages">&#8594;</button>
             </div>
           </div>
+          </div>
         </template>
       </div><!-- /course-stats -->
 
@@ -740,19 +659,51 @@
           <div class="gld-page-sub">Payment card, credit balance and seat charge history</div>
         </div>
 
-        <!-- Credit balance -->
-        <template x-if="billing.perSeatPrice > 0">
-          <div class="gld-cards" style="margin-bottom:20px">
-            <div class="gld-card">
-              <div class="gld-card-label">Per-Seat Price</div>
-              <div class="gld-card-value accent" x-text="billing.currency + ' ' + billing.perSeatPrice.toFixed(2)"></div>
+        <!-- Status banner -->
+        <template x-if="billing.status !== 'none'">
+          <div class="gld-sub-banner" :class="'gld-sub-' + billing.status" style="margin-bottom:20px">
+            <div class="gld-sub-banner-icon">
+              <template x-if="billing.status === 'active' || billing.status === 'expiring'">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </template>
+              <template x-if="billing.status === 'expired'">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+              </template>
             </div>
-            <div class="gld-card">
-              <div class="gld-card-label">Credit Balance</div>
-              <div class="gld-card-value green" x-text="billing.currency + ' ' + billing.creditBalance.toFixed(2)"></div>
+            <div class="gld-sub-banner-body">
+              <div class="gld-sub-banner-title" x-text="billingStatusLabel()"></div>
+              <div class="gld-sub-banner-desc" x-show="billing.expiryDate">
+                <span x-text="billing.status === 'expired' ? 'Access expired' : 'Next billing cycle'"></span>:
+                <strong x-text="formatDate(billing.expiryDate)"></strong>
+              </div>
             </div>
           </div>
         </template>
+        <template x-if="billing.status === 'none'">
+          <div class="gld-sub-empty-notice" style="margin-bottom:20px">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="color:var(--gld-muted)"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
+            <div>
+              <div style="font-weight:600;margin-bottom:4px">Not active yet</div>
+              <div style="font-size:12px;color:var(--gld-muted)">Add a payment card below to activate your group's access.</div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Credit balance -->
+        <div class="gld-cards" style="margin-bottom:20px">
+          <div class="gld-card">
+            <div class="gld-card-label">Per-Seat Price</div>
+            <div class="gld-card-value accent" x-text="billing.currency + ' ' + billing.perSeatPrice.toFixed(2)"></div>
+          </div>
+          <div class="gld-card">
+            <div class="gld-card-label">Credit Balance</div>
+            <div class="gld-card-value green" x-text="billing.currency + ' ' + billing.creditBalance.toFixed(2)"></div>
+          </div>
+          <div class="gld-card">
+            <div class="gld-card-label">Learners</div>
+            <div class="gld-card-value" x-text="billing.userCount"></div>
+          </div>
+        </div>
 
         <!-- Saved card panel -->
         <div class="gld-panel" style="margin-bottom:20px">
@@ -801,6 +752,7 @@
             <div class="gld-empty" style="padding:24px">No seat charges yet.</div>
           </template>
           <template x-if="billing.charges.length > 0">
+            <div>
             <div class="gld-table-wrap">
               <table class="gld-table">
                 <thead>
@@ -813,7 +765,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <template x-for="c in billing.charges" :key="c.id">
+                  <template x-for="c in paginate(billing.charges, billing.page)" :key="c.id">
                     <tr>
                       <td>
                         <div class="gld-user-name" x-text="c.user_name"></div>
@@ -828,9 +780,56 @@
                 </tbody>
               </table>
             </div>
+            <div class="gld-pagination" style="padding:12px 16px 14px" x-show="totalPages(billing.charges) > 1">
+              <div class="gld-pagination-info"
+                   x-text="`${Math.min((billing.page-1)*10+1, billing.charges.length)}–${Math.min(billing.page*10, billing.charges.length)} of ${billing.charges.length} charges`">
+              </div>
+              <div class="gld-pagination-controls">
+                <button class="gld-page-btn" @click="gotoBillingPage(billing.page-1)" :disabled="billing.page <= 1">&#8592;</button>
+                <template x-for="p in totalPages(billing.charges)" :key="p">
+                  <button class="gld-page-btn" :class="{ active: p === billing.page }"
+                          @click="gotoBillingPage(p)"
+                          x-show="totalPages(billing.charges) <= 7 || p === 1 || p === totalPages(billing.charges) || Math.abs(p - billing.page) <= 1"
+                          x-text="p"></button>
+                </template>
+                <button class="gld-page-btn" @click="gotoBillingPage(billing.page+1)" :disabled="billing.page >= totalPages(billing.charges)">&#8594;</button>
+              </div>
+            </div>
+            </div>
           </template>
         </div>
       </div><!-- /billing -->
+
+      <!-- ── COURSES (visibility) ────────────────────────────────────── -->
+      <div x-show="!loading && view === 'courses'">
+        <div class="gld-page-header">
+          <div class="gld-page-title">Courses</div>
+          <div class="gld-page-sub">Choose which courses your group's members can see. Unchecking a course hides it from members added from now on — it doesn't affect anyone already in the group.</div>
+        </div>
+
+        <template x-if="courseVisibility.courses.length === 0">
+          <div class="gld-empty">No courses are assigned to this group.</div>
+        </template>
+
+        <template x-if="courseVisibility.courses.length > 0">
+          <div class="gld-panel">
+            <div class="gld-panel-body" style="max-height:480px;overflow-y:auto">
+              <template x-for="c in courseVisibility.courses" :key="c.id">
+                <label style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--gld-border);cursor:pointer">
+                  <input type="checkbox" :checked="!c.hidden" @change="c.hidden = !$event.target.checked">
+                  <span x-text="c.title"></span>
+                </label>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <div style="margin-top:16px">
+          <button class="gld-btn gld-btn-primary" @click="saveCourseVisibility()" :disabled="courseVisibility.saving">
+            <span x-text="courseVisibility.saving ? 'Saving…' : 'Save Changes'"></span>
+          </button>
+        </div>
+      </div><!-- /courses -->
 
     </main><!-- /gld-content -->
   </div><!-- /gld-layout -->
@@ -905,6 +904,58 @@
           </template>
         </div>
 
+      </div>
+    </div>
+  </template>
+
+  <!-- ── Add New Learner modal ───────────────────────────────────────── -->
+  <template x-if="newLearner.open">
+    <div class="gld-overlay gld-overlay-center" @click.self="closeNewLearner()">
+      <div class="gld-modal">
+        <div class="gld-modal-header">
+          <div class="gld-modal-title">Add New Learner</div>
+          <button class="gld-panel-close" style="position:static" @click="closeNewLearner()" aria-label="Close">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <form @submit.prevent="createLearner()">
+          <div class="gld-field-row">
+            <div class="gld-field">
+              <label for="gld-nl-first">First Name</label>
+              <input id="gld-nl-first" class="gld-input" type="text" x-model="newLearner.first_name" required>
+            </div>
+            <div class="gld-field">
+              <label for="gld-nl-last">Last Name</label>
+              <input id="gld-nl-last" class="gld-input" type="text" x-model="newLearner.last_name">
+            </div>
+          </div>
+
+          <div class="gld-field">
+            <label for="gld-nl-email">Email Address</label>
+            <input id="gld-nl-email" class="gld-input" type="email" x-model="newLearner.email" required>
+          </div>
+
+          <div class="gld-field">
+            <label for="gld-nl-password">Password</label>
+            <div class="gld-password-row">
+              <input id="gld-nl-password" class="gld-input" :type="newLearner.showPassword ? 'text' : 'password'"
+                     x-model="newLearner.password" required minlength="8" autocomplete="new-password">
+              <button type="button" class="gld-btn gld-btn-ghost" @click="newLearner.showPassword = !newLearner.showPassword">
+                <span x-text="newLearner.showPassword ? 'Hide' : 'Show'"></span>
+              </button>
+              <button type="button" class="gld-btn gld-btn-ghost" @click="generateLearnerPassword()">Generate</button>
+            </div>
+            <div class="gld-field-hint">At least 8 characters. Share this with the learner so they can sign in — write it down now, it won't be shown again.</div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:22px">
+            <button type="submit" class="gld-btn gld-btn-primary" style="flex:1;justify-content:center" :disabled="newLearner.submitting">
+              <span x-text="newLearner.submitting ? 'Adding…' : 'Add Learner'"></span>
+            </button>
+            <button type="button" class="gld-btn gld-btn-ghost" @click="closeNewLearner()" :disabled="newLearner.submitting">Cancel</button>
+          </div>
+        </form>
       </div>
     </div>
   </template>

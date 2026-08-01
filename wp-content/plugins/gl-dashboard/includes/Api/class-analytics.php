@@ -27,7 +27,7 @@ class GLD_Api_Analytics {
 		}
 
 		$user_ids   = learndash_get_groups_user_ids( $group_id );
-		$course_ids = learndash_group_enrolled_courses( $group_id );
+		$course_ids = array_diff( learndash_group_enrolled_courses( $group_id ), GLD_Course_Visibility::get_hidden_ids_for_group( $group_id ) );
 
 		// Single bulk query for all user progress — replaces N get_user_meta() calls.
 		$all_progress = $this->bulk_load_progress( $user_ids );

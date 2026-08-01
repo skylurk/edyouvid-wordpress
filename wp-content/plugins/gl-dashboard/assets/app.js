@@ -151,17 +151,23 @@ document.addEventListener('alpine:init', () => {
     analytics: { summary: null, completions: [], perCourse: [], quizScores: {} },
     users: {
       list: [], search: '', page: 1, searchQuery: '',
-      searchResults: [], showDropdown: false,
+      searchResults: [], showDropdown: false, showSearch: false,
       adding: false, searchTimeout: null,
       showImport: false, importing: false, importFile: null, importResults: null,
+      importPage: { succeeded: 1, skipped: 1, failed: 1 },
+    },
+    newLearner: {
+      open: false, first_name: '', last_name: '', email: '', password: '',
+      showPassword: false, submitting: false,
     },
     selectedLearner: null,
-    subscription: { sub: null, bundles: [] },
     courseStats: { rows: [], page: 1 },
     billing: {
       card: null, charges: [], creditBalance: 0,
       perSeatPrice: 0, currency: 'KES', settingUpCard: false,
+      userCount: 0, status: 'none', expiryDate: null, page: 1,
     },
+    courseVisibility: { courses: [], saving: false },
 
     /* ── init ──────────────────────────────────────────────────────── */
     async init() {
@@ -200,9 +206,9 @@ document.addEventListener('alpine:init', () => {
         'progress':     ['Loading…', 'Fetching learner data…', 'Calculating progress…', 'Almost done…'],
         'analytics':    ['Loading…', 'Crunching analytics…', 'Almost done…'],
         'users':        ['Loading…', 'Loading members…'],
-        'subscription': ['Loading…', 'Checking subscription…'],
         'course-stats': ['Loading…', 'Loading course data…', 'Almost done…'],
         'billing':      ['Loading…', 'Fetching billing info…'],
+        'courses':      ['Loading…', 'Loading courses…'],
       };
       this.startLoadingMessages(viewMessages[this.view] || ['Loading…']);
 
@@ -211,9 +217,9 @@ document.addEventListener('alpine:init', () => {
         else if (this.view === 'progress') await this.loadProgress();
         else if (this.view === 'analytics') await this.loadAnalytics();
         else if (this.view === 'users') await this.loadUsers();
-        else if (this.view === 'subscription') await this.loadSubscription();
         else if (this.view === 'course-stats') await this.loadCourseStats();
         else if (this.view === 'billing') await this.loadBilling();
+        else if (this.view === 'courses') await this.loadCourseVisibility();
       } catch (e) {
         this.toast('Failed to load data.', 'error');
       } finally {
@@ -400,6 +406,59 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
+    /* ── create-new-learner modal ─────────────────────────────────── */
+    openNewLearner() {
+      this.newLearner = {
+        open: true, first_name: '', last_name: '', email: '', password: '',
+        showPassword: false, submitting: false,
+      };
+    },
+
+    closeNewLearner() {
+      this.newLearner.open = false;
+    },
+
+    generateLearnerPassword() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+      let pw = '';
+      for (let i = 0; i < 12; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+      this.newLearner.password = pw;
+      this.newLearner.showPassword = true;
+    },
+
+    async createLearner() {
+      if (this.newLearner.password.length < 8) {
+        this.toast('Password must be at least 8 characters.', 'error');
+        return;
+      }
+      this.newLearner.submitting = true;
+      try {
+        const result = await api.post(`/groups/${this.activeGroupId}/users/create`, {
+          first_name: this.newLearner.first_name,
+          last_name:  this.newLearner.last_name,
+          email:      this.newLearner.email,
+          password:   this.newLearner.password,
+        });
+        const name = result.user ? result.user.name : this.newLearner.first_name;
+        this.toast(`${name} added to group.`, 'success');
+        this.newLearner.open = false;
+        await this.loadUsers();
+      } catch (err) {
+        try {
+          const body = JSON.parse(err.message);
+          if (body.requires_card) {
+            this.toast('No payment card on file. Go to Billing to set up a card first.', 'error');
+          } else {
+            this.toast(body.message || 'Could not add learner.', 'error');
+          }
+        } catch (_) {
+          this.toast('Could not add learner.', 'error');
+        }
+      } finally {
+        this.newLearner.submitting = false;
+      }
+    },
+
     async removeUser(user) {
       if (!confirm(`Remove ${user.name} from this group?`)) return;
       try {
@@ -421,6 +480,7 @@ document.addEventListener('alpine:init', () => {
       if (!this.users.importFile) return;
       this.users.importing = true;
       this.users.importResults = null;
+      this.users.importPage = { succeeded: 1, skipped: 1, failed: 1 };
       try {
         const form = new FormData();
         form.append('file', this.users.importFile);
@@ -464,28 +524,6 @@ document.addEventListener('alpine:init', () => {
     },
 
     /* ── toast ─────────────────────────────────────────────────────── */
-    /* subscription ─────────────────────────────────────────────── */
-    async loadSubscription() {
-      const data = await api.get(`/groups/${this.activeGroupId}/subscription`);
-      this.subscription.sub     = data.subscription ?? null;
-      this.subscription.bundles = data.bundles ?? [];
-    },
-
-    subStatusLabel() {
-      const s = this.subscription.sub?.status;
-      return { active: 'Access Active', expiring: 'Expiring Soon', expired: 'Access Expired', none: 'No Subscription' }[s] ?? 'Loading…';
-    },
-
-    subStatusDesc() {
-      const d = this.subscription.sub;
-      if (!d || d.status === 'none') return '';
-      const bundle = d.bundle_name ? ` — ${d.bundle_name}` : '';
-      if (d.status === 'active')   return `Active${bundle}. Expires ${this.formatDate(d.expiry_date)}.`;
-      if (d.status === 'expiring') return `${d.bundle_name || 'Your bundle'} expires in ${d.days_remaining} day${d.days_remaining !== 1 ? 's' : ''} on ${this.formatDate(d.expiry_date)}. Renew to avoid interruption.`;
-      if (d.status === 'expired')  return `${d.bundle_name || 'Access'} expired. Learner access has been paused. Choose a bundle below to renew.`;
-      return '';
-    },
-
     formatDate(dateStr) {
       if (!dateStr) return '—';
       const d = new Date(dateStr + 'T00:00:00');
@@ -547,6 +585,25 @@ document.addEventListener('alpine:init', () => {
       return null; // use prev/next only for large counts
     },
 
+    /* ── generic pagination helpers (billing charges, CSV import results) ── */
+    paginate(list, page, perPage = 10) {
+      const s = (page - 1) * perPage;
+      return list.slice(s, s + perPage);
+    },
+
+    totalPages(list, perPage = 10) {
+      return Math.max(1, Math.ceil(list.length / perPage));
+    },
+
+    gotoBillingPage(p) {
+      this.billing.page = Math.max(1, Math.min(p, this.totalPages(this.billing.charges)));
+    },
+
+    gotoImportPage(section, p) {
+      const list = this.users.importResults ? this.users.importResults[section] : [];
+      this.users.importPage[section] = Math.max(1, Math.min(p, this.totalPages(list)));
+    },
+
     /* ── loading messages ──────────────────────────────────────────── */
     // Cycles through messages every 1.8 s during a load, stopping on the last one.
     startLoadingMessages(messages, interval = 1800) {
@@ -586,6 +643,32 @@ document.addEventListener('alpine:init', () => {
       this.billing.creditBalance = billingData.credit_balance ?? 0;
       this.billing.perSeatPrice  = billingData.per_seat_price ?? 0;
       this.billing.currency      = billingData.currency ?? (GLD.currency || 'KES');
+      this.billing.userCount     = billingData.user_count ?? 0;
+      this.billing.status        = billingData.status ?? 'none';
+      this.billing.expiryDate    = billingData.expiry_date ?? null;
+      this.billing.page          = 1;
+    },
+
+    billingStatusLabel() {
+      return { active: 'Access Active', expiring: 'Expiring Soon', expired: 'Access Expired', none: 'Not Active' }[this.billing.status] ?? '';
+    },
+
+    /* ── course visibility ────────────────────────────────────────── */
+    async loadCourseVisibility() {
+      this.courseVisibility.courses = await api.get(`/groups/${this.activeGroupId}/course-visibility`);
+    },
+
+    async saveCourseVisibility() {
+      this.courseVisibility.saving = true;
+      try {
+        const hidden_course_ids = this.courseVisibility.courses.filter(c => c.hidden).map(c => c.id);
+        await api.post(`/groups/${this.activeGroupId}/course-visibility`, { hidden_course_ids });
+        this.toast('Course visibility saved.', 'success');
+      } catch (e) {
+        this.toast('Failed to save course visibility.', 'error');
+      } finally {
+        this.courseVisibility.saving = false;
+      }
     },
 
     openCardSetup(isReplacement = false) {

@@ -65,6 +65,29 @@ class GLD_Subscription {
 		) ) ?: null;
 	}
 
+	/**
+	 * Human-facing status: 'none' (no subscription row), 'expired', 'expiring'
+	 * (14 days or less remaining), or 'active'.
+	 */
+	public static function status_label( ?object $sub ): string {
+		if ( ! $sub ) {
+			return 'none';
+		}
+
+		$today     = new DateTime( date( 'Y-m-d' ) );
+		$expiry    = new DateTime( $sub->expiry_date );
+		$diff      = $today->diff( $expiry );
+		$days_left = ( $expiry >= $today ) ? (int) $diff->days : -(int) $diff->days;
+
+		if ( $sub->status === 'expired' || $days_left < 0 ) {
+			return 'expired';
+		}
+		if ( $days_left <= 14 ) {
+			return 'expiring';
+		}
+		return 'active';
+	}
+
 	public static function get_all_active(): array {
 		global $wpdb;
 		$table = $wpdb->prefix . self::TABLE;

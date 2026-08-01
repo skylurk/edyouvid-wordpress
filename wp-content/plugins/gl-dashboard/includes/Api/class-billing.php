@@ -94,6 +94,38 @@ class GLD_Api_Billing {
 			return new WP_REST_Response( array( 'message' => $result['error'] ), 422 );
 		}
 
+		// Refund the small card-verification charge — it was only needed to tokenize the card.
+		GLD_Billing::refund_transaction( $txn_id );
+
+		// First-time setup (not a card replacement) activates the group at the current global price.
+		if ( ! GLD_Subscription::get_for_group( $group_id ) ) {
+			$product_id = (int) get_option( 'gld_access_product_id', 0 );
+			if ( ! $product_id ) {
+				return new WP_REST_Response( array(
+					'message' => 'Card saved, but no active plan is configured yet. Please contact the administrator.',
+				), 422 );
+			}
+
+			GLD_Subscription::upsert(
+				$group_id,
+				$leader_id,
+				0,
+				$product_id,
+				get_the_title( $product_id ),
+				array(),
+				date( 'Y-m-d' ),
+				date( 'Y-m-d', strtotime( '+1 year' ) ),
+				GLD_Billing::get_global_seat_price()
+			);
+			GLD_Subscription::grant_group_access( $group_id );
+
+			// Grant the group access to whatever courses the Active Plan includes.
+			$course_ids = GLD_Billing::get_active_plan_course_ids();
+			if ( ! empty( $course_ids ) ) {
+				learndash_set_group_enrolled_courses( $group_id, $course_ids );
+			}
+		}
+
 		return new WP_REST_Response( array(
 			'success' => true,
 			'card'    => GLD_Billing::get_card_display( $leader_id ),
@@ -127,11 +159,16 @@ class GLD_Api_Billing {
 			);
 		}
 
+		$sub = GLD_Subscription::get_for_group( $group_id );
+
 		return new WP_REST_Response( array(
 			'charges'        => $rows,
 			'credit_balance' => GLD_Billing::get_credit_balance( $group_id ),
 			'per_seat_price' => GLD_Billing::get_per_seat_price( $group_id ),
 			'currency'       => get_woocommerce_currency(),
+			'user_count'     => count( learndash_get_groups_user_ids( $group_id ) ),
+			'status'         => GLD_Subscription::status_label( $sub ),
+			'expiry_date'    => $sub->expiry_date ?? null,
 		), 200 );
 	}
 }
