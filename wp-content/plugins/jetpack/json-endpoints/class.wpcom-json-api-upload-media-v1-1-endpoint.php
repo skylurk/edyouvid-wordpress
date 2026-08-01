@@ -5,6 +5,10 @@
  * Endpoint: /sites/%s/media/new
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 new WPCOM_JSON_API_Upload_Media_v1_1_Endpoint(
 	array(
 		'description'                => 'Upload a new piece of media.',
@@ -25,7 +29,7 @@ new WPCOM_JSON_API_Upload_Media_v1_1_Endpoint(
 							"<code>curl \<br />--form 'media[]=@/path/to/file.jpg' \<br />-H 'Authorization: BEARER your-token' \<br />'https://public-api.wordpress.com/rest/v1/sites/123/media/new'</code>",
 			'media_urls' => '(array) An array of URLs to upload to the post. Errors produced by media uploads, if any, will be in `media_errors` in the response.',
 			'attrs'      => '(array) An array of attributes (`title`, `description`, `caption` `alt` for images, `artist` for audio, `album` for audio, and `parent_id`) are supported to assign to the media uploaded via the `media` or `media_urls` properties. You must use a numeric index for the keys of `attrs` which follows the same sequence as `media` and `media_urls`. <br /><br /><strong>Example</strong>:<br />' .
-							"<code>curl \<br />--form 'media[]=@/path/to/file1.jpg' \<br />--form 'media_urls[]=http://example.com/file2.jpg' \<br /> \<br />--form 'attrs[0][caption]=This will be the caption for file1.jpg' \<br />--form 'attrs[1][title]=This will be the title for file2.jpg' \<br />-H 'Authorization: BEARER your-token' \<br />'https://public-api.wordpress.com/rest/v1/sites/123/posts/new'</code>",
+							"<code>curl \<br />--form 'media[]=@/path/to/file1.jpg' \<br />--form 'media_urls[]=http://example.com/file2.jpg' \<br /> \<br />--form 'attrs[0][caption]=This will be the caption for file1.jpg' \<br />--form 'attrs[1][title]=This will be the title for file2.jpg' \<br />-H 'Authorization: BEARER your-token' \<br />'https://public-api.wordpress.com/rest/v1/sites/123/media/new'</code>",
 		),
 
 		'response_format'            => array(
@@ -48,6 +52,8 @@ new WPCOM_JSON_API_Upload_Media_v1_1_Endpoint(
 // phpcs:disable PEAR.NamingConventions.ValidClassName.Invalid
 /**
  * Upload media item API class v1.1
+ *
+ * @phan-constructor-used-for-side-effects
  */
 class WPCOM_JSON_API_Upload_Media_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint {
 	/**
@@ -93,7 +99,7 @@ class WPCOM_JSON_API_Upload_Media_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint 
 
 		// We're splitting out videos for Jetpack sites.
 		foreach ( $media_files as $media_item ) {
-			if ( preg_match( '@^video/@', $media_item['type'] ) && $is_jetpack_site ) {
+			if ( isset( $media_item['type'] ) && preg_match( '@^video/@', $media_item['type'] ) && $is_jetpack_site ) {
 				if ( defined( 'IS_WPCOM' ) && IS_WPCOM &&
 					defined( 'VIDEOPRESS_JETPACK_VIDEO_ENABLED' ) && VIDEOPRESS_JETPACK_VIDEO_ENABLED
 				) {
@@ -113,7 +119,7 @@ class WPCOM_JSON_API_Upload_Media_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint 
 
 		// New Jetpack / VideoPress media upload processing.
 		if ( defined( 'IS_WPCOM' ) && IS_WPCOM ) {
-			if ( is_countable( $jetpack_media_files ) && count( $jetpack_media_files ) > 0 ) {
+			if ( count( $jetpack_media_files ) > 0 ) {
 				add_filter( 'upload_mimes', array( $this, 'allow_video_uploads' ) );
 
 				// get_space_used() checks blog upload directory storage,
@@ -136,7 +142,7 @@ class WPCOM_JSON_API_Upload_Media_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint 
 		}
 
 		// Normal WPCOM upload processing.
-		if ( ( is_countable( $other_media_files ) && count( $other_media_files ) > 0 ) || ( is_countable( $other_media_files ) && count( $media_urls ) > 0 ) ) {
+		if ( count( $other_media_files ) > 0 || count( $media_urls ) > 0 ) {
 			if ( is_multisite() ) { // Do not check for available space in non multisites.
 				add_filter( 'wp_handle_upload_prefilter', array( $this, 'check_upload_size' ), 9 ); // used for direct media uploads.
 				add_filter( 'wp_handle_sideload_prefilter', array( $this, 'check_upload_size' ), 9 ); // used for uploading media via url.
@@ -165,7 +171,6 @@ class WPCOM_JSON_API_Upload_Media_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint 
 		foreach ( $media_items as $media_item ) {
 			if ( is_wp_error( $media_item ) ) {
 				$errors[] = array(
-					'file'    => $media_item['ID'],
 					'error'   => $media_item->get_error_code(),
 					'message' => $media_item->get_error_message(),
 				);
@@ -192,7 +197,7 @@ class WPCOM_JSON_API_Upload_Media_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint 
 	 */
 	public function rewrite_generic_upload_error( $errors ) {
 		foreach ( $errors as $k => $error ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-			if ( 'upload_error' === $error['error'] && false !== strpos( $error['message'], '|' ) ) {
+			if ( 'upload_error' === $error['error'] && str_contains( $error['message'], '|' ) ) {
 				list( $errors[ $k ]['error'], $errors[ $k ]['message'] ) = explode( '|', $error['message'], 2 ); // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 			}
 		}
@@ -275,7 +280,7 @@ class WPCOM_JSON_API_Upload_Media_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint 
 		}
 
 		foreach ( $media_files as $media_item ) {
-			if ( ! preg_match( '@^video/@', $media_item['type'] ) ) {
+			if ( ! isset( $media_item['type'] ) || ! preg_match( '@^video/@', $media_item['type'] ) ) {
 				return false;
 			}
 		}

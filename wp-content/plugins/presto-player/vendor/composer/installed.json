@@ -2,33 +2,33 @@
     "packages": [
         {
             "name": "brainstormforce/astra-notices",
-            "version": "1.1.11",
-            "version_normalized": "1.1.11.0",
+            "version": "1.2.2",
+            "version_normalized": "1.2.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/brainstormforce/astra-notices.git",
-                "reference": "742c8879a3a9154a55fbf628324af96154d2697f"
+                "reference": "ca54944d8312f88d117b6c7e620d2906a8e12da5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/brainstormforce/astra-notices/zipball/742c8879a3a9154a55fbf628324af96154d2697f",
-                "reference": "742c8879a3a9154a55fbf628324af96154d2697f",
+                "url": "https://api.github.com/repos/brainstormforce/astra-notices/zipball/ca54944d8312f88d117b6c7e620d2906a8e12da5",
+                "reference": "ca54944d8312f88d117b6c7e620d2906a8e12da5",
                 "shasum": ""
             },
             "require": {
                 "composer/installers": "^2.0"
             },
             "require-dev": {
-                "dealerdirect/phpcodesniffer-composer-installer": "^0.7.1",
-                "phpcompatibility/phpcompatibility-wp": "^2.1",
-                "phpunit/phpunit": "^7",
-                "roots/wordpress": "^5.9",
+                "dealerdirect/phpcodesniffer-composer-installer": "^0.7.2",
+                "phpcompatibility/phpcompatibility-wp": "2.1.4",
+                "phpunit/phpunit": "^9.0",
+                "roots/wordpress": "^6.0",
                 "wp-cli/dist-archive-command": "^2.0",
-                "wp-coding-standards/wpcs": "^2.3",
-                "wp-phpunit/wp-phpunit": "^5",
+                "wp-coding-standards/wpcs": "^3.0",
+                "wp-phpunit/wp-phpunit": "^6.0",
                 "yoast/phpunit-polyfills": "^1.0"
             },
-            "time": "2022-02-09T09:14:49+00:00",
+            "time": "2026-05-19T05:43:54+00:00",
             "type": "wordpress-plugin",
             "installation-source": "dist",
             "notification-url": "https://packagist.org/downloads/",
@@ -44,23 +44,144 @@
             "description": "Easily create admin notices",
             "support": {
                 "issues": "https://github.com/brainstormforce/astra-notices/issues",
-                "source": "https://github.com/brainstormforce/astra-notices/tree/1.1.11"
+                "source": "https://github.com/brainstormforce/astra-notices/tree/1.2.2"
             },
             "install-path": "../brainstormforce/astra-notices"
         },
         {
-            "name": "composer/installers",
-            "version": "v2.2.0",
-            "version_normalized": "2.2.0.0",
+            "name": "brainstormforce/bsf-analytics",
+            "version": "1.1.26",
+            "version_normalized": "1.1.26.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/composer/installers.git",
-                "reference": "c29dc4b93137acb82734f672c37e029dfbd95b35"
+                "url": "git@github.com:brainstormforce/bsf-analytics.git",
+                "reference": "e9079f78d4cf7a3e85ea61e94f842e2f8e00ee68"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/installers/zipball/c29dc4b93137acb82734f672c37e029dfbd95b35",
-                "reference": "c29dc4b93137acb82734f672c37e029dfbd95b35",
+                "url": "https://api.github.com/repos/brainstormforce/bsf-analytics/zipball/e9079f78d4cf7a3e85ea61e94f842e2f8e00ee68",
+                "reference": "e9079f78d4cf7a3e85ea61e94f842e2f8e00ee68",
+                "shasum": ""
+            },
+            "require-dev": {
+                "10up/wp_mock": "^1.0",
+                "brainmaestro/composer-git-hooks": "^2.6",
+                "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+                "phpcompatibility/phpcompatibility-wp": "2.1.0",
+                "phpunit/phpunit": "^9.6",
+                "wp-coding-standards/wpcs": "2.2.1"
+            },
+            "time": "2026-04-20T10:30:24+00:00",
+            "type": "wordpress-plugin",
+            "extra": {
+                "hooks": {
+                    "pre-commit": [
+                        "echo committing as $(git config user.name)",
+                        "sh bin/block-commits-with-merge-conflict.sh"
+                    ]
+                }
+            },
+            "installation-source": "dist",
+            "scripts": {
+                "format": [
+                    "phpcbf --standard=phpcs.xml.dist --report-summary --report-source"
+                ],
+                "lint": [
+                    "phpcs --standard=phpcs.xml.dist --report-summary --report-source"
+                ],
+                "test": [
+                    "phpunit"
+                ],
+                "post-install-cmd": [
+                    "vendor/bin/cghooks add --ignore-lock"
+                ],
+                "post-update-cmd": [
+                    "vendor/bin/cghooks update"
+                ]
+            },
+            "description": "Library to gather non sensitive analytics data to enhance bsf products.",
+            "support": {
+                "source": "https://github.com/brainstormforce/bsf-analytics/tree/1.1.26",
+                "issues": "https://github.com/brainstormforce/bsf-analytics/issues"
+            },
+            "install-path": "../../inc/lib/bsf-analytics"
+        },
+        {
+            "name": "brainstormforce/nps-survey",
+            "version": "1.0.21",
+            "version_normalized": "1.0.21.0",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:brainstormforce/nps-survey.git",
+                "reference": "5a20f0a05e3ecd11a611e49ff27145932a924a52"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/brainstormforce/nps-survey/zipball/5a20f0a05e3ecd11a611e49ff27145932a924a52",
+                "reference": "5a20f0a05e3ecd11a611e49ff27145932a924a52",
+                "shasum": ""
+            },
+            "require-dev": {
+                "automattic/vipwpcs": "^2.3",
+                "dealerdirect/phpcodesniffer-composer-installer": "^0.7.1",
+                "nunomaduro/phpinsights": "^2.10",
+                "php-stubs/generator": "^0.8.2",
+                "php-stubs/wordpress-stubs": "^6.1",
+                "phpcompatibility/php-compatibility": "^9.3",
+                "phpstan/phpstan": "^1.9",
+                "squizlabs/php_codesniffer": "^3.5",
+                "szepeviktor/phpstan-wordpress": "^1.1",
+                "wp-coding-standards/wpcs": "^2.2"
+            },
+            "time": "2026-03-24T05:29:05+00:00",
+            "type": "wordpress-plugin",
+            "installation-source": "dist",
+            "scripts": {
+                "format": [
+                    "vendor/bin/phpcbf"
+                ],
+                "lint": [
+                    "vendor/bin/phpcs"
+                ],
+                "test": [
+                    "vendor/bin/phpunit"
+                ],
+                "phpstan": [
+                    "vendor/bin/phpstan --memory-limit=2048M analyse"
+                ],
+                "insights": [
+                    "./vendor/bin/phpinsights analyse -v --no-interaction"
+                ],
+                "insights:fix": [
+                    "./vendor/bin/phpinsights analyse --fix --no-interaction"
+                ],
+                "gen-stubs": [
+                    "vendor/bin/generate-stubs artifact/phpstan/nps-survey/ --out=tests/php/stubs/nps-survey-stubs.php && rm -rf artifact/phpstan"
+                ],
+                "update-stubs": [
+                    "rm -f tests/php/stubs/nps-survey-stubs.php && bash bin/build-folder-phpstan.sh && composer gen-stubs"
+                ]
+            },
+            "description": "NPS Survey Plugin",
+            "support": {
+                "source": "https://github.com/brainstormforce/nps-survey/tree/1.0.21",
+                "issues": "https://github.com/brainstormforce/nps-survey/issues"
+            },
+            "install-path": "../../inc/lib/nps-survey"
+        },
+        {
+            "name": "composer/installers",
+            "version": "v2.3.0",
+            "version_normalized": "2.3.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/composer/installers.git",
+                "reference": "12fb2dfe5e16183de69e784a7b84046c43d97e8e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/composer/installers/zipball/12fb2dfe5e16183de69e784a7b84046c43d97e8e",
+                "reference": "12fb2dfe5e16183de69e784a7b84046c43d97e8e",
                 "shasum": ""
             },
             "require": {
@@ -68,14 +189,14 @@
                 "php": "^7.2 || ^8.0"
             },
             "require-dev": {
-                "composer/composer": "1.6.* || ^2.0",
-                "composer/semver": "^1 || ^3",
-                "phpstan/phpstan": "^0.12.55",
-                "phpstan/phpstan-phpunit": "^0.12.16",
-                "symfony/phpunit-bridge": "^5.3",
-                "symfony/process": "^5"
+                "composer/composer": "^1.10.27 || ^2.7",
+                "composer/semver": "^1.7.2 || ^3.4.0",
+                "phpstan/phpstan": "^1.11",
+                "phpstan/phpstan-phpunit": "^1",
+                "symfony/phpunit-bridge": "^7.1.1",
+                "symfony/process": "^5 || ^6 || ^7"
             },
-            "time": "2022-08-20T06:45:11+00:00",
+            "time": "2024-06-24T20:46:46+00:00",
             "type": "composer-plugin",
             "extra": {
                 "class": "Composer\\Installers\\Plugin",
@@ -132,6 +253,7 @@
                 "cockpit",
                 "codeigniter",
                 "concrete5",
+                "concreteCMS",
                 "croogo",
                 "dokuwiki",
                 "drupal",
@@ -178,7 +300,7 @@
             ],
             "support": {
                 "issues": "https://github.com/composer/installers/issues",
-                "source": "https://github.com/composer/installers/tree/v2.2.0"
+                "source": "https://github.com/composer/installers/tree/v2.3.0"
             },
             "funding": [
                 {
@@ -251,37 +373,44 @@
         },
         {
             "name": "mundschenk-at/check-wp-requirements",
-            "version": "v2.0.0",
-            "version_normalized": "2.0.0.0",
+            "version": "v2.1.1",
+            "version_normalized": "2.1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mundschenk-at/check-wp-requirements.git",
-                "reference": "3a4e514823258f6cf99c4a696d429aa0062de506"
+                "reference": "7f7452fb86ce3f3208c926bd3ffd8f7e2a0b45d7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mundschenk-at/check-wp-requirements/zipball/3a4e514823258f6cf99c4a696d429aa0062de506",
-                "reference": "3a4e514823258f6cf99c4a696d429aa0062de506",
+                "url": "https://api.github.com/repos/mundschenk-at/check-wp-requirements/zipball/7f7452fb86ce3f3208c926bd3ffd8f7e2a0b45d7",
+                "reference": "7f7452fb86ce3f3208c926bd3ffd8f7e2a0b45d7",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.2.0"
+                "php": ">=7.4.0"
             },
             "require-dev": {
-                "brain/monkey": "^2.0@dev",
-                "dealerdirect/phpcodesniffer-composer-installer": "^0.5",
+                "brain/monkey": "^2.2",
+                "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
                 "mikey179/vfsstream": "~1",
                 "phpcompatibility/php-compatibility": "^9.0",
-                "phpunit/phpunit": "5.*|6.*|7.*",
-                "squizlabs/php_codesniffer": "^3.0",
-                "wp-coding-standards/wpcs": "^2.0"
+                "phpstan/extension-installer": "^1.2",
+                "phpstan/phpstan": "^2",
+                "phpstan/phpstan-mockery": "^2.0",
+                "phpstan/phpstan-phpunit": "^2",
+                "phpunit/phpunit": "5.*||6.*||7.*||8.*||9.*",
+                "shish/safe": "^2",
+                "squizlabs/php_codesniffer": "^3.4",
+                "szepeviktor/phpstan-wordpress": "^2.0.0-rc.2",
+                "wp-coding-standards/wpcs": "^3",
+                "yoast/phpunit-polyfills": "1.*||2.*||3.*"
             },
-            "time": "2019-06-25T17:42:15+00:00",
+            "time": "2025-02-23T15:44:17+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
                 "classmap": [
-                    "class-wp-requirements.php"
+                    "src/"
                 ]
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -299,7 +428,7 @@
             "description": "A class to allow WordPress plugins to check certain runtime requirements before activation.",
             "support": {
                 "issues": "https://github.com/mundschenk-at/check-wp-requirements/issues",
-                "source": "https://github.com/mundschenk-at/check-wp-requirements/tree/master"
+                "source": "https://github.com/mundschenk-at/check-wp-requirements/tree/v2.1.1"
             },
             "install-path": "../mundschenk-at/check-wp-requirements"
         },
@@ -424,10 +553,10 @@
             "time": "2020-12-06T23:41:30+00:00",
             "type": "composer-plugin",
             "extra": {
+                "class": "TypistTech\\Imposter\\Plugin\\ImposterPlugin",
                 "branch-alias": {
                     "dev-master": "0.6.x-dev"
-                },
-                "class": "TypistTech\\Imposter\\Plugin\\ImposterPlugin"
+                }
             },
             "installation-source": "dist",
             "autoload": {

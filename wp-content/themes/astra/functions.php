@@ -15,17 +15,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Define Constants
  */
-define( 'ASTRA_THEME_VERSION', '3.7.3' );
+define( 'ASTRA_THEME_VERSION', '4.13.4' );
 define( 'ASTRA_THEME_SETTINGS', 'astra-settings' );
 define( 'ASTRA_THEME_DIR', trailingslashit( get_template_directory() ) );
 define( 'ASTRA_THEME_URI', trailingslashit( esc_url( get_template_directory_uri() ) ) );
-
+define( 'ASTRA_THEME_ORG_VERSION', file_exists( ASTRA_THEME_DIR . 'inc/w-org-version.php' ) );
 
 /**
  * Minimum Version requirement of the Astra Pro addon.
  * This constant will be used to display the notice asking user to update the Astra addon to the version defined below.
  */
-define( 'ASTRA_EXT_MIN_VER', '3.6.0' );
+define( 'ASTRA_EXT_MIN_VER', '4.12.0' );
+
+/**
+ * Load in-house compatibility.
+ */
+if ( ASTRA_THEME_ORG_VERSION ) {
+	require_once ASTRA_THEME_DIR . 'inc/w-org-version.php';
+}
 
 /**
  * Setup helper functions of Astra.
@@ -35,14 +42,13 @@ require_once ASTRA_THEME_DIR . 'inc/core/class-theme-strings.php';
 require_once ASTRA_THEME_DIR . 'inc/core/common-functions.php';
 require_once ASTRA_THEME_DIR . 'inc/core/class-astra-icons.php';
 
+define( 'ASTRA_WEBSITE_BASE_URL', 'https://wpastra.com' );
+
 /**
  * Update theme
  */
-require_once ASTRA_THEME_DIR . 'inc/theme-update/class-astra-theme-update.php';
 require_once ASTRA_THEME_DIR . 'inc/theme-update/astra-update-functions.php';
 require_once ASTRA_THEME_DIR . 'inc/theme-update/class-astra-theme-background-updater.php';
-require_once ASTRA_THEME_DIR . 'inc/theme-update/class-astra-pb-compatibility.php';
-
 
 /**
  * Fonts Files
@@ -53,19 +59,30 @@ if ( is_admin() ) {
 }
 
 require_once ASTRA_THEME_DIR . 'inc/lib/webfont/class-astra-webfont-loader.php';
+require_once ASTRA_THEME_DIR . 'inc/lib/docs/class-astra-docs-loader.php';
 require_once ASTRA_THEME_DIR . 'inc/customizer/class-astra-fonts.php';
 
 require_once ASTRA_THEME_DIR . 'inc/dynamic-css/custom-menu-old-header.php';
 require_once ASTRA_THEME_DIR . 'inc/dynamic-css/container-layouts.php';
 require_once ASTRA_THEME_DIR . 'inc/dynamic-css/astra-icons.php';
-require_once ASTRA_THEME_DIR . 'inc/dynamic-css/block-editor-compatibility.php';
 require_once ASTRA_THEME_DIR . 'inc/core/class-astra-walker-page.php';
 require_once ASTRA_THEME_DIR . 'inc/core/class-astra-enqueue-scripts.php';
 require_once ASTRA_THEME_DIR . 'inc/core/class-gutenberg-editor-css.php';
+require_once ASTRA_THEME_DIR . 'inc/core/class-astra-wp-editor-css.php';
+require_once ASTRA_THEME_DIR . 'inc/core/class-astra-command-palette.php';
+require_once ASTRA_THEME_DIR . 'inc/dynamic-css/block-editor-compatibility.php';
 require_once ASTRA_THEME_DIR . 'inc/dynamic-css/inline-on-mobile.php';
 require_once ASTRA_THEME_DIR . 'inc/dynamic-css/content-background.php';
+require_once ASTRA_THEME_DIR . 'inc/dynamic-css/dark-mode.php';
 require_once ASTRA_THEME_DIR . 'inc/class-astra-dynamic-css.php';
 require_once ASTRA_THEME_DIR . 'inc/class-astra-global-palette.php';
+
+// Enable NPS Survey only if the starter templates version is < 4.3.7 or > 4.4.4 to prevent fatal error.
+if ( ! defined( 'ASTRA_SITES_VER' ) || version_compare( ASTRA_SITES_VER, '4.3.7', '<' ) || version_compare( ASTRA_SITES_VER, '4.4.4', '>' ) ) {
+	// NPS Survey Integration
+	require_once ASTRA_THEME_DIR . 'inc/lib/class-astra-nps-notice.php';
+	require_once ASTRA_THEME_DIR . 'inc/lib/class-astra-nps-survey.php';
+}
 
 /**
  * Custom template tags for this theme.
@@ -76,6 +93,7 @@ require_once ASTRA_THEME_DIR . 'inc/template-tags.php';
 require_once ASTRA_THEME_DIR . 'inc/widgets.php';
 require_once ASTRA_THEME_DIR . 'inc/core/theme-hooks.php';
 require_once ASTRA_THEME_DIR . 'inc/admin-functions.php';
+require_once ASTRA_THEME_DIR . 'inc/class-astra-memory-limit-notice.php';
 require_once ASTRA_THEME_DIR . 'inc/core/sidebar-manager.php';
 
 /**
@@ -104,21 +122,30 @@ require_once ASTRA_THEME_DIR . 'inc/core/class-astra-admin-helper.php';
 
 require_once ASTRA_THEME_DIR . 'inc/schema/class-astra-schema.php';
 
-if ( is_admin() ) {
+/* Setup API */
+require_once ASTRA_THEME_DIR . 'admin/includes/class-astra-learn.php';
+require_once ASTRA_THEME_DIR . 'admin/includes/class-astra-api-init.php';
 
+if ( is_admin() ) {
 	/**
 	 * Admin Menu Settings
 	 */
 	require_once ASTRA_THEME_DIR . 'inc/core/class-astra-admin-settings.php';
-	require_once ASTRA_THEME_DIR . 'inc/lib/astra-notices/class-astra-notices.php';
-
-	/**
-	 * Metabox additions.
-	 */
-	require_once ASTRA_THEME_DIR . 'inc/metabox/class-astra-meta-boxes.php';
+	require_once ASTRA_THEME_DIR . 'admin/class-astra-admin-loader.php';
+	require_once ASTRA_THEME_DIR . 'inc/lib/astra-notices/class-bsf-admin-notices.php';
 }
 
+/**
+ * BSF Analytics.
+ */
+require_once ASTRA_THEME_DIR . 'admin/class-astra-bsf-analytics.php';
+
+/**
+ * Metabox additions.
+ */
+require_once ASTRA_THEME_DIR . 'inc/metabox/class-astra-meta-boxes.php';
 require_once ASTRA_THEME_DIR . 'inc/metabox/class-astra-meta-box-operations.php';
+require_once ASTRA_THEME_DIR . 'inc/metabox/class-astra-elementor-editor-settings.php';
 
 /**
  * Customizer additions.
@@ -128,6 +155,7 @@ require_once ASTRA_THEME_DIR . 'inc/customizer/class-astra-customizer.php';
 /**
  * Astra Modules.
  */
+require_once ASTRA_THEME_DIR . 'inc/modules/posts-structures/class-astra-post-structures.php';
 require_once ASTRA_THEME_DIR . 'inc/modules/related-posts/class-astra-related-posts.php';
 
 /**
@@ -150,8 +178,12 @@ require_once ASTRA_THEME_DIR . 'inc/compatibility/class-astra-ubermeu.php';
 require_once ASTRA_THEME_DIR . 'inc/compatibility/class-astra-divi-builder.php';
 require_once ASTRA_THEME_DIR . 'inc/compatibility/class-astra-amp.php';
 require_once ASTRA_THEME_DIR . 'inc/compatibility/class-astra-yoast-seo.php';
+require_once ASTRA_THEME_DIR . 'inc/compatibility/surecart/class-astra-surecart.php';
+require_once ASTRA_THEME_DIR . 'inc/compatibility/class-astra-starter-content.php';
+require_once ASTRA_THEME_DIR . 'inc/compatibility/class-astra-buddypress.php';
 require_once ASTRA_THEME_DIR . 'inc/addons/transparent-header/class-astra-ext-transparent-header.php';
 require_once ASTRA_THEME_DIR . 'inc/addons/breadcrumbs/class-astra-breadcrumbs.php';
+require_once ASTRA_THEME_DIR . 'inc/addons/scroll-to-top/class-astra-scroll-to-top.php';
 require_once ASTRA_THEME_DIR . 'inc/addons/heading-colors/class-astra-heading-colors.php';
 require_once ASTRA_THEME_DIR . 'inc/builder/class-astra-builder-loader.php';
 
@@ -162,7 +194,7 @@ if ( version_compare( PHP_VERSION, '5.4', '>=' ) ) {
 	require_once ASTRA_THEME_DIR . 'inc/compatibility/class-astra-web-stories.php';
 }
 
-// Beaver Themer compatibility requires PHP 5.3 for anonymus functions.
+// Beaver Themer compatibility requires PHP 5.3 for anonymous functions.
 if ( version_compare( PHP_VERSION, '5.3', '>=' ) ) {
 	require_once ASTRA_THEME_DIR . 'inc/compatibility/class-astra-beaver-themer.php';
 }
@@ -170,80 +202,13 @@ if ( version_compare( PHP_VERSION, '5.3', '>=' ) ) {
 require_once ASTRA_THEME_DIR . 'inc/core/markup/class-astra-markup.php';
 
 /**
+ * Abilities API integration.
+ */
+require_once ASTRA_THEME_DIR . 'inc/abilities/bootstrap.php';
+
+/**
  * Load deprecated functions
  */
 require_once ASTRA_THEME_DIR . 'inc/core/deprecated/deprecated-filters.php';
 require_once ASTRA_THEME_DIR . 'inc/core/deprecated/deprecated-hooks.php';
 require_once ASTRA_THEME_DIR . 'inc/core/deprecated/deprecated-functions.php';
-
-
-
-
-
-
-
-
-
-
-
-add_action( 'register_form', 'myplugin_register_form' );
-function myplugin_register_form() {
-
-    $first_name = ( ! empty( $_POST['first_name'] ) ) ? trim( $_POST['first_name'] ) : '';
-    $last_name = ( ! empty( $_POST['last_name'] ) ) ? trim( $_POST['last_name'] ) : '';
-
-        ?>
-        <p>
-            <label for="first_name"><?php _e( 'First Name', 'mydomain' ) ?><br />
-                <input type="text" name="first_name" id="first_name" class="input" value="<?php echo esc_attr( wp_unslash( $first_name ) ); ?>" size="25" /></label>
-        </p>
-
-        <p>
-            <label for="last_name"><?php _e( 'Last Name', 'mydomain' ) ?><br />
-                <input type="text" name="last_name" id="last_name" class="input" value="<?php echo esc_attr( wp_unslash( $last_name ) ); ?>" size="25" /></label>
-        </p>
-
-        <?php
-    }
-
-    //2. Add validation. In this case, we make sure first_name and last_name is required.
-    add_filter( 'registration_errors', 'myplugin_registration_errors', 10, 3 );
-    function myplugin_registration_errors( $errors, $sanitized_user_login, $user_email ) {
-
-        if ( empty( $_POST['first_name'] ) || ! empty( $_POST['first_name'] ) && trim( $_POST['first_name'] ) == '' ) {
-            $errors->add( 'first_name_error', __( '<strong>ERROR</strong>: You must include a first name.', 'mydomain' ) );
-        }
-        if ( empty( $_POST['last_name'] ) || ! empty( $_POST['last_name'] ) && trim( $_POST['last_name'] ) == '' ) {
-            $errors->add( 'last_name_error', __( '<strong>ERROR</strong>: You must include a last name.', 'mydomain' ) );
-        }
-        return $errors;
-    }
-
-    //3. Finally, save our extra registration user meta.
-    add_action( 'user_register', 'myplugin_user_register' );
-    function myplugin_user_register( $user_id ) {
-        if ( ! empty( $_POST['first_name'] ) ) {
-            update_user_meta( $user_id, 'first_name', trim( $_POST['first_name'] ) );
-            update_user_meta( $user_id, 'last_name', trim( $_POST['last_name'] ) );
-        }
-    }
-
-
-
-// CHANGE CURRENCY 
-/**
-* Change a currency symbol
-*/
-add_filter('woocommerce_currency_symbol', 'change_existing_currency_symbol', 10, 2);
-
-function change_existing_currency_symbol( $currency_symbol, $currency ) {
-switch( $currency ) {
-case 'KSh': $currency_symbol = 'KSh$'; break;
-}
-return $currency_symbol;
-}
-
-
-
-
-

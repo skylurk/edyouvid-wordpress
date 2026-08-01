@@ -11,6 +11,10 @@ namespace Gutenberg_Templates\Inc\Importer;
 use Gutenberg_Templates\Inc\Traits\Helper;
 use WP_Query;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Importer Helper
  *
@@ -67,7 +71,7 @@ class Importer_Helper {
 	 *
 	 * @since {{since}}
 	 * @param string $key options name.
-	 * @return array<string,string,string,string,string,string,string,int> | string Array for business details or single detail in a string.
+	 * @return array<string, mixed> Array for business details or single detail in a string.
 	 */
 	public static function get_business_details( $key = '' ) {
 		$details = get_option(
@@ -131,14 +135,38 @@ class Importer_Helper {
 	 * @return string Image orientation.
 	 * @since {{since}}
 	 */
-	public static function get_image_orientation( $url ) {
-		list( $width, $height ) = getimagesize( $url );
-		if ( isset( $width ) && isset( $height ) ) {
+	public static function get_image_orientation( $url ): string {
+		// Use WordPress HTTP API instead of getimagesize() for remote URLs.
+		$response = wp_safe_remote_get(
+			$url,
+			array(
+				'timeout'  => 10,
+				'redirect' => 5,
+			)
+		);
+
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			return 'landscape';
+		}
+
+		$image_data = wp_remote_retrieve_body( $response );
+
+		if ( empty( $image_data ) ) {
+			return 'landscape';
+		}
+
+		$size = @getimagesizefromstring( $image_data ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Suppress warnings for invalid image data.
+
+		if ( $size && is_array( $size ) ) {
+			list( $width, $height ) = $size;
+
 			if ( $width > $height ) {
 				return 'landscape';
 			}
+
 			return 'portrait';
 		}
+
 		return 'landscape';
 	}
 }

@@ -6,51 +6,75 @@ return array(
   'packages' => array(
     'jetpack-admin-ui' => array(
       'path' => 'jetpack_vendor/automattic/jetpack-admin-ui',
-      'ver' => '0.2.17',
+      'ver' => '0.8.4',
     ),
     'jetpack-assets' => array(
       'path' => 'jetpack_vendor/automattic/jetpack-assets',
-      'ver' => '1.17.34',
+      'ver' => '4.3.36',
+    ),
+    'jetpack-boost-core' => array(
+      'path' => 'jetpack_vendor/automattic/jetpack-boost-core',
+      'ver' => '0.4.4',
+    ),
+    'jetpack-boost-speed-score' => array(
+      'path' => 'jetpack_vendor/automattic/jetpack-boost-speed-score',
+      'ver' => '0.4.14',
     ),
     'jetpack-config' => array(
       'path' => 'jetpack_vendor/automattic/jetpack-config',
-      'ver' => '1.14.0',
+      'ver' => '3.1.2',
     ),
     'jetpack-connection' => array(
       'path' => 'jetpack_vendor/automattic/jetpack-connection',
-      'ver' => '1.51.2',
+      'ver' => '8.3.5',
     ),
-    'jetpack-idc' => array(
-      'path' => 'jetpack_vendor/automattic/jetpack-identity-crisis',
-      'ver' => '0.8.40',
+    'jetpack-explat' => array(
+      'path' => 'jetpack_vendor/automattic/jetpack-explat',
+      'ver' => '0.4.24',
+    ),
+    'jetpack-ip' => array(
+      'path' => 'jetpack_vendor/automattic/jetpack-ip',
+      'ver' => '0.4.11',
     ),
     'jetpack-jitm' => array(
       'path' => 'jetpack_vendor/automattic/jetpack-jitm',
-      'ver' => '2.3.2',
+      'ver' => '4.3.34',
     ),
     'jetpack-licensing' => array(
       'path' => 'jetpack_vendor/automattic/jetpack-licensing',
-      'ver' => '1.8.1',
+      'ver' => '3.1.6',
     ),
     'jetpack-my-jetpack' => array(
       'path' => 'jetpack_vendor/automattic/jetpack-my-jetpack',
-      'ver' => '2.8.1',
+      'ver' => '5.37.1',
     ),
     'jetpack-password-checker' => array(
       'path' => 'jetpack_vendor/automattic/jetpack-password-checker',
-      'ver' => '0.2.12',
+      'ver' => '0.4.10',
     ),
     'jetpack-plugins-installer' => array(
       'path' => 'jetpack_vendor/automattic/jetpack-plugins-installer',
-      'ver' => '0.2.3',
+      'ver' => '0.5.8',
+    ),
+    'jetpack-protect-models' => array(
+      'path' => 'jetpack_vendor/automattic/jetpack-protect-models',
+      'ver' => '0.6.2',
+    ),
+    'jetpack-protect-status' => array(
+      'path' => 'jetpack_vendor/automattic/jetpack-protect-status',
+      'ver' => '0.7.9',
     ),
     'jetpack-sync' => array(
       'path' => 'jetpack_vendor/automattic/jetpack-sync',
-      'ver' => '1.47.3',
+      'ver' => '4.38.1',
     ),
     'jetpack-videopress-pkg' => array(
       'path' => 'jetpack_vendor/automattic/jetpack-videopress',
-      'ver' => '0.13.1',
+      'ver' => '0.36.9',
+    ),
+    'jetpack-wp-build-polyfills' => array(
+      'path' => 'jetpack_vendor/automattic/jetpack-wp-build-polyfills',
+      'ver' => '0.1.8',
     ),
   ),
 );

@@ -4,8 +4,12 @@
  *
  * @package LoginPress
  * @since 1.0.0
- * @version 3.0.6
+ * @version 6.2.0
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 // phpcs:ignoreFile
 
@@ -55,7 +59,7 @@ function first_presets() {
 			}
 			.admin-email__actions-primary .button:first-child {
 				font: 400 15px "Roboto", sans-serif;
-				color: #fff;
+				color: #fff !important;
 				height: auto;
 				line-height: 20px !important;
 				padding: 13px;
@@ -64,7 +68,7 @@ function first_presets() {
 				width: 100%;
 				text-align: center;
 				background-color: #008ec2;
-				border: 0;
+				border-color: #008ec2;
 				margin-bottom: 8px;
 				border-radius: 5px;
 			}
@@ -79,11 +83,14 @@ function first_presets() {
 				color: #008ec2 !important;
 			}
 			.dashicons-hidden:before {
-				color: #000000;
+				color: inherit;
 			}
 			.dashicons-hidden:hover::before {
-				color: #008ec2;
+				color: inherit;
 			}
+		body.login .button.wp-hide-pw .dashicons.dashicons-visibility, body.login .button.wp-hide-pw .dashicons.dashicons-hidden:hover {
+			color: #008ec2;
+		}
 		</style>
 	<?php else : ?>
 		<style>
@@ -106,7 +113,8 @@ function first_presets() {
 		* Visit:       https://wordpress.org/plugins/loginpress/    *
 		*************************************************************/
 		body.login {
-			background-image: url(<?php echo esc_url( apply_filters( 'loginpress_default_bg', plugins_url( 'img/bg-default.jpg', LOGINPRESS_PLUGIN_BASENAME ) ) ); ?>);
+			--background-desktop-image: url(<?php echo esc_url( apply_filters( 'loginpress_default_bg', plugins_url( 'img/bg-default.jpg', LOGINPRESS_PLUGIN_BASENAME ) ) ); ?>);
+			background-image: var(--background-desktop-image);
 			/*background-color: #ddd5c3;*/
 			background-repeat: no-repeat;
 			background-position: center;
@@ -163,6 +171,7 @@ function first_presets() {
 		body.wp-core-ui.login .two-factor-email-resend .button,
 		.wp-core-ui #login .button-primary {
 			background: #008ec2;
+			border-color: #008ec2;
 			color: #fff;
 			margin: 7px 0 7px;
 			min-height: 46px;
@@ -181,7 +190,11 @@ function first_presets() {
 			background: #008ec2;
 			color: #008ec2;
 		}
-		
+		.login #language-switcher input[type="submit"]{
+			background: #008ec2;
+			color: #fff;
+			border-color: #008ec2;
+		}
 		.wp-core-ui #login .wp-generate-pw{
 			background: #008ec233;
 			color: #008ec2;
@@ -395,12 +408,25 @@ function first_presets() {
 		input[type=checkbox],input[type=checkbox]:checked{
 			border-color: #008ec2 !important;
 		}
+		input[type=checkbox]:checked{
+			background-color: #008ec2 !important;
+		}
 		input[type=checkbox]:hover{
 			border-color: #C3C4C7 !important;
 		}
+		.login .button.wp-hide-pw .dashicons.dashicons-visibility {
+			color: #008ec2;
+		}
+		.login .button.wp-hide-pw .dashicons.dashicons-hidden {
+			color: #008ec2;
+		}
+		.login .button.wp-hide-pw .dashicons.dashicons-hidden:hover {
+			color: #008ec2;
+		}
 		@media screen and (max-width: 767px) {
 			#login{
-				width: 300px;
+				max-width: 300px;
+				width: calc(100% - 30px);
 			}
 			.login form{
 				padding-right: 0;

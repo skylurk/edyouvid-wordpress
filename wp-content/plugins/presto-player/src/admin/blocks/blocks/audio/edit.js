@@ -14,6 +14,7 @@ import {
   Button,
 } from "@wordpress/components";
 import { __ } from "@wordpress/i18n";
+import Editing from "../../shared/Editing";
 
 export default compose([withPlayerData(), withPlayerEdit()])(
   withNotices(
@@ -127,6 +128,7 @@ export default compose([withPlayerData(), withPlayerEdit()])(
                 {__("Replace", "presto-player")}
               </Button>
             </Toolbar>
+            <Editing />
           </BlockControls>
 
           {/* Enable InspectorControls */}

@@ -113,21 +113,39 @@ class Business_Reviews extends Widget_Base {
 			]
 		);
 
+		$google_api_options = apply_filters('eael/business_reviews/google_api_options', [
+			'places'     => __( 'Google Places API', 'essential-addons-for-elementor-lite' ),
+			'places-new' => __( 'Google Places API (New)', 'essential-addons-for-elementor-lite' ),
+		]);
+
+		$this->add_control(
+			'eael_business_reviews_google_api_type',
+			[
+				'label'   => __( 'API Type', 'essential-addons-for-elementor-lite' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'places',
+				'options' => $google_api_options,
+				'condition' => [
+					'eael_business_reviews_sources' => 'google-reviews',
+				],
+			]
+		);
+
 		if ( empty( get_option( 'eael_br_google_place_api_key' ) ) ) {
 			$this->add_control( 'eael_br_google_place_api_key_missing', [
 				'type'            => Controls_Manager::RAW_HTML,
 				'raw' => sprintf(
 					/* translators: %s: Link to Business Reviews Settings page. */
 					__( 'Google Place API key is missing. Please add it from EA Dashboard » Elements » %s', 'essential-addons-for-elementor-lite' ),
-					'<a href="' . esc_url( site_url( '/wp-admin/admin.php?page=eael-settings' ) ) . '" target="_blank">' . esc_html__( 'Business Reviews Settings', 'essential-addons-for-elementor-lite' ) . '</a>'
+					'<a href="' . esc_url( site_url( '/wp-admin/admin.php?page=eael-settings#/elements/business-reviews' ) ) . '" target="_blank">' . esc_html__( 'Business Reviews Settings', 'essential-addons-for-elementor-lite' ) . '</a>'
 				),
 				'content_classes' => 'eael-warning',
 				'condition'       => [
 					'eael_business_reviews_sources' => 'google-reviews',
+					'eael_business_reviews_google_api_type' => [ 'places', 'places-new' ],
 				],
 			] );
 		}
-
 
 		$this->add_control( 'eael_business_reviews_business_place_id', [
 			'label'       => esc_html__( 'Place ID', 'essential-addons-for-elementor-lite' ),
@@ -149,14 +167,12 @@ class Business_Reviews extends Widget_Base {
 			],
 			'condition'   => [
 				'eael_business_reviews_sources' => 'google-reviews',
+				'eael_business_reviews_google_api_type' => [ 'places', 'places-new' ],
 			],
 			'ai' => [
 				'active' => true,
 			],
 		] );
-
-
-
 
 
 		do_action('eael/business_reviews/controls', $this);
@@ -186,6 +202,7 @@ class Business_Reviews extends Widget_Base {
 				'description' => __( 'Max 5 reviews, please specify amount.', 'essential-addons-for-elementor-lite' ),
 				'condition'   => [
 					'eael_business_reviews_sources' => 'google-reviews',
+					'eael_business_reviews_google_api_type' => [ 'places', 'places-new' ],
 				],
 			]
 		);
@@ -367,28 +384,6 @@ class Business_Reviews extends Widget_Base {
 				'frontend_available' => true,
                 'condition'          => [
 					'eael_business_reviews_items_layout' => 'grid',
-				],
-			]
-		);
-
-		$this->add_responsive_control(
-			'eael_business_reviews_review_text_height',
-			[
-				'label'      => __( 'Height', 'essential-addons-for-elementor-lite' ),
-				'type'       => Controls_Manager::SLIDER,
-				'range'      => [
-					'px' => [
-						'min'  => 15,
-						'max'  => 500,
-						'step' => 1,
-					],
-				],
-				'size_units' => [ 'px' ],
-				'selectors'  => [
-					'{{WRAPPER}} .eael-business-reviews-wrapper .eael-google-review-text' => 'height: {{SIZE}}{{UNIT}}; overflow-y: auto;',
-				],
-				'condition'  => [
-					'eael_business_reviews_review_text' => 'yes',
 				],
 			]
 		);
@@ -817,7 +812,7 @@ class Business_Reviews extends Widget_Base {
 			'eael_business_reviews_review_text_translation',
 			[
 				'label'        => __( 'Translation', 'essential-addons-for-elementor-lite' ),
-				'description'  => __('Reviews will be translated into English.', 'essential-addons-for-elementor-lite' ),
+				'description'  => __('Reviews will be translated into your site language.', 'essential-addons-for-elementor-lite' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'label_on'     => __( 'Show', 'essential-addons-for-elementor-lite' ),
 				'label_off'    => __( 'Hide', 'essential-addons-for-elementor-lite' ),
@@ -2653,6 +2648,7 @@ class Business_Reviews extends Widget_Base {
 
 		$business_reviews                            		= [];
 		$business_reviews['source']                  		= ! empty( $settings['eael_business_reviews_sources'] ) ? esc_html( $settings['eael_business_reviews_sources'] ) : 'google-reviews';
+		$business_reviews['google_api_type']         		= ! empty( $settings['eael_business_reviews_google_api_type'] ) ? esc_html( $settings['eael_business_reviews_google_api_type'] ) : 'places';
 
 		$business_reviews['place_id']            		= ! empty( $settings['eael_business_reviews_business_place_id'] ) ? esc_html( $settings['eael_business_reviews_business_place_id'] ) : 'ChIJj61dQgK6j4AR4GeTYWZsKWw';
 		$business_reviews['api_key']             		= ! empty( $settings['eael_business_reviews_source_key'] ) ? esc_html( $settings['eael_business_reviews_source_key'] ) : '';
@@ -2660,11 +2656,13 @@ class Business_Reviews extends Widget_Base {
 		$business_reviews['reviews_sort']            		= ! empty( $settings['eael_business_reviews_sort_by'] ) ? esc_html( $settings['eael_business_reviews_sort_by'] ) : 'most_relevant';
 		$business_reviews['review_text_translation'] 		= ! empty( $settings['eael_business_reviews_review_text_translation'] ) && 'yes' === $settings['eael_business_reviews_review_text_translation'] ? 1 : 0;
 
-		$business_reviews = apply_filters('eael/business_reviews/settings', $business_reviews, $settings);
+		// New Places API needs an explicit languageCode. Always request the site locale so that
+		// without it Google defaults everything to English.
+		$business_reviews['language_code']                  = $this->get_review_language_code();
 
 		$business_reviews['expiration'] 					= ! empty( $settings['eael_business_reviews_data_cache_time'] ) ? absint( $settings['eael_business_reviews_data_cache_time'] ) * MINUTE_IN_SECONDS : DAY_IN_SECONDS;
 
-		$cache_key_parts = [ $business_reviews['reviews_sort'], $business_reviews['review_text_translation'], $this->get_id() ];
+		$cache_key_parts = [ $business_reviews['reviews_sort'], $business_reviews['review_text_translation'], $business_reviews['language_code'], $this->get_id() ];
 		$cache_key_parts[] = isset( $business_reviews['api_key'] ) ? $business_reviews['api_key'] : '';
 
 		$business_reviews['md5']        					= md5( implode( '_', $cache_key_parts ) );
@@ -2753,6 +2751,8 @@ class Business_Reviews extends Widget_Base {
 			$business_reviews['accessibility_link_in_same_tab'] = ! empty( $settings['eael_business_reviews_link_in_same_tab'] ) && 'yes' === $settings['eael_business_reviews_link_in_same_tab'];
 		}
 
+		$business_reviews = apply_filters('eael/business_reviews/settings', $business_reviews, $settings);
+
 		return $business_reviews;
 	}
 
@@ -2793,53 +2793,163 @@ class Business_Reviews extends Widget_Base {
 		return $data;
 	}
 
-	public function fetch_google_reviews_from_api( $business_reviews_settings ) {
-		$business_reviews = $business_reviews_settings;
+	/**
+	 * Resolve the WordPress locale to a Google Places API languageCode.
+	 *
+	 * Google accepts a fixed list of codes — mostly the primary language subtag
+	 * (de, bn, fr ...) with only a few region/script variants. Region-suffixed codes
+	 * that are NOT on Google's list (e.g. de-DE, bn-BD) are ignored and Google falls
+	 * back to English, so we map the WordPress locale to a Google-valid code:
+	 * de_DE => de, bn_BD => bn, pt_BR => pt-BR, zh_CN => zh-CN, he_IL => iw.
+	 *
+	 * @see https://developers.google.com/maps/faq#languagesupport
+	 * @return string
+	 */
+	public function get_review_language_code() {
+		$locale = get_locale();
 
-		$url           = "https://maps.googleapis.com/maps/api/place/details/json";
-		$param         = array();
-		$error_message = '';
-
-		$api_fields = 'formatted_address,international_phone_number,name,rating,reviews,url,user_ratings_total,website,photos';
-		$api_fields = $business_reviews['localbusiness_schema'] ? 'address_components,' . $api_fields : $api_fields;
-		
-		$args = array(
-			'key'     => sanitize_text_field( $business_reviews['api_key'] ),
-			'placeid' => sanitize_text_field( $business_reviews['place_id'] ),
-			'reviews_no_translations' => intval( $business_reviews['review_text_translation'] ) ? false : true,
-			'fields'  => sanitize_text_field( $api_fields ),
+		// WordPress locales whose Google code keeps a region/script suffix.
+		$region_variants = array(
+			'zh_CN' => 'zh-CN',
+			'zh_HK' => 'zh-HK',
+			'zh_TW' => 'zh-TW',
+			'pt_BR' => 'pt-BR',
+			'pt_PT' => 'pt-PT',
+			'en_AU' => 'en-AU',
+			'en_GB' => 'en-GB',
+			'fr_CA' => 'fr-CA',
 		);
 
-		if ( ! empty( $business_reviews['reviews_sort'] ) ) {
-			$args['reviews_sort'] = $business_reviews['reviews_sort'];
+		if ( isset( $region_variants[ $locale ] ) ) {
+			$code = $region_variants[ $locale ];
+		} elseif ( 0 === strpos( $locale, 'es_' ) && 'es_ES' !== $locale ) {
+			// Latin-American Spanish locales share Google's es-419; Spain stays es.
+			$code = 'es-419';
+		} else {
+			$primary = strtolower( strtok( $locale, '_' ) ); // de_DE => de, bn_BD => bn, fil => fil
+
+			// WordPress subtags that differ from Google's code.
+			$aliases = array(
+				'he' => 'iw',
+				'nb' => 'no',
+				'nn' => 'no',
+				'tl' => 'fil',
+			);
+
+			$code = isset( $aliases[ $primary ] ) ? $aliases[ $primary ] : $primary;
 		}
 
-		$param = array_merge( $param, $args );
+		return apply_filters( 'eael/business_reviews/language_code', $code, $locale );
+	}
 
-		$headers = array(
-			'headers' => array(
-				'Content-Type' => 'application/json',
-			)
-		);
-		$options = array(
-			'timeout' => 240
-		);
+	public function fetch_google_reviews_from_api( $business_reviews_settings ) {
+		$business_reviews = $business_reviews_settings;
+		$error_message    = '';
+		$response         = false;
 
-		$options = array_merge( $headers, $options );
+		if ( 'places-new' === $business_reviews['google_api_type'] ) {
+			$url = "https://places.googleapis.com/v1/places/" . sanitize_text_field( $business_reviews['place_id'] );
 
-		if ( empty( $error_message ) ) {
-			$response = wp_remote_get(
+			if ( ! empty( $business_reviews['language_code'] ) ) {
+				$url = add_query_arg( 'languageCode', $business_reviews['language_code'], $url );
+			}
+
+			$headers = array(
+				'Content-Type'       => 'application/json',
+				'X-Goog-Api-Key'     => sanitize_text_field( $business_reviews['api_key'] ),
+				'X-Goog-FieldMask'   => 'id,displayName,formattedAddress,internationalPhoneNumber,rating,userRatingCount,websiteUri,googleMapsUri,photos,reviews',
+			);
+
+			$response = wp_remote_get( $url, array(
+				'headers' => $headers,
+				'timeout' => 240,
+			) );
+
+			if ( is_wp_error( $response ) ) {
+				$error_message = $response->get_error_message();
+			} else {
+				$body = json_decode( wp_remote_retrieve_body( $response ) );
+				
+				if ( ! empty( $body->error ) ) {
+					$error_message = ! empty( $body->error->message ) ? $body->error->message : __( 'An error occurred while fetching data from Google Places API.', 'essential-addons-for-elementor-lite' );
+				} elseif ( ! empty( $body ) ) {
+					// Map New API response to Legacy structure
+					$mapped_result = new \stdClass();
+					$mapped_result->name                       = ! empty( $body->displayName->text ) ? $body->displayName->text : '';
+					$mapped_result->formatted_address          = ! empty( $body->formattedAddress ) ? $body->formattedAddress : '';
+					$mapped_result->international_phone_number = ! empty( $body->internationalPhoneNumber ) ? $body->internationalPhoneNumber : '';
+					$mapped_result->rating                     = ! empty( $body->rating ) ? $body->rating : 0;
+					$mapped_result->user_ratings_total         = ! empty( $body->userRatingCount ) ? $body->userRatingCount : 0;
+					$mapped_result->website                    = ! empty( $body->websiteUri ) ? $body->websiteUri : '';
+					$mapped_result->url                        = ! empty( $body->googleMapsUri ) ? $body->googleMapsUri : '';
+					$mapped_result->photos                     = ! empty( $body->photos ) ? $body->photos : [];
+					
+					$mapped_reviews = [];
+					if ( ! empty( $body->reviews ) ) {
+						foreach ( $body->reviews as $review ) {
+							$m_review = new \stdClass();
+							$m_review->author_name               = ! empty( $review->authorAttribution->displayName ) ? $review->authorAttribution->displayName : '';
+							$m_review->author_url                = ! empty( $review->authorAttribution->uri ) ? $review->authorAttribution->uri : '';
+							$m_review->profile_photo_url         = ! empty( $review->authorAttribution->photoUri ) ? $review->authorAttribution->photoUri : '';
+							$m_review->rating                    = ! empty( $review->rating ) ? $review->rating : 0;
+							$m_review->relative_time_description = ! empty( $review->relativePublishTimeDescription ) ? $review->relativePublishTimeDescription : '';
+							// Translation OFF (default): render the review in its original written language
+							if ( empty( $business_reviews['review_text_translation'] ) && ! empty( $review->originalText->text ) ) {
+								$m_review->text = $review->originalText->text;
+							} else {
+								$m_review->text = ! empty( $review->text->text ) ? $review->text->text : '';
+							}
+							$mapped_reviews[] = $m_review;
+						}
+					}
+					$mapped_result->reviews = $mapped_reviews;
+					
+					$response = $mapped_result;
+					set_transient( $business_reviews['cache_key'], $response, $business_reviews['expiration'] );
+				}
+			}
+		} else {
+			$url   = "https://maps.googleapis.com/maps/api/place/details/json";
+			$param = array();
+
+			$api_fields = 'formatted_address,international_phone_number,name,rating,reviews,url,user_ratings_total,website,photos';
+			$api_fields = $business_reviews['localbusiness_schema'] ? 'address_components,' . $api_fields : $api_fields;
+
+			$args = array(
+				'key'                     => sanitize_text_field( $business_reviews['api_key'] ),
+				'placeid'                 => sanitize_text_field( $business_reviews['place_id'] ),
+				'reviews_no_translations' => intval( $business_reviews['review_text_translation'] ) ? false : true,
+				'fields'                  => sanitize_text_field( $api_fields ),
+			);
+
+			if ( ! empty( $business_reviews['reviews_sort'] ) ) {
+				$args['reviews_sort'] = $business_reviews['reviews_sort'];
+			}
+
+			$param   = array_merge( $param, $args );
+			$options = array(
+				'timeout' => 240,
+				'headers' => array(
+					'Content-Type' => 'application/json',
+				)
+			);
+
+			$res = wp_remote_get(
 				esc_url_raw( add_query_arg( $param, $url ) ),
 				$options
 			);
 
-			$body     = json_decode( wp_remote_retrieve_body( $response ) );
-			$response = 'OK' === $body->status ? $body->result : false;
-
-			if ( ! empty( $response ) ) {
-				set_transient( $business_reviews['cache_key'], $response, $business_reviews['expiration'] );
+			if ( is_wp_error( $res ) ) {
+				$error_message = $res->get_error_message();
 			} else {
-				$error_message = $this->fetch_google_place_response_error_message( $body->status );
+				$body     = json_decode( wp_remote_retrieve_body( $res ) );
+				$response = 'OK' === $body->status ? $body->result : false;
+
+				if ( ! empty( $response ) ) {
+					set_transient( $business_reviews['cache_key'], $response, $business_reviews['expiration'] );
+				} else {
+					$error_message = $this->fetch_google_place_response_error_message( $body->status );
+				}
 			}
 		}
 

@@ -5,6 +5,318 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.28.7] - 2026-06-08
+### Fixed
+- Brute Force Protection: Avoid a fatal error when rendering the login recovery form while an output buffer handler is active. [#49404]
+
+## [0.28.6] - 2026-06-01
+### Fixed
+- Brute Force Protection: Prevent PHP warning when username is invalid. [#49292]
+
+## [0.28.5] - 2026-05-25
+### Fixed
+- Phan: Address `PhanPluginDuplicateConditionalNullCoalescing` violations. [#48887]
+
+## [0.28.4] - 2026-05-19
+### Changed
+- Internal updates.
+
+## [0.28.3] - 2026-05-04
+### Changed
+- Internal: No longer require automattic/jetpack-changelogger as a per-project dev dependency. [#48225]
+
+## [0.28.2] - 2026-03-23
+### Security
+- WAF: Fix issue that potentially allowed bypassing WAF rules. [#47692]
+
+## [0.28.1] - 2026-02-23
+### Changed
+- Update dependencies. [#39263]
+
+## [0.28.0] - 2026-02-16
+### Added
+- Enable support for ModSecurity's `MATCHED_VAR*` family of targets. [#47012]
+
+## [0.27.11] - 2026-02-10
+### Fixed
+- Fix mishandling of empty Content-Type headers. [#46986]
+
+## [0.27.10] - 2026-02-02
+### Changed
+- Update dependencies. [#39263]
+
+## [0.27.9] - 2025-12-15
+### Changed
+- Internal updates.
+
+## [0.27.8] - 2025-12-08
+### Fixed
+- Ensure proper flags are used with `json_encode()`. [#46092]
+
+## [0.27.7] - 2025-11-17
+### Changed
+- Internal updates.
+
+## [0.27.6] - 2025-11-03
+### Fixed
+- Phan: Address PhanRedundantCondition, PhanRedundantArrayValuesCall, and PhanPluginRedundantAssignment violations. [#45681]
+
+## [0.27.5] - 2025-10-20
+### Changed
+- Internal updates.
+
+## [0.27.4] - 2025-09-15
+### Changed
+- Internal updates.
+
+## [0.27.3] - 2025-09-08
+### Fixed
+- WAF: Prevent PHP warnings when the BFP transient is not set or when the hook data for the WAF update flag is not as expected. [#45088]
+
+## [0.27.2] - 2025-08-11
+### Changed
+- Internal updates.
+
+## [0.27.1] - 2025-07-21
+### Changed
+- Internal updates.
+
+## [0.27.0] - 2025-07-14
+### Changed
+- VIP: Change hosting check method. [#44223]
+
+## [0.26.0] - 2025-07-03
+### Added
+- Add account recovery flow for blocklisted IP addresses. [#43051]
+
+### Fixed
+- Fix PHP warnings for `Brute_Force_Protection->get_local_host()`. [#44170]
+
+## [0.25.0] - 2025-06-23
+### Changed
+- Tests: Modify environment check in tests to match new requirements. [#44059]
+
+## [0.24.4] - 2025-06-09
+### Fixed
+- Tests: Ensure method param count matches PHPUnit data providers. [#43815] [#43828]
+
+## [0.24.3] - 2025-04-28
+### Fixed
+- Linting: Fix more Stylelint violations. [#43213]
+
+## [0.24.2] - 2025-04-21
+### Fixed
+- Brute Force Protection: Handle unexpected parameter types from third-party plugins during login failure processing. [#43119]
+
+## [0.24.1] - 2025-04-01
+### Changed
+- Add a default value for the error param in the `wp_login_failed` action callback. [#42819]
+
+## [0.24.0] - 2025-03-31
+### Changed
+- Ensures Brute Force Protection does not log failed attempts on password validation failure. [#40925]
+
+## [0.23.8] - 2025-03-24
+### Changed
+- Internal updates.
+
+## [0.23.7] - 2025-03-17
+### Changed
+- Internal updates.
+
+## [0.23.6] - 2025-03-12
+### Changed
+- Internal updates.
+
+## [0.23.5] - 2025-03-10
+### Changed
+- Ensure check_valid_blocked_user handles error outcomes. [#42036]
+
+## [0.23.4] - 2025-02-24
+### Changed
+- Update dependencies. [#39263]
+
+## [0.23.3] - 2025-02-03
+### Fixed
+- Code: Remove extra params on function calls. [#41263]
+
+## [0.23.2] - 2025-01-20
+### Changed
+- Code: Use function-style exit() and die() with a default status code of 0. [#41167]
+
+## [0.23.1] - 2024-11-25
+### Changed
+- Updated dependencies. [#40286]
+
+## [0.23.0] - 2024-11-18
+### Removed
+- General: Update minimum PHP version to 7.2. [#40147]
+
+## [0.22.3] - 2024-11-04
+### Added
+- Enable test coverage. [#39961]
+
+## [0.22.2] - 2024-10-29
+### Changed
+- Internal updates. [#39263]
+
+## [0.22.1] - 2024-10-17
+### Fixed
+- WAF: Improve backwards compatibility for sites running outdated bootstrap scripts via standalone mode. [#39812]
+
+## [0.22.0] - 2024-10-14
+### Added
+- WAF: Add new properties to the WAF feature's REST API endpoint. [#39511]
+
+### Fixed
+- Improve backwards compatibility for sites running in standalone mode. [#39652]
+- WAF: Reduce amount of classes autoloaded during standalone mode execution. [#38944]
+
+## [0.21.0] - 2024-10-07
+### Added
+- Firewall Runtime: Added support for rule files to specify body parser type. [#39516]
+
+## [0.20.1] - 2024-10-01
+### Deprecated
+- Added back public API as deprecated. [#39606]
+
+## [0.20.0] - 2024-09-30
+### Added
+- Added Waf_Blocklog_Manager class [#35739]
+
+## [0.19.0] - 2024-09-23
+### Added
+- Firewall: add support for CIDR ranges in IP lists. [#39425]
+
+## [0.18.5] - 2024-09-06
+### Changed
+- Updated package dependencies. [#39253]
+
+### Fixed
+- Ensure that request body is parsed correctly [#39262]
+
+## [0.18.4] - 2024-08-26
+### Changed
+- Updated package dependencies. [#39004]
+
+## [0.18.3] - 2024-08-19
+### Changed
+- Internal updates.
+
+## [0.18.2] - 2024-08-15
+### Fixed
+- Fix incorrect next-version tokens in php `@since` and/or `@deprecated` docs. [#38869]
+
+## [0.18.1] - 2024-08-08
+### Security
+- Parse request body when method used is not POST [#38621]
+
+### Added
+- Brute Force Protection: Add `jetpack_has_login_ability` hook. [#38518]
+
+## [0.18.0] - 2024-08-01
+### Added
+- Adds global statistics [#38388]
+
+### Fixed
+- Fix global stats type check [#38634]
+
+## [0.17.0] - 2024-07-22
+### Added
+- Added the ability to toggle IP block and allow lists individually. [#38184]
+
+## [0.16.10] - 2024-06-26
+### Changed
+- Internal updates.
+
+## [0.16.9] - 2024-06-03
+### Changed
+- Phab baseline file update. [#36968]
+
+## [0.16.8] - 2024-05-20
+### Changed
+- Internal updates.
+
+## [0.16.7] - 2024-05-06
+### Changed
+- Internal updates.
+
+## [0.16.6] - 2024-04-29
+### Changed
+- Internal updates.
+
+## [0.16.5] - 2024-04-25
+### Changed
+- Internal updates.
+
+## [0.16.4] - 2024-04-22
+### Changed
+- Internal updates.
+
+## [0.16.3] - 2024-04-15
+### Security
+- Improves handling of REQUEST_URI. [#36833]
+
+## [0.16.2] - 2024-04-08
+### Changed
+- Internal updates.
+
+## [0.16.1] - 2024-03-25
+### Changed
+- Internal updates.
+
+## [0.16.0] - 2024-03-22
+### Added
+- Add data to WAF logs and add toggle for users to opt-in to share more data with us if needed. [#36377]
+
+## [0.15.2] - 2024-03-18
+### Changed
+- Internal updates.
+
+## [0.15.1] - 2024-03-14
+### Changed
+- Internal updates.
+
+## [0.15.0] - 2024-03-12
+### Added
+- Add JSON parameter support to the Web Application Firewall. [#36169]
+
+## [0.14.2] - 2024-03-04
+### Fixed
+- Fixed base64 transforms to better conform with the modsecurity runtime [#35693]
+
+## [0.14.1] - 2024-02-27
+### Changed
+- Internal updates.
+
+## [0.14.0] - 2024-02-12
+### Added
+- Add standalone mode status to WAF config [#34840]
+
+## [0.13.0] - 2024-02-05
+### Added
+- Run the WAF on JN environments [#35341]
+
+## [0.12.4] - 2024-01-18
+### Fixed
+- Optimize how the web application firewall checks for updates on admin screens. [#34820]
+
+## [0.12.3] - 2024-01-02
+### Changed
+- Internal updates.
+
+## [0.12.2] - 2023-12-25
+### Changed
+- Improve top-level WP-CLI command description [#34745]
+
+## [0.12.1] - 2023-11-21
+
+## [0.12.0] - 2023-11-20
+### Changed
+- Updated required PHP version to >= 7.0. [#34192]
+
+## [0.11.15] - 2023-11-14
+
 ## [0.11.14] - 2023-10-30
 
 ## [0.11.13] - 2023-10-10
@@ -237,6 +549,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Core: do not ship .phpcs.dir.xml in production builds.
 
+[0.28.7]: https://github.com/Automattic/jetpack-waf/compare/v0.28.6...v0.28.7
+[0.28.6]: https://github.com/Automattic/jetpack-waf/compare/v0.28.5...v0.28.6
+[0.28.5]: https://github.com/Automattic/jetpack-waf/compare/v0.28.4...v0.28.5
+[0.28.4]: https://github.com/Automattic/jetpack-waf/compare/v0.28.3...v0.28.4
+[0.28.3]: https://github.com/Automattic/jetpack-waf/compare/v0.28.2...v0.28.3
+[0.28.2]: https://github.com/Automattic/jetpack-waf/compare/v0.28.1...v0.28.2
+[0.28.1]: https://github.com/Automattic/jetpack-waf/compare/v0.28.0...v0.28.1
+[0.28.0]: https://github.com/Automattic/jetpack-waf/compare/v0.27.11...v0.28.0
+[0.27.11]: https://github.com/Automattic/jetpack-waf/compare/v0.27.10...v0.27.11
+[0.27.10]: https://github.com/Automattic/jetpack-waf/compare/v0.27.9...v0.27.10
+[0.27.9]: https://github.com/Automattic/jetpack-waf/compare/v0.27.8...v0.27.9
+[0.27.8]: https://github.com/Automattic/jetpack-waf/compare/v0.27.7...v0.27.8
+[0.27.7]: https://github.com/Automattic/jetpack-waf/compare/v0.27.6...v0.27.7
+[0.27.6]: https://github.com/Automattic/jetpack-waf/compare/v0.27.5...v0.27.6
+[0.27.5]: https://github.com/Automattic/jetpack-waf/compare/v0.27.4...v0.27.5
+[0.27.4]: https://github.com/Automattic/jetpack-waf/compare/v0.27.3...v0.27.4
+[0.27.3]: https://github.com/Automattic/jetpack-waf/compare/v0.27.2...v0.27.3
+[0.27.2]: https://github.com/Automattic/jetpack-waf/compare/v0.27.1...v0.27.2
+[0.27.1]: https://github.com/Automattic/jetpack-waf/compare/v0.27.0...v0.27.1
+[0.27.0]: https://github.com/Automattic/jetpack-waf/compare/v0.26.0...v0.27.0
+[0.26.0]: https://github.com/Automattic/jetpack-waf/compare/v0.25.0...v0.26.0
+[0.25.0]: https://github.com/Automattic/jetpack-waf/compare/v0.24.4...v0.25.0
+[0.24.4]: https://github.com/Automattic/jetpack-waf/compare/v0.24.3...v0.24.4
+[0.24.3]: https://github.com/Automattic/jetpack-waf/compare/v0.24.2...v0.24.3
+[0.24.2]: https://github.com/Automattic/jetpack-waf/compare/v0.24.1...v0.24.2
+[0.24.1]: https://github.com/Automattic/jetpack-waf/compare/v0.24.0...v0.24.1
+[0.24.0]: https://github.com/Automattic/jetpack-waf/compare/v0.23.8...v0.24.0
+[0.23.8]: https://github.com/Automattic/jetpack-waf/compare/v0.23.7...v0.23.8
+[0.23.7]: https://github.com/Automattic/jetpack-waf/compare/v0.23.6...v0.23.7
+[0.23.6]: https://github.com/Automattic/jetpack-waf/compare/v0.23.5...v0.23.6
+[0.23.5]: https://github.com/Automattic/jetpack-waf/compare/v0.23.4...v0.23.5
+[0.23.4]: https://github.com/Automattic/jetpack-waf/compare/v0.23.3...v0.23.4
+[0.23.3]: https://github.com/Automattic/jetpack-waf/compare/v0.23.2...v0.23.3
+[0.23.2]: https://github.com/Automattic/jetpack-waf/compare/v0.23.1...v0.23.2
+[0.23.1]: https://github.com/Automattic/jetpack-waf/compare/v0.23.0...v0.23.1
+[0.23.0]: https://github.com/Automattic/jetpack-waf/compare/v0.22.3...v0.23.0
+[0.22.3]: https://github.com/Automattic/jetpack-waf/compare/v0.22.2...v0.22.3
+[0.22.2]: https://github.com/Automattic/jetpack-waf/compare/v0.22.1...v0.22.2
+[0.22.1]: https://github.com/Automattic/jetpack-waf/compare/v0.22.0...v0.22.1
+[0.22.0]: https://github.com/Automattic/jetpack-waf/compare/v0.21.0...v0.22.0
+[0.21.0]: https://github.com/Automattic/jetpack-waf/compare/v0.20.1...v0.21.0
+[0.20.1]: https://github.com/Automattic/jetpack-waf/compare/v0.20.0...v0.20.1
+[0.20.0]: https://github.com/Automattic/jetpack-waf/compare/v0.19.0...v0.20.0
+[0.19.0]: https://github.com/Automattic/jetpack-waf/compare/v0.18.5...v0.19.0
+[0.18.5]: https://github.com/Automattic/jetpack-waf/compare/v0.18.4...v0.18.5
+[0.18.4]: https://github.com/Automattic/jetpack-waf/compare/v0.18.3...v0.18.4
+[0.18.3]: https://github.com/Automattic/jetpack-waf/compare/v0.18.2...v0.18.3
+[0.18.2]: https://github.com/Automattic/jetpack-waf/compare/v0.18.1...v0.18.2
+[0.18.1]: https://github.com/Automattic/jetpack-waf/compare/v0.18.0...v0.18.1
+[0.18.0]: https://github.com/Automattic/jetpack-waf/compare/v0.17.0...v0.18.0
+[0.17.0]: https://github.com/Automattic/jetpack-waf/compare/v0.16.10...v0.17.0
+[0.16.10]: https://github.com/Automattic/jetpack-waf/compare/v0.16.9...v0.16.10
+[0.16.9]: https://github.com/Automattic/jetpack-waf/compare/v0.16.8...v0.16.9
+[0.16.8]: https://github.com/Automattic/jetpack-waf/compare/v0.16.7...v0.16.8
+[0.16.7]: https://github.com/Automattic/jetpack-waf/compare/v0.16.6...v0.16.7
+[0.16.6]: https://github.com/Automattic/jetpack-waf/compare/v0.16.5...v0.16.6
+[0.16.5]: https://github.com/Automattic/jetpack-waf/compare/v0.16.4...v0.16.5
+[0.16.4]: https://github.com/Automattic/jetpack-waf/compare/v0.16.3...v0.16.4
+[0.16.3]: https://github.com/Automattic/jetpack-waf/compare/v0.16.2...v0.16.3
+[0.16.2]: https://github.com/Automattic/jetpack-waf/compare/v0.16.1...v0.16.2
+[0.16.1]: https://github.com/Automattic/jetpack-waf/compare/v0.16.0...v0.16.1
+[0.16.0]: https://github.com/Automattic/jetpack-waf/compare/v0.15.1...v0.16.0
+[0.15.2]: https://github.com/Automattic/jetpack-waf/compare/v0.15.1...v0.15.2
+[0.15.1]: https://github.com/Automattic/jetpack-waf/compare/v0.15.0...v0.15.1
+[0.15.0]: https://github.com/Automattic/jetpack-waf/compare/v0.14.2...v0.15.0
+[0.14.2]: https://github.com/Automattic/jetpack-waf/compare/v0.14.1...v0.14.2
+[0.14.1]: https://github.com/Automattic/jetpack-waf/compare/v0.14.0...v0.14.1
+[0.14.0]: https://github.com/Automattic/jetpack-waf/compare/v0.13.0...v0.14.0
+[0.13.0]: https://github.com/Automattic/jetpack-waf/compare/v0.12.4...v0.13.0
+[0.12.4]: https://github.com/Automattic/jetpack-waf/compare/v0.12.3...v0.12.4
+[0.12.3]: https://github.com/Automattic/jetpack-waf/compare/v0.12.2...v0.12.3
+[0.12.2]: https://github.com/Automattic/jetpack-waf/compare/v0.12.1...v0.12.2
+[0.12.1]: https://github.com/Automattic/jetpack-waf/compare/v0.12.0...v0.12.1
+[0.12.0]: https://github.com/Automattic/jetpack-waf/compare/v0.11.15...v0.12.0
+[0.11.15]: https://github.com/Automattic/jetpack-waf/compare/v0.11.14...v0.11.15
 [0.11.14]: https://github.com/Automattic/jetpack-waf/compare/v0.11.13...v0.11.14
 [0.11.13]: https://github.com/Automattic/jetpack-waf/compare/v0.11.12...v0.11.13
 [0.11.12]: https://github.com/Automattic/jetpack-waf/compare/v0.11.11...v0.11.12

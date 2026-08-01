@@ -102,10 +102,11 @@ class HFE_Admin {
 		$is_uae_pro_active =  ! file_exists( WP_PLUGIN_DIR . '/' . $plugin_file ) && ! HFE_Helper::is_pro_active() ;
 		wp_localize_script( 'hfe-elementor', 'hfeEditorConfig', array(
 			'isUAEPro' => ! $is_uae_pro_active,
-			'iconUrl' => HFE_URL . 'assets/images/settings/logo-white.svg',
-			'strings' => array(
-				'headerFooterBuilder' => __( 'Header Footer Builder', 'header-footer-elementor' )
-			)
+			'iconUrl'  => HFE_URL . 'assets/images/settings/logo-white.svg',
+			'adminUrl' => admin_url( 'admin.php?page=hfe#dashboard' ),
+			'strings'  => array(
+				'headerFooterBuilder' => __( 'Header Footer Builder', 'header-footer-elementor' ),
+			),
 		));
 		
 		wp_enqueue_script( 'hfe-elementor' );
@@ -152,7 +153,8 @@ class HFE_Admin {
 		// Hook into Elementor's editor styles
 		add_action('elementor/editor/before_enqueue_scripts', [$this, 'enqueue_editor_scripts']);
 		if ( 'yes' === get_option( 'uae_usage_optin', false ) ) {
-			add_action('shutdown', [ $this, 'maybe_run_hfe_widgets_usage_check' ] );
+			add_action( 'init', array( $this, 'hfe_schedule_usage_cron' ) );
+			add_action( 'hfe_widgets_usage_cron', array( $this, 'hfe_check_widgets_data_usage' ) );
 		}
 	}
 
@@ -160,47 +162,115 @@ class HFE_Admin {
 	 * Enqueuing Promotion widget scripts.
 	 */
 	public function enqueue_editor_scripts() {
-               wp_enqueue_script(
-                       'uae-pro-promotion',
-                       HFE_URL . 'build/promotion-widget.js',
-                       [ 'jquery', 'wp-element', 'wp-dom-ready' ],
-                       HFE_VER,
-                       true
-               );
-       }
+        wp_enqueue_script(
+            'uae-pro-promotion',
+	    	HFE_URL . 'build/promotion-widget.js',
+           [ 'jquery', 'wp-element', 'wp-dom-ready' ],
+            HFE_VER,
+           true
+	   );
+    }
 	
 	/**
-	 * Check the page on which Widget check need to be run.
+	 * Schedule the daily cron event for widget usage data collection.
+	 *
+	 * @since 2.8.5
+	 * @return void
 	 */
-	public function maybe_run_hfe_widgets_usage_check() {
-		// Run only on admin.php?page=hfe
-		if (
-			is_admin() &&
-			isset( $_GET['page'] ) &&
-			( 'uaepro' === $_GET['page'] || 'hfe' === $_GET['page'])
-		) {
-			$this->hfe_check_widgets_data_usage();
+	public function hfe_schedule_usage_cron() {
+		if ( ! wp_next_scheduled( 'hfe_widgets_usage_cron' ) ) {
+			wp_schedule_event( time(), 'daily', 'hfe_widgets_usage_cron' );
 		}
 	}
+
 	/**
-	 * Handle AJAX request to get widgets usage data.
+	 * Collect widgets usage data via WP-Cron.
 	 *
-	 * @since 2.3.0
+	 * Runs in a background cron context instead of on every page load,
+	 * preventing timeouts on content-heavy sites.
+	 *
+	 * @since 2.8.5
 	 */
 	public function hfe_check_widgets_data_usage() {
-		// Check user permissions
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-
 		$transient_key = 'uae_widgets_usage_data';
 		$widgets_usage = get_transient( $transient_key );
 
-		if ( false === $widgets_usage || false === get_option( 'uae_widgets_usage_data_option' ) ) {
+		$needs_widget_refresh = false === $widgets_usage || false === get_option( 'uae_widgets_usage_data_option' );
+		$needs_kpi_init       = false === get_option( 'hfe_kpi_daily_snapshots', false );
+
+		if ( $needs_widget_refresh || $needs_kpi_init ) {
 			$filtered_widgets_usage = HFE_Helper::get_used_widget();
-			set_transient( $transient_key, $filtered_widgets_usage, MONTH_IN_SECONDS ); // Store for 5 minutes
+			set_transient( $transient_key, $filtered_widgets_usage, DAY_IN_SECONDS );
 			update_option( 'uae_widgets_usage_data_option', $filtered_widgets_usage );
+			$this->save_kpi_snapshot( $filtered_widgets_usage );
 		}
+	}
+
+	/**
+	 * Save a daily KPI snapshot alongside widget usage refresh.
+	 *
+	 * Computes aggregated metrics from widget usage and template data,
+	 * stores them keyed by today's date, and keeps only the last 3 days.
+	 *
+	 * @since 2.8.4
+	 * @param array $widgets_usage Filtered widget usage data.
+	 * @return void
+	 */
+	private function save_kpi_snapshot( $widgets_usage ) {
+		$today = current_time( 'Y-m-d' );
+
+		// Total published templates.
+		$total_templates = $this->get_total_template_count();
+
+		// Widget metrics.
+		$total_hfe_widget_instances = 0;
+
+		if ( is_array( $widgets_usage ) ) {
+			foreach ( $widgets_usage as $slug => $count ) {
+				$total_hfe_widget_instances += (int) $count;
+			}
+		}
+
+		$unique_widgets_used = is_array( $widgets_usage ) ? count( array_filter( $widgets_usage ) ) : 0;
+
+		$snapshot = [
+			'numeric_values' => [
+				'total_templates'            => $total_templates,
+				'total_hfe_widget_instances' => $total_hfe_widget_instances,
+				'unique_widgets_used'        => $unique_widgets_used,
+			],
+		];
+
+		// Read existing snapshots, add today's, keep last 3 days.
+		$snapshots = get_option( 'hfe_kpi_daily_snapshots', [] );
+		if ( ! is_array( $snapshots ) ) {
+			$snapshots = [];
+		}
+
+		$snapshots[ $today ] = $snapshot;
+		krsort( $snapshots );
+		$snapshots = array_slice( $snapshots, 0, 3, true );
+
+		update_option( 'hfe_kpi_daily_snapshots', $snapshots, false );
+	}
+
+	/**
+	 * Get count of published HFE templates.
+	 *
+	 * @since 2.8.4
+	 * @return int Total published template count.
+	 */
+	private function get_total_template_count() {
+		$posts = get_posts(
+			[
+				'post_type'   => 'elementor-hf',
+				'post_status' => 'publish',
+				'numberposts' => -1,
+				'fields'      => 'ids',
+			]
+		);
+
+		return count( $posts );
 	}
 
 	/**
@@ -818,7 +888,7 @@ class HFE_Admin {
 	 */
 	public function block_template_frontend() {
 		if ( is_singular( 'elementor-hf' ) && ! current_user_can( 'edit_posts' ) ) {
-			wp_redirect( site_url(), 301 );
+			wp_safe_redirect( site_url(), 301 );
 			die;
 		}
 	}

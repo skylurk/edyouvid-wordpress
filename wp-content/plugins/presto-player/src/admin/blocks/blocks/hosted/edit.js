@@ -3,15 +3,8 @@
  */
 const { __ } = wp.i18n;
 const { getBlobByURL, isBlobURL } = wp.blob;
-const {
-  Button,
-  Disabled,
-  Toolbar,
-  Notice,
-  withNotices,
-  Placeholder,
-  Spinner,
-} = wp.components;
+const { Button, Disabled, Toolbar, Notice, withNotices, Placeholder, Spinner } =
+  wp.components;
 
 import { BlockControls, InspectorControls } from "@wordpress/block-editor";
 const { compose } = wp.compose;
@@ -34,6 +27,7 @@ import BlockInspectorControls from "@/admin/blocks/shared/BlockInspectorControls
 import Player from "@/admin/blocks/shared/Player";
 
 import { determineVideoUrlType } from "@/shared/util.js";
+import Editing from "../../shared/Editing";
 
 //constants
 const ALLOWED_MEDIA_TYPES = ["video"];
@@ -41,10 +35,8 @@ const ALLOWED_MEDIA_TYPES = ["video"];
 export default compose([withPlayerData(), withPlayerEdit()])(
   withNotices(
     ({
-      noticeUI,
       attributes,
       setAttributes,
-      isSelected,
       noticeOperations,
       branding,
       loading,
@@ -221,6 +213,7 @@ export default compose([withPlayerData(), withPlayerEdit()])(
                 {__("Replace", "presto-player")}
               </Button>
             </Toolbar>
+            <Editing />
           </BlockControls>
 
           <InspectorControls>

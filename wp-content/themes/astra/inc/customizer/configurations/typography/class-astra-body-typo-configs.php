@@ -3,8 +3,6 @@
  * Styling Options for Astra Theme.
  *
  * @package     Astra
- * @author      Astra
- * @copyright   Copyright (c) 2020, Astra
  * @link        https://wpastra.com/
  * @since       Astra 1.0.15
  */
@@ -19,7 +17,6 @@ if ( ! class_exists( 'Astra_Body_Typo_Configs' ) ) {
 	 * Customizer Sanitizes Initial setup
 	 */
 	class Astra_Body_Typo_Configs extends Astra_Customizer_Config_Base {
-
 		/**
 		 * Register Body Typography Customizer Configurations.
 		 *
@@ -35,116 +32,251 @@ if ( ! class_exists( 'Astra_Body_Typo_Configs' ) ) {
 			$_configs = array(
 
 				/**
+				 * Option: Divider.
+				 */
+				array(
+					'name'     => ASTRA_THEME_SETTINGS . '[ast-body-font-settings-divider]',
+					'section'  => $typo_section,
+					'title'    => __( 'Base Font', 'astra' ),
+					'type'     => 'control',
+					'control'  => 'ast-heading',
+					'priority' => 6,
+					'settings' => array(),
+					'divider'  => array( 'ast_class' => 'ast-no-spacing' ),
+				),
+
+				/**
+				 * Option: Body font family.
+				 */
+				array(
+					'name'      => ASTRA_THEME_SETTINGS . '[ast-body-font-settings]',
+					'default'   => astra_get_option( 'ast-body-font-settings' ),
+					'type'      => 'control',
+					'control'   => 'ast-settings-group',
+					'is_font'   => true,
+					'title'     => __( 'Body Font', 'astra' ),
+					'section'   => $typo_section,
+					'transport' => 'postMessage',
+					'priority'  => 6,
+				),
+
+				/**
 				 * Option: Font Family
 				 */
 				array(
-					'name'        => ASTRA_THEME_SETTINGS . '[body-font-family]',
-					'type'        => 'control',
+					'name'        => 'body-font-family',
+					'parent'      => ASTRA_THEME_SETTINGS . '[ast-body-font-settings]',
+					'type'        => 'sub-control',
 					'control'     => 'ast-font',
-					'font-type'   => 'ast-font-family',
+					'font_type'   => 'ast-font-family',
 					'ast_inherit' => __( 'Default System Font', 'astra' ),
 					'default'     => astra_get_option( 'body-font-family' ),
 					'section'     => $typo_section,
 					'priority'    => 6,
-					'title'       => __( 'Body Font Family', 'astra' ),
+					'title'       => __( 'Font Family', 'astra' ),
 					'connect'     => ASTRA_THEME_SETTINGS . '[body-font-weight]',
 					'variant'     => ASTRA_THEME_SETTINGS . '[body-font-variant]',
+					'divider'     => array( 'ast_class' => 'ast-sub-bottom-divider' ),
 				),
 
 				/**
 				 * Option: Font Variant
 				 */
 				array(
-					'name'              => ASTRA_THEME_SETTINGS . '[body-font-variant]',
-					'type'              => 'control',
+					'name'              => 'body-font-variant',
+					'type'              => 'sub-control',
+					'parent'            => ASTRA_THEME_SETTINGS . '[ast-body-font-settings]',
 					'control'           => 'ast-font-variant',
 					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_font_variant' ),
 					'default'           => astra_get_option( 'body-font-variant' ),
 					'ast_inherit'       => __( 'Default', 'astra' ),
 					'section'           => $typo_section,
-					'priority'          => 6,
-					'title'             => __( 'Variants', 'astra' ),
+					'priority'          => 15,
+					'title'             => '',
 					'variant'           => ASTRA_THEME_SETTINGS . '[body-font-family]',
+					'context'           => array(
+						array(
+							'setting'  => ASTRA_THEME_SETTINGS . '[body-font-family]',
+							'operator' => '!=',
+							'value'    => 'inherit',
+						),
+					),
+					'divider'           => array( 'ast_class' => 'ast-sub-bottom-divider' ),
+
 				),
 
 				/**
 				 * Option: Font Weight
 				 */
 				array(
-					'name'              => ASTRA_THEME_SETTINGS . '[body-font-weight]',
-					'type'              => 'control',
+					'name'              => 'body-font-weight',
+					'type'              => 'sub-control',
+					'parent'            => ASTRA_THEME_SETTINGS . '[ast-body-font-settings]',
 					'control'           => 'ast-font',
-					'font-type'         => 'ast-font-weight',
+					'font_type'         => 'ast-font-weight',
 					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_font_weight' ),
 					'default'           => astra_get_option( 'body-font-weight' ),
 					'ast_inherit'       => __( 'Default', 'astra' ),
 					'section'           => $typo_section,
-					'priority'          => 15,
-					'title'             => __( 'Weight', 'astra' ),
-					'connect'           => ASTRA_THEME_SETTINGS . '[body-font-family]',
-				),
-
-				/**
-				 * Option: Body Text Transform
-				 */
-				array(
-					'name'     => ASTRA_THEME_SETTINGS . '[body-text-transform]',
-					'type'     => 'control',
-					'control'  => 'ast-select',
-					'section'  => $typo_section,
-					'default'  => astra_get_option( 'body-text-transform' ),
-					'priority' => 20,
-					'lazy'     => true,
-					'title'    => __( 'Text Transform', 'astra' ),
-					'choices'  => array(
-						''           => __( 'Default', 'astra' ),
-						'none'       => __( 'None', 'astra' ),
-						'capitalize' => __( 'Capitalize', 'astra' ),
-						'uppercase'  => __( 'Uppercase', 'astra' ),
-						'lowercase'  => __( 'Lowercase', 'astra' ),
-					),
+					'priority'          => 14,
+					'title'             => __( 'Font Weight', 'astra' ),
+					'connect'           => 'body-font-family',
 				),
 
 				/**
 				 * Option: Body Font Size
 				 */
 				array(
-					'name'        => ASTRA_THEME_SETTINGS . '[font-size-body]',
-					'type'        => 'control',
+					'name'        => 'font-size-body',
+					'type'        => 'sub-control',
+					'parent'      => ASTRA_THEME_SETTINGS . '[ast-body-font-settings]',
 					'control'     => 'ast-responsive-slider',
 					'section'     => $typo_section,
 					'default'     => astra_get_option( 'font-size-body' ),
-					'priority'    => 10,
+					'priority'    => 15,
 					'lazy'        => true,
-					'title'       => __( 'Size', 'astra' ),
-					'suffix'      => 'px',
+					'title'       => __( 'Font Size', 'astra' ),
+					'suffix'      => array( 'px', 'em', 'vw', 'rem' ),
 					'input_attrs' => array(
-						'min' => 0,
-					),
-					'units'       => array(
-						'px' => 'px',
+						'px'  => array(
+							'min'  => 0,
+							'step' => 1,
+							'max'  => 200,
+						),
+						'em'  => array(
+							'min'  => 0,
+							'step' => 0.01,
+							'max'  => 20,
+						),
+						'vw'  => array(
+							'min'  => 0,
+							'step' => 0.1,
+							'max'  => 25,
+						),
+						'rem' => array(
+							'min'  => 0,
+							'step' => 0.1,
+							'max'  => 20,
+						),
 					),
 				),
 
 				/**
-				 * Option: Body Line Height
+				 * Option: Body Font Height
 				 */
 				array(
-					'name'              => ASTRA_THEME_SETTINGS . '[body-line-height]',
-					'type'              => 'control',
-					'control'           => 'ast-slider',
+					'name'     => 'body-font-extras',
+					'type'     => 'sub-control',
+					'parent'   => ASTRA_THEME_SETTINGS . '[ast-body-font-settings]',
+					'control'  => 'ast-font-extras',
+					'section'  => $typo_section,
+					'priority' => 25,
+					'default'  => astra_get_option( 'body-font-extras' ),
+					'title'    => __( 'Font Extras', 'astra' ),
+				),
+
+				/**
+				 * Option: Headings font family.
+				 */
+				array(
+					'name'      => ASTRA_THEME_SETTINGS . '[ast-headings-font-settings]',
+					'default'   => astra_get_option( 'ast-headings-font-settings' ),
+					'type'      => 'control',
+					'control'   => 'ast-settings-group',
+					'title'     => __( 'Headings Font', 'astra' ),
+					'section'   => $typo_section,
+					'is_font'   => true,
+					'transport' => 'postMessage',
+					'priority'  => 10,
+					'divider'   => array( 'ast_class' => 'ast-bottom-section-divider' ),
+				),
+
+				/**
+				 * Option: Divider.
+				 */
+				array(
+					'name'     => ASTRA_THEME_SETTINGS . '[ast-headings-font-settings-divider]',
+					'section'  => $typo_section,
+					'title'    => __( 'Heading Font', 'astra' ),
+					'type'     => 'control',
+					'control'  => 'ast-heading',
+					'priority' => 10,
+					'settings' => array(),
+					'divider'  => array( 'ast_class' => 'ast-no-spacing' ),
+				),
+
+				/**
+				 * Option: Headings Font Family
+				 */
+				array(
+					'name'      => 'headings-font-family',
+					'type'      => 'sub-control',
+					'parent'    => ASTRA_THEME_SETTINGS . '[ast-headings-font-settings]',
+					'control'   => 'ast-font',
+					'font_type' => 'ast-font-family',
+					'default'   => astra_get_option( 'headings-font-family' ),
+					'title'     => __( 'Font Family', 'astra' ),
+					'section'   => $typo_section,
+					'priority'  => 26,
+					'connect'   => ASTRA_THEME_SETTINGS . '[headings-font-weight]',
+					'variant'   => ASTRA_THEME_SETTINGS . '[headings-font-variant]',
+					'divider'   => array( 'ast_class' => 'ast-sub-bottom-divider' ),
+				),
+
+				/**
+				 * Option: Headings Font Weight
+				 */
+				array(
+					'name'              => 'headings-font-weight',
+					'type'              => 'sub-control',
+					'parent'            => ASTRA_THEME_SETTINGS . '[ast-headings-font-settings]',
+					'control'           => 'ast-font',
+					'font_type'         => 'ast-font-weight',
+					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_font_weight' ),
+					'default'           => astra_get_option( 'headings-font-weight' ),
+					'title'             => __( 'Font Weight', 'astra' ),
 					'section'           => $typo_section,
-					'lazy'              => true,
-					'default'           => astra_get_option( 'body-line-height' ),
-					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_number_n_blank' ),
-					'priority'          => 25,
-					'title'             => __( 'Line Height', 'astra' ),
-					'suffix'            => 'em',
-					'input_attrs'       => array(
-						'min'  => 1,
-						'step' => 0.01,
-						'max'  => 5,
+					'priority'          => 26,
+					'connect'           => 'headings-font-family',
+				),
+
+				/**
+				 * Option: Font Variant
+				 */
+				array(
+					'name'              => 'headings-font-variant',
+					'type'              => 'sub-control',
+					'parent'            => ASTRA_THEME_SETTINGS . '[ast-headings-font-settings]',
+					'control'           => 'ast-font-variant',
+					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_font_variant' ),
+					'default'           => astra_get_option( 'headings-font-variant' ),
+					'ast_inherit'       => __( 'Default', 'astra' ),
+					'section'           => $typo_section,
+					'priority'          => 26,
+					'variant'           => ASTRA_THEME_SETTINGS . '[headings-font-family]',
+					'context'           => array(
+						array(
+							'setting'  => ASTRA_THEME_SETTINGS . '[headings-font-family]',
+							'operator' => '!=',
+							'value'    => 'inherit',
+						),
 					),
+				),
+
+				/**
+				 * Option: Heading Font Height
+				 */
+				array(
+					'name'      => 'headings-font-extras',
+					'type'      => 'sub-control',
+					'parent'    => ASTRA_THEME_SETTINGS . '[ast-headings-font-settings]',
+					'control'   => 'ast-font-extras',
+					'transport' => 'postMessage',
+					'section'   => $typo_section,
+					'priority'  => 26,
+					'default'   => astra_get_option( 'headings-font-extras' ),
+					'title'     => __( 'Font Extras', 'astra' ),
+					'divider'   => array( 'ast_class' => 'ast-sub-top-divider' ),
 				),
 
 				/**
@@ -158,7 +290,7 @@ if ( ! class_exists( 'Astra_Body_Typo_Configs' ) ) {
 					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_number_n_blank' ),
 					'transport'         => 'postMessage',
 					'section'           => $typo_section,
-					'priority'          => 25,
+					'priority'          => 31,
 					'title'             => __( 'Paragraph Margin Bottom', 'astra' ),
 					'suffix'            => 'em',
 					'lazy'              => true,
@@ -167,7 +299,7 @@ if ( ! class_exists( 'Astra_Body_Typo_Configs' ) ) {
 						'step' => 0.01,
 						'max'  => 5,
 					),
-					'divider'           => array( 'ast_class' => 'ast-bottom-divider' ),
+					'divider'           => array( 'ast_class' => 'ast-top-section-divider' ),
 				),
 
 				/**
@@ -180,124 +312,102 @@ if ( ! class_exists( 'Astra_Body_Typo_Configs' ) ) {
 					'control'   => 'ast-toggle-control',
 					'section'   => $typo_section,
 					'priority'  => 32,
+					'divider'   => array( 'ast_class' => 'ast-top-divider' ),
 					'title'     => __( 'Underline Content Links', 'astra' ),
 					'transport' => 'postMessage',
 				),
-
-				/**
-				 * Option: Headings Font Family
-				 */
-				array(
-					'name'      => ASTRA_THEME_SETTINGS . '[headings-font-family]',
-					'type'      => 'control',
-					'control'   => 'ast-font',
-					'font-type' => 'ast-font-family',
-					'default'   => astra_get_option( 'headings-font-family' ),
-					'title'     => __( 'Heading Font Family', 'astra' ),
-					'section'   => $typo_section,
-					'priority'  => 26,
-					'connect'   => ASTRA_THEME_SETTINGS . '[headings-font-weight]',
-					'variant'   => ASTRA_THEME_SETTINGS . '[headings-font-variant]',
-				),
-
-				/**
-				 * Option: Font Variant
-				 */
-				array(
-					'name'              => ASTRA_THEME_SETTINGS . '[headings-font-variant]',
-					'type'              => 'control',
-					'control'           => 'ast-font-variant',
-					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_font_variant' ),
-					'default'           => astra_get_option( 'headings-font-variant' ),
-					'ast_inherit'       => __( 'Default', 'astra' ),
-					'section'           => $typo_section,
-					'priority'          => 26,
-					'title'             => __( 'Variants', 'astra' ),
-					'variant'           => ASTRA_THEME_SETTINGS . '[headings-font-family]',
-				),
-
-				/**
-				 * Option: Headings Font Weight
-				 */
-				array(
-					'name'              => ASTRA_THEME_SETTINGS . '[headings-font-weight]',
-					'type'              => 'control',
-					'control'           => 'ast-font',
-					'font-type'         => 'ast-font-weight',
-					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_font_weight' ),
-					'default'           => astra_get_option( 'headings-font-weight' ),
-					'title'             => __( 'Weight', 'astra' ),
-					'section'           => $typo_section,
-					'priority'          => 26,
-					'connect'           => ASTRA_THEME_SETTINGS . '[headings-font-family]',
-				),
-
-				/**
-				 * Option: Headings Text Transform
-				 */
-				array(
-					'name'     => ASTRA_THEME_SETTINGS . '[headings-text-transform]',
-					'type'     => 'control',
-					'control'  => 'ast-select',
-					'section'  => $typo_section,
-					'title'    => __( 'Text Transform', 'astra' ),
-					'lazy'     => true,
-					'default'  => astra_get_option( 'headings-text-transform' ),
-					'priority' => 26,
-					'choices'  => array(
-						''           => __( 'Inherit', 'astra' ),
-						'none'       => __( 'None', 'astra' ),
-						'capitalize' => __( 'Capitalize', 'astra' ),
-						'uppercase'  => __( 'Uppercase', 'astra' ),
-						'lowercase'  => __( 'Lowercase', 'astra' ),
-					),
-				),
-
-				/**
-				 * Option: Heading <H1> Line Height
-				 */
-				array(
-					'name'              => ASTRA_THEME_SETTINGS . '[headings-line-height]',
-					'section'           => $typo_section,
-					'default'           => astra_get_option( 'headings-line-height' ),
-					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_number_n_blank' ),
-					'type'              => 'control',
-					'lazy'              => true,
-					'control'           => 'ast-slider',
-					'title'             => __( 'Line Height', 'astra' ),
-					'transport'         => 'postMessage',
-					'priority'          => 26,
-					'suffix'            => 'em',
-					'input_attrs'       => array(
-						'min'  => 1,
-						'step' => 0.01,
-						'max'  => 5,
-					),
-					'divider'           => array( 'ast_class' => 'ast-bottom-divider' ),
-				),
 			);
-
 
 			if ( astra_has_gcp_typo_preset_compatibility() ) {
 
+				/**
+				 * Option: H1 Typography Section.
+				 */
 				$_configs[] = array(
-					'name'       => ASTRA_THEME_SETTINGS . '[heading-typo-selector]',
-					'default'    => astra_get_option( 'heading-typo-selector', 'h1' ),
-					'type'       => 'control',
-					'section'    => $typo_section,
-					'priority'   => 27,
-					'transport'  => 'postMessage',
-					'control'    => 'ast-selector',
-					'choices'    => array(
-						'h1' => __( 'H1', 'astra' ),
-						'h2' => __( 'H2', 'astra' ),
-						'h3' => __( 'H3', 'astra' ),
-						'h4' => __( 'H4', 'astra' ),
-						'h5' => __( 'H5', 'astra' ),
-						'h6' => __( 'H6', 'astra' ),
-					),
-					'responsive' => false,
-					'renderAs'   => 'text',
+					'name'      => ASTRA_THEME_SETTINGS . '[ast-heading-h1-typo]',
+					'default'   => astra_get_option( 'ast-heading-h1-typo' ),
+					'type'      => 'control',
+					'control'   => 'ast-settings-group',
+					'title'     => __( 'H1 Font', 'astra' ),
+					'is_font'   => true,
+					'section'   => $typo_section,
+					'transport' => 'postMessage',
+					'priority'  => 30,
+				);
+
+				/**
+				 * Option: H2 Typography Section.
+				 */
+				$_configs[] = array(
+					'name'      => ASTRA_THEME_SETTINGS . '[ast-heading-h2-typo]',
+					'default'   => astra_get_option( 'ast-heading-h2-typo' ),
+					'type'      => 'control',
+					'control'   => 'ast-settings-group',
+					'title'     => __( 'H2 Font', 'astra' ),
+					'is_font'   => true,
+					'section'   => $typo_section,
+					'transport' => 'postMessage',
+					'priority'  => 30,
+				);
+
+				/**
+				 * Option: H3 Typography Section.
+				 */
+				$_configs[] = array(
+					'name'      => ASTRA_THEME_SETTINGS . '[ast-heading-h3-typo]',
+					'default'   => astra_get_option( 'ast-heading-h3-typo' ),
+					'type'      => 'control',
+					'control'   => 'ast-settings-group',
+					'title'     => __( 'H3 Font', 'astra' ),
+					'is_font'   => true,
+					'section'   => $typo_section,
+					'transport' => 'postMessage',
+					'priority'  => 30,
+				);
+
+				/**
+				 * Option: H4 Typography Section.
+				 */
+				$_configs[] = array(
+					'name'      => ASTRA_THEME_SETTINGS . '[ast-heading-h4-typo]',
+					'default'   => astra_get_option( 'ast-heading-h4-typo' ),
+					'type'      => 'control',
+					'control'   => 'ast-settings-group',
+					'is_font'   => true,
+					'title'     => __( 'H4 Font', 'astra' ),
+					'section'   => $typo_section,
+					'transport' => 'postMessage',
+					'priority'  => 30,
+				);
+
+				/**
+				 * Option: H5 Typography Section.
+				 */
+				$_configs[] = array(
+					'name'      => ASTRA_THEME_SETTINGS . '[ast-heading-h5-typo]',
+					'default'   => astra_get_option( 'ast-heading-h5-typo' ),
+					'type'      => 'control',
+					'control'   => 'ast-settings-group',
+					'title'     => __( 'H5 Font', 'astra' ),
+					'is_font'   => true,
+					'section'   => $typo_section,
+					'transport' => 'postMessage',
+					'priority'  => 30,
+				);
+
+				/**
+				 * Option: H6 Typography Section.
+				 */
+				$_configs[] = array(
+					'name'      => ASTRA_THEME_SETTINGS . '[ast-heading-h6-typo]',
+					'default'   => astra_get_option( 'ast-heading-h6-typo' ),
+					'type'      => 'control',
+					'control'   => 'ast-settings-group',
+					'title'     => __( 'H6 Font', 'astra' ),
+					'is_font'   => true,
+					'section'   => $typo_section,
+					'transport' => 'postMessage',
+					'priority'  => 30,
 				);
 			}
 

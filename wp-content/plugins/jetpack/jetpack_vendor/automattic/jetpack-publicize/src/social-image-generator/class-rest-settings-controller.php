@@ -2,14 +2,25 @@
 /**
  * Class used to register REST API settings endpoints used by Social Image Generator.
  *
+ * Flagged to be removed after deprecation.
+ *
+ * @deprecated 0.38.3
+ *
  * @package automattic/jetpack-publicize
  */
 
 namespace Automattic\Jetpack\Publicize\Social_Image_Generator;
 
+use Automattic\Jetpack\Publicize\Jetpack_Social_Settings\Settings as Jetpack_Social_Settings;
 use WP_Error;
 use WP_REST_Controller;
+use WP_REST_Request;
+use WP_REST_Response;
 use WP_REST_Server;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 /**
  * Defines our endpoints.
@@ -47,17 +58,21 @@ class REST_Settings_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response
 	 */
 	public function get_settings() {
-		$settings   = new Settings();
+		$settings   = ( new Jetpack_Social_Settings() )->get_settings();
 		$response   = array();
 		$schema     = $this->get_item_schema();
 		$properties = array_keys( $schema['properties'] );
 
 		if ( in_array( 'enabled', $properties, true ) ) {
-			$response['enabled'] = $settings->is_enabled();
+			$response['enabled'] = $settings['socialImageGeneratorSettings']['enabled'];
+		}
+
+		if ( in_array( 'default_image_id', $properties, true ) ) {
+			$response['default_image_id'] = $settings['socialImageGeneratorSettings']['default_image_id'];
 		}
 
 		if ( in_array( 'defaults', $properties, true ) ) {
-			$response['defaults'] = $settings->get_defaults();
+			$response['defaults'] = array( 'template' => $settings['socialImageGeneratorSettings']['template'] );
 		}
 
 		return rest_ensure_response( $response );
@@ -71,14 +86,18 @@ class REST_Settings_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function update_settings( $request ) {
-		$settings = new Settings();
+		$settings = new Jetpack_Social_Settings();
 
 		if ( isset( $request['enabled'] ) ) {
-			$settings->set_enabled( $request['enabled'] );
+			$settings->update_social_image_generator_settings( array( 'enabled' => $request['enabled'] ) );
+		}
+
+		if ( isset( $request['default_image_id'] ) ) {
+			$settings->update_social_image_generator_settings( array( 'default_image_id' => $request['default_image_id'] ) );
 		}
 
 		if ( $request['defaults'] && $request['defaults']['template'] ) {
-			$settings->set_default_template( $request['defaults']['template'] );
+			$settings->update_social_image_generator_settings( array( 'template' => $request['defaults']['template'] ) );
 		}
 
 		return rest_ensure_response( $this->get_settings() );
@@ -112,12 +131,17 @@ class REST_Settings_Controller extends WP_REST_Controller {
 			'title'      => 'social-image-generator-settings',
 			'type'       => 'object',
 			'properties' => array(
-				'enabled'  => array(
+				'enabled'          => array(
 					'description' => __( 'Whether or not Social Image Generator is enabled.', 'jetpack-publicize-pkg' ),
 					'type'        => 'boolean',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'defaults' => array(
+				'default_image_id' => array(
+					'description' => __( 'The default image ID for the Social Image Generator.', 'jetpack-publicize-pkg' ),
+					'type'        => 'number',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'defaults'         => array(
 					'description' => __( 'The default settings for a new generated image.', 'jetpack-publicize-pkg' ),
 					'type'        => 'object',
 					'context'     => array( 'view', 'edit' ),

@@ -175,7 +175,7 @@ class Proxy_Mappings {
 					'X-HubSpot-Trust-Forwarded-For' => 'true',
 					// wp_remote_get blocks if the connection is left open
 					'Connection'                    => 'close'
-				),
+				)
 			);
 
 			// Host must be removed to let wp_remote_get set the correct host for the target URL.

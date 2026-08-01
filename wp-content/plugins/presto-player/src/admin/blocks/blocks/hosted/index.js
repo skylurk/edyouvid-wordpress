@@ -13,18 +13,9 @@ export const name = "presto-player/self-hosted";
 export const options = {
   ...blockOptions,
 
-  title: __("Presto Video", "presto-player"),
-
-  description: __("Presto Self-hosted video block.", "presto-player"),
+  usesContext: ["presto-player/playlist-media-id"],
 
   variations: [
-    {
-      name: "public",
-      isDefault: true,
-      title: __("Presto Video", "presto-player"),
-      description: __("Presto Self-hosted video block.", "presto-player"),
-      attributes: { visibility: "public" },
-    },
     ...(prestoPlayer?.isPremium
       ? [
           {

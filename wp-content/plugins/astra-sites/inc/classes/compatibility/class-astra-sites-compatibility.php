@@ -53,9 +53,6 @@ if ( ! class_exists( 'Astra_Sites_Compatibility' ) ) :
 			// Plugin - LearnDash LMS.
 			require_once ASTRA_SITES_DIR . 'inc/classes/compatibility/sfwd-lms/class-astra-sites-compatibility-sfwd-lms.php';
 
-			// Plugin - Elementor.
-			require_once ASTRA_SITES_DIR . 'inc/classes/compatibility/elementor/class-astra-sites-compatibility-elementor.php';
-
 			// Plugin - Beaver Builder.
 			require_once ASTRA_SITES_DIR . 'inc/classes/compatibility/beaver-builder/class-astra-sites-compatibility-bb.php';
 
@@ -65,6 +62,17 @@ if ( ! class_exists( 'Astra_Sites_Compatibility' ) ) :
 			// Plugin - UABB.
 			require_once ASTRA_SITES_DIR . 'inc/classes/compatibility/uabb/class-astra-sites-compatibility-uabb.php';
 
+			// Plugin - Spectra Pro.
+			require_once ASTRA_SITES_DIR . 'inc/classes/compatibility/spectra-pro/class-astra-sites-compatibility-spectra-pro.php';
+
+			// Plugin - Cart Abandonment Recovery for WooCommerce.
+			require_once ASTRA_SITES_DIR . 'inc/classes/compatibility/cart-abandonment-recovery/class-astra-sites-compatibility-cartflows-ca.php';
+
+			// Plugin - Modern Cart.
+			require_once ASTRA_SITES_DIR . 'inc/classes/compatibility/modern-cart/class-astra-sites-compatibility-modern-cart.php';
+
+			// Plugin - Power Coupons.
+			require_once ASTRA_SITES_DIR . 'inc/classes/compatibility/power-coupons/class-astra-sites-compatibility-power-coupons.php';
 		}
 
 	}

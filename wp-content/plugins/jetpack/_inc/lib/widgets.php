@@ -42,10 +42,10 @@ class Jetpack_Widgets {
 	 *  )
 	 * )
 	 *
-	 * @param string|integer   $position The position of the widget in its sidebar.
-	 * @param string           $widget_id The widget's id (eg: 'text-3').
-	 * @param string           $sidebar The widget's sidebar id (eg: 'sidebar-1').
-	 * @param array (Optional) $settings The settings for the widget.
+	 * @param string|integer $position The position of the widget in its sidebar.
+	 * @param string         $widget_id The widget's id (eg: 'text-3').
+	 * @param string         $sidebar The widget's sidebar id (eg: 'sidebar-1').
+	 * @param array|null     $settings The settings for the widget.
 	 *
 	 * @return array A normalized array representing this widget.
 	 */
@@ -362,7 +362,7 @@ class Jetpack_Widgets {
 		$last_position = 0;
 		foreach ( $widgets as $widget_id ) {
 			$widget = self::get_widget_by_id( $widget_id );
-			if ( (int) $widget['position'] > (int) $last_position ) {
+			if ( (int) $widget['position'] > $last_position ) {
 				$last_position = (int) $widget['position'];
 			}
 		}
@@ -383,7 +383,7 @@ class Jetpack_Widgets {
 		$widget_option_name = self::get_widget_option_name( $widget_id );
 		$widget_settings    = get_option( $widget_option_name );
 		$instance_key       = self::get_widget_instance_key( $widget_id );
-		$old_settings       = $widget_settings[ $instance_key ];
+		$old_settings       = $widget_settings[ $instance_key ] ?? array();
 		$settings           = self::sanitize_widget_settings( $widget_id, $settings, $old_settings );
 
 		if ( ! $settings ) {
@@ -576,7 +576,7 @@ class Jetpack_Widgets {
 				'wpcom_widgets_activate_widget',
 				array(
 					'widget'   => $id_base,
-					'settings' => wp_json_encode( $settings ),
+					'settings' => wp_json_encode( $settings, JSON_UNESCAPED_SLASHES ),
 				)
 			);
 		}
@@ -643,13 +643,7 @@ class Jetpack_Widgets {
 	public static function sort_widgets( $a, $b ) {
 		$a_val = (int) self::get_widget_instance_key( $a['id'] );
 		$b_val = (int) self::get_widget_instance_key( $b['id'] );
-		if ( $a_val > $b_val ) {
-			return 1;
-		}
-		if ( $a_val < $b_val ) {
-			return -1;
-		}
-		return 0;
+		return $a_val <=> $b_val;
 	}
 
 	/**
@@ -749,7 +743,7 @@ class Jetpack_Widgets {
 		// Retrieve index of first widget instance in that sidebar.
 		$widget_key = false;
 		foreach ( $sidebars_widgets[ $sidebar ] as $widget ) {
-			if ( strpos( $widget, $widget_id ) !== false ) {
+			if ( str_contains( $widget, $widget_id ) ) {
 				$widget_key = absint( str_replace( $widget_id . '-', '', $widget ) );
 				break;
 			}

@@ -1,3 +1,3 @@
 export declare class PrestoPlayListUI {
-  render(): any;
+    render(): any;
 }

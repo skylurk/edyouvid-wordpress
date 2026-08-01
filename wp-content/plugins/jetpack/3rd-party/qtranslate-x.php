@@ -5,6 +5,10 @@
  * @package automattic/jetpack
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Prevent qTranslate X from redirecting REST calls.
  *
@@ -17,7 +21,7 @@
  * @return bool
  */
 function jetpack_no_qtranslate_rest_url_redirect( $url_lang, $url_orig, $url_info ) {
-	if ( false !== strpos( $url_info['wp-path'], 'wp-json/jetpack' ) ) {
+	if ( str_contains( $url_info['wp-path'], 'wp-json/jetpack' ) ) {
 		return false;
 	}
 	return $url_lang;

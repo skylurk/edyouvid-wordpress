@@ -3,8 +3,6 @@
  * Template for Single post
  *
  * @package     Astra
- * @author      Astra
- * @copyright   Copyright (c) 2020, Astra
  * @link        https://wpastra.com/
  * @since       Astra 1.0.0
  */
@@ -15,24 +13,30 @@
 
 	<?php astra_single_header_before(); ?>
 
-	<header class="entry-header <?php astra_entry_header_class(); ?>">
+	<?php if ( apply_filters( 'astra_single_layout_one_banner_visibility', true ) ) { ?>
 
-		<?php astra_single_header_top(); ?>
+		<header class="entry-header <?php astra_entry_header_class(); ?>">
 
-		<?php astra_blog_post_thumbnail_and_title_order(); ?>
+			<?php astra_single_header_top(); ?>
 
-		<?php astra_single_header_bottom(); ?>
+			<?php astra_banner_elements_order(); ?>
 
-	</header><!-- .entry-header -->
+			<?php astra_single_header_bottom(); ?>
+
+		</header><!-- .entry-header -->
+
+	<?php } ?>
 
 	<?php astra_single_header_after(); ?>
 
-	<div class="entry-content clear" 
+	<div class="entry-content clear"
 	<?php
-				echo astra_attr(
-					'article-entry-content-single-layout',
-					array(
-						'class' => '',
+				echo wp_kses_post(
+					astra_attr(
+						'article-entry-content-single-layout',
+						array(
+							'class' => '',
+						)
 					)
 				);
 				?>

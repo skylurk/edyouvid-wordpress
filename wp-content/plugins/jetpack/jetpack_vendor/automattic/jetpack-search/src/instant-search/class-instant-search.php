@@ -11,7 +11,12 @@ use Automattic\Jetpack\Assets;
 use WP_Block_Parser;
 use WP_Block_Patterns_Registry;
 use WP_Error;
+use WP_Query;
 use WP_REST_Templates_Controller;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 /**
  * Class responsible for enabling the Instant Search experience on the site.
@@ -107,9 +112,12 @@ class Instant_Search extends Classic_Search {
 			'build/instant-search/jp-search.js',
 			$package_base_path . '/src', // A full path to a file or a directory inside a plugin.
 			array(
-				'dependencies' => array( 'wp-i18n' ),
-				'in_footer'    => true,
-				'textdomain'   => 'jetpack-search-pkg',
+				'dependencies'     => array( 'wp-i18n' ),
+				'in_footer'        => true,
+				'textdomain'       => 'jetpack-search-pkg',
+				// CSS is extracted by webpack but not auto-injected, allowing WordPress to control loading
+				'css_path'         => 'build/instant-search/jp-search.chunk-main-payload.css',
+				'css_dependencies' => array(),
 			)
 		);
 		Assets::enqueue_script( 'jetpack-instant-search' );
@@ -123,7 +131,7 @@ class Instant_Search extends Classic_Search {
 	protected function inject_javascript_options() {
 		$options = Helper::generate_initial_javascript_state();
 		// Use wp_add_inline_script instead of wp_localize_script, see https://core.trac.wordpress.org/ticket/25280.
-		wp_add_inline_script( 'jetpack-instant-search', 'var JetpackInstantSearchOptions=JSON.parse(decodeURIComponent("' . rawurlencode( wp_json_encode( $options ) ) . '"));', 'before' );
+		wp_add_inline_script( 'jetpack-instant-search', 'var JetpackInstantSearchOptions=' . wp_json_encode( $options, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP ) . ';', 'before' );
 	}
 
 	/**
@@ -147,7 +155,7 @@ class Instant_Search extends Classic_Search {
 	 * Loads scripts for Tracks analytics library
 	 */
 	public function load_and_initialize_tracks() {
-		wp_enqueue_script( 'jp-tracks', '//stats.wp.com/w.js', array(), gmdate( 'YW' ), true );
+		Helper::enqueue_tracks_script();
 	}
 
 	/**
@@ -220,7 +228,7 @@ class Instant_Search extends Classic_Search {
 		$start_time = microtime( true );
 
 		// Cache locally to avoid remote request slowing the page.
-		$transient_name = 'jetpack_instant_search_cache_' . md5( wp_json_encode( $args ) );
+		$transient_name = 'jetpack_instant_search_cache_' . md5( wp_json_encode( $args, JSON_UNESCAPED_SLASHES ) );
 		$cache          = get_transient( $transient_name );
 		if ( false !== $cache ) {
 			return $cache;
@@ -248,6 +256,10 @@ class Instant_Search extends Classic_Search {
 
 		$response_code = wp_remote_retrieve_response_code( $request );
 		$response      = json_decode( wp_remote_retrieve_body( $request ), true );
+
+		if ( isset( $response['swap_classic_to_inline_search'] ) && $response['swap_classic_to_inline_search'] === false ) {
+			update_option( Module_Control::SEARCH_MODULE_SWAP_CLASSIC_TO_INLINE_OPTION_KEY, false );
+		}
 
 		if ( ! $response_code || $response_code < 200 || $response_code >= 300 ) {
 			/**
@@ -365,6 +377,7 @@ class Instant_Search extends Classic_Search {
 
 		// Init overlay sidebar if it doesn't exists.
 		if ( ! isset( $sidebars[ self::INSTANT_SEARCH_SIDEBAR ] ) ) {
+			$this->register_jetpack_instant_sidebar();
 			$sidebars[ self::INSTANT_SEARCH_SIDEBAR ] = array();
 		}
 
@@ -379,6 +392,9 @@ class Instant_Search extends Classic_Search {
 			$widget_options[ $next_id ] = $widget_options[ $sidebar_jp_searchbox_wiget_id ];
 		} else {
 			// If JP Search widget doesn't exist in the theme sidebar, we have nothing to copy from, so we create a new one within the overlay sidebar.
+			$search_widget = new Search_Widget();
+			$search_widget->_set( $next_id );
+			$search_widget->_register_one( $next_id );
 			$widget_options[ $next_id ] = $this->get_preconfig_widget_options();
 		}
 		array_unshift( $sidebars[ self::INSTANT_SEARCH_SIDEBAR ], Helper::build_widget_id( $next_id ) );
@@ -388,8 +404,7 @@ class Instant_Search extends Classic_Search {
 	}
 
 	/**
-	 * Add JP Search widget on top of theme sidebar.
-	 * Or Replace core search widget in theme sidebar if exists.
+	 * Replace core search widget in theme sidebar if exists.
 	 */
 	public function auto_config_non_fse_theme_sidebar_search_widget() {
 		$sidebars = get_option( 'sidebars_widgets', array() );
@@ -415,8 +430,8 @@ class Instant_Search extends Classic_Search {
 			// Replace core search widget with JP search widget.
 			$sidebars[ self::AUTO_CONFIG_SIDEBAR ][ $sidebar_searchbox_idx ] = Helper::build_widget_id( $next_id );
 		} else {
-			// Add JP Search widget to top.
-			array_unshift( $sidebars[ self::AUTO_CONFIG_SIDEBAR ], Helper::build_widget_id( $next_id ) );
+			// No core search widget found, so we don't need to replace anything.
+			return true;
 		}
 
 		update_option( $widget_opt_name, $widget_options );
@@ -459,7 +474,7 @@ class Instant_Search extends Classic_Search {
 					// The array index of wp search widget.
 					$sidebar_searchbox_idx = $idx;
 				}
-				if ( 0 === strpos( $widget_id, Helper::FILTER_WIDGET_BASE ) ) {
+				if ( str_starts_with( $widget_id, Helper::FILTER_WIDGET_BASE ) ) {
 					// The id of Jetpack Search widget.
 					$sidebar_jp_searchbox_id = str_replace( Helper::FILTER_WIDGET_BASE . '-', '', $widget_id );
 				}
@@ -475,18 +490,18 @@ class Instant_Search extends Classic_Search {
 	 */
 	protected function widget_has_search_block( $widget_id ) {
 		// test search widget.
-		if ( 0 === strpos( $widget_id, 'search-' ) ) {
+		if ( str_starts_with( $widget_id, 'search-' ) ) {
 			return true;
 		}
 		// test search block widget.
-		if ( 0 === strpos( $widget_id, 'block-' ) ) {
+		if ( str_starts_with( $widget_id, 'block-' ) ) {
 			$widget_blocks = get_option( 'widget_block', array() );
 			$widget_index  = str_replace( 'block-', '', $widget_id );
 			// A single block could be of type string or array.
-			if ( isset( $widget_blocks[ $widget_index ]['content'] ) && false !== strpos( (string) $widget_blocks[ $widget_index ]['content'], 'wp:search' ) ) {
+			if ( isset( $widget_blocks[ $widget_index ]['content'] ) && str_contains( (string) $widget_blocks[ $widget_index ]['content'], 'wp:search' ) ) {
 				return true;
 			}
-			if ( isset( $widget_blocks[ $widget_index ] ) && is_string( $widget_blocks[ $widget_index ] ) && false !== strpos( $widget_blocks[ $widget_index ], 'wp:search' ) ) {
+			if ( isset( $widget_blocks[ $widget_index ] ) && is_string( $widget_blocks[ $widget_index ] ) && str_contains( $widget_blocks[ $widget_index ], 'wp:search' ) ) {
 				return true;
 			}
 		}
@@ -564,7 +579,7 @@ class Instant_Search extends Classic_Search {
 			$registry = WP_Block_Patterns_Registry::get_instance();
 			if ( $registry->is_registered( $slug ) ) {
 				$pattern = $registry->get_registered( $slug );
-				return $pattern['content'];
+				return $pattern['content'] ?? '';
 			}
 		}
 		return $block_pattern;
@@ -610,7 +625,7 @@ class Instant_Search extends Classic_Search {
 	/**
 	 * Append Search block to block if no 'wp:search' exists already.
 	 *
-	 * @param {string} $block_content - the content to append the search block.
+	 * @param string $block_content - the content to append the search block.
 	 */
 	public static function inject_search_widget_to_block( $block_content ) {
 		$search_block = sprintf(

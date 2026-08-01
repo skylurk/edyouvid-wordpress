@@ -3,8 +3,6 @@
  * Breadcrumbs Loader for Astra theme.
  *
  * @package     Astra
- * @author      Brainstorm Force
- * @copyright   Copyright (c) 2020, Brainstorm Force
  * @link        https://www.brainstormforce.com
  * @since       Astra 1.7.0
  */
@@ -21,11 +19,10 @@ if ( ! class_exists( 'Astra_Breadcrumbs_Loader' ) ) {
 	 * @since 1.7.0
 	 */
 	class Astra_Breadcrumbs_Loader {
-
 		/**
 		 * Member Variable
 		 *
-		 * @var instance
+		 * @var object instance
 		 */
 		private static $instance;
 
@@ -70,12 +67,7 @@ if ( ! class_exists( 'Astra_Breadcrumbs_Loader' ) ) {
 		 */
 		public function theme_defaults( $defaults ) {
 
-			/**
-			 * Breadcrumb Typography
-			 */
-			$defaults['breadcrumb-font-family']    = 'inherit';
-			$defaults['breadcrumb-font-weight']    = 'inherit';
-			$defaults['breadcrumb-text-transform'] = 'inherit';
+			$astra_options = Astra_Theme_Options::get_astra_options();
 
 			/**
 			 * Breadcrumb Responsive Colors
@@ -137,10 +129,9 @@ if ( ! class_exists( 'Astra_Breadcrumbs_Loader' ) ) {
 			/**
 			 * Breadcrumb Font Defaults
 			 */
-			$defaults['breadcrumb-font-family']    = 'inherit';
-			$defaults['breadcrumb-font-weight']    = 'inherit';
-			$defaults['breadcrumb-text-transform'] = '';
-			$defaults['breadcrumb-font-size']      = array(
+			$defaults['breadcrumb-font-family'] = 'inherit';
+			$defaults['breadcrumb-font-weight'] = 'inherit';
+			$defaults['breadcrumb-font-size']   = array(
 				'desktop'      => '',
 				'tablet'       => '',
 				'mobile'       => '',
@@ -148,6 +139,21 @@ if ( ! class_exists( 'Astra_Breadcrumbs_Loader' ) ) {
 				'tablet-unit'  => 'px',
 				'mobile-unit'  => 'px',
 			);
+			$defaults['breadcrumb-font-extras'] = array(
+				'line-height'         => ! isset( $astra_options['breadcrumb-font-extras'] ) && isset( $astra_options['breadcrumb-line-height'] ) ? $astra_options['breadcrumb-line-height'] : '',
+				'line-height-unit'    => 'em',
+				'letter-spacing'      => '',
+				'letter-spacing-unit' => 'px',
+				'text-transform'      => ! isset( $astra_options['breadcrumb-font-extras'] ) && isset( $astra_options['breadcrumb-text-transform'] ) ? $astra_options['breadcrumb-text-transform'] : '',
+				'text-decoration'     => '',
+			);
+
+			/**
+			 * Breadcrumb Separator defaults
+			 */
+
+			$defaults['breadcrumb-separator-selector'] = '\003E';
+			$defaults['breadcrumb-separator']          = '\00bb';
 
 			return $defaults;
 		}
@@ -177,14 +183,14 @@ if ( ! class_exists( 'Astra_Breadcrumbs_Loader' ) ) {
 			 * Load unminified if SCRIPT_DEBUG is true.
 			 */
 			/* Directory and Extension */
-			$dir_name    = ( SCRIPT_DEBUG ) ? 'unminified' : 'minified';
-			$file_prefix = ( SCRIPT_DEBUG ) ? '' : '.min';
+			$dir_name    = SCRIPT_DEBUG ? 'unminified' : 'minified';
+			$file_prefix = SCRIPT_DEBUG ? '' : '.min';
 			wp_enqueue_script( 'astra-breadcrumbs-customizer-preview-js', ASTRA_THEME_BREADCRUMBS_URI . 'assets/js/' . $dir_name . '/customizer-preview' . $file_prefix . '.js', array( 'customize-preview', 'astra-customizer-preview-js' ), ASTRA_THEME_VERSION, true );
 		}
 	}
 }
 
 /**
-*  Kicking this off by calling 'get_instance()' method
-*/
+ *  Kicking this off by calling 'get_instance()' method
+ */
 Astra_Breadcrumbs_Loader::get_instance();

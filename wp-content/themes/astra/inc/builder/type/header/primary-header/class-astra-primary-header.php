@@ -3,8 +3,6 @@
  * Heading Colors for Astra theme.
  *
  * @package     Astra
- * @author      Brainstorm Force
- * @copyright   Copyright (c) 2020, Brainstorm Force
  * @link        https://www.brainstormforce.com
  * @since       Astra 3.0.0.
  */
@@ -22,7 +20,6 @@ define( 'ASTRA_PRIMARY_HEADER_URI', ASTRA_THEME_URI . 'inc/builder/type/header/p
  * @since 3.0.0
  */
 class Astra_Primary_Header {
-
 	/**
 	 * Constructor function that initializes required actions and hooks
 	 */
@@ -31,7 +28,7 @@ class Astra_Primary_Header {
 		require_once ASTRA_PRIMARY_HEADER_DIR . '/class-astra-primary-header-loader.php';
 
 		// Include front end files.
-		if ( ! is_admin() ) {
+		if ( ! is_admin() || Astra_Builder_Customizer::astra_collect_customizer_builder_data() ) {
 			require_once ASTRA_PRIMARY_HEADER_DIR . '/dynamic-css/dynamic.css.php';
 			remove_filter( 'astra_dynamic_theme_css', 'astra_header_breakpoint_style' );
 		}

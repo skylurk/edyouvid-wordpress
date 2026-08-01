@@ -3,8 +3,6 @@
  * Register customizer panels & sections.
  *
  * @package     Astra
- * @author      Astra
- * @copyright   Copyright (c) 2020, Astra
  * @link        https://wpastra.com/
  * @since       Astra 1.0.0
  */
@@ -19,7 +17,6 @@ if ( ! class_exists( 'Astra_Customizer_Register_Sections_Panels' ) ) {
 	 * Customizer Sanitizes Initial setup
 	 */
 	class Astra_Customizer_Register_Sections_Panels extends Astra_Customizer_Config_Base {
-
 		/**
 		 * Register Panels and Sections for Customizer.
 		 *
@@ -57,13 +54,13 @@ if ( ! class_exists( 'Astra_Customizer_Register_Sections_Panels' ) ) {
 								array(
 									'text'  => __( 'Site Layout Overview', 'astra' ) . ' &#187;',
 									'attrs' => array(
-										'href' => astra_get_pro_url( 'https://wpastra.com/docs/site-layout-overview/', 'customizer', 'site-layout', 'helpful-information' ),
+										'href' => astra_get_pro_url( '/docs/site-layout-overview/', 'free-theme', 'customizer', 'helpful_information' ),
 									),
 								),
 								array(
 									'text'  => __( 'Container Overview', 'astra' ) . ' &#187;',
 									'attrs' => array(
-										'href' => astra_get_pro_url( 'https://wpastra.com/docs/container-overview/', 'customizer', 'container', 'helpful-information' ),
+										'href' => astra_get_pro_url( '/docs/container-overview/', 'free-theme', 'customizer', 'helpful_information' ),
 									),
 								),
 							),
@@ -102,7 +99,7 @@ if ( ! class_exists( 'Astra_Customizer_Register_Sections_Panels' ) ) {
 								array(
 									'text'  => __( 'Site Identity Overview', 'astra' ) . ' &#187;',
 									'attrs' => array(
-										'href' => astra_get_pro_url( 'https://wpastra.com/docs/site-identity-free/', 'customizer', 'site-identity', 'helpful-information' ),
+										'href' => astra_get_pro_url( '/docs/site-identity-free/', 'free-theme', 'customizer', 'helpful_information' ),
 									),
 								),
 							),
@@ -129,7 +126,7 @@ if ( ! class_exists( 'Astra_Customizer_Register_Sections_Panels' ) ) {
 								array(
 									'text'  => __( 'Primary Header Overview', 'astra' ) . ' &#187;',
 									'attrs' => array(
-										'href' => astra_get_pro_url( 'https://wpastra.com/docs/header-overview/', 'customizer', 'primary-header', 'helpful-information' ),
+										'href' => astra_get_pro_url( '/docs/header-overview/', 'free-theme', 'customizer', 'helpful_information' ),
 									),
 								),
 							),
@@ -185,7 +182,7 @@ if ( ! class_exists( 'Astra_Customizer_Register_Sections_Panels' ) ) {
 								array(
 									'text'  => __( 'Footer Bar Overview', 'astra' ) . ' &#187;',
 									'attrs' => array(
-										'href' => astra_get_pro_url( 'https://wpastra.com/docs/footer-bar/', 'customizer', 'footer-bar', 'helpful-information' ),
+										'href' => astra_get_pro_url( '/docs/footer-bar/', 'free-theme', 'customizer', 'helpful_information' ),
 									),
 								),
 							),
@@ -196,8 +193,14 @@ if ( ! class_exists( 'Astra_Customizer_Register_Sections_Panels' ) ) {
 				array(
 					'name'     => 'section-blog-group',
 					'type'     => 'section',
-					'priority' => 40,
-					'title'    => __( 'Blog', 'astra' ),
+					'priority' => 20,
+					'title'    => __( 'Post Types', 'astra' ),
+				),
+				array(
+					'name'     => 'section-general-group',
+					'type'     => 'section',
+					'priority' => 20,
+					'title'    => __( 'General', 'astra' ),
 				),
 				array(
 					'name'     => 'section-blog',
@@ -215,11 +218,26 @@ if ( ! class_exists( 'Astra_Customizer_Register_Sections_Panels' ) ) {
 				),
 
 				array(
+					'name'     => 'section-page-dynamic-group',
+					'type'     => 'section',
+					'priority' => 40,
+					'title'    => __( 'Page', 'astra' ),
+				),
+				array(
+					'name'     => 'section-single-page',
+					'type'     => 'section',
+					'priority' => 10,
+					'title'    => __( 'Single Page', 'astra' ),
+					'section'  => 'section-blog-group',
+				),
+
+				array(
 					'name'               => 'section-sidebars',
 					'type'               => 'section',
 					'priority'           => 50,
 					'title'              => __( 'Sidebar', 'astra' ),
 					'description_hidden' => true,
+					'section'            => 'section-general-group',
 					'description'        => $this->section_get_description(
 						array(
 							'description' => '<p><b>' . __( 'Helpful Information', 'astra' ) . '</b></p>',
@@ -227,7 +245,7 @@ if ( ! class_exists( 'Astra_Customizer_Register_Sections_Panels' ) ) {
 								array(
 									'text'  => __( 'Sidebar Overview', 'astra' ) . ' &#187;',
 									'attrs' => array(
-										'href' => astra_get_pro_url( 'https://wpastra.com/docs/sidebar-free/', 'customizer', 'sidebar', 'helpful-information' ),
+										'href' => astra_get_pro_url( '/docs/sidebar-free/', 'free-theme', 'customizer', 'helpful_information' ),
 									),
 								),
 							),
@@ -236,15 +254,16 @@ if ( ! class_exists( 'Astra_Customizer_Register_Sections_Panels' ) ) {
 				),
 
 				/**
-				 * Performance Panel
+				 * Accessibility Panel
 				 *
-				 * @since 3.6.0
+				 * @since 4.1.0
 				 */
 				array(
-					'name'     => 'section-performance',
+					'name'     => 'section-accessibility',
 					'type'     => 'section',
 					'priority' => 65,
-					'title'    => __( 'Performance', 'astra' ),
+					'title'    => __( 'Accessibility', 'astra' ),
+					'section'  => 'section-general-group',
 				),
 
 				/**
@@ -263,7 +282,7 @@ if ( ! class_exists( 'Astra_Customizer_Register_Sections_Panels' ) ) {
 								array(
 									'text'  => __( 'Colors & Background Overview', 'astra' ) . ' &#187;',
 									'attrs' => array(
-										'href' => astra_get_pro_url( 'https://wpastra.com/docs/colors-background/', 'customizer', 'colors-background', 'helpful-information' ),
+										'href' => astra_get_pro_url( '/docs/colors-background/', 'free-theme', 'customizer', 'helpful_information' ),
 									),
 								),
 							),
@@ -305,7 +324,7 @@ if ( ! class_exists( 'Astra_Customizer_Register_Sections_Panels' ) ) {
 								array(
 									'text'  => __( 'Typography Overview', 'astra' ) . ' &#187;',
 									'attrs' => array(
-										'href' => astra_get_pro_url( 'https://wpastra.com/docs/typography-free/', 'customizer', 'typography', 'helpful-information' ),
+										'href' => astra_get_pro_url( '/docs/typography-free/', 'free-theme', 'customizer', 'helpful_information' ),
 									),
 								),
 							),
@@ -376,12 +395,59 @@ if ( ! class_exists( 'Astra_Customizer_Register_Sections_Panels' ) ) {
 					'section'  => 'section-header-button',
 				),
 
+				/**
+				 * Block Editor specific configs.
+				 */
+				array(
+					'name'     => 'section-block-editor',
+					'type'     => 'section',
+					'priority' => 80,
+					'title'    => __( 'Block Editor', 'astra' ),
+					'section'  => 'section-general-group',
+				),
+
+				/**
+				 * Global Misc specific configs.
+				 */
+				array(
+					'name'     => 'section-global-misc',
+					'type'     => 'section',
+					'priority' => 80,
+					'title'    => __( 'Misc', 'astra' ),
+					'section'  => 'section-general-group',
+				),
+
+				/**
+				 * Option: Scroll To Top
+				 */
+				array(
+					'name'     => 'section-scroll-to-top',
+					'title'    => __( 'Scroll To Top', 'astra' ),
+					'type'     => 'section',
+					'section'  => 'section-general-group',
+					'priority' => 60,
+				),
 			);
+
+			// Add spacial page section under page group.
+			foreach ( Astra_Posts_Structure_Loader::get_special_page_types() as $index => $special_type ) {
+				$configs[] = array(
+					'name'     => 'ast-section-' . $special_type . '-page',
+					'type'     => 'section',
+					'priority' => 10 + absint( $index ),
+					'title'    => sprintf(
+						/* translators: %s: Name of special page type */
+						esc_html__( '%s Page', 'astra' ),
+						ucfirst( $special_type )
+					),
+					'section'  => 'section-blog-group',
+				);
+			}
+
 			return array_merge( $configurations, $configs );
 		}
 	}
 }
-
 
 /**
  * Kicking this off by calling 'get_instance()' method

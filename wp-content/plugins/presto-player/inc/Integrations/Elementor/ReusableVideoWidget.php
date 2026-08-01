@@ -1,4 +1,9 @@
 <?php
+/**
+ * Elementor Presto Player reusable video widget.
+ *
+ * @package PrestoPlayer
+ */
 
 namespace PrestoPlayer\Integrations\Elementor;
 
@@ -8,19 +13,19 @@ use PrestoPlayer\WPackio\Enqueue;
 use PrestoPlayer\Models\ReusableVideo;
 use Elementor\Modules\DynamicTags\Module as TagsModule;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
 /**
- * presto-player video widget.
+ * Presto Player reusable video widget.
  *
- * presto-player widget that displays a video player.
+ * Presto Player widget that displays a reusable video player.
  *
  * @since 1.0.0
  */
-class ReusableVideoWidget extends Widget_Base
-{
+class ReusableVideoWidget extends Widget_Base {
+
 	/**
 	 * Get widget name.
 	 *
@@ -31,8 +36,7 @@ class ReusableVideoWidget extends Widget_Base
 	 *
 	 * @return string Widget name.
 	 */
-	public function get_name()
-	{
+	public function get_name() {
 		return 'presto_video';
 	}
 
@@ -46,9 +50,8 @@ class ReusableVideoWidget extends Widget_Base
 	 *
 	 * @return string Widget title.
 	 */
-	public function get_title()
-	{
-		return __('Presto Player Media', 'presto-player');
+	public function get_title() {
+		return __( 'Presto Player Media', 'presto-player' );
 	}
 
 	/**
@@ -61,8 +64,7 @@ class ReusableVideoWidget extends Widget_Base
 	 *
 	 * @return string Widget icon.
 	 */
-	public function get_icon()
-	{
+	public function get_icon() {
 		return 'eicon-youtube';
 	}
 
@@ -78,9 +80,8 @@ class ReusableVideoWidget extends Widget_Base
 	 *
 	 * @return array Widget categories.
 	 */
-	public function get_categories()
-	{
-		return ['basic'];
+	public function get_categories() {
+		return array( 'basic' );
 	}
 
 	/**
@@ -93,9 +94,8 @@ class ReusableVideoWidget extends Widget_Base
 	 *
 	 * @return array Widget keywords.
 	 */
-	public function get_keywords()
-	{
-		return ['video', 'audio', 'embed', 'youtube', 'vimeo'];
+	public function get_keywords() {
+		return array( 'video', 'audio', 'embed', 'youtube', 'vimeo' );
 	}
 
 	/**
@@ -106,81 +106,82 @@ class ReusableVideoWidget extends Widget_Base
 	 * @since 1.0.0
 	 * @access protected
 	 */
-	protected function _register_controls()
-	{
+	protected function _register_controls() {
 		$this->start_controls_section(
 			'section_video',
-			[
-				'label' => __('Media', 'presto-player'),
-			]
+			array(
+				'label' => __( 'Media', 'presto-player' ),
+			)
 		);
-
 
 		$options = $this->get_videos_options();
 		$this->add_control(
 			'video_block',
-			[
-				'label' => __('Media Hub Item', 'presto-player'),
-				'type' => \Elementor\Controls_Manager::SELECT2,
+			array(
+				'label'   => __( 'Media Hub Item', 'presto-player' ),
+				'type'    => \Elementor\Controls_Manager::SELECT2,
 				'options' => $options,
-				'default' => '-1'
-			]
+				'default' => '-1',
+			)
 		);
 
 		$this->add_control(
 			'edit_video',
-			[
-				'label' => __('Edit Media', 'plugin-name'),
-				'type' => \Elementor\Controls_Manager::BUTTON,
-				'text' => __('Edit', 'plugin-domain'),
-				'event' => 'presto:video:edit',
-				'condition'   => array(
+			array(
+				'label'     => __( 'Edit Media', 'presto-player' ),
+				'type'      => \Elementor\Controls_Manager::BUTTON,
+				'text'      => __( 'Edit', 'presto-player' ),
+				'event'     => 'presto:video:edit',
+				'condition' => array(
 					'video_block!' => '-1',
 				),
-			]
+			)
 		);
 
 		$this->add_control(
 			'create_video',
-			[
-				'label' => __('Create Media', 'plugin-name'),
+			array(
+				'label'     => __( 'Create Media', 'presto-player' ),
 				'separator' => 'before',
-				'classes' => 'testclass',
-				'type' => \Elementor\Controls_Manager::BUTTON,
-				'text' => __('Create', 'plugin-domain'),
-				'event' => 'presto:video:create',
-			]
+				'classes'   => 'testclass',
+				'type'      => \Elementor\Controls_Manager::BUTTON,
+				'text'      => __( 'Create', 'presto-player' ),
+				'event'     => 'presto:video:create',
+			)
 		);
-
 
 		$this->add_control(
 			'url_override',
-			[
-				'label' => __('Dynamic URL Override', 'presto-player'),
-				'separator' => 'before',
-				'type' => Controls_Manager::TEXT,
-				'dynamic' => [
-					'active' => true,
-					'categories' => [
+			array(
+				'label'       => __( 'Dynamic URL Override', 'presto-player' ),
+				'separator'   => 'before',
+				'type'        => Controls_Manager::TEXT,
+				'dynamic'     => array(
+					'active'     => true,
+					'categories' => array(
 						TagsModule::POST_META_CATEGORY,
 						TagsModule::URL_CATEGORY,
-					],
-				],
-				'placeholder' => __('Enter a url override', 'presto-player'),
-				'default' => '',
+					),
+				),
+				'placeholder' => __( 'Enter a url override', 'presto-player' ),
+				'default'     => '',
 				'label_block' => true,
-			]
+			)
 		);
 
 		$this->end_controls_section();
 	}
 
-	public function get_videos_options()
-	{
-		$videos = (new ReusableVideo())->fetch();
-		$options = [];
-		foreach ($videos as $video) {
-			$options[$video->ID] = sanitize_text_field($video->post_title);
+	/**
+	 * Get the available reusable video options for the select control.
+	 *
+	 * @return array Map of reusable video post ID to post title.
+	 */
+	public function get_videos_options() {
+		$videos  = ( new ReusableVideo() )->fetch();
+		$options = array();
+		foreach ( $videos as $video ) {
+			$options[ $video->ID ] = sanitize_text_field( $video->post_title );
 		}
 		return $options;
 	}
@@ -193,25 +194,24 @@ class ReusableVideoWidget extends Widget_Base
 	 * @since 1.0.0
 	 * @access protected
 	 */
-	protected function render()
-	{
+	protected function render() {
 		global $load_presto_js;
 		$load_presto_js = true;
-		$settings = $this->get_settings_for_display();
+		$settings       = $this->get_settings_for_display();
 		// For backward compatibility.
 		$video_url = ( '-1' !== $settings['video_block'] ) ? $settings['video_block'] : '0';
-		$video = new ReusableVideo( $video_url );
-		$overrides = [];
-		if ($settings['url_override']) {
+		$video     = new ReusableVideo( $video_url );
+		$overrides = array();
+		if ( $settings['url_override'] ) {
 			$overrides['src'] = $settings['url_override'];
 		}
-		$render = $video->renderBlock($overrides);
-		if ($render) {
-			echo $render;
+		$render = $video->renderBlock( $overrides );
+		if ( $render ) {
+			echo $render; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderBlock() returns player markup escaped within the block renderer.
 			return;
 		}
 
-		$video = (new ReusableVideo())->first();
-		echo $video ? $video->renderBlock($overrides) : '';
+		$video = ( new ReusableVideo() )->first();
+		echo $video ? $video->renderBlock( $overrides ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderBlock() returns player markup escaped within the block renderer.
 	}
 }

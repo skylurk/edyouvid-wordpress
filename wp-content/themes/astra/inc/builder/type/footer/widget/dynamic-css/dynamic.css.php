@@ -21,12 +21,11 @@ add_filter( 'astra_dynamic_theme_css', 'astra_fb_widget_dynamic_css' );
  * As this affects the frontend, added this backward compatibility for existing users.
  *
  * @since 3.6.7
- * @return boolean false if it is an existing user, true if not.
+ * @return bool false if it is an existing user, true if not.
  */
-function is_support_footer_widget_right_margin() {
-	$astra_settings                                       = get_option( ASTRA_THEME_SETTINGS );
-	$astra_settings['support-footer-widget-right-margin'] = isset( $astra_settings['support-footer-widget-right-margin'] ) ? false : true;
-	return apply_filters( 'astra_apply_right_margin_footer_widget_css', $astra_settings['support-footer-widget-right-margin'] );
+function astra_support_footer_widget_right_margin() {
+	$astra_settings = astra_get_options();
+	return apply_filters( 'astra_apply_right_margin_footer_widget_css', isset( $astra_settings['support-footer-widget-right-margin'] ) ? false : true );
 }
 
 /**
@@ -50,9 +49,9 @@ function astra_fb_widget_dynamic_css( $dynamic_css, $dynamic_css_filtered = '' )
 
 		$alignment = astra_get_option( 'footer-widget-alignment-' . $index );
 
-		$desktop_alignment = ( isset( $alignment['desktop'] ) ) ? $alignment['desktop'] : '';
-		$tablet_alignment  = ( isset( $alignment['tablet'] ) ) ? $alignment['tablet'] : '';
-		$mobile_alignment  = ( isset( $alignment['mobile'] ) ) ? $alignment['mobile'] : '';
+		$desktop_alignment = isset( $alignment['desktop'] ) ? $alignment['desktop'] : '';
+		$tablet_alignment  = isset( $alignment['tablet'] ) ? $alignment['tablet'] : '';
+		$mobile_alignment  = isset( $alignment['mobile'] ) ? $alignment['mobile'] : '';
 
 		/**
 		 * Widget CSS.
@@ -78,12 +77,6 @@ function astra_fb_widget_dynamic_css( $dynamic_css, $dynamic_css_filtered = '' )
 			),
 		);
 
-		if ( is_support_footer_widget_right_margin() ) {
-			$css_output_desktop['.footer-widget-area.widget-area.site-footer-focus-item'] = array(
-				'width' => 'auto',
-			);
-		}
-
 		/* Parse CSS from array() */
 		$css_output  = astra_parse_css( $css_output_desktop );
 		$css_output .= astra_parse_css( $css_output_tablet, '', astra_get_tablet_breakpoint() );
@@ -91,8 +84,21 @@ function astra_fb_widget_dynamic_css( $dynamic_css, $dynamic_css_filtered = '' )
 
 		$dynamic_css .= $css_output;
 
-		$dynamic_css .= Astra_Widget_Component_Dynamic_CSS::astra_widget_dynamic_css( 'footer' );
 	}
+
+	if ( astra_support_footer_widget_right_margin() && ! is_customize_preview() ) {
+		$footer_area_css_output = array(
+			'.footer-widget-area.widget-area.site-footer-focus-item' => array(
+				'width' => 'auto',
+			),
+			'.ast-footer-row-inline .footer-widget-area.widget-area.site-footer-focus-item' => array(
+				'width' => '100%',
+			),
+		);
+		$dynamic_css           .= astra_parse_css( $footer_area_css_output );
+	}
+
+	$dynamic_css .= Astra_Widget_Component_Dynamic_CSS::astra_widget_dynamic_css( 'footer' );
 
 	return $dynamic_css;
 }

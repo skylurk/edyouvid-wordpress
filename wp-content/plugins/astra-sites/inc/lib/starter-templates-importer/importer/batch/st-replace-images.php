@@ -9,6 +9,7 @@
 namespace STImporter\Importer\Batch;
 
 use STImporter\Importer\ST_Importer_Helper;
+use STImporter\Importer\ST_Importer_Log;
 use AiBuilder\Inc\Traits\Helper;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -42,13 +43,6 @@ class ST_Replace_Images {
 	 * @since 4.1.0
 	 */
 	public static $old_image_urls = array();
-
-	/**
-	 * Reusable block tracking.
-	 *
-	 * @var array<int,int>
-	 */
-	public static $reusable_blocks = array();
 
 	/**
 	 * Filtered images.
@@ -89,7 +83,11 @@ class ST_Replace_Images {
 	 */
 	public function replace_images() {
 
-		$pages_replacement      = $this->replace_in_pages();
+		ST_Importer_Log::add( 'Starting image replacement process' );
+
+		ST_Importer_Log::add( 'Replacing images in pages' );
+		$pages_replacement = $this->replace_in_pages();
+		ST_Importer_Log::add( 'Replacing images in posts' );
 		$posts_replacement      = $this->replace_in_post();
 		$customizer_replacement = array(
 			'success' => true,
@@ -97,6 +95,7 @@ class ST_Replace_Images {
 
 		// Replace customizer content.
 		if ( function_exists( 'astra_update_option' ) && function_exists( 'astra_get_option' ) ) {
+			ST_Importer_Log::add( 'Replacing images in customizer' );
 			$this->replace_in_customizer();
 		} else {
 			$customizer_replacement = array(
@@ -107,7 +106,10 @@ class ST_Replace_Images {
 
 		$this->cleanup();
 
+		ST_Importer_Log::add( 'Cleanup completed' );
+
 		if ( ! $pages_replacement['success'] ) {
+			ST_Importer_Log::add( 'Pages replacement failed', 'error', array( 'msg' => $pages_replacement['msg'] ) );
 			return array(
 				'success' => false,
 				'msg'     => $pages_replacement['msg'],
@@ -115,6 +117,7 @@ class ST_Replace_Images {
 		}
 
 		if ( ! $posts_replacement['success'] ) {
+			ST_Importer_Log::add( 'Posts replacement failed', 'error', array( 'msg' => $posts_replacement['msg'] ) );
 			return array(
 				'success' => false,
 				'msg'     => $posts_replacement['msg'],
@@ -122,12 +125,14 @@ class ST_Replace_Images {
 		}
 
 		if ( ! $customizer_replacement['success'] ) {
+			ST_Importer_Log::add( 'Customizer replacement failed', 'error', array( 'msg' => $customizer_replacement['msg'] ) );
 			return array(
 				'success' => false,
 				'msg'     => $customizer_replacement['msg'],
 			);
 		}
 
+		ST_Importer_Log::add( 'Image replacement completed successfully', 'success', array() );
 		return array(
 			'success' => true,
 			'msg'     => __( 'Image Replacement completed.', 'astra-sites' ),
@@ -146,20 +151,28 @@ class ST_Replace_Images {
 
 		$posts = $this->get_pages( 'post' );
 
+		ST_Importer_Log::add( 'Starting post image replacement', 'info', array( 'post_count' => count( $posts ) ) );
+
 		if ( empty( $posts ) ) {
+			ST_Importer_Log::add( 'No posts to process' );
 			return array(
 				'success' => true,
 				'msg'     => __( 'Posts are empty. Nothing to process.', 'astra-sites' ),
 			);
 		}
 
+		$success_count = 0;
 		foreach ( $posts as $key => $post ) {
 			if ( ! is_object( $post ) ) {
 				continue;
 			}
 
 			$this->parse_featured_image( $post );
+			$success_count++;
 		}
+
+		ST_Importer_Log::add( 'Post image replacement completed', 'success', array( 'processed_count' => $success_count ) );
+
 		return array(
 			'success' => true,
 			'msg'     => __( 'Posts are replaced', 'astra-sites' ),
@@ -177,21 +190,40 @@ class ST_Replace_Images {
 		$image = $this->get_image( self::$image_index );
 
 		if ( empty( $image ) || ! is_array( $image ) ) {
+			ST_Importer_Log::add( 'No image available for featured image', 'info', array( 'image_index' => self::$image_index ) );
 			return;
 		}
 
 		$image = ST_Importer_Helper::download_image( $image );
 
 		if ( is_wp_error( $image ) ) {
+			ST_Importer_Log::add(
+				'Failed to download featured image',
+				'error',
+				array(
+					'image_index' => self::$image_index,
+					'error'       => $image->get_error_message(),
+				)
+			);
 			return;
 		}
 
 		$attachment = wp_prepare_attachment_for_js( absint( $image ) );
 		if ( ! is_array( $attachment ) ) {
+			ST_Importer_Log::add( 'Failed to prepare attachment for featured image', 'error', array( 'image_id' => $image ) );
 			return;
 		}
 
 		set_post_thumbnail( $post, $attachment['id'] );
+
+		ST_Importer_Log::add(
+			'Successfully set featured image',
+			'success',
+			array(
+				'post_id'       => $post->ID,
+				'attachment_id' => $attachment['id'],
+			)
+		);
 
 		$this->increment_image_index();
 	}
@@ -203,7 +235,13 @@ class ST_Replace_Images {
 	 * @since 4.1.0
 	 */
 	public function cleanup() {
+		ST_Importer_Log::add( 'Starting cleanup of old images' );
+
 		$old_image_urls = self::$old_image_urls;
+
+		ST_Importer_Log::add( 'Processing old image URLs', 'info', array( 'old_image_count' => count( $old_image_urls ) ) );
+
+		$deleted_count = 0;
 		if ( ! empty( $old_image_urls ) ) {
 
 			$guid_list = implode( "', '", $old_image_urls );
@@ -214,10 +252,18 @@ class ST_Replace_Images {
 			$old_image_ids = $wpdb->get_results( $query ); //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			foreach ( $old_image_ids as $old_image_id ) {
 				wp_delete_attachment( $old_image_id->ID, true );
+				$deleted_count++;
 			}
 		}
+
+		ST_Importer_Log::add( 'Old images deleted', 'info', array( 'deleted_count' => $deleted_count ) );
+
 		delete_option( 'ast_sites_downloaded_images' );
 		delete_option( 'astra_sites_ai_imports' );
+		delete_option( 'astra_sites_sureforms_id_map' );
+		delete_option( 'astra_sites_surecart_forms_id_map' );
+
+		ST_Importer_Log::add( 'Cleanup options removed' );
 	}
 
 	/**
@@ -229,34 +275,41 @@ class ST_Replace_Images {
 	 */
 	public function replace_in_customizer() {
 
+		ST_Importer_Log::add( 'Starting customizer image replacement' );
+
 		$footer_image_obj = astra_get_option( 'footer-bg-obj-responsive' );
 		if ( isset( $footer_image_obj ) && ! empty( $footer_image_obj ) ) {
 			$footer_image_obj = $this->get_updated_astra_option( $footer_image_obj );
 			astra_update_option( 'footer-bg-obj-responsive', $footer_image_obj );
+			ST_Importer_Log::add( 'Updated customizer option', 'info', array( 'option_name' => 'footer-bg-obj-responsive' ) );
 		}
 
 		$header_image_obj = astra_get_option( 'header-bg-obj-responsive' );
 		if ( isset( $header_image_obj ) && ! empty( $header_image_obj ) ) {
 			$header_image_obj = $this->get_updated_astra_option( $header_image_obj );
 			astra_update_option( 'header-bg-obj-responsive', $header_image_obj );
+			ST_Importer_Log::add( 'Updated customizer option', 'info', array( 'option_name' => 'header-bg-obj-responsive' ) );
 		}
 
 		$blog_archieve_image_obj = astra_get_option( 'ast-dynamic-archive-post-banner-custom-bg' );
 		if ( isset( $blog_archieve_image_obj ) && ! empty( $blog_archieve_image_obj ) ) {
 			$blog_archieve_image_obj = $this->get_updated_astra_option( $blog_archieve_image_obj );
 			astra_update_option( 'ast-dynamic-archive-post-banner-custom-bg', $blog_archieve_image_obj );
+			ST_Importer_Log::add( 'Updated customizer option', 'info', array( 'option_name' => 'ast-dynamic-archive-post-banner-custom-bg' ) );
 		}
 
 		$sc_product_banner_image = astra_get_option( 'ast-dynamic-archive-sc_product-banner-custom-bg' );
 		if ( isset( $sc_product_banner_image ) && ! empty( $sc_product_banner_image ) ) {
 			$sc_product_banner_image = $this->get_updated_astra_option( $sc_product_banner_image );
 			astra_update_option( 'ast-dynamic-archive-sc_product-banner-custom-bg', $sc_product_banner_image );
+			ST_Importer_Log::add( 'Updated customizer option', 'info', array( 'option_name' => 'ast-dynamic-archive-sc_product-banner-custom-bg' ) );
 		}
 
 		$wc_shop_banner_image = astra_get_option( 'ast-dynamic-archive-product-banner-custom-bg' );
 		if ( isset( $wc_shop_banner_image ) && ! empty( $wc_shop_banner_image ) ) {
 			$wc_shop_banner_image = $this->get_updated_astra_option( $wc_shop_banner_image );
 			astra_update_option( 'ast-dynamic-archive-product-banner-custom-bg', $wc_shop_banner_image );
+			ST_Importer_Log::add( 'Updated customizer option', 'info', array( 'option_name' => 'ast-dynamic-archive-product-banner-custom-bg' ) );
 		}
 
 		$social_options = $this->get_options();
@@ -265,6 +318,8 @@ class ST_Replace_Images {
 		 * Social Element Options
 		 */
 		$this->update_social_options( $social_options );
+
+		ST_Importer_Log::add( 'Customizer image replacement completed', 'success', array() );
 	}
 
 	/**
@@ -275,11 +330,14 @@ class ST_Replace_Images {
 	 * @return void
 	 */
 	public function update_social_options( $options ) {
+		ST_Importer_Log::add( 'Starting social options update', 'info', array( 'options_count' => count( $options ) ) );
+
 		if ( ! empty( $options ) ) {
-			$social_profiles = $this->get_business_details( 'social_profiles' );
-			$business_phone  = $this->get_business_details( 'business_phone' );
-			$business_email  = $this->get_business_details( 'business_email' );
+			$social_profiles = ST_Importer_Helper::get_business_details( 'social_profiles' );
+			$business_phone  = ST_Importer_Helper::get_business_details( 'business_phone' );
+			$business_email  = ST_Importer_Helper::get_business_details( 'business_email' );
 			if ( is_array( $options ) && is_array( $social_profiles ) ) {
+				$update_count = 0;
 				foreach ( $options as $key => $name ) {
 					$value        = astra_get_option( $name );
 					$items        = isset( $value['items'] ) ? $value['items'] : array();
@@ -347,9 +405,14 @@ class ST_Replace_Images {
 						}
 						$value['items'] = array_values( $items );
 						astra_update_option( $name, $value );
+						$update_count++;
 					}
 				}
+
+				ST_Importer_Log::add( 'Social options updated', 'success', array( 'update_count' => $update_count ) );
 			}
+		} else {
+			ST_Importer_Log::add( 'No social options to update' );
 		}
 	}
 
@@ -432,17 +495,27 @@ class ST_Replace_Images {
 	public function get_updated_astra_option( $obj ) {
 		$image_id = ( isset( $obj['desktop']['background-media'] ) ) ? $obj['desktop']['background-media'] : 0;
 		if ( 0 === $image_id ) {
+			ST_Importer_Log::add( 'Skipping astra option update - image ID is 0' );
 			return $obj;
 		}
 		$image = $this->get_image( self::$image_index );
 
 		if ( empty( $image ) || ! is_array( $image ) ) {
+			ST_Importer_Log::add( 'No image available for astra option update', 'info', array( 'image_index' => self::$image_index ) );
 			return $obj;
 		}
 
 		$image = ST_Importer_Helper::download_image( $image );
 
 		if ( is_wp_error( $image ) ) {
+			ST_Importer_Log::add(
+				'Failed to download image for astra option',
+				'error',
+				array(
+					'image_index' => self::$image_index,
+					'error'       => $image->get_error_message(),
+				)
+			);
 			return $obj;
 		}
 
@@ -450,6 +523,8 @@ class ST_Replace_Images {
 
 		$obj['desktop']['background-image'] = $attachment['url'] ?? '';
 		$obj['desktop']['background-media'] = $attachment['id'] ?? 0;
+
+		ST_Importer_Log::add( 'Successfully updated astra option', 'success', array( 'attachment_id' => $attachment['id'] ?? 0 ) );
 
 		$this->increment_image_index();
 
@@ -464,27 +539,48 @@ class ST_Replace_Images {
 	 */
 	public function replace_in_pages() {
 
+		ST_Importer_Log::add( 'Starting page image replacement' );
+
 		$pages = $this->get_pages();
 
 		if ( empty( $pages ) ) {
+			ST_Importer_Log::add( 'No pages to process' );
 			return array(
 				'success' => false,
 				'msg'     => __( 'Pages are empty', 'astra-sites' ),
 			);
 		}
 
+		$required_plugins = astra_get_site_data( 'required-plugins' );
+		$plugins_slug     = array_column( $required_plugins, 'slug' );
+
+		$plugin_instance = in_array( 'elementor', $plugins_slug, true ) ? ST_Replace_Elementor_Images::get_instance() : ST_Replace_Blocks_Images::get_instance();
+		$plugin_type     = in_array( 'elementor', $plugins_slug, true ) ? 'elementor' : 'blocks';
+
+		ST_Importer_Log::add(
+			'Processing pages',
+			'info',
+			array(
+				'pages_count' => count( $pages ),
+				'plugin_type' => $plugin_type,
+			)
+		);
+
+		$success_count = 0;
 		foreach ( $pages as $key => $post ) {
 
 			if ( ! is_object( $post ) ) {
 				continue;
 			}
 
-			// Log the page title.
-
 			// Replaced content.
-			$new_content = $this->parse_replace_images( $post->post_content );
+			// @phpstan-ignore-next-line.
+			$new_content = $plugin_instance->parse_replace_images( $post );
 
 			// Update content.
+			// Preserve \uXXXX JSON unicode escapes so they survive stripslashes() inside wp_update_post().
+			$new_content = ST_Importer_Helper::preserve_block_unicode_escapes( $new_content ?? '' );
+
 			wp_update_post(
 				array(
 					'ID'           => $post->ID,
@@ -492,7 +588,12 @@ class ST_Replace_Images {
 				)
 			);
 
+			ST_Importer_Log::add( 'Updated page content', 'info', array( 'post_id' => $post->ID ) );
+			$success_count++;
+
 		}
+
+		ST_Importer_Log::add( 'Page image replacement completed', 'success', array( 'success_count' => $success_count ) );
 
 		return array(
 			'success' => true,
@@ -500,239 +601,6 @@ class ST_Replace_Images {
 		);
 	}
 
-	/**
-	 * Parse the content for potential AI based content.
-	 *
-	 * @since 4.1.0
-	 * @param string $content Post Content.
-	 * @return string $content Modified content.
-	 */
-	public function parse_replace_images( $content ) {
-
-		$blocks = parse_blocks( $content );
-
-		// Get replaced blocks images.
-		$content = serialize_blocks( $this->get_updated_blocks( $blocks ) );
-
-		return $this->replace_content_glitch( $content );
-	}
-
-		/**
-		 * Update the Blocks with new mapping data.
-		 *
-		 * @since 4.1.0
-		 * @param array<mixed> $blocks Array of Blocks.
-		 * @return array<mixed> $blocks Modified array of Blocks.
-		 */
-	public function get_updated_blocks( &$blocks ) {
-		foreach ( $blocks as $i => &$block ) {
-
-			if ( is_array( $block ) ) {
-
-				if ( '' === $block['blockName'] ) {
-					continue;
-				}
-
-				if ( 'core/block' === $block['blockName'] && isset( $block['attrs']['ref'] ) ) {
-					$reusable_block_id = $block['attrs']['ref'];
-					$reusable_block    = get_post( $reusable_block_id );
-
-					if ( empty( $reusable_block ) || ! is_object( $reusable_block ) ) {
-						continue;
-					}
-
-					if ( in_array( $reusable_block_id, self::$reusable_blocks, true ) ) {
-						continue;
-					}
-
-					self::$reusable_blocks[] = $reusable_block_id;
-
-					// Update content.
-					wp_update_post(
-						array(
-							'ID'           => $reusable_block->ID,
-							'post_content' => $this->parse_replace_images( $reusable_block->post_content ),
-						)
-					);
-				}
-
-				/** Replace images if present in the block */
-				$this->replace_images_in_blocks( $block );
-
-				if ( ! empty( $block['innerBlocks'] ) ) {
-					/** Find the last node of the nested blocks */
-					$this->get_updated_blocks( $block['innerBlocks'] );
-				}
-			}
-		}
-
-		return $blocks;
-	}
-
-	/**
-	 * Parse social icon list.
-	 *
-	 * @since {{since}}
-	 * @param array<mixed> $block Block.
-	 * @return array<mixed> $block Block.
-	 */
-	public function parse_social_icons( $block ) {
-
-		$social_profile = $this->get_business_details( 'social_profiles' );
-
-		if ( empty( $social_profile ) || ! is_array( $social_profile ) ) {
-			return $block;
-		}
-
-		$social_icons = array_map(
-			function( $item ) {
-				return $item['type'];
-			},
-			$social_profile
-		);
-
-		$social_icons = array_merge( $social_icons, array( 'phone' ) );
-
-		foreach ( $social_icons as $key => $social_icon ) {
-			if ( 'linkedin' === $social_icon ) {
-				$social_icons[ $key ] = 'linkedin-in';
-				break;
-			}
-		}
-
-		$inner_blocks = $block['innerBlocks'];
-
-		if ( is_array( $inner_blocks ) ) {
-
-			$cached_first_item = isset( $block['innerBlocks'][0] ) ? $block['innerBlocks'][0] : [];
-
-			$list_social_icons = array_map(
-				function( $item ) {
-					return isset( $item['attrs']['icon'] ) ? $item['attrs']['icon'] : '';
-				},
-				$inner_blocks
-			);
-
-			if ( ! in_array( 'facebook', $list_social_icons, true ) ) {
-				return $block;
-			}
-
-			foreach ( $inner_blocks as $index => &$inner_block ) {
-
-				if ( 'uagb/icon-list-child' !== $inner_block['blockName'] ) {
-					continue;
-				}
-
-				$icon = $inner_block['attrs']['icon'];
-
-				if ( empty( $icon ) ) {
-					continue;
-				}
-
-				if ( ! in_array( $icon, $social_icons, true ) ) {
-					unset( $block['innerBlocks'][ $index ] );
-				}
-			}
-
-			$yelp_google = [
-				'yelp'   => '<svg xmlns="https://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M42.9 240.3l99.62 48.61c19.2 9.4 16.2 37.51-4.5 42.71L30.5 358.5a22.79 22.79 0 0 1 -28.21-19.6 197.2 197.2 0 0 1 9-85.32 22.8 22.8 0 0 1 31.61-13.21zm44 239.3a199.4 199.4 0 0 0 79.42 32.11A22.78 22.78 0 0 0 192.9 490l3.9-110.8c.7-21.3-25.5-31.91-39.81-16.1l-74.21 82.4a22.82 22.82 0 0 0 4.09 34.09zm145.3-109.9l58.81 94a22.93 22.93 0 0 0 34 5.5 198.4 198.4 0 0 0 52.71-67.61A23 23 0 0 0 364.2 370l-105.4-34.26c-20.31-6.5-37.81 15.8-26.51 33.91zm148.3-132.2a197.4 197.4 0 0 0 -50.41-69.31 22.85 22.85 0 0 0 -34 4.4l-62 91.92c-11.9 17.7 4.7 40.61 25.2 34.71L366 268.6a23 23 0 0 0 14.61-31.21zM62.11 30.18a22.86 22.86 0 0 0 -9.9 32l104.1 180.4c11.7 20.2 42.61 11.9 42.61-11.4V22.88a22.67 22.67 0 0 0 -24.5-22.8 320.4 320.4 0 0 0 -112.3 30.1z"></path></svg>',
-				'google' => '<svg xmlns="https://www.w3.org/2000/svg" viewBox="0 0 488 512"><path d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path></svg>',
-			];
-
-			foreach ( $yelp_google as $yelp_google_key => $yelp_google_item ) {
-				if ( in_array( $yelp_google_key, $social_icons, true ) && ! empty( $cached_first_item ) ) {
-
-					$new_inner_block                  = $cached_first_item;
-					$new_inner_block['attrs']['icon'] = $yelp_google_key;
-					$link                             = '#';
-					if ( is_array( $social_profile ) ) {
-						foreach ( $social_profile as $social_icon ) {
-							if ( $yelp_google_key === $social_icon['type'] ) {
-								$link = $social_icon['url'];
-								break;
-							}
-						}
-					}
-
-					$new_inner_block['attrs']['link'] = $link;
-
-					$svg_pattern = '/<svg.*?>.*?<\/svg>/s'; // The 's' modifier allows the dot (.) to match newline characters.
-					preg_match( $svg_pattern, $new_inner_block['innerHTML'], $matches );
-					$new_inner_block['innerHTML'] = str_replace( $matches[0], $yelp_google_item, $new_inner_block['innerHTML'] );
-
-					$href_pattern = '/href=".*?"/s'; // The 's' modifier allows the dot (.) to match newline characters.
-					preg_match( $href_pattern, $new_inner_block['innerHTML'], $href_matches );
-					if ( ! empty( $href_matches ) ) {
-						$new_inner_block['innerHTML'] = str_replace( $href_matches[0], 'href="' . $link . '"', $new_inner_block['innerHTML'] );
-					}
-					foreach ( $new_inner_block['innerContent'] as $key => $inner_content ) {
-						if ( empty( $inner_content ) ) {
-							continue;
-						}
-						preg_match( $svg_pattern, $inner_content, $matches );
-						if ( ! empty( $matches ) ) {
-							$new_inner_block['innerContent'][ $key ] = str_replace( $matches[0], $yelp_google_item, $new_inner_block['innerContent'][ $key ] );
-						}
-
-						preg_match( $href_pattern, $inner_content, $href_matches );
-						if ( ! empty( $href_matches ) ) {
-							$new_inner_block['innerContent'][ $key ] = str_replace( $href_matches[0], 'href="' . $link . '"', $new_inner_block['innerContent'][ $key ] );
-						}
-					}
-
-					array_push( $block['innerBlocks'], $new_inner_block );
-
-					$last_index = count( $block['innerContent'] ) - 1;
-					array_splice( $block['innerContent'], $last_index, 0, '' );
-
-					$new_last_index = count( $block['innerContent'] ) - 1;
-					array_splice( $block['innerContent'], $new_last_index, 0, [ null ] );
-				}
-			}
-
-			$block['innerBlocks'] = array_values( $block['innerBlocks'] );
-		}
-
-		return $block;
-	}
-
-	/**
-	 * Replace the image in the block if present from the AI generated images.
-	 *
-	 * @since 4.1.0
-	 * @param array<mixed> $block Reference of Block array.
-	 * @return void
-	 */
-	public function replace_images_in_blocks( &$block ) {
-		switch ( $block['blockName'] ) {
-			case 'uagb/container':
-				$block = $this->parse_spectra_container( $block );
-				break;
-
-			case 'uagb/image':
-				$block = $this->parse_spectra_image( $block );
-				break;
-
-			case 'uagb/image-gallery':
-				$block = $this->parse_spectra_gallery( $block );
-				break;
-
-			case 'uagb/info-box':
-				$block = $this->parse_spectra_infobox( $block );
-				break;
-
-			case 'uagb/google-map':
-				$block = $this->parse_spectra_google_map( $block );
-				break;
-
-			case 'uagb/forms':
-				$block = $this->parse_spectra_form( $block );
-				break;
-
-			case 'uagb/icon-list':
-				$block = $this->parse_social_icons( $block );
-		}
-	}
 
 	/**
 	 * Get pages.
@@ -783,280 +651,7 @@ class ST_Replace_Images {
 		return $pages;
 	}
 
-	/**
-	 * Parses Spectra form block.
-	 *
-	 * @since 4.1.0
-	 * @param array<mixed> $block Block.
-	 * @return array<mixed>
-	 */
-	public function parse_spectra_form( $block ) {
 
-		$business_email = $this->get_business_details( 'business_email' );
-
-		if ( ! empty( $business_email ) ) {
-			$block['attrs']['afterSubmitToEmail'] = $business_email;
-		}
-
-		return $block;
-	}
-
-	/**
-	 * Parses Google Map for the Spectra Google Map block.
-	 *
-	 * @since 4.1.0
-	 * @param array<mixed> $block Block.
-	 * @return array<mixed> $block Block.
-	 */
-	public function parse_spectra_google_map( $block ) {
-
-		$address = $this->get_business_details( 'business_address' );
-		if ( empty( $address ) ) {
-			return $block;
-		}
-
-		$block['attrs']['address'] = $address;
-
-		return $block;
-	}
-
-	/**
-	 * Parses images and other content in the Spectra Container block.
-	 *
-	 * @since 4.1.0
-	 * @param array<mixed> $block Block.
-	 * @return array<mixed> $block Block.
-	 */
-	public function parse_spectra_container( $block ) {
-
-		if (
-			! isset( $block['attrs']['backgroundImageDesktop'] ) ||
-			empty( $block['attrs']['backgroundImageDesktop'] ) ||
-			$this->is_skipable( $block['attrs']['backgroundImageDesktop']['url'] )
-		) {
-			return $block;
-		}
-
-		$image = $this->get_image( self::$image_index );
-		if ( empty( $image ) || ! is_array( $image ) ) {
-			return $block;
-		}
-
-		$image = ST_Importer_Helper::download_image( $image );
-
-		if ( is_wp_error( $image ) ) {
-			return $block;
-		}
-
-		$attachment = wp_prepare_attachment_for_js( absint( $image ) );
-		if ( ! is_array( $attachment ) ) {
-			return $block;
-		}
-
-		self::$old_image_urls[]                   = $block['attrs']['backgroundImageDesktop']['url'];
-		$block['attrs']['backgroundImageDesktop'] = $attachment;
-		$this->increment_image_index();
-
-		return $block;
-	}
-
-	/**
-	 * Parses images and other content in the Spectra Info Box block.
-	 *
-	 * @since 4.1.0
-	 * @param array<mixed> $block Block.
-	 * @return array<mixed> $block Block.
-	 */
-	public function parse_spectra_infobox( $block ) {
-
-		if (
-			! isset( $block['attrs']['iconImage'] ) ||
-			empty( $block['attrs']['iconImage'] ) ||
-			$this->is_skipable( $block['attrs']['iconImage']['url'] )
-		) {
-			return $block;
-		}
-
-		$image = $this->get_image( self::$image_index );
-		if ( empty( $image ) || ! is_array( $image ) ) {
-			return $block;
-		}
-
-		$image = ST_Importer_Helper::download_image( $image );
-
-		if ( is_wp_error( $image ) ) {
-			return $block;
-		}
-
-		$attachment = wp_prepare_attachment_for_js( absint( $image ) );
-
-		if ( ! is_array( $attachment ) ) {
-			return $block;
-		}
-
-		self::$old_image_urls[] = $block['attrs']['iconImage']['url'];
-		if ( ! empty( $block['attrs']['iconImage']['url'] ) ) {
-
-			$block['innerHTML'] = str_replace( $block['attrs']['iconImage']['url'], $attachment['url'], $block['innerHTML'] );
-		}
-
-		foreach ( $block['innerContent'] as $key => &$inner_content ) {
-
-			if ( is_string( $block['innerContent'][ $key ] ) && '' === trim( $block['innerContent'][ $key ] ) ) {
-				continue;
-			}
-			$block['innerContent'][ $key ] = str_replace( $block['attrs']['iconImage']['url'], $attachment['url'], $block['innerContent'][ $key ] );
-		}
-		$block['attrs']['iconImage'] = $attachment;
-		$this->increment_image_index();
-
-		return $block;
-	}
-
-	/**
-	 * Parses images and other content in the Spectra Image block.
-	 *
-	 * @since 4.1.0
-	 * @param array<mixed> $block Block.
-	 * @return array<mixed> $block Block.
-	 */
-	public function parse_spectra_image( $block ) {
-
-		if (
-			! isset( $block['attrs']['url'] ) ||
-			$this->is_skipable( $block['attrs']['url'] )
-		) {
-			return $block;
-		}
-
-		$image = $this->get_image( self::$image_index );
-
-		if ( empty( $image ) || ! is_array( $image ) ) {
-			return $block;
-		}
-
-		$image = ST_Importer_Helper::download_image( $image );
-
-		if ( is_wp_error( $image ) ) {
-			return $block;
-		}
-
-		$attachment = wp_prepare_attachment_for_js( absint( $image ) );
-		if ( ! is_array( $attachment ) ) {
-			return $block;
-		}
-
-		self::$old_image_urls[] = $block['attrs']['url'];
-		$block['innerHTML']     = str_replace( $block['attrs']['url'], $attachment['url'], $block['innerHTML'] );
-
-		$tablet_size_slug = ! empty( $block['attrs']['sizeSlugTablet'] ) ? $block['attrs']['sizeSlugTablet'] : '';
-		$mobile_size_slug = ! empty( $block['attrs']['sizeSlugMobile'] ) ? $block['attrs']['sizeSlugMobile'] : '';
-		$tablet_dest_url  = '';
-		$mobile_dest_url  = '';
-
-		if (
-			isset( $block['attrs']['urlTablet'] ) &&
-			! empty( $block['attrs']['urlTablet'] ) &&
-			! empty( $tablet_size_slug )
-		) {
-			$tablet_dest_url             = isset( $attachment['sizes'][ $tablet_size_slug ]['url'] ) ? $attachment['sizes'][ $tablet_size_slug ]['url'] : $attachment['url'];
-			$block['innerHTML']          = str_replace( $block['attrs']['urlTablet'], $tablet_dest_url, $block['innerHTML'] );
-			$block['attrs']['urlTablet'] = $tablet_dest_url;
-		}
-		if (
-			isset( $block['attrs']['urlMobile'] ) &&
-			! empty( $block['attrs']['urlMobile'] ) &&
-			! empty( $mobile_size_slug )
-		) {
-			$mobile_dest_url             = isset( $attachment['sizes'][ $mobile_size_slug ]['url'] ) ? $attachment['sizes'][ $mobile_size_slug ]['url'] : $attachment['url'];
-			$block['innerHTML']          = str_replace( $block['attrs']['urlMobile'], $mobile_dest_url, $block['innerHTML'] );
-			$block['attrs']['urlMobile'] = $mobile_dest_url;
-		}
-
-		$block['innerHTML'] = str_replace( 'uag-image-' . $block['attrs']['id'], 'uag-image-' . $attachment['id'], $block['innerHTML'] );
-
-		foreach ( $block['innerContent'] as $key => &$inner_content ) {
-
-			if ( is_string( $block['innerContent'][ $key ] ) && '' === trim( $block['innerContent'][ $key ] ) ) {
-				continue;
-			}
-			$block['innerContent'][ $key ] = str_replace( $block['attrs']['url'], $attachment['url'], $block['innerContent'][ $key ] );
-
-			if ( isset( $block['attrs']['urlTablet'] ) && ! empty( $block['attrs']['urlTablet'] ) ) {
-				$block['innerContent'][ $key ] = str_replace( $block['attrs']['urlTablet'], $tablet_dest_url, $block['innerContent'][ $key ] );
-			}
-			if ( isset( $block['attrs']['urlMobile'] ) && ! empty( $block['attrs']['urlMobile'] ) ) {
-				$block['innerContent'][ $key ] = str_replace( $block['attrs']['urlMobile'], $mobile_dest_url, $block['innerContent'][ $key ] );
-			}
-
-			$block['innerContent'][ $key ] = str_replace( 'uag-image-' . $block['attrs']['id'], 'uag-image-' . $attachment['id'], $block['innerContent'][ $key ] );
-		}
-
-		$block['attrs']['url'] = $attachment['url'];
-		$block['attrs']['id']  = $attachment['id'];
-
-		$this->increment_image_index();
-
-		return $block;
-	}
-
-	/**
-	 * Parses images and other content in the Spectra Info Box block.
-	 *
-	 * @since 4.1.0
-	 * @param array<mixed> $block Block.
-	 * @return array<mixed> $block Block.
-	 */
-	public function parse_spectra_gallery( $block ) {
-		$images      = $block['attrs']['mediaGallery'];
-		$gallery_ids = [];
-		foreach ( $images as $key => &$image ) {
-
-			if (
-				! isset( $image ) ||
-				empty( $image ) ||
-				$this->is_skipable( $image['url'] )
-			) {
-				continue;
-			}
-
-			$new_image = $this->get_image( self::$image_index );
-
-			if ( empty( $new_image ) || ! is_array( $new_image ) ) {
-				continue;
-			}
-
-			$new_image = ST_Importer_Helper::download_image( $new_image );
-
-			if ( is_wp_error( $new_image ) ) {
-				continue;
-			}
-
-			$attachment = wp_prepare_attachment_for_js( absint( $new_image ) );
-
-			if ( ! is_array( $attachment ) ) {
-				continue;
-			}
-
-			$gallery_ids[]          = $attachment['id'];
-			self::$old_image_urls[] = $image['url'];
-
-			$image['url']     = ! empty( $attachment['url'] ) ? $attachment['url'] : $image['url'];
-			$image['sizes']   = ! empty( $attachment['sizes'] ) ? $attachment['sizes'] : $image['sizes'];
-			$image['mime']    = ! empty( $attachment['mime'] ) ? $attachment['mime'] : $image['mime'];
-			$image['type']    = ! empty( $attachment['type'] ) ? $attachment['type'] : $image['type'];
-			$image['subtype'] = ! empty( $attachment['subtype'] ) ? $attachment['subtype'] : $image['subtype'];
-			$image['id']      = ! empty( $attachment['id'] ) ? $attachment['id'] : $image['id'];
-			$image['alt']     = ! empty( $attachment['alt'] ) ? $attachment['alt'] : $image['alt'];
-			$image['link']    = ! empty( $attachment['link'] ) ? $attachment['link'] : $image['link'];
-
-			$this->increment_image_index();
-		}
-		$block['attrs']['mediaGallery'] = $images;
-		$block['attrs']['mediaIDs']     = $gallery_ids;
-
-		return $block;
-	}
 
 	/**
 	 * Check if we need to skip the URL.
@@ -1092,7 +687,7 @@ class ST_Replace_Images {
 	 */
 	public function set_images() {
 		if ( empty( self::$filtered_images ) ) {
-			$images = $this->get_business_details( 'images' );
+			$images = ST_Importer_Helper::get_business_details( 'images' );
 			if ( is_array( $images ) ) {
 				foreach ( $images as $image ) {
 					self::$filtered_images[] = $image;
@@ -1124,68 +719,6 @@ class ST_Replace_Images {
 
 		self::$image_index = $new_index;
 	}
-
-	/**
-	 * Fix to alter the Astra global color variables.
-	 *
-	 * @since {{since}}
-	 * @param string $content Post Content.
-	 * @return string $content Modified content.
-	 */
-	public function replace_content_glitch( $content ) {
-		$content = str_replace( 'var(\u002d\u002dast', 'var(--ast', $content );
-		$content = str_replace( 'var(u002du002dast', 'var(--ast', $content );
-		$content = str_replace( ' u0026', '&amp;', $content );
-		$content = str_replace( '\u0026', '&amp;', $content );
-		return $content;
-	}
-
-	/**
-	 * Get Business details.
-	 *
-	 * @since 4.0.0
-	 * @param string $key options name.
-	 * @return array<string, mixed>|array<int, string>|string|array<string>|array<string,string>
-	 */
-	public static function get_business_details( $key = '' ) {
-		$details = get_option(
-			'zipwp_user_business_details',
-			array(
-				'business_name'        => '',
-				'business_address'     => '',
-				'business_phone'       => '',
-				'business_email'       => '',
-				'business_category'    => '',
-				'business_description' => '',
-				'templates'            => array(),
-				'language'             => 'en',
-				'images'               => array(),
-				'image_keyword'        => array(),
-				'social_profiles'      => array(),
-			)
-		);
-
-		$details = array(
-			'business_name'        => ( ! empty( $details['business_name'] ) ) ? $details['business_name'] : '',
-			'business_address'     => ( ! empty( $details['business_address'] ) ) ? $details['business_address'] : '',
-			'business_phone'       => ( ! empty( $details['business_phone'] ) ) ? $details['business_phone'] : '',
-			'business_email'       => ( ! empty( $details['business_email'] ) ) ? $details['business_email'] : '',
-			'business_category'    => ( ! empty( $details['business_category'] ) ) ? $details['business_category'] : '',
-			'business_description' => ( ! empty( $details['business_description'] ) ) ? $details['business_description'] : '',
-			'templates'            => ( ! empty( $details['templates'] ) ) ? $details['templates'] : array(),
-			'language'             => ( ! empty( $details['language'] ) ) ? $details['language'] : 'en',
-			'images'               => ( ! empty( $details['images'] ) ) ? $details['images'] : array(),
-			'social_profiles'      => ( ! empty( $details['social_profiles'] ) ) ? $details['social_profiles'] : array(),
-			'image_keyword'        => ( ! empty( $details['image_keyword'] ) ) ? $details['image_keyword'] : array(),
-		);
-
-		if ( ! empty( $key ) ) {
-			return isset( $details[ $key ] ) ? $details[ $key ] : array();
-		}
-
-		return $details;
-	}
-
 }
 
 ST_Replace_Images::get_instance();

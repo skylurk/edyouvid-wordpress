@@ -40,8 +40,8 @@
 									$( original ).data( 'hasitem', false );
 
 									if ( $( original ).data( 'hasoriginal' ) === false ) {
-										var timer = setTimeout( close_it, 800 );
-										$( original ).data( 'timer2', timer );
+										var timer2 = setTimeout( close_it, 800 );
+										$( original ).data( 'timer2', timer2 );
 									}
 								};
 
@@ -54,8 +54,8 @@
 									$( original ).data( 'hasoriginal', false );
 
 									if ( $( original ).data( 'hasitem' ) === false ) {
-										var timer = setTimeout( close_it, 800 );
-										$( original ).data( 'timer2', timer );
+										var timer2 = setTimeout( close_it, 800 );
+										$( original ).data( 'timer2', timer2 );
 									}
 								};
 
@@ -137,7 +137,7 @@
 				$( '.sharing-hidden ul li' ).remove();
 
 				// Add hidden items into the inner panel
-				$( 'ul.services-hidden li' ).each( function (/*pos, item*/) {
+				$( 'ul.services-hidden li' ).each( function ( /*pos, item*/ ) {
 					if ( $( this ).hasClass( 'service' ) ) {
 						var service = $( this ).attr( 'id' );
 						$( '.sharing-hidden .inner ul' ).append(
@@ -161,17 +161,18 @@
 				$( '#live-preview div.sharedaddy' ).addClass( 'sd-social-icon' );
 			} else if ( 'official' === button_style ) {
 				$( '#live-preview ul.preview .advanced, .sharing-hidden .inner ul .advanced' ).each(
-					function (/*i*/) {
+					function ( /*i*/ ) {
 						if (
 							! $( this ).hasClass( 'preview-press-this' ) &&
 							! $( this ).hasClass( 'preview-email' ) &&
 							! $( this ).hasClass( 'preview-mastodon' ) &&
 							! $( this ).hasClass( 'preview-nextdoor' ) &&
+							! $( this ).hasClass( 'preview-bluesky' ) &&
 							! $( this ).hasClass( 'preview-print' ) &&
 							! $( this ).hasClass( 'preview-reddit' ) &&
 							! $( this ).hasClass( 'preview-telegram' ) &&
+							! $( this ).hasClass( 'preview-threads' ) &&
 							! $( this ).hasClass( 'preview-jetpack-whatsapp' ) &&
-							! $( this ).hasClass( 'preview-x' ) &&
 							! $( this ).hasClass( 'share-custom' ) &&
 							! $( this ).hasClass( 'share-deprecated' )
 						) {
@@ -242,7 +243,7 @@
 		}
 
 		function save_services() {
-			$( '#enabled-services h3 img' ).show();
+			$( '#enabled-services h3 .spinner' ).addClass( 'is-active' );
 
 			// Toggle various dividers/help texts
 			if ( $( '#enabled-services ul.services-enabled li.service' ).length > 0 ) {
@@ -291,26 +292,26 @@
 
 			// Save it
 			$( '#save-enabled-shares' ).ajaxSubmit( function () {
-				$( '#enabled-services h3 img' ).hide();
+				$( '#enabled-services h3 .spinner' ).removeClass( 'is-active' );
 			} );
 		}
 
 		$( '#enabled-services .services ul' ).sortable( {
-			receive: function (/*event, ui*/) {
+			receive: function ( /*event, ui*/ ) {
 				save_services();
 			},
 			stop: function () {
 				save_services();
 				$( 'li.service' ).enableSelection(); // Fixes a problem with Chrome
 			},
-			over: function (/*event, ui*/) {
+			over: function ( /*event, ui*/ ) {
 				$( this ).find( 'ul' ).addClass( 'dropping' );
 
 				// Ensure the 'end-fix' is at the end
 				$( '#enabled-services li.end-fix' ).remove();
 				$( '#enabled-services ul' ).append( '<li class="end-fix"></li>' );
 			},
-			out: function (/*event, ui*/) {
+			out: function ( /*event, ui*/ ) {
 				$( this ).find( 'ul' ).removeClass( 'dropping' );
 
 				// Ensure the 'end-fix' is at the end
@@ -322,7 +323,7 @@
 
 				return ui.clone();
 			},
-			start: function (/*event, ui*/) {
+			start: function ( /*event, ui*/ ) {
 				// Make sure that the advanced section is closed
 				$( '.advanced-form' ).hide();
 				$( 'li.service' ).disableSelection(); // Fixes a problem with Chrome
@@ -459,16 +460,16 @@
 		$( '#new-service form' ).ajaxForm( {
 			beforeSubmit: function () {
 				$( '#new-service-form .error' ).hide();
-				$( '#new-service-form img' ).show();
-				$( '#new-service-form input[type=submit]' ).prop( 'disabled', true );
+				$( '#new-service-form .spinner' ).addClass( 'is-active' );
+				$( '#new-service-form input[type="submit"]' ).prop( 'disabled', true );
 			},
 			success: function ( response ) {
-				$( '#new-service-form img' ).hide();
+				$( '#new-service-form .spinner' ).removeClass( 'is-active' );
 
 				if ( '' + response === '1' ) {
 					$( '#new-service-form .inerror' ).removeClass( 'inerror' ).addClass( 'error' );
 					$( '#new-service-form .error' ).show();
-					$( '#new-service-form input[type=submit]' ).prop( 'disabled', false );
+					$( '#new-service-form input[type="submit"]' ).prop( 'disabled', false );
 				} else {
 					document.location.reload();
 				}
@@ -487,7 +488,7 @@
 						.css( 'backgroundImage', 'url("' + sharing_loading_icon + '")' );
 
 					// Save
-					form.ajaxSubmit( function (/*response*/) {
+					form.ajaxSubmit( function ( /*response*/ ) {
 						// Remove the item
 						form.parents( 'li:first' ).fadeOut( function () {
 							$( this ).remove();

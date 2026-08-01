@@ -12,6 +12,10 @@ use Gutenberg_Templates\Inc\Traits\Instance;
 use Gutenberg_Templates\Inc\Traits\Helper;
 use Gutenberg_Templates\Inc\Importer\Plugin;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Sync Library
  *
@@ -41,6 +45,33 @@ class Sync_Library {
 		add_action( 'sync_blocks', array( $this, 'sync_blocks' ) );
 		add_action( 'wp_ajax_ast-block-templates-get-sites-request-count', array( $this, 'ajax_sites_requests_count' ) );
 		add_action( 'wp_ajax_ast-block-templates-import-sites', array( $this, 'ajax_import_sites' ) );
+
+		// To force sync library after Spectra plugin installation, update or deletion for switching between v2 and v3.
+		add_action( 'upgrader_process_complete', array( $this, 'handle_spectra_install_update' ), 10, 2 );
+		add_action( 'deleted_plugin', array( $this, 'handle_spectra_deletion' ), 10, 1 );
+
+		// To force sync library after Spectra v3 update and legacy design library option change.
+		add_action( 'uagb_update_after', array( __CLASS__, 'enable_force_sync' ) );
+		add_action( 'add_option_register-v2-blocks', array( $this, 'handle_spectra_options_add' ) );
+		add_action( 'update_option_register-v2-blocks', array( $this, 'handle_spectra_options_update' ), 10, 2 );
+		add_action( 'add_option_uag_enable_legacy_design_library', array( $this, 'handle_spectra_options_add' ) );
+		add_action( 'update_option_uag_enable_legacy_design_library', array( $this, 'handle_spectra_options_update' ), 10, 2 );
+	}
+
+	/**
+	 * Get spectra blocks version for API requests.
+	 *
+	 * @since 2.4.14
+	 * @return string
+	 */
+	public function get_spectra_blocks_version() {
+		$spectra_blocks_ver = 'v2';
+		if ( Plugin::instance()->should_show_version_toggle() ) {
+			$spectra_blocks_ver = 'v2,v3';
+		} else {
+			$spectra_blocks_ver = Plugin::instance()->get_spectra_version();
+		}
+		return $spectra_blocks_ver;
 	}
 
 	/**
@@ -69,6 +100,12 @@ class Sync_Library {
 			if ( isset( $res_data['data']['customizer_css'] ) ) {
 				Helper::instance()->update_json_file( 'ast-block-templates-customizer-css', $res_data['data']['customizer_css'] );
 				do_action( 'ast_block_templates_customizer_css', $res_data['data']['customizer_css'] );
+			}
+
+			// Set global styles for Spectra v3.
+			if ( isset( $res_data['data']['global_styles'] ) ) {
+				Helper::instance()->update_json_file( 'ast-block-templates-global-styles', $res_data['data']['global_styles'] );
+				do_action( 'ast_block_templates_global_styles', $res_data['data']['global_styles'] );
 			}
 		}
 	}
@@ -133,6 +170,7 @@ class Sync_Library {
 	 * Set default assets
 	 *
 	 * @since 1.0.2
+	 * @return  void
 	 */
 	public function set_default_assets() {
 
@@ -174,7 +212,7 @@ class Sync_Library {
 			return;
 		}
 
-		update_option( 'ast_blocks_sync_in_progress', 'yes', 'no' );
+		update_option( 'ast_blocks_sync_in_progress', 'yes', false );
 		$this->sync_blocks();
 	}
 
@@ -192,7 +230,7 @@ class Sync_Library {
 		if ( empty( $result_data ) ) {
 			Helper::instance()->ast_block_templates_log( 'Blocks are up to date.' );
 			update_option( 'ast-block-templates-last-export-checksums-time', time() );
-			update_option( 'ast_blocks_sync_in_progress', 'no', 'no' );
+			update_option( 'ast_blocks_sync_in_progress', 'no', false );
 			return;
 		}
 		$this->process_data_sync( $result_data );
@@ -204,7 +242,7 @@ class Sync_Library {
 	 * Handle Sync API Response
 	 *
 	 * @since 2.0.0
-	 * @return array
+	 * @return array<string, mixed>
 	 */
 	public function check_checksum_and_get_blocks_data() {
 
@@ -244,7 +282,7 @@ class Sync_Library {
 	 * Process Data Sync
 	 *
 	 * @since 2.0.0
-	 * @param  array $data Data to process.
+	 * @param  array<string, mixed> $data Data to process.
 	 * @return void
 	 */
 	public function process_data_sync( $data ) {
@@ -279,7 +317,7 @@ class Sync_Library {
 	 * Json Files Names.
 	 *
 	 * @since 1.0.1
-	 * @return array
+	 * @return array<string>
 	 */
 	public function get_default_assets() {
 		return array(
@@ -302,6 +340,7 @@ class Sync_Library {
 			'ast-block-templates-site-requests',
 			'ast-block-templates-last-export-checksums',
 			'ast-block-templates-customizer-css',
+			'ast-block-templates-global-styles',
 		);
 	}
 
@@ -408,7 +447,7 @@ class Sync_Library {
 
 			// Set last export checksums.
 			if ( ! empty( $result['last_export_checksums'] ) ) {
-				update_option( 'ast-block-templates-last-export-checksums-latest', $result['last_export_checksums'], 'no' );
+				update_option( 'ast-block-templates-last-export-checksums-latest', $result['last_export_checksums'], false );
 
 				$this->last_export_checksums = $result['last_export_checksums'];
 			}
@@ -429,8 +468,8 @@ class Sync_Library {
 	 */
 	public function update_latest_checksums( $new_checksum ) {
 		Helper::instance()->update_json_file( 'ast-block-templates-last-export-checksums', $new_checksum );
-		update_option( 'ast-block-templates-last-export-checksums-time', time(), 'no' );
-		update_option( 'ast_blocks_sync_in_progress', 'no', 'no' );
+		update_option( 'ast-block-templates-last-export-checksums-time', time(), false );
+		update_option( 'ast_blocks_sync_in_progress', 'no', false );
 		do_action( 'ast_block_templates_sync_export_checksum', $new_checksum );
 	}
 
@@ -448,12 +487,12 @@ class Sync_Library {
 		// Verify Nonce.
 		check_ajax_referer( 'ast-block-templates-ajax-nonce', '_ajax_nonce' );
 
-		$categories = $this->import_categories();
+		// Import categories doesn't return any values.
+		$this->import_categories();
 		wp_send_json_success(
 			array(
 				'message' => 'Success imported categories',
 				'status'  => true,
-				'data'    => $categories,
 			)
 		);
 
@@ -475,7 +514,7 @@ class Sync_Library {
 
 		$page_no = isset( $_POST['page_no'] ) ? absint( $_POST['page_no'] ) : '';
 		if ( $page_no ) {
-			$sites_and_pages = $this->import_blocks( $page_no );
+			$this->import_blocks( $page_no );
 
 			$data = array(
 				'message' => 'Success imported sites for page ' . $page_no,
@@ -576,6 +615,9 @@ class Sync_Library {
 				return $total_requests['pages'];
 			}
 		}
+		
+		// returning 0 pages as no return statement exist.
+		return 0;
 
 	}
 
@@ -651,10 +693,11 @@ class Sync_Library {
 		$query_args = apply_filters(
 			'ast_block_templates_blocks_args',
 			array(
-				'page_builder' => 'gutenberg',
-				'per_page'     => 30,
-				'page'         => $page,
-				'wireframe'    => 'yes',
+				'page_builder'       => 'gutenberg',
+				'per_page'           => 30,
+				'page'               => $page,
+				'wireframe'          => 'yes',
+				'spectra-blocks-ver' => $this->get_spectra_blocks_version(),
 			)
 		);
 
@@ -752,9 +795,10 @@ class Sync_Library {
 		$query_args = apply_filters(
 			'ast_block_templates_get_sites_and_pages_args',
 			array(
-				'per_page'     => 30,
-				'page'         => $page,
-				'page-builder' => 'gutenberg',
+				'per_page'           => 30,
+				'page'               => $page,
+				'page-builder'       => 'gutenberg',
+				'spectra-blocks-ver' => $this->get_spectra_blocks_version(),
 			)
 		);
 
@@ -871,4 +915,116 @@ class Sync_Library {
 		);
 	}
 
+	/**
+	 * Enable force sync
+	 *
+	 * Sets the force sync flag to 'yes'.
+	 *
+	 * @since 2.4.16
+	 * @return void
+	 */
+	public static function enable_force_sync() {
+		delete_site_option( 'ast-block-templates-last-export-checksums-time' );
+		Helper::instance()->update_json_file( 'ast-block-templates-last-export-checksums', '' );
+
+		/**
+		 * Action to trigger force sync of block templates.
+		 *
+		 * @since 2.4.16
+		 * @return void
+		 */
+		do_action( 'ast_block_templates_enable_force_sync' );
+	}
+
+	/**
+	 * Handle Spectra plugin deletion.
+	 *
+	 * Sets the force sync flag when Spectra plugin is deleted.
+	 *
+	 * @since 2.4.16
+	 * @param string $plugin Path to the plugin file relative to the plugins directory.
+	 * @return void
+	 */
+	public function handle_spectra_deletion( $plugin ) {
+		if ( 'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php' === $plugin ) {
+			self::enable_force_sync();
+		}
+	}
+
+	/**
+	 * Handle Spectra plugin options add.
+	 *
+	 * Sets the force sync flag when Spectra plugin options are added for the first time.
+	 *
+	 * @since 2.4.18
+	 * @return void
+	 */
+	public function handle_spectra_options_add() {
+		self::enable_force_sync();
+	}
+
+	/**
+	 * Handle Spectra plugin options update.
+	 *
+	 * Sets the force sync flag when Spectra plugin options are updated.
+	 *
+	 * @since 2.4.18
+	 * @param mixed $old_value The old value of the option.
+	 * @param mixed $new_value The new value of the option.
+	 * @return void
+	 */
+	public function handle_spectra_options_update( $old_value, $new_value ) {
+		// Run only if value actually changed (optional but recommended).
+		if ( $old_value === $new_value ) {
+			return;
+		}
+
+		self::enable_force_sync();
+	}
+
+	/**
+	 * Handle Spectra plugin installation or update.
+	 *
+	 * Sets the force sync flag when Spectra plugin is installed or updated.
+	 *
+	 * @since 2.4.16
+	 * @param \WP_Upgrader         $upgrader_object WP_Upgrader instance.
+	 * @param array<string, mixed> $options         Array of bulk item update data.
+	 * @return void
+	 */
+	public function handle_spectra_install_update( $upgrader_object, $options ) {
+		/**
+		 * Filter to disable force sync on Spectra plugin install or update.
+		 *
+		 * @param bool $disable_sync True to disable sync, false to enable.
+		 *
+		 * @since 2.4.16
+		 * @return bool True to disable sync, false to enable.
+		 */
+		if ( apply_filters( 'ast_block_templates_disable_force_sync', false ) ) {
+			return;
+		}
+
+		// Bail early if not a plugin install or update action.
+		if ( empty( $options['type'] ) || 'plugin' !== $options['type'] || ! in_array( $options['action'], array( 'install', 'update' ), true ) ) {
+			return;
+		}
+
+		// Handle bulk plugin install/update.
+		if ( isset( $options['plugins'] ) && is_array( $options['plugins'] ) ) {
+			foreach ( $options['plugins'] as $plugin ) {
+				if ( 'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php' === $plugin ) {
+					self::enable_force_sync();
+					break;
+				}
+			}
+		} elseif ( isset( $options['plugin'] ) ) {
+			// Handle single plugin update.
+			if ( 'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php' === $options['plugin'] ) {
+				self::enable_force_sync();
+			}
+		} elseif ( is_array( $upgrader_object->result ) && 'ultimate-addons-for-gutenberg' === $upgrader_object->result['destination_name'] ) {
+			self::enable_force_sync();
+		}
+	}
 }

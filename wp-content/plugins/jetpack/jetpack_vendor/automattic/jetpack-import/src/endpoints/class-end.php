@@ -7,6 +7,14 @@
 
 namespace Automattic\Jetpack\Import\Endpoints;
 
+use WP_Error;
+use WP_REST_Request;
+use WP_REST_Response;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Class End
  *

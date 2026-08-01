@@ -5,6 +5,1164 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.36.9] - 2026-05-14
+### Added
+- Comment: Adds a user-signed REST proxy for VideoPress stats and seeds the modernized dashboard's React initial state behind the existing modernization filter. [#48817]
+- Comment: Adds the modernized Overview screen behind the existing modernization filter. [#48682]
+- Comment: Adds the modernized Video details screen behind the existing modernization filter. [#48669]
+
+### Changed
+- Update package dependencies. [#48695]
+- Update package dependencies. [#48696]
+
+## [0.36.8] - 2026-05-11
+### Added
+- VideoPress: Add Library tab as a DataViews grid with table alternate and mocked uploads, all behind the existing modernization filter. [#48586]
+- VideoPress: Add shared chrome with Overview/Library/Settings tabs and a working Restrict access toggle, all behind the existing modernization filter. [#48510]
+
+### Changed
+- Components: Use Link from `@wordpress/ui` instead of ExternalLink. [#48529]
+- VideoPress: Remove translation wrappers from the "VideoPress" product name. [#48519]
+
+### Fixed
+- VideoPress: Fix the "Add new video" button disappearing on the admin dashboard after the first video is uploaded. [#48690]
+
+## [0.36.7] - 2026-05-04
+### Changed
+- Components: migrate Tier 1 `jetpack-components` to `@wordpress/components` and `@wordpress/icons` (no user-facing change). [#48378]
+- Internal: No longer require automattic/jetpack-changelogger as a per-project dev dependency. [#48225]
+
+### Fixed
+- Avoid undefined property warning when video info has no privacy_setting. [#48379]
+- Fix corrupt resumable uploads triggering a fatal error. [#48332]
+- Fix runaway render loop on the admin library page when paginating on WordPress 7.0. [#48411]
+
+## [0.36.6] - 2026-04-27
+### Changed
+- Update package dependencies. [#48302]
+- VideoPress: Refine how the embedded post context is resolved when requesting playback tokens. [#48204]
+
+### Fixed
+- Fix PHP warning when video info lookup returns false on WordPress.com. [#48226]
+- Fix upsell incorrectly shown to legacy Jetpack Security plan customers who have unlimited (not 1TB) VideoPress storage. [#48295]
+
+## [0.36.5] - 2026-04-20
+### Changed
+- Admin dashboard: Migrate video storage meter and video thumbnail upload progress to @wordpress/components ProgressBar; drop unused progressBarClassName prop. [#48191]
+- Adopt the shared Jetpack admin-page-layout mixin on the VideoPress admin page: pinned header, scrolling middle, pinned footer, no window-level scroll. [#48109]
+- Swap the site-settings Video Privacy toggle to WordPress CheckboxControl for native rendering and accessibility. [#48175]
+- Update package dependencies. [#48106] [#48126] [#48141]
+- Video Thumbnail: Remove Jetpack color override on loading spinner. [#47317]
+
+### Removed
+- Remove unused custom Checkbox component and the hidden per-row selection UI that relied on it. [#48175]
+
+### Fixed
+- VideoPress Admin: Add padding around the Settings section, make the hero full width on medium screens, and remove an empty pagination placeholder below the video library. [#48131]
+
+## [0.36.4] - 2026-04-16
+### Fixed
+- Fix block editor errors when used with Gutenberg 23.0.0+, where the SandBox component no longer defaults to same-origin. [#48117]
+
+## [0.36.3] - 2026-04-15
+### Security
+- Ensure only users who can upload media can request VideoPress upload tokens via AJAX. [#47683]
+
+### Changed
+- Clean up postMessage bridge code: use specific targetOrigin values, add origin checks to message listeners, remove unused legacy token bridge, and add unit tests. [#47436]
+- Update package dependencies. [#47907]
+
+### Fixed
+- Fix poster image not saving when selected during video upload. [#47725]
+- Fix stuck loading state on video card after deleting a video. [#48107]
+
+## [0.36.2] - 2026-04-10
+### Changed
+- Update package dependencies. [#47890]
+
+## [0.36.1] - 2026-04-06
+### Changed
+- Update admin page footer design. [#47840]
+- Update package dependencies. [#47870]
+
+## [0.36.0] - 2026-03-30
+### Changed
+- Unify admin dashboard page header with admin-ui components. [#47641]
+- Update package dependencies. [#47799]
+
+## [0.35.6] - 2026-03-23
+### Changed
+- Update package dependencies. [#47684] [#47719]
+
+### Fixed
+- Auto-complete upload when user hasn't edited title or poster, and self-heal failed oEmbed cache. [#47356]
+
+## [0.35.5] - 2026-03-16
+### Changed
+- Update dependencies. [#47472]
+
+## [0.35.4] - 2026-03-09
+### Changed
+- Clean up REST API endpoint schemas to use proper JSON Schema types and constraints. [#47017]
+- Migrate main admin page header to use unified AdminHeader component from jetpack-components. [#47313]
+- Switch to Native TypeScript compiler based on Go. [#47375]
+- Update package dependencies. [#47496] [#47499]
+
+### Fixed
+- Refresh VideoPress video thumbnails in the Media Library grid automatically after transcoding completes. [#47358]
+
+## [0.35.3] - 2026-03-02
+### Changed
+- Update dependencies. [#46758]
+
+## [0.35.2] - 2026-02-26
+### Changed
+- Update package dependencies. [#47285] [#47288] [#47300] [#47309]
+- Use `apiFetch` in GutenbergKit for token authentication middleware support. [#45254]
+
+## [0.35.1] - 2026-02-23
+### Changed
+- Update package dependencies. [#47165] [#47173]
+
+### Fixed
+- Pass current user ID when deleting VideoPress videos on wpcom to fix activity log attribution. [#47204]
+- Video block: Only intercept video file uploads when the VideoPress module is active. [#46894]
+
+## [0.35.0] - 2026-02-16
+### Added
+- Tracks: Accept SRT subtitle files for upload alongside VTT. [#46978]
+
+### Changed
+- Update package dependencies. [#47099]
+
+## [0.34.1] - 2026-02-10
+### Changed
+- Update package dependencies. [#47002]
+
+## [0.34.0] - 2026-02-04
+### Added
+- Add email rendering support for the videopress/video block. [#46798]
+
+### Changed
+- Update package dependencies. [#46905]
+
+### Fixed
+- Clarify error messages when video uploads fail due to plan limitations. [#46668]
+- Fix compatibility with Gutenberg 22.4 by removing invalid null timezone argument from dateI18n calls. [#46928]
+- Fix upgrade notice incorrectly showing for A4A (Automattic for Agencies) VideoPress customers by using dynamic features API instead of hardcoded plan slugs. [#46835]
+- Fix video query to only return VideoPress videos instead of all video types. [#46689]
+
+## [0.33.4] - 2026-02-02
+### Changed
+- Update package dependencies. [#46854]
+
+## [0.33.3] - 2026-01-26
+### Changed
+- Update dependencies. [#46741]
+
+## [0.33.2] - 2026-01-19
+### Changed
+- Update package dependencies. [#46552] [#46647]
+
+## [0.33.1] - 2026-01-12
+### Changed
+- Update package dependencies. [#46456] [#46512]
+
+## [0.33.0] - 2025-12-22
+### Changed
+- Update package dependencies. [#46362] [#46363]
+- Make Gutenberg block depend on Jetpack site connection instead of user connection. [#46274]
+
+## [0.32.19] - 2025-12-15
+### Changed
+- Replace use of confusing `esc_js` with `wp_json_encode`. [#46229]
+- Update package dependencies. [#46244]
+
+## [0.32.18] - 2025-12-08
+### Fixed
+- Ensure proper flags are used with `json_encode()`. [#46092]
+
+## [0.32.17] - 2025-12-01
+### Changed
+- Update package dependencies. [#46072] [#46143]
+
+## [0.32.16] - 2025-11-21
+### Changed
+- Update package dependencies. [#46022]
+
+### Fixed
+- Phan: Address PhanPossiblyUndeclaredVariable violations. [#45911]
+
+## [0.32.15] - 2025-11-18
+### Changed
+- Update dependencies. [#45553]
+
+## [0.32.14] - 2025-11-17
+### Changed
+- Update package dependencies. [#45915] [#45958]
+
+## [0.32.13] - 2025-11-10
+### Changed
+- Replace icons removed from @wordpress/icons with alternatives. [#45760]
+- Update package dependencies. [#45737] [#45756]
+
+## [0.32.12] - 2025-11-03
+### Changed
+- Update package dependencies. [#45652]
+
+## [0.32.11] - 2025-10-27
+### Changed
+- Internal updates.
+
+## [0.32.10] - 2025-10-20
+### Changed
+- Update dependencies. [#45488]
+
+## [0.32.9] - 2025-10-06
+### Changed
+- Update package dependencies. [#45334] [#45335]
+
+## [0.32.8] - 2025-09-29
+### Changed
+- Update dependencies. [#44736]
+
+## [0.32.7] - 2025-09-22
+### Changed
+- Update dependencies. [#44736]
+
+## [0.32.6] - 2025-09-19
+### Changed
+- Update package dependencies. [#45173] [#45229]
+
+## [0.32.5] - 2025-09-15
+### Changed
+- Update package dependencies. [#45127] [#45128]
+
+## [0.32.4] - 2025-09-08
+### Changed
+- Update package dependencies. [#45027] [#45097]
+
+## [0.32.3] - 2025-09-01
+### Changed
+- Update dependencies. [#44736]
+
+## [0.32.2] - 2025-08-25
+### Changed
+- Update package dependencies. [#44899]
+
+## [0.32.1] - 2025-08-18
+### Added
+- Add `typecheck` placeholder script (to be implemented). [#44795]
+
+## [0.32.0] - 2025-08-14
+### Changed
+- Update package dependencies. [#44701]
+- VideoPress: Include VideoPress editor state in REST API requests. [#44616]
+
+## [0.31.2] - 2025-08-11
+### Changed
+- Update dependencies. [#44673]
+- Update package dependencies. [#44677]
+
+### Fixed
+- I18n: Improve context hints in comments for translators. [#44686]
+
+## [0.31.1] - 2025-08-05
+### Fixed
+- Prevent PHP fatal if URL is not a string. [#44619]
+
+## [0.31.0] - 2025-08-04
+### Changed
+- My Jetpack: Unify the user connection flow with a unified screen. [#44469]
+- Update dependencies. [#44551]
+
+## [0.30.6] - 2025-07-28
+### Changed
+- Internal updates.
+
+## [0.30.5] - 2025-07-21
+### Changed
+- Update package dependencies. [#44356]
+
+## [0.30.4] - 2025-07-14
+### Changed
+- Update package dependencies. [#44217] [#44219]
+
+## [0.30.3] - 2025-07-07
+### Changed
+- Update package dependencies. [#44148] [#44151]
+
+### Fixed
+- VideoPress: Fix PHP fatals in `class-initializer.php`. [#44169]
+- VideoPress: Fix video row action button clickability by properly hiding stats on hover. [#44167]
+
+## [0.30.2] - 2025-06-30
+### Changed
+- Internal updates.
+
+## [0.30.1] - 2025-06-24
+### Changed
+- Update dependencies. [#43885]
+
+## [0.30.0] - 2025-06-23
+### Changed
+- Scripts: Change imports for hosting checks. [#43972]
+- Update package dependencies. [#44020] [#44040]
+
+### Fixed
+- Autoloader: Prevent double slash in autoloader path. [#44030]
+
+## [0.29.6] - 2025-06-16
+### Changed
+- Update package dependencies. [#43892] [#43951]
+
+### Fixed
+- Prevent PHP warning when rendering blocks. [#43890]
+
+## [0.29.5] - 2025-06-10
+### Changed
+- Update dependencies. [#43878]
+
+## [0.29.4] - 2025-06-05
+### Changed
+- Update package dependencies. [#43718] [#43734] [#43766]
+
+## [0.29.3] - 2025-06-02
+### Changed
+- Update package dependencies. [#43710] [#43711]
+
+### Fixed
+- Catch PHP notices when handling unexpected data types. [#43728]
+
+## [0.29.2] - 2025-05-26
+### Changed
+- Update package dependencies. [#43516] [#43578]
+
+## [0.29.1] - 2025-05-19
+### Changed
+- Update package dependencies. [#43398]
+
+## [0.29.0] - 2025-05-12
+### Changed
+- Stable release management: Do not ship source files. [#43310]
+- Update package dependencies. [#43400]
+- Use functions from the `@automattic/number-formatters` package. [#42864]
+
+## [0.28.4] - 2025-05-05
+### Changed
+- Update package dependencies. [#43320] [#43326] [#43355]
+
+### Fixed
+- Linting: Address final rules in WordPress Stylelint config. [#43296]
+- Linting: Do additional stylesheet cleanup. [#43247]
+- Prevent PHP warnings when post is invalid. [#43288]
+
+## [0.28.3] - 2025-04-28
+### Fixed
+- Linting: Fix more Stylelint violations. [#43213]
+- My Jetpack: Fix TypeScript type checking and the corresponding errors. [#43205]
+
+## [0.28.2] - 2025-04-21
+### Changed
+- Editor extensions: Handle status of the VideoPress module when the Jetpack plugin is active. [#40209]
+
+## [0.28.1] - 2025-04-14
+### Fixed
+- Linting: Clean up various Stylelint violations. [#43010]
+- Linting: Format SCSS imports consistently. [#43018]
+- Linting: Update stylesheets to use WordPress rules for colors. [#42920]
+
+## [0.28.0] - 2025-04-07
+### Added
+- Replace video embed with VideoPress block in Media & Text block. [#42522]
+
+### Changed
+- Linting: First pass of style coding standards. [#42734]
+- Update package dependencies. [#42762] [#42809]
+
+## [0.27.6] - 2025-03-31
+### Fixed
+- Admin Menu: Ensure Akismet menu item shows alongside standalone plugin menus. [#42776]
+- Components: Update controls to prevent more deprecation notices. [#42677]
+- Fix admin panel header component layout. [#42614]
+- Preserve search query when navigating back from video details page. [#42612]
+
+## [0.27.5] - 2025-03-24
+### Changed
+- Update dependencies. [#42564]
+
+### Fixed
+- Components: Prevent deprecation notices by adding `__next40pxDefaultSize` to controls. [#42576]
+
+## [0.27.4] - 2025-03-18
+### Changed
+- Update package dependencies. [#42509] [#42511]
+
+## [0.27.3] - 2025-03-17
+### Fixed
+- VideoPress Block: Fix broken undo functionality. [#42332]
+
+## [0.27.2] - 2025-03-12
+### Added
+- Provide connection data to footer component. [#42000]
+
+### Fixed
+- VideoPress: Upload all files when video and non-video files are drag-and-dropped. [#42312]
+
+## [0.27.1] - 2025-03-10
+### Fixed
+- Handle case when the URL doesn't contain VideoPress GUID. [#42237]
+- CSS: Add missing space between CTAs. [#42237]
+- VideoPress: Add margins within tracks control modal to ensure space between elements. [#42075]
+
+## [0.27.0] - 2025-03-03
+### Added
+- VideoPress: Add title to the attachment details view. [#42023]
+
+### Changed
+- Update package dependencies. [#42163]
+
+## [0.26.0] - 2025-02-24
+### Changed
+- Update package dependencies. [#41955]
+
+### Fixed
+- Code: Prevent dynamic class properties. [#41857]
+- Fix flex position for videos inside row blocks. [#41789]
+- Use one single checkbox component. [#41853]
+
+## [0.25.12] - 2025-02-17
+### Fixed
+- Prevent deprecation notices on PHP 8. [#41733]
+
+## [0.25.11] - 2025-02-11
+### Changed
+- Update dependencies. [#39855]
+
+## [0.25.10] - 2025-02-10
+### Changed
+- Update package dependencies. [#41491] [#41577]
+
+### Fixed
+- VideoPress: Fix warnings for videos with no prior metadata. [#41639]
+
+## [0.25.9] - 2025-02-03
+### Changed
+- Update package dependencies. [#41286]
+
+### Fixed
+- Code: Remove extra params on function calls. [#41263]
+
+## [0.25.8] - 2025-01-27
+### Fixed
+- VideoPress: Fix issue with VideoPress block with 0 height and width. [#41319]
+
+## [0.25.7] - 2025-01-20
+### Changed
+- Code: Use function-style exit() and die() with a default status code of 0. [#41167]
+- Updated package dependencies. [#41099]
+
+### Fixed
+- Fix VideoPress block line-height. [#41102]
+
+## [0.25.6] - 2025-01-06
+### Changed
+- Updated dependencies. [#40709]
+- Updated package dependencies. [#40705] [#40784] [#40797] [#40798] [#40810] [#40830] [#40841] [#40844]
+
+## [0.25.5] - 2024-12-16
+### Changed
+- Updated package dependencies. [#40564]
+
+### Fixed
+- Fixed lints following ESLint rule changes for TS [#40584]
+
+## [0.25.4] - 2024-12-09
+### Changed
+- Updated package dependencies. [#40363]
+
+## [0.25.3] - 2024-12-02
+### Changed
+- Updated @wordpress/editor to the latest version. [#40373]
+
+## [0.25.2] - 2024-11-26
+### Changed
+- Update dependencies. [#39855]
+
+## [0.25.1] - 2024-11-25
+### Changed
+- Updated package dependencies. [#40258] [#40286] [#40288]
+
+### Fixed
+- Fixed TS errors following @wordpress/editor update [#40291]
+
+## [0.25.0] - 2024-11-18
+### Removed
+- General: Update minimum PHP version to 7.2. [#40147]
+
+## [0.24.17] - 2024-11-11
+### Changed
+- Updated package dependencies. [#39999] [#40000] [#40060]
+
+## [0.24.16] - 2024-11-04
+### Added
+- Enable test coverage. [#39961]
+
+## [0.24.15] - 2024-10-29
+### Changed
+- Components: Add __nextHasNoMarginBottom to BaseControl-based components, preventing deprecation notices. [#39877]
+
+## [0.24.14] - 2024-10-28
+### Changed
+- Admin: Changed initialization load order for menu items to prevent translation error. [#39841]
+- Updated package dependencies. [#39910]
+
+## [0.24.13] - 2024-10-21
+### Changed
+- Update dependencies. [#39781]
+
+## [0.24.12] - 2024-10-14
+### Added
+- Add tracks to connection banner. [#39732]
+
+### Changed
+- Only include `wp-polyfill` as a script dependency when needed. [#39629]
+- Updated package dependencies. [#39669] [#39707]
+
+### Fixed
+- Fix bug where connection banner was showing in P2s and other atomic/simple sites [#39667]
+
+## [0.24.11] - 2024-10-07
+### Changed
+- Update connection nudge for VideoPress connection banner in blocks. [#39628]
+- Updated package dependencies. [#39594]
+
+### Fixed
+- VideoPress: fix thumbnail update bug that showed the old thumbnail for a couple seconds on the details page. [#39631]
+
+## [0.24.10] - 2024-09-30
+### Changed
+- Update dependencies. [#39528]
+
+## [0.24.9] - 2024-09-23
+### Changed
+- Update dependencies. [#38595]
+
+## [0.24.8] - 2024-09-16
+### Changed
+- Updated package dependencies. [#39332]
+
+## [0.24.7] - 2024-09-10
+### Changed
+- Updated package dependencies. [#39302]
+
+## [0.24.6] - 2024-09-09
+### Changed
+- Updated package dependencies. [#39278]
+
+## [0.24.5] - 2024-09-05
+### Changed
+- Updated package dependencies. [#39176]
+
+### Fixed
+- Fix translation issue with VideoPress data [#39242]
+
+## [0.24.4] - 2024-09-02
+### Changed
+- Admin menu: change order of Jetpack sub-menu items [#39095]
+- Updated package dependencies. [#39111]
+
+## [0.24.3] - 2024-08-26
+### Added
+- Add context switching to videopress card from yearly views to monthly views [#38979]
+
+### Changed
+- Updated package dependencies. [#39004]
+
+## [0.24.2] - 2024-08-21
+### Changed
+- Internal updates.
+
+## [0.24.1] - 2024-08-19
+### Added
+- Add value to active card state on VideoPress My Jetpack card. [#38812]
+
+### Changed
+- Updated package dependencies. [#38893]
+
+### Fixed
+- Lossless image optimization for images (should improve performance with no visible changes). [#38750]
+
+## [0.24.0] - 2024-08-15
+### Changed
+- Updated package dependencies. [#38665]
+- VideoPress: upload error handler to hint the user something's gone wrong [#38769]
+- VideoPress: update tus client library to 4.1.0 [#38821]
+
+## [0.23.31] - 2024-08-12
+### Added
+- React 19 compatibility: Making sure useRef includes an argument. [#38765]
+
+### Removed
+- Tests: Removed react-test-renderer. [#38755]
+
+## [0.23.30] - 2024-08-05
+### Changed
+- Fixup versions [#38612]
+- React: Changing global JSX namespace to React.JSX [#38585]
+
+## [0.23.29] - 2024-07-29
+### Changed
+- Update dependencies. [#38558]
+
+## [0.23.28] - 2024-07-22
+### Changed
+- Update dependencies. [#38402]
+
+## [0.23.27] - 2024-07-08
+### Changed
+- Updated package dependencies. [#38132]
+
+## [0.23.26] - 2024-06-24
+### Changed
+- Update dependencies. [#37979]
+
+## [0.23.25] - 2024-06-17
+### Changed
+- Updated package dependencies. [#37779] [#37796]
+
+## [0.23.24] - 2024-06-10
+### Changed
+- Change codebase to use clsx instead of classnames. [#37708]
+- Updated package dependencies. [#37669]
+
+## [0.23.23] - 2024-06-03
+### Changed
+- Internal updates.
+
+## [0.23.22] - 2024-05-20
+### Changed
+- Updated package dependencies. [#37379] [#37380] [#37382]
+
+### Fixed
+- VideoPress: Fix localization of block text. [#37360]
+
+## [0.23.21] - 2024-05-13
+### Changed
+- Update dependencies. [#37280]
+
+## [0.23.20] - 2024-05-07
+### Fixed
+- Sanitize the preload value for video shortcodes and blocks. [#37271]
+
+## [0.23.19] - 2024-05-06
+### Added
+- Add missing package dependencies. [#37141]
+
+### Changed
+- Updated package dependencies. [#37147] [#37148] [#37160]
+
+## [0.23.18] - 2024-04-29
+### Changed
+- Update button's prop to match latest changes in WordPress 6.5. [#36318]
+
+## [0.23.17] - 2024-04-25
+### Fixed
+- Set correct `textdomain` in `block.json`. [#37057]
+
+## [0.23.16] - 2024-04-22
+### Changed
+- Bump VideoPress block API version. [#36864]
+
+## [0.23.15] - 2024-04-11
+### Changed
+- Update dependencies.
+
+## [0.23.14] - 2024-04-08
+### Changed
+- Updated package dependencies. [#36756] [#36760] [#36761]
+
+## [0.23.13] - 2024-04-02
+### Changed
+- Updated package dependencies. [#36665]
+
+## [0.23.12] - 2024-03-27
+### Changed
+- Updated package dependencies. [#36539, #36585]
+
+## [0.23.11] - 2024-03-25
+### Changed
+- Internal updates.
+
+## [0.23.10] - 2024-03-14
+### Changed
+- Internal updates.
+
+## [0.23.9] - 2024-03-12
+### Changed
+- Updated package dependencies. [#36325]
+
+### Fixed
+- REST requests: avoid potential warnings with custom objects. [#36315]
+
+## [0.23.8] - 2024-03-07
+### Changed
+- Update to the most recent version of the @automattic/calypso-color-schemes package. [#36187]
+
+## [0.23.7] - 2024-03-04
+### Changed
+- Updated package dependencies.
+
+## [0.23.6] - 2024-03-01
+### Fixed
+- Block: display the right message when user is not connected on a site using the standalone plugin. [#35995]
+
+## [0.23.5] - 2024-02-27
+### Changed
+- Update dependencies.
+
+## [0.23.4] - 2024-02-22
+### Changed
+- Updated package dependencies. [#35793]
+
+## [0.23.3] - 2024-02-19
+### Changed
+- Internal updates.
+
+## [0.23.2] - 2024-02-13
+### Changed
+- Updated package dependencies. [#35608]
+
+## [0.23.1] - 2024-02-12
+### Fixed
+- Fixed various PHP warnings in PHP 8.1+ [#35551]
+
+## [0.23.0] - 2024-02-05
+### Changed
+- Updated package dependencies.
+- Use blog ID instead of site slug in checkout URL. [#34996]
+
+## [0.22.4] - 2024-01-29
+### Changed
+- Update dependencies.
+
+## [0.22.3] - 2024-01-22
+### Fixed
+- Memberships: Removed the use of non-existent class Token_Subscription_Service [#34999]
+
+## [0.22.2] - 2024-01-18
+### Changed
+- Minor internal updates.
+
+## [0.22.1] - 2024-01-18
+### Changed
+- Update dependencies.
+
+## [0.22.0] - 2024-01-08
+### Changed
+- Remove unused logic from the modules store. [#34835]
+- Updated useModuleStatus hook to use module_status redux store. [#34845]
+
+## [0.21.7] - 2024-01-04
+### Changed
+- Updated package dependencies. [#34815] [#34816]
+
+## [0.21.6] - 2023-12-25
+### Changed
+- Internal updates.
+
+## [0.21.5] - 2023-12-20
+### Changed
+- Updated package dependencies. [#34694]
+
+### Fixed
+- Updated name of Abstract_Token_Subscription_Service [#34723]
+
+## [0.21.4] - 2023-12-06
+### Changed
+- Updated package dependencies. [#34416]
+
+## [0.21.3.1] - 2023-12-20
+### Fixed
+- Updated name of Abstract_Token_Subscription_Service [#34723]
+
+## [0.21.3] - 2023-12-03
+### Changed
+- Updated package dependencies. [#34411] [#34427]
+
+## [0.21.2] - 2023-11-24
+
+## [0.21.1] - 2023-11-21
+### Changed
+- Replaced usage of strpos() with str_contains(). [#34137]
+
+## [0.21.0] - 2023-11-20
+### Changed
+- Replaced usage of strpos() with str_starts_with(). [#34135]
+- Updated required PHP version to >= 7.0. [#34192]
+- Clarified video preview poster image selection notice in the VideoPress uploader. [#32948]
+
+### Fixed
+- Enqueued token-bridge script when processing videopress shortcode. [#34121]
+- Fixed interaction with memberships and VideoPress privacy. [#34189]
+
+## [0.20.2] - 2023-11-14
+### Changed
+- Updated package dependencies. [#34093]
+
+## [0.20.1] - 2023-11-13
+### Changed
+- Updated dependencies.
+
+## [0.20.0] - 2023-11-08
+### Added
+- Added support for gated content in VideoPress. [#32154]
+
+## [0.19.3] - 2023-11-03
+### Changed
+- Updated package dependencies. [#33904]
+
+## [0.19.2] - 2023-10-30
+### Fixed
+- VideoPress: Add ThemeProvider to Dropdown and Popover components. [#33825]
+
+## [0.19.1] - 2023-10-24
+
+- Updated package dependencies.
+
+## [0.19.0] - 2023-10-23
+### Changed
+- Use register_block_type and block.json to handle the block's scripts properly and fix assets being loaded when block is not present. [#33701]
+
+## [0.18.0] - 2023-10-19
+### Changed
+- Move ProgressBar component to the shared `@automattic/jetpack-components` package. [#33054]
+- Revert changes on #33394 #33036 and #33042 - Those changes won't properly handle VP block assets on feeds/query loops [#33672]
+- Updated package dependencies. [#33687]
+
+## [0.17.6] - 2023-10-17
+### Security
+- Escape VideoPress attributes [#33637]
+
+### Changed
+- Updated package dependencies. [#33646]
+
+## [0.17.5] - 2023-10-16
+### Changed
+- Updated package dependencies. [#33429, #33584]
+
+### Fixed
+- VideoPress: Handle block registration in the REST API request context. [#33565]
+
+## [0.17.4] - 2023-10-10
+### Changed
+- Updated package dependencies. [#33428]
+
+## [0.17.3] - 2023-10-03
+### Fixed
+- Use a try/catch when calling get_the_content to avoid fatals. See: https://github.com/Automattic/jetpack/issues/33284 [#33394]
+
+## [0.17.2] - 2023-09-28
+### Added
+- Add error handling for .vtt track files upload process [#33249]
+
+### Changed
+- Use WordPress `str_starts_with` polyfill. [#33288]
+
+## [0.17.1] - 2023-09-25
+### Fixed
+- Add bi-yearly constants for complete and videopress in config. [#33095]
+
+## [0.17.0] - 2023-09-19
+### Changed
+- Add VideoPress assets enqueuing logic after the revert c9fa94de7886af75b65b8c75e642fb529144eb31 (reverted d5ca47d8de53df832e67ac8b9d6bda3663c3e8df). This time P2s should not be affected. [#33042]
+- This reverts changes introduced by d5ca47d8de53df832e67ac8b9d6bda3663c3e8df as we discovered an issue with P2s [#33038]
+- Updated Jetpack submenu sort order so individual features are alpha-sorted. [#32958]
+
+## [0.16.0] - 2023-09-13
+### Changed
+- Defer assets enqueuing for non block themes as those seem to be loading the assets on every page [#32680]
+- Updated package dependencies. [#33001]
+
+### Fixed
+- Add bi-yearly constants for complete and videopress in config [#32998]
+
+## [0.15.3] - 2023-09-11
+### Changed
+- General: remove WP 6.1 backwards compatibility checks [#32772]
+
+### Fixed
+- Ensures the appropriate scripts are enqueued to support private VideoPress videos rendered by the VideoPress Divi module [#32650]
+
+## [0.15.2] - 2023-09-04
+### Changed
+- Updated package dependencies. [#32803] [#32804]
+
+## [0.15.1] - 2023-08-23
+### Changed
+- Updated package dependencies. [#32605]
+
+## [0.15.0] - 2023-08-21
+### Changed
+- Update icons of Jetpack blocks [#32568]
+- Use the new method to render Connection initial state. [#32499]
+
+### Fixed
+- Fix false values not working on shortcodes [#32541]
+
+## [0.14.13] - 2023-08-09
+### Added
+- Added comment note about IS_WPCOM. [#32136]
+
+### Changed
+- Updated package dependencies. [#32166]
+
+## [0.14.12] - 2023-08-01
+### Added
+- VideoPress: handle uploading video files when dropping in the editor canvas. [#32084]
+
+### Removed
+- VideoPress: Remove HTML support. [#32123]
+
+## [0.14.11] - 2023-07-25
+### Changed
+- Updated package dependencies. [#31923] [#31999] [#32040]
+
+### Fixed
+- Fix some minor issues in Jetpack plugin codebase [#31684]
+
+## [0.14.10] - 2023-07-17
+### Changed
+- Updated package dependencies. [#31872]
+
+## [0.14.9] - 2023-07-11
+### Changed
+- Updated package dependencies. [#31785]
+
+## [0.14.8] - 2023-07-05
+### Changed
+- Updated package dependencies. [#31659] [#31661]
+- Update storybook mdx to use `@storybook/blocks` directly rather than `@storybook/addon-docs`. [#31607]
+
+## [0.14.7] - 2023-06-23
+### Changed
+- Updated package dependencies. [#31468]
+
+## [0.14.6] - 2023-06-12
+### Added
+- RNMobile: Display no title and no description placeholder for not belonged videos [#31134]
+
+## [0.14.5] - 2023-06-06
+### Changed
+- Updated package dependencies. [#31129]
+
+### Fixed
+- Fixes VideoPress ajax calls on wp.com [#30947]
+
+## [0.14.4] - 2023-05-22
+### Added
+- RNMobile: Disable VideoPress settings if video does not belong to the site [#30759]
+
+### Changed
+- PHP8 compatibility updates. [#30715]
+
+## [0.14.3] - 2023-05-15
+### Changed
+- Refactor Pressable component for the Android embed overlay [#30654]
+- VideoPress block: Disable debug logs when running unit tests [#30540]
+
+### Fixed
+- RNMobile: Turn off autoplay if poster hover effect's active [#30663]
+- Use native embed WebView for the VideoPress editor preview on Android [#30521]
+
+## [0.14.2] - 2023-05-11
+### Added
+- VideoPress block: Added test IDs to query elements in integration tests [#30486]
+
+### Fixed
+- Fixed player loading screen on Android [#30411]
+
+## [0.14.1] - 2023-05-08
+### Added
+- VideoPress: add a Notice when trying to edit a video that doesn't belong to the site [#30443]
+- VideoPress: Add a wpcom/v2/videopress `check-ownership` endpoint [#30427]
+- VideoPress: create VideoPress video block when pasting URLs [#30463]
+- VideoPress: dont allow editing video data when the video doesn't belong to the site [#30438]
+- VideoPress: introduce helper function to get VideoPress video block attributes from URL [#30484]
+
+### Changed
+- VideoPress: hide core/embed core, VideoPress variation, when video block is available [#30467]
+- VideoPress: pick video block attrs from URL when pasting/inserting [#30488]
+
+### Fixed
+- VideoPress: fix disabling Privacy and rating panel [#30471]
+- VideoPress: Fix JITM layout on video edit page [#30465]
+
+## [0.14.0] - 2023-05-02
+### Added
+- Adds Divi Builder Compatibility for VideoPress. [#28193]
+
+### Changed
+- Updated package dependencies.
+- VideoPress: change the connection message when the Jetpack VideoPress module is not active [#30345]
+- VideoPress: enqueue token bridge file in the front-end only when required [#30156]
+- VideoPress: fix playing state of poster mini-player [#30383]
+- VideoPress: move video frame poster to production [#30384]
+- VideoPress: update Preview On Hover to the IFrame API updates [#30335]
+
+### Fixed
+- Update the embed loading styles and usage [#30251]
+- VideoPress: set Preview On Hover player initial state only when it's enabled [#30380]
+
+## [0.13.10] - 2023-05-01
+### Changed
+- Internal updates.
+
+## [0.13.9] - 2023-04-25
+### Added
+- VideoPress: add is_videopress_url() helper function [#30142]
+- VideoPress: add play button when the video block show controls and Preview On Hovwer is enabled [#30224]
+- VideoPress: autoplay video also when Preview On Hover is enabled [#30181]
+- VideoPress: integrate video poster with Preview On Hover effect [#30184]
+- VideoPress: return the player control after user interaction [#30165]
+- VideoPress block: Sync metadata when post is manually saved on native [#30131]
+
+### Changed
+- Updated package dependencies. [#30015]
+- VideoPress: change max duration of the Preview On Hover effect to ten seconds [#30183]
+- VideoPress: enqueue IFrame API file based on the embed_oembed_html filter [#30154]
+- VideoPress: fix visual issue in the poster integration with Preview On Hover [#30208]
+- VideoPress: iterated over autoplay + PreviewOnHover effect [#30214]
+- VideoPress: Move out from Stats class [#30194]
+- VideoPress: playback at beginning when Preview On Hover is enabled [#30234]
+
+### Removed
+- VideoPress: Remove poster frame update on preview play [#30217]
+
+### Fixed
+- Fix native player aspect ratio after uploading a video [#30071]
+- VideoPress: Pause poster preview video when necessary [#30123]
+- VideoPress block: Cover case of GUID being empty after upload finish. [#30130]
+- VideoPress block: Fix blocking state when stopping an upload [#30244]
+- VideoPress block: Stop saving HTML markup representation. [#30134]
+
+## [0.13.8] - 2023-04-17
+### Added
+- VideoPress: add Utils PHP class [#30033]
+- VideoPress: remove duplicated code when saving video block [#29993]
+- VideoPress: Update poster frame by playing preview video [#30022]
+- VideoPress block: Add support for fetching VideoPress metadata on native. [#29997]
+- VideoPress block: Implement metadata syncing on native [#29996]
+
+### Changed
+- Refactor native Player component to handle the embed preview [#30062]
+- Updated package dependencies. [#30019]
+- VideoPress: do not save video block representation [#30081]
+- VideoPress: render VideoPress video block 100% dynamically [#30036]
+- VideoPress block: Migrate native TS files to JS files. [#29894]
+
+### Fixed
+- Disable zoom on native player [#30020]
+- VideoPress: check guid attribute before to get the VideoPress video url [#30090]
+- VideoPress: fix helper VideoPress function when generating URL [#30035]
+- VideoPress: Fix minimum starting point for preview on hover feature with very short videos [#29994]
+- VideoPress: fix setting front-end css file issue for the VideoPress video block [#30016]
+
+## [0.13.7] - 2023-04-10
+### Added
+- Add Jetpack Autoloader package suggestion. [#29988]
+- VideoPress: Add fallback for experimental features for hover preview [#29974]
+- VideoPress: add help to the "Starting point" range control [#29950]
+- VideoPress: add marksEvery to the TimestampControl component [#29955]
+- VideoPress block: Add token to play private videos. [#29933]
+
+### Changed
+- VideoPress: Do not force-enable the Stats module inside the VideoPress plugin. [#29966]
+- VideoPress: expose the Preview On Hover data dynamically [#29939]
+- VideoPress: set video player position according to "starting point" and "duration" [#29954]
+- VideoPress: support tooltip in TimestampControl component [#29967]
+- VideoPress: turn playback "controls" off when pOH feature is enabled [#29949]
+- VideoPress block: Divide poster functionality from the useSyncMedia hook into a smaller hook. [#29973]
+
+## [0.13.6] - 2023-04-05
+### Added
+- VideoPress: change the way to propagate the Preview On Hover data [#29912]
+- VideoPress: check if beta extensions are enabled when saving VideoPress video block [#29926]
+- VideoPress: enqueue the VideoPress IFrame API asset file [#29912]
+- VideoPress: first previewOnHover implementation in the front-end [#29912]
+- VideoPress block: Add native version of `getMediaToken` function to fetch the VideoPress token. [#29756]
+
+### Changed
+- VideoPress: update URL and add version when enqueuing VideoPress IFrame API file [#29923]
+
+### Fixed
+- VideoPress: Add empty native version of `PosterPanel` component. [#29943]
+- VideoPress: Fix minimum loop duration and default hover values [#29925]
+
+## [0.13.5] - 2023-04-04
+### Added
+- Add video caption to native player [#29765]
+- VideoPress: Added stats endpoint to fetch the data to be featured on the My Jetpack screen. [#29785]
+- VideoPress: Add video duration to block attributes [#29788]
+- VideoPress: Add video preview on hover options to poster and preview panel [#29781]
+- VideoPress: Persist hover preview values on markup for video block [#29883]
+- VideoPress: play/pause video when previewOnHover is enabled [#29790]
+- VideoPress: replace local state by using block attributes for the PreviewOnHover feature [#29807]
+- VideoPress: support autoplay playback option when previewOnHover is enabled [#29816]
+
+### Changed
+- Updated package dependencies. [#29854, #29857]
+- VideoPress: avoid using local state to deal with previewOnHover data [#29821]
+- VideoPress: Change hover preview loop duration component to Timestamp control and fix default values [#29819]
+- VideoPress: extract, create and expose usePlayerReady() hook [#29777]
+- VideoPress: Fix the permission check for the VideoPress stats APIs, to check for manage_options capability. [#29820]
+- VideoPress: handle limit-loop duration of the previewOn based on starting point [#29876]
+- VideoPress: handle max value of the TimestampControl component [#29852]
+- VideoPress: pause player when previewOnHover enables [#29843]
+- VideoPress: pick duration from block attribute instead of listening player client [#29830]
+- VideoPress: playback video into the boundaries defined the previewOnHover [#29892]
+- VideoPress: store and control TimestampControl value externally [#29828]
+- VideoPress block: Refactor useSyncMedia hook [#29898]
+
+### Fixed
+- Disable autoplay in the native editor [#29823]
+- VideoPress: fix debounced callback TimestampControl issue [#29850]
+- VideoPress: Retry video data fetch if data is not fully available yet [#29907]
+- VideoPress block: Address the case of closing/re-opening post with an ongoing video upload. [#29690]
+
+## [0.13.4] - 2023-04-03
+### Changed
+- Internal updates.
+
+## [0.13.3] - 2023-03-29
+### Added
+- VideoPress: generate video image when selecting poster from frame [#29738]
+- VideoPress: handle poster image generation state [#29746]
+
+### Changed
+- VideoPress: use WP COM API to generate poster image for simple sites [#29761]
+
+## [0.13.2] - 2023-03-27
+### Added
+- Add basic native supported player [#29478]
+- VideoPress: Added Stats module to the list of enabled modules for the standalone VP plugin. [#29668]
+- VideoPress: add frame selector to Poster panel [#29688]
+- VideoPress: store poster data into video block attribute [#29718]
+- VideoPress block: Add Privacy and Rating panel to native block's settings. [#29477]
+- VideoPress block: Add replace functionality for the native version of the block. [#29662]
+
+### Changed
+- VideoPress: trigger video events to client via player-bridge [#29617]
+- VideoPress: tweak and rename poster panel title [#29711]
+- VideoPress block: Tweak the label for the "Playback Bar Color" setting for clarity [#29625]
+
+### Fixed
+- Avoid conflicts with Better Click To Tweet plugin [#29681]
+- VideoPress: fix computing decimal part in the TimestampControl component [#29629]
+- VideoPress: Fix TimestampControl input width and mobile UI [#29639]
+- VideoPress block: Fix for the case when video upload finishes outside the editor (iOS only). [#29620]
+- VideoPress block: Get VideoPress GUID from a different metadata property in iOS. [#29612]
+
 ## [0.13.1] - 2023-03-22
 ### Added
 - VideoPress: add decimalPlaces to the TimestampControl component [#29594]
@@ -29,8 +1187,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Consolidate VideoPreview type [#29447]
 - General: update deprecated core prop [#29463]
 - Replace placeholder with loading placeholder component from js-packages [#29271]
-- Updated package dependencies. [#29471]
-- Updated package dependencies. [#29480]
+- Updated package dependencies. [#29471] [#29480]
 - VideoPress: delay Done button activation to mitigate the chance of a race condition when saving the post too fast. [#29493]
 - VideoPress: get rid of script const / component prop [#29466]
 - VideoPress: Update comment on deprecated prop to mark it for later change [#29541]
@@ -141,8 +1298,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - VideoPress: set isPravate attribute based also on private_enabled_for_site [#28769]
 
 ### Changed
-- Updated package dependencies. [#28682]
-- Updated package dependencies. [#28700]
+- Updated package dependencies. [#28682] [#28700]
 - VideoPress: do not depend on window.wp.media in getMediaToken() lib [#28660]
 - VideoPress: enqueue extensions when registrant plugin is active [#28717]
 - VideoPress: improve requesting video data [#28663]
@@ -219,7 +1375,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - VideoPress: add Cancel button to uploading file component when replacing file [#28188]
 - VideoPress: add Replace control to video block [#28162]
 - VideoPress: minor TS enhancement in the useSearchParams() hook [#28250]
-- VideoPress: re-implemnt useResumableUploader(). 
+- VideoPress: re-implemnt useResumableUploader().
   VideoPress: Iterate over resumable file uploader
     * Re implement useResumableUploader() hook with TS
     * Update VideoPress uploader to use this hook
@@ -233,11 +1389,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - VideoPress: Support replace the video by setting an URL from the replace control [#28221]
 
 ### Changed
-- Updated package dependencies. [#28127]
-- Updated package dependencies. [#28128]
-- Updated package dependencies. [#28129]
-- Updated package dependencies. [#28268]
-- Updated package dependencies. [#28278]
+- Updated package dependencies. [#28127] [#28128] [#28129] [#28268] [#28278]
 - VideoPress: set video URL in the Replace control based on the privacy [#28239]
 - VideoPress: Support edit privacy on edit details page [#28240]
 - VideoPress: TS enhancements in use Video data hooks [#28143]
@@ -375,9 +1527,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - VideoPress: Updated the list of plans that have VideoPress included. [#27536]
 
 ### Changed
-- Updated package dependencies. [#26069]
-- Updated package dependencies. [#26736]
-- Updated package dependencies. [#27043]
+- Updated package dependencies. [#26069] [#26736] [#27043]
 - VideoPress: exposed the site purchases list on the client initial state, dropping the need of a request to the My Jetpack purchases endpoint. [#27533]
 - VideoPress: Remove extra resize circle on block [#27498]
 - VideoPress: show pricing based on sale coupons [#27535]
@@ -748,8 +1898,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - VideoPress plugin hijacks video attachment edit page [#25732]
 
 ### Changed
-- Updated package dependencies. [#25694]
-- Updated package dependencies. [#25814]
+- Updated package dependencies. [#25694] [#25814]
 - VideoPress: Fix dropdown menu position of the VideoDetailsCard component [#25860]
 - VideoPress Pkg: apply changes according on the `videopress/video` name convention for the video block [#25844]
 
@@ -785,8 +1934,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Migrating VideoPress code from the plugin to the package [#25412]
 - Moving videopress dependencies to the package [#25398]
-- Updated package dependencies. [#25347]
-- Updated package dependencies. [#25412]
+- Updated package dependencies. [#25347] [#25412]
 
 ### Fixed
 - Fixed missing import for recent VideoPress namespace changes [#25638]
@@ -821,6 +1969,200 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Created empty package [#24952]
 
+[0.36.9]: https://github.com/Automattic/jetpack-videopress/compare/v0.36.8...v0.36.9
+[0.36.8]: https://github.com/Automattic/jetpack-videopress/compare/v0.36.7...v0.36.8
+[0.36.7]: https://github.com/Automattic/jetpack-videopress/compare/v0.36.6...v0.36.7
+[0.36.6]: https://github.com/Automattic/jetpack-videopress/compare/v0.36.5...v0.36.6
+[0.36.5]: https://github.com/Automattic/jetpack-videopress/compare/v0.36.4...v0.36.5
+[0.36.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.36.3...v0.36.4
+[0.36.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.36.2...v0.36.3
+[0.36.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.36.1...v0.36.2
+[0.36.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.36.0...v0.36.1
+[0.36.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.35.6...v0.36.0
+[0.35.6]: https://github.com/Automattic/jetpack-videopress/compare/v0.35.5...v0.35.6
+[0.35.5]: https://github.com/Automattic/jetpack-videopress/compare/v0.35.4...v0.35.5
+[0.35.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.35.3...v0.35.4
+[0.35.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.35.2...v0.35.3
+[0.35.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.35.1...v0.35.2
+[0.35.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.35.0...v0.35.1
+[0.35.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.34.1...v0.35.0
+[0.34.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.34.0...v0.34.1
+[0.34.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.33.4...v0.34.0
+[0.33.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.33.3...v0.33.4
+[0.33.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.33.2...v0.33.3
+[0.33.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.33.1...v0.33.2
+[0.33.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.33.0...v0.33.1
+[0.33.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.19...v0.33.0
+[0.32.19]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.18...v0.32.19
+[0.32.18]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.17...v0.32.18
+[0.32.17]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.16...v0.32.17
+[0.32.16]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.15...v0.32.16
+[0.32.15]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.14...v0.32.15
+[0.32.14]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.13...v0.32.14
+[0.32.13]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.12...v0.32.13
+[0.32.12]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.11...v0.32.12
+[0.32.11]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.10...v0.32.11
+[0.32.10]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.9...v0.32.10
+[0.32.9]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.8...v0.32.9
+[0.32.8]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.7...v0.32.8
+[0.32.7]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.6...v0.32.7
+[0.32.6]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.5...v0.32.6
+[0.32.5]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.4...v0.32.5
+[0.32.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.3...v0.32.4
+[0.32.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.2...v0.32.3
+[0.32.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.1...v0.32.2
+[0.32.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.32.0...v0.32.1
+[0.32.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.31.2...v0.32.0
+[0.31.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.31.1...v0.31.2
+[0.31.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.31.0...v0.31.1
+[0.31.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.30.6...v0.31.0
+[0.30.6]: https://github.com/Automattic/jetpack-videopress/compare/v0.30.5...v0.30.6
+[0.30.5]: https://github.com/Automattic/jetpack-videopress/compare/v0.30.4...v0.30.5
+[0.30.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.30.3...v0.30.4
+[0.30.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.30.2...v0.30.3
+[0.30.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.30.1...v0.30.2
+[0.30.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.30.0...v0.30.1
+[0.30.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.29.6...v0.30.0
+[0.29.6]: https://github.com/Automattic/jetpack-videopress/compare/v0.29.5...v0.29.6
+[0.29.5]: https://github.com/Automattic/jetpack-videopress/compare/v0.29.4...v0.29.5
+[0.29.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.29.3...v0.29.4
+[0.29.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.29.2...v0.29.3
+[0.29.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.29.1...v0.29.2
+[0.29.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.29.0...v0.29.1
+[0.29.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.28.4...v0.29.0
+[0.28.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.28.3...v0.28.4
+[0.28.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.28.2...v0.28.3
+[0.28.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.28.1...v0.28.2
+[0.28.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.28.0...v0.28.1
+[0.28.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.27.6...v0.28.0
+[0.27.6]: https://github.com/Automattic/jetpack-videopress/compare/v0.27.5...v0.27.6
+[0.27.5]: https://github.com/Automattic/jetpack-videopress/compare/v0.27.4...v0.27.5
+[0.27.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.27.3...v0.27.4
+[0.27.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.27.2...v0.27.3
+[0.27.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.27.1...v0.27.2
+[0.27.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.27.0...v0.27.1
+[0.27.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.26.0...v0.27.0
+[0.26.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.25.12...v0.26.0
+[0.25.12]: https://github.com/Automattic/jetpack-videopress/compare/v0.25.11...v0.25.12
+[0.25.11]: https://github.com/Automattic/jetpack-videopress/compare/v0.25.10...v0.25.11
+[0.25.10]: https://github.com/Automattic/jetpack-videopress/compare/v0.25.9...v0.25.10
+[0.25.9]: https://github.com/Automattic/jetpack-videopress/compare/v0.25.8...v0.25.9
+[0.25.8]: https://github.com/Automattic/jetpack-videopress/compare/v0.25.7...v0.25.8
+[0.25.7]: https://github.com/Automattic/jetpack-videopress/compare/v0.25.6...v0.25.7
+[0.25.6]: https://github.com/Automattic/jetpack-videopress/compare/v0.25.5...v0.25.6
+[0.25.5]: https://github.com/Automattic/jetpack-videopress/compare/v0.25.4...v0.25.5
+[0.25.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.25.3...v0.25.4
+[0.25.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.25.2...v0.25.3
+[0.25.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.25.1...v0.25.2
+[0.25.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.25.0...v0.25.1
+[0.25.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.17...v0.25.0
+[0.24.17]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.16...v0.24.17
+[0.24.16]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.15...v0.24.16
+[0.24.15]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.14...v0.24.15
+[0.24.14]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.13...v0.24.14
+[0.24.13]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.12...v0.24.13
+[0.24.12]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.11...v0.24.12
+[0.24.11]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.10...v0.24.11
+[0.24.10]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.9...v0.24.10
+[0.24.9]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.8...v0.24.9
+[0.24.8]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.7...v0.24.8
+[0.24.7]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.6...v0.24.7
+[0.24.6]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.5...v0.24.6
+[0.24.5]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.4...v0.24.5
+[0.24.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.3...v0.24.4
+[0.24.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.2...v0.24.3
+[0.24.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.1...v0.24.2
+[0.24.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.24.0...v0.24.1
+[0.24.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.31...v0.24.0
+[0.23.31]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.30...v0.23.31
+[0.23.30]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.29...v0.23.30
+[0.23.29]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.28...v0.23.29
+[0.23.28]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.27...v0.23.28
+[0.23.27]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.26...v0.23.27
+[0.23.26]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.25...v0.23.26
+[0.23.25]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.24...v0.23.25
+[0.23.24]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.23...v0.23.24
+[0.23.23]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.22...v0.23.23
+[0.23.22]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.21...v0.23.22
+[0.23.21]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.20...v0.23.21
+[0.23.20]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.19...v0.23.20
+[0.23.19]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.18...v0.23.19
+[0.23.18]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.17...v0.23.18
+[0.23.17]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.16...v0.23.17
+[0.23.16]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.15...v0.23.16
+[0.23.15]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.14...v0.23.15
+[0.23.14]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.13...v0.23.14
+[0.23.13]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.12...v0.23.13
+[0.23.12]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.11...v0.23.12
+[0.23.11]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.10...v0.23.11
+[0.23.10]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.9...v0.23.10
+[0.23.9]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.8...v0.23.9
+[0.23.8]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.7...v0.23.8
+[0.23.7]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.6...v0.23.7
+[0.23.6]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.5...v0.23.6
+[0.23.5]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.4...v0.23.5
+[0.23.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.3...v0.23.4
+[0.23.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.2...v0.23.3
+[0.23.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.1...v0.23.2
+[0.23.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.23.0...v0.23.1
+[0.23.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.22.4...v0.23.0
+[0.22.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.22.3...v0.22.4
+[0.22.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.22.2...v0.22.3
+[0.22.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.22.1...v0.22.2
+[0.22.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.22.0...v0.22.1
+[0.22.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.21.7...v0.22.0
+[0.21.7]: https://github.com/Automattic/jetpack-videopress/compare/v0.21.6...v0.21.7
+[0.21.6]: https://github.com/Automattic/jetpack-videopress/compare/v0.21.5...v0.21.6
+[0.21.5]: https://github.com/Automattic/jetpack-videopress/compare/v0.21.4...v0.21.5
+[0.21.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.21.3...v0.21.4
+[0.21.3.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.21.3...v0.21.3.1
+[0.21.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.21.2...v0.21.3
+[0.21.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.21.1...v0.21.2
+[0.21.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.21.0...v0.21.1
+[0.21.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.20.2...v0.21.0
+[0.20.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.20.1...v0.20.2
+[0.20.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.20.0...v0.20.1
+[0.20.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.19.3...v0.20.0
+[0.19.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.19.2...v0.19.3
+[0.19.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.19.1...v0.19.2
+[0.19.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.19.0...v0.19.1
+[0.19.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.18.0...v0.19.0
+[0.18.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.17.6...v0.18.0
+[0.17.6]: https://github.com/Automattic/jetpack-videopress/compare/v0.17.5...v0.17.6
+[0.17.5]: https://github.com/Automattic/jetpack-videopress/compare/v0.17.4...v0.17.5
+[0.17.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.17.3...v0.17.4
+[0.17.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.17.2...v0.17.3
+[0.17.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.17.1...v0.17.2
+[0.17.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.17.0...v0.17.1
+[0.17.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.16.0...v0.17.0
+[0.16.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.15.3...v0.16.0
+[0.15.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.15.2...v0.15.3
+[0.15.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.15.1...v0.15.2
+[0.15.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.15.0...v0.15.1
+[0.15.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.14.13...v0.15.0
+[0.14.13]: https://github.com/Automattic/jetpack-videopress/compare/v0.14.12...v0.14.13
+[0.14.12]: https://github.com/Automattic/jetpack-videopress/compare/v0.14.11...v0.14.12
+[0.14.11]: https://github.com/Automattic/jetpack-videopress/compare/v0.14.10...v0.14.11
+[0.14.10]: https://github.com/Automattic/jetpack-videopress/compare/v0.14.9...v0.14.10
+[0.14.9]: https://github.com/Automattic/jetpack-videopress/compare/v0.14.8...v0.14.9
+[0.14.8]: https://github.com/Automattic/jetpack-videopress/compare/v0.14.7...v0.14.8
+[0.14.7]: https://github.com/Automattic/jetpack-videopress/compare/v0.14.6...v0.14.7
+[0.14.6]: https://github.com/Automattic/jetpack-videopress/compare/v0.14.5...v0.14.6
+[0.14.5]: https://github.com/Automattic/jetpack-videopress/compare/v0.14.4...v0.14.5
+[0.14.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.14.3...v0.14.4
+[0.14.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.14.2...v0.14.3
+[0.14.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.14.1...v0.14.2
+[0.14.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.14.0...v0.14.1
+[0.14.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.13.10...v0.14.0
+[0.13.10]: https://github.com/Automattic/jetpack-videopress/compare/v0.13.9...v0.13.10
+[0.13.9]: https://github.com/Automattic/jetpack-videopress/compare/v0.13.8...v0.13.9
+[0.13.8]: https://github.com/Automattic/jetpack-videopress/compare/v0.13.7...v0.13.8
+[0.13.7]: https://github.com/Automattic/jetpack-videopress/compare/v0.13.6...v0.13.7
+[0.13.6]: https://github.com/Automattic/jetpack-videopress/compare/v0.13.5...v0.13.6
+[0.13.5]: https://github.com/Automattic/jetpack-videopress/compare/v0.13.4...v0.13.5
+[0.13.4]: https://github.com/Automattic/jetpack-videopress/compare/v0.13.3...v0.13.4
+[0.13.3]: https://github.com/Automattic/jetpack-videopress/compare/v0.13.2...v0.13.3
+[0.13.2]: https://github.com/Automattic/jetpack-videopress/compare/v0.13.1...v0.13.2
 [0.13.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/Automattic/jetpack-videopress/compare/v0.12.1...v0.13.0
 [0.12.1]: https://github.com/Automattic/jetpack-videopress/compare/v0.12.0...v0.12.1

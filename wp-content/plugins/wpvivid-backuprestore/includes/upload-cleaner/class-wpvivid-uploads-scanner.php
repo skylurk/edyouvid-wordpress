@@ -497,6 +497,10 @@ class WPvivid_Uploads_Scanner
         $html = do_shortcode( $html );
         $html = wp_filter_content_tags( $html );
 
+        if (!is_string($html) || trim($html) === '') {
+            return array();
+        }
+
         if ( !class_exists("DOMDocument") )
         {
             echo 'The DOM extension for PHP is not installed.';

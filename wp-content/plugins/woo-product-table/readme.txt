@@ -1,10 +1,10 @@
 === Product Table for WooCommerce ===
-Contributors: codersaiful,bizzplugin,mdibrahimk48
+Contributors: codersaiful,bizzplugin,mdibrahimk48, codeastrology
 Donate link: https://donate.stripe.com/4gw2bB2Pzdjd8mYfYZ
 Tags: woo product table, wc product table, woo table, woocommerce product table, product table
 Requires at least: 6.2
-Tested up to: 6.9
-Stable tag: 6.0.2
+Tested up to: 7.0
+Stable tag: 6.1.0
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -245,21 +245,14 @@ With a Product Table Plugin, you can feel confident that your business processes
 * Ukrainian(Українська) - uk
 * Spanish(Español) - es_ES
 
-**👷 HONORABLE CONTRIBUTOR - [GitHub](https://github.com/codersaiful/woo-product-table/graphs/contributors) 👷**<br>
+## Privacy Policy 
+Woo Product Table for WooCommerce by CodeAstrology uses [Appsero](https://appsero.com) SDK to collect some telemetry data upon user's confirmation. This helps us to troubleshoot problems faster & make product improvements.
 
-* [codersaiful](https://github.com/codersaiful) (1600+ commits And Pro: 1000+ commits)
-* [fazlebarisn](https://github.com/fazlebarisn) (100+ commits And Pro: 70+ commits)
-* [unikforceit](https://github.com/unikforceit) (42 commits )
-* [fatimakhatungit](https://github.com/fatimakhatungit) (38 commits )
-* [rafiul](https://github.com/rafiul) (29 commits )
-* [mdibrahimk48](https://github.com/mdibrahimk48) (10 commits )
-* [tanyabouman](https://github.com/tanyabouman) (4 commits )
-* [zbandhan](https://github.com/zbandhan) (1 commits )
-* 👉 [You can join here](https://github.com/codersaiful/woo-product-table/fork)
+Appsero SDK **does not gather any data by default.** The SDK only starts gathering basic telemetry data **when a user allows it via the admin notice**. We collect the data to ensure a great user experience for all our users. 
 
-**🥇 CONTRIBUTE 🥇**<br>
-You are welcome to contribute  to this project. Join with us [Fork Github repository](https://github.com/codersaiful/woo-product-table/fork).
+Integrating Appsero SDK **DOES NOT IMMEDIATELY** start gathering data, **without confirmation from users in any case.**
 
+Learn more about how [Appsero collects and uses this data](https://appsero.com/privacy-policy/).
 
 == Installation ==
 
@@ -308,31 +301,44 @@ You can easily show specific category products. While creating new table click o
 
 == Screenshots ==
 
-1. Enabled table columns by checking the boxes
-2. Show/Hide columns on mobile and tablet devices
-3. Drag-n-drop ordering system for column's inners items
-4. WooCommerce Product Table with inner column items
-5. Restaurant menu with inner column items
-6. WooCommerce Product Table with top mini cart
-7. Enable/Disable columns by checking the boxes
-8. Basic query on table
-9. Set different types of conditions here
-10. Advanced search box with search from
-11. Add new custom taxonomy column 
-12. WooCommerce Product Table with pagination
-13. Clean WooCommerce Product Table
-14. Duplicate product table
-15. Popup notification
-16. Lots of popup notification
-17. WooCommerce product table with instant search
-18. WooCommerce default product image popup
-19. WooCommerce default product image popup
-20. Popup notification
-21. WooCommerce product table with Mini Filter
-22. Advanced Search Box
-23. WooCommerce product table with Mini Cart
+1. Example of Woo Product Table - Blue Design Template
+2. Example of Woo Product Table - Red Design Template
+3. Filter and Search Box Example
+10. Template Selection list on Dashboard
 
 == Changelog ==
+
+= 6.1.0 =
+* Fixed: Expanded column sort descending issue fixed.
+* Bug fixed and code optimized.
+
+= 6.0.8 & 6.0.9 =
+* Added: New filter hook added for table row. Hook name: `wpt_tr_content`.
+* Tested with latest WooCommerce version.
+* Tested with latest WordPress version.
+* Bug fixed and code optimized.
+
+= 6.0.7 =
+* Fixed: Layout issue.
+* Code optimized for better performance and security.
+* Bug fixed
+
+= 6.0.6 =
+* Promotional offer has been removed totally.
+* Code optimized for better performance and security.
+* Bug fixed
+
+= 6.0.4 & 6.0.5 =
+* Optimized: Code optimized for better performance and security.
+* Tested with latest WooCommerce version.
+* Tested with latest WordPress version.
+* Bug fixed
+
+= 6.0.3 =
+* Updated: Tested with latest WooCommerce version.
+* Updated: Tested with latest WordPress version.
+* Design optimized and some minor bug fixed.
+* Bug fixed
 
 = 6.0.2 =
 * Default search box will stay select for Old Table.

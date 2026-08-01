@@ -2,11 +2,10 @@
 /*
 Plugin Name: Login or Logout Menu Item
 Description: Adds a new Menu item which dynamically changes from login to logout depending on the current users logged in status.
-Version: 1.3.0
+Version: 1.3.2
 Plugin URI: https://caseproof.com/
 Author: cartpauj
-Text Domain: lolmi
-Domain Path: /i18n
+Text Domain: login-or-logout-menu-item
 */
 
 /*
@@ -26,15 +25,8 @@ Thanks goes to Juliobox for his work on the BAW Login/Logout Menu plugin on whic
 
 if(!defined('ABSPATH')) { die("Hey yo, why you cheatin?"); }
 
-function lolmi_load_textdomain() {
-  $path = basename(dirname(__FILE__)) . '/i18n';
-
-  load_plugin_textdomain('lolmi', false, $path);
-}
-add_action('plugins_loaded', 'lolmi_load_textdomain');
-
 function lolmi_add_nav_menu_metabox() {
-  add_meta_box('lolmi', __('Login/Logout', 'lolmi'), 'lolmi_nav_menu_metabox', 'nav-menus', 'side', 'default');
+  add_meta_box('lolmi', __('Login/Logout', 'login-or-logout-menu-item'), 'lolmi_nav_menu_metabox', 'nav-menus', 'side', 'default');
 }
 add_action('admin_head-nav-menus.php', 'lolmi_add_nav_menu_metabox');
 
@@ -42,9 +34,9 @@ function lolmi_nav_menu_metabox($object) {
   global $nav_menu_selected_id;
 
   $elems = array(
-    '#lolmilogin#' => __('Log In', 'lolmi'),
-    '#lolmilogout#' => __('Log Out', 'lolmi'),
-    '#lolmiloginout#' => __('Log In', 'lolmi').'|'.__('Log Out', 'lolmi')
+    '#lolmilogin#' => __('Log In', 'login-or-logout-menu-item'),
+    '#lolmilogout#' => __('Log Out', 'login-or-logout-menu-item'),
+    '#lolmiloginout#' => __('Log In', 'login-or-logout-menu-item').'|'.__('Log Out', 'login-or-logout-menu-item')
   );
   
   class lolmiLogItems {
@@ -81,7 +73,7 @@ function lolmi_nav_menu_metabox($object) {
     </div>
     <p class="button-controls">
       <span class="add-to-menu">
-        <input type="submit"<?php disabled($nav_menu_selected_id, 0); ?> class="button-secondary submit-add-to-menu right" value="<?php esc_attr_e('Add to Menu', 'lolmi'); ?>" name="add-login-links-menu-item" id="submit-login-links" />
+        <input type="submit"<?php disabled($nav_menu_selected_id, 0); ?> class="button-secondary submit-add-to-menu right" value="<?php esc_attr_e('Add to Menu', 'login-or-logout-menu-item'); ?>" name="add-login-links-menu-item" id="submit-login-links" />
         <span class="spinner"></span>
       </span>
     </p>
@@ -92,7 +84,7 @@ function lolmi_nav_menu_metabox($object) {
 function lolmi_nav_menu_type_label($menu_item) {
   $elems = array('#lolmilogin#', '#lolmilogout#', '#lolmiloginout#');
   if(isset($menu_item->object, $menu_item->url) && 'custom' == $menu_item->object && in_array($menu_item->url, $elems)) {
-    $menu_item->type_label = __('Dynamic Link', 'lolmi');
+    $menu_item->type_label = __('Dynamic Link', 'login-or-logout-menu-item');
   }
 
   return $menu_item;
@@ -103,9 +95,9 @@ function lolmi_loginout_title($title) {
 	$titles = explode('|', $title);
 
 	if(!is_user_logged_in()) {
-		return esc_html(isset($titles[0])?$titles[0]:__('Log In', 'lolmi'));
+		return esc_html(isset($titles[0])?$titles[0]:__('Log In', 'login-or-logout-menu-item'));
 	} else {
-		return esc_html(isset($titles[1]) ? $titles[1] : __('Log Out', 'lolmi'));
+		return esc_html(isset($titles[1]) ? $titles[1] : __('Log Out', 'login-or-logout-menu-item'));
 	}
 }
 
@@ -150,31 +142,31 @@ function lolmi_settings_page() {
   ?>
     <div class="wrap">
       <div class="icon32"></div>
-      <h2><?php _e('Login or Logout Menu Item - Settings', 'lolmi'); ?></h2>
+      <h2><?php _e('Login or Logout Menu Item - Settings', 'login-or-logout-menu-item'); ?></h2>
       <div class="lolmi_spacer" style="height:25px;"></div>
 
       <?php if(isset($_GET['menu-saved'])): ?>
         <div id="message" class="updated notice notice-success is-dismissible below-h2">
-          <p><?php _e('Settings saved.', 'lolmi'); ?></p>
+          <p><?php _e('Settings saved.', 'login-or-logout-menu-item'); ?></p>
         </div>
         <div class="lolmi_spacer" style="height:25px;"></div>
       <?php endif; ?>
 
       <form action="" method="post">
-        <label for="login_page_url"><?php _e('Login Page URL', 'lolmi'); ?></label><br/>
-        <small><?php _e('URL where your login page is found.', 'lolmi'); ?></small><br/>
+        <label for="login_page_url"><?php _e('Login Page URL', 'login-or-logout-menu-item'); ?></label><br/>
+        <small><?php _e('URL where your login page is found.', 'login-or-logout-menu-item'); ?></small><br/>
         <input type="text" id="login_page_url" name="login_page_url" value="<?php echo $login_page_url; ?>" style="min-width:250px;width:60%;" /><br/><br/>
 
-        <label for="login_redirect_url"><?php _e('Login Redirect URL', 'lolmi'); ?></label><br/>
-        <small><?php _e('URL to redirect a user to after logging in. Note: Some other plugins may override this URL.', 'lolmi'); ?></small><br/>
+        <label for="login_redirect_url"><?php _e('Login Redirect URL', 'login-or-logout-menu-item'); ?></label><br/>
+        <small><?php _e('URL to redirect a user to after logging in. Note: Some other plugins may override this URL.', 'login-or-logout-menu-item'); ?></small><br/>
         <input type="text" id="login_redirect_url" name="login_redirect_url" value="<?php echo $login_redirect_url; ?>" style="min-width:250px;width:60%;" /><br/><br/>
 
-        <label for="logout_redirect_url"><?php _e('Logout Redirect URL', 'lolmi'); ?></label><br/>
-        <small><?php _e('URL to redirect a user to after logging out. Note: Some other plugins may override this URL.', 'lolmi'); ?></small><br/>
+        <label for="logout_redirect_url"><?php _e('Logout Redirect URL', 'login-or-logout-menu-item'); ?></label><br/>
+        <small><?php _e('URL to redirect a user to after logging out. Note: Some other plugins may override this URL.', 'login-or-logout-menu-item'); ?></small><br/>
         <input type="text" id="logout_redirect_url" name="logout_redirect_url" value="<?php echo $logout_redirect_url; ?>" style="min-width:250px;width:60%;" /><br/><br/>
 
         <?php wp_nonce_field('the_nonce'); ?>
-        <input type="submit" id="settings_submit" name="settings_submit" value="<?php _e('Save Settings', 'lolmi'); ?>" class="button button-primary" />
+        <input type="submit" id="settings_submit" name="settings_submit" value="<?php _e('Save Settings', 'login-or-logout-menu-item'); ?>" class="button button-primary" />
       </form>
     </div>
   <?php

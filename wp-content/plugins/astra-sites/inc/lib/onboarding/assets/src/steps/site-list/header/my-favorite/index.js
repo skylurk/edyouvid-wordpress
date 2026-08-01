@@ -10,16 +10,25 @@ import './style.scss';
 import { initialState } from '../../../../store/reducer';
 import { getStepIndex } from '../../../../utils/functions';
 
-const MyFavorite = () => {
+const MyFavorite = ( { isDisabled } ) => {
 	const [ stateValue, dispatch ] = useStateValue();
 	const { onMyFavorite } = stateValue;
 
-	if ( getStepIndex( 'page-builder' ) === stateValue.currentIndex ) {
+	if (
+		getStepIndex( 'page-builder' ) === stateValue.currentIndex ||
+		getStepIndex( 'classic-page-builder' ) === stateValue.currentIndex
+	) {
 		return null;
 	}
 
 	const handleClick = ( event ) => {
 		event.stopPropagation();
+
+		// Bail early if the button is disabled.
+		if ( isDisabled ) {
+			return;
+		}
+
 		dispatch( {
 			type: 'set',
 			onMyFavorite: ! onMyFavorite,
@@ -33,7 +42,9 @@ const MyFavorite = () => {
 
 	return (
 		<div
-			className={ `st-my-favorite ${ onMyFavorite ? 'active' : '' }` }
+			className={ `st-my-favorite relative ${
+				onMyFavorite ? 'active' : ''
+			}` }
 			onClick={ handleClick }
 		>
 			<Tooltip
@@ -42,6 +53,9 @@ const MyFavorite = () => {
 			>
 				{ ICONS.favorite }
 			</Tooltip>
+			{ isDisabled && (
+				<div className="w-full absolute h-full top-0 bg-white/75 cursor-not-allowed"></div>
+			) }
 		</div>
 	);
 };

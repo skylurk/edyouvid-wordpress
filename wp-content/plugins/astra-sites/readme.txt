@@ -1,11 +1,11 @@
-=== Starter Templates — Elementor, WordPress & Beaver Builder Templates ===
+=== Starter Templates – AI-Powered Templates for Elementor & Gutenberg ===
 Contributors: brainstormforce
 Donate link: https://wpastra.com/pro/
 Tags: Elementor,Templates,Gutenberg,Block Editor,Astra Starter Sites
-Requires at least: 4.4
+Requires at least: 6.6
 Requires PHP: 7.4
-Tested up to: 6.6.1
-Stable tag: 4.4.6
+Tested up to: 7.0
+Stable tag: 4.6.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,7 +27,7 @@ Leverage the Starter Templates AI website builder to generate websites with:
 
 Say goodbye to spending days or weeks designing and building a website. With Starter Templates, you can build websites faster than ever with AI.
 
-[Try this plugin on a demo site](https://bsf.io/starter-templates-demo)
+[Try the live demo of Starter Templates](https://bsf.io/starter-templates-demo)
 
 = HIGHLIGHTS =
 
@@ -37,12 +37,12 @@ Say goodbye to spending days or weeks designing and building a website. With Sta
 ★ Large library of Elementor templates
 ★ Hundreds of WordPress block editor (Gutenberg) templates
 ★ 200+ Sections and block patterns
-★ Supported page builders: Spectra, Elementor, Beaver Builder, WordPress editor
+★ Supported page builders: Spectra, Elementor, WordPress editor
 ★ Fully customizable websites
 
 = How Does Starter Template AI Website Builder Work? =
 
-Starter Templates integrates with ZipWP, our amazing AI website building platform. It takes care of everything for you, from design to content generation. 
+Starter Templates integrates with ZipWP, our amazing AI website building platform. It takes care of everything for you, from design to content generation.
 
 Let AI do the heavy lifting, so you can focus on your ideas!
 
@@ -50,17 +50,17 @@ Our mission is to unlock the power of the internet for small businesses. Creatin
 
 With Starter Templates, you can create a stunning website in a matter of minutes. Simply describe your idea, and watch as a WordPress website is built before your eyes.
 
-Want to create a lightweight website for your business that also looks exceptional? 
+Want to create a lightweight website for your business that also looks exceptional?
 
 = Follow the steps below: =
 
 1. Select the type of website you're creating (portfolio, business site, landing page, or something else).
 2. Provide your business name.
-3. Describe your business. Use AI to refine your description prompt if you need to. 
+3. Describe your business. Use AI to refine your description prompt if you need to.
 4. The AI will suggest images based on your input. Select the images you want to use.
 5. Add your contact details and social media handles so people can interact.
-6. Choose the website structure from the options. 
-7. Select any site features you need. 
+6. Choose the website structure from the options.
+7. Select any site features you need.
 8. The AI will generate a website in under 2 minutes.
 9. Customize your site as you see fit!
 
@@ -84,7 +84,7 @@ Here's what sets us apart:
 
 = Optimized Code =
 
-Pages created with Starter Templates have efficient code, and are free from all unnecessary elements. 
+Pages created with Starter Templates have efficient code, and are free from all unnecessary elements.
 
 This translates to faster load times and a smoother user experience for visitors regardless of browser or device.
 
@@ -92,7 +92,7 @@ This translates to faster load times and a smoother user experience for visitors
 
 Starter Templates goes beyond stunning design. It delivers readymade website templates specifically crafted with your business in mind.
 
-Launching an eCommerce store? We have a diverse selection of store templates to get you selling in no time. 
+Launching an eCommerce store? We have a diverse selection of store templates to get you selling in no time.
 
 Creating a business website? We have dozens of professional-quality designs ready for you to make your mark.
 
@@ -100,9 +100,9 @@ No matter your industry or niche, we have a template that perfectly aligns with 
 
 = Classic Starter Templates =
 
-Whether you're a small business owner, freelancer, or nonprofit organization, there's a template that suits your needs. Templates are carefully crafted to provide a polished and attractive look for your website. 
+Whether you're a small business owner, freelancer, or nonprofit organization, there's a template that suits your needs. Templates are carefully crafted to provide a polished and attractive look for your website.
 
-The cherry on top? Starter Template supports multiple page builders, including Elementor, Spectra, Gutenberg, and Beaver Builder. 
+The cherry on top? Starter Template supports multiple page builders, including Elementor, Spectra and Gutenberg.
 
 You have the flexibility to customize your website your way.
 
@@ -110,7 +110,7 @@ You have the flexibility to customize your website your way.
 
 Want to customize your website to make it truly unique? Use sections and block patterns to add your personal style.
 
-Available sections include: 
+Available sections include:
 
 - Hero
 - Page Header
@@ -130,45 +130,39 @@ Available sections include:
 
 = AI-Integrated Adaptive Design Library =
 
-Personalize blocks and patterns to match your website style with the power of AI. 
+Personalize blocks and patterns to match your website style with the power of AI.
 
 The design library within the Starter Templates plugin is integrated with AI and royalty-free image repositories. All elements come pre-populated with relevant text and images that you can easily customize to match your brand.
 
 = Elementor Templates =
 
-A fan of Elementor? Look no further! Starter Templates offers a vast collection of professionally designed Elementor templates. 
+A fan of Elementor? Look no further! Starter Templates offers a vast collection of professionally designed Elementor templates.
 
-You can effortlessly import entire websites crafted with Elementor, individual pages, or even specific blocks to enhance your site's functionality and aesthetic appeal. 
+You can effortlessly import entire websites crafted with Elementor, individual pages, or even specific blocks to enhance your site's functionality and aesthetic appeal.
 
 Then just drag, drop, customize, and launch your website!
 
-= Beaver Builder Templates =
-
-Explore the incredible library of professionally-designed Beaver Builder templates. Whether you're building a complete website or just need some inspiration, we've got you covered.
-
-You can save hours of design time compared to building your website from scratch!
-
 = WordPress Block Editor Templates =
 
-The WordPress block editor (formerly Gutenberg) is changing the game for website creation. 
+The WordPress block editor (formerly Gutenberg) is changing the game for website creation.
 
 Building from scratch can be time-consuming. Fortunately, Starter Templates offers a vast library of readymade templates to ignite your website's potential.
 
 = AI Assistant for WordPress =
 
-Our AI Assistant works in a similar way to ChatGPT but is specifically tailored for WordPress. 
+Our AI Assistant works in a similar way to ChatGPT but is specifically tailored for WordPress.
 
 With just a click of a button, you can use the power of artificial intelligence to help write copy for landing pages, proofread blog posts, translate content into different languages, generate custom HTML and CSS codes, and much more!
 
 = Royalty-Free Images =
 
-The Starter Templates plugin offers seamless integration with leading royalty-free image repositories such as Pexels and Unsplash. 
+The Starter Templates plugin offers seamless integration with leading royalty-free image repositories such as Pexels and Unsplash.
 
 You have access to millions of top-tier images within your WordPress dashboard. Simply search for the image you need and select it.
 
 = Training Videos =
 
-As the saying goes, "Give someone a fish, and they will eat for a day; teach them how to fish, and they will eat for a lifetime." 
+As the saying goes, "Give someone a fish, and they will eat for a day; teach them how to fish, and they will eat for a lifetime."
 
 Embracing this philosophy, we offer a range of comprehensive training videos designed to complement our templates. They provide the knowledge and skills necessary to build, launch, and maintain your website.
 
@@ -198,13 +192,13 @@ Please note: To access templates and AI features, you’ll need a ZipWP account.
 = Fun Facts About Starter Templates =
 
 ➜ Over 5,000 websites are built with Starter Templates every day.
-➜ The plugin has been installed on more than 1.6 million websites.
-➜ Starter Templates has more than 4,000 five-star reviews.
+➜ The plugin has been installed on more than 2 million websites.
+➜ Starter Templates has more than 4,500 five-star reviews.
 ➜ Our team of dedicated full-time WordPress experts help and support hundreds of users daily.
 ➜ A devoted team full-time designers keep the design library up to date.
 ➜ Our plugin offers more than 100 free Elementor templates.
 ➜ You can import a complete website, individual page, or section of a page in seconds.
-➜ We support 3 page builders: Spectra, Elementor, and Beaver Builder as well as the WordPress editor
+➜ We support 2 page builders: Spectra and Elementor as well as the WordPress editor
 ➜ "eCommerce" is the most searched keyword in our library.
 
 = The Starter Templates Plugin Works With... =
@@ -213,7 +207,6 @@ Please note: To access templates and AI features, you’ll need a ZipWP account.
 ➜ Spectra website builder
 ➜ WordPress block editor/Gutenberg
 ➜ Elementor page builder
-➜ Beaver Builder
 ➜ WooCommerce
 ➜ WPForms
 ➜ Sitekit
@@ -236,6 +229,12 @@ Starter Templates, uses the Astra theme. It’s the world's most popular WordPre
 
 Once your website is generated, you have complete control over its content and layout. You can customize it as you would any other website, including changing colors, text, adding images, and creating new sections and pages.
 
+= How can I report a security bug? =
+
+We take plugin security extremely seriously. If you discover a security vulnerability, please report it in a safe and responsible manner.
+
+You can report the issue through our [Bug Bounty Program](https://brainstormforce.com/bug-bounty-program/).
+
 == Screenshots ==
 
 1. AI Website Builder - Starter Templates has been integrated with ZipWP - our innovative AI Website Builder to make building websites super easy.
@@ -246,6 +245,428 @@ Once your website is generated, you have complete control over its content and l
 6. Use the power of AI with a single click to write copy, proofread, translate content into different languages. Adjust content length and tone seamlessly for maximum appeal.
 
 == Changelog ==
+v4.6.3 - 24-June-2026
+- New:
+    - Added Spectra Blocks plugin compatibility for AI Builder template imports.
+- Improvement:
+    - Added a version selector for sites with Spectra Legacy installed, allowing users to switch between Spectra Legacy and Spectra Blocks template designs.
+
+v4.6.2 - 17-June-2026
+- Improvement:
+    - SureCart ecommerce templates now appear first when searching for ecommerce-related keywords.
+    - AI Builder: Template imports are now more reliable on slower or shared hosting — key import steps will automatically retry if the server takes too long to respond, instead of failing immediately. 
+- Fix:
+    - Prevent Spectra onboarding redirect after activation during import process.
+    - AI Builder: Prevented legacy batch processing from overwriting Elementor page data during AI template imports.
+    - AI Builder: Show a dedicated reconnect prompt when the connected ZipWP organization is no longer found.
+
+v4.6.1 - 02-June-2026
+- New:
+    - Added SureContact (CRM & Contacts) to the features selection step in the onboarding flow.
+- Improvement:
+    - Template imports are now more reliable on slower or shared hosting — key import steps will automatically retry if the server takes too long to respond, instead of failing immediately.
+
+v4.6.0 - 20-May-2026
+- Improvement:
+    - Compatibility with WordPress 7.0.
+    - Import: Redesigned the plugin install/activation step with per-plugin status, inline retry, and clearer error messages so users can recover from individual plugin failures without restarting the import.
+    - Prevented Power Coupons from redirecting to its onboarding after template import.
+    - Logo and other customizer images are now correctly replaced with media library URLs after template import.
+- Fix:
+    - Prevented PHP fatal in filesystem helper when running on FTP-based hosts without WordPress credentials.
+    - Astra Pro enabled extensions were not being applied after template import.
+    - AI Builder: Template cards now load with their default color palette instead of a random one; shuffle only applies on button click.
+    - AI Builder: Temporarily reverted popup-based ZipWP authentication to same-tab redirect to resolve environment-specific issues.
+    - AI Builder: Logo and other customizer images are now correctly replaced with media library URLs after template import.
+    - AI Builder: Resolved blank organization and plan name in the Limit Reached modal when connecting ZipWP account mid-flow.
+    - AI Builder: Resolved a crash on the contact details step caused by invalid saved social media data.
+    - AI Builder: Custom color palette selection no longer crashes the design step when the default palette has not yet been hydrated.
+    - Free Images: Improved REST API compliance — return WP_REST_Response/WP_Error, add `sanitize_callback` to route args, and use `esc_url_raw( wp_unslash() )` for URL sanitization.
+
+v4.5.4 - 01-May-2026
+- Fix:
+    - Clean up stale import flags from failed/interrupted imports plus deactivation/uninstall cleanup of import state options.
+    - Fixed some templates not appearing on the onboarding templates listing screen due to an incorrect total template count.
+    - Fixed search results label displaying colon after the search term instead of before it.
+    - AI Builder: Content duplication on retry after failed site import.
+    - Importer: Record batch processing start timestamp for stale import flag detection.
+    - Importer: Strip residual websitedemos.net URLs from customizer settings and Spectra container block attributes during classic-template imports.
+    - Importer: Resolved fatal errors during content import on hosts where set_time_limit is disabled, and when another plugin defines a global Api, Admin, Ajax, Plugin, or Register class.
+- Security:
+    - AI Builder: Hardened ZipWP auth postMessage handling by validating origin and source window to prevent CSRF-based credential overwrite (CWE-352) - (Props - Nhan Tran Van).
+
+v4.5.3 - 17-April-2026
+- Fix:
+    - Resolved a fatal error caused by a missing Astra_Notices class.
+
+v4.5.2 - 16-April-2026
+- Fix:
+    - Fixed infinite retry loop during template import when Beaver Builder Pro is active instead of Lite.
+    - Removed the unserialize update that was stripping Beaver Builder layout data and other serialized objects during template import.
+    - Importer: Skip orphaned attachments during WXR import that don't belong to the imported template.
+
+v4.5.1 - 09-April-2026
+- Improvement:
+    - Added improvements in the import process.
+    - AI Builder: Upgraded preview browser frame to a realistic Chrome-style design.
+-Fix:
+    - Importer: Prevented double-escaping of unicode sequences in block content during multi-pass import processing. 
+
+v4.5.0 - 01-April-2026
+- New:
+    - AI Builder: Added shuffle colors feature and image selection hint on design and images screens.
+    - AI Builder: Added site goals selection and content tone customization for more personalized AI-generated content.
+    - Finish Setup: Added Connect Domain section for AI-generated sites.
+- Improvement:
+    - AI Builder: ZipWP authentication now opens in a popup window, keeping users on the builder page instead of redirecting away.
+- Fix:
+    - Fixed fatal error on PHP 8.2+ during background import caused by safe_unserialize blocking object instantiation.
+    - Resolved `__PHP_Incomplete_Class` issues after secure unserialize by converting them to arrays.
+    - Design Kit: Resolved click behavior issue on AI dropdown toggle options.
+    - Importer: Preserve JSON unicode escape sequences during WXR import and batch processing to prevent block content corruption.
+    - Importer: Resolved null alt text crash in Spectra image block importer on PHP 8.2+ that caused site generation failures.
+- Security:
+    - Free Images: Improved security for external data requests (better protection when fetching location/IP-related data).
+    - Free Images: Improved data handling security when submitting forms.
+    - Free Images: Improved plugin security to prevent unauthorized access to internal files.
+
+v4.4.52 - 19-March-2026
+- Fix:
+    - Fixed import stalling when user skips third-party plugins on the Required Plugins Missing screen.
+    - Fixed Elementor Blocks category dropdown showing empty categories with no available blocks.
+- Security:
+    - Strengthen plugin security and harden against potential vulnerabilities.
+
+v4.4.51 - 05-March-2026
+- Improvement:
+    - Improved Plugin installation and error handling to reduce import failure rates.
+    - Added compatibility for Power Coupons plugin.
+    - AI Builder: Introduced filter option to templates listing to list premium, most used and newest templates.
+    - Design Kit: Added new extensibility filter hooks for post-import actions and customization.
+- Fix:
+    - Design Kit: Resolved issue with color palette when adaptive mode is turned off.
+    - Import blank screen issue during Child theme template exporter.
+
+v4.4.50 - 17-February-2026
+- Improvement:
+    - Importer: Added compatibility for SureCart Product List and Buy Button blocks.
+    - Importer: Enhanced compatibility for Custom Link menu items.
+    - Importer: Resolved image duplication occurring on AI template imports by implementing proper duplicate detection and handling mechanisms.
+
+v4.4.49 - 04-February-2026
+- New:
+    - Design Kit: Show Design Library patterns for newly created pages.
+- Improvement:
+    - Improved import process logging for better traceability.
+    - Design Kit: Improved ZipWP connection setup in new window to retain Design Library state and improve UX.
+    - Design Kit: Enabled Design library pattern import to inner containers and popup builder.
+    - AI Builder: Added automatic image selection when skipping image selection to import business relevent images.
+
+v4.4.48 - 22-January-2026
+- New:
+    - Introduced WP Command palette compatibility with multiple navigation commands.
+- Improvement:
+    - Prevented unwanted redirection by Cart Abandonment Recovery and Modern Cart plugins after template import.
+- Fix:
+    - Resolved an issue where Customizer import could fail in certain cases, such as after refreshing the page. 
+    - Resolved an issue affecting booking templates imported via the CLI command.
+
+v4.4.47 - 13-January-2025
+- Improvement:
+    - Enhanced plugin data import process with additional checks and retry mechanism to prevent potential errors and ensure smoother imports.
+- Fix:
+    - AI Builder: Resolved a plugin activation error for Modern Cart for WooCommerce by ensuring it loads after WooCommerce is activated.
+    - Design Kit: Fixed cache conflicts in lazy-loaded chunks during the version rollbacks.
+
+v4.4.46 - 07-January-2026
+- Improvement:
+    - AI Builder: Added Sales Funnels option for WooCommerce enabled AI templates.
+    - Improved the template import experience.
+
+v4.4.45 - 31-December-2025
+- Improvement:
+    - Enhanced the import process to prevent duplicate content in rare cases.
+    - Improved the feature plugin list UI to avoid duplicate entries.
+    - Importer: Added support for the SureCart checkout form block during batch processing.
+    - Design Kit: Added compatibility for reorganized Astra Color Palette.
+- Fix:
+    - Fixed an issue where widgets were missing during CLI imports.
+    - Resolved the eCommerce option selection issue in template preview.
+    - Handled memory-limit check function errors more gracefully.
+    - Free Images: Fixed the Media Uploader “Select” button text issue caused by media frame conflicts with other plugins.
+
+v4.4.44 - 08-December2025
+- New:
+    - AI Builder: Added switch team and disconnect AI links in the Zip Plan info modal.
+- Improvement:
+    - Enabled distribution of Spectra v3 templates for fresh installations.
+    - Enhanced the SureCart product creation flow to use template products when available, providing a smoother setup experience.
+    - Importer: Skip irrelevant site-specific meta keys during import.
+    - Importer: Added WPForms plugin compatibility for Elementor templates.
+- Fix:
+    - AI Builder: Resolved an issue where the search box stopped working after clearing the keyword and searching again.
+    - Resolved CORS error showing on template preview on the onboarding.
+    - Resolved console error related to Button 'after' prop usage in ImportLoader.
+
+v4.4.43 - 27-November-2025
+- New:
+    - Added support for Astra Sites Exporter plugin.
+    - AI Builder: Enhanced multisite import permissions to allow subsite admins to seamlessly import AI templates.
+- Fix:
+    - Resolved "folder already exists" error during Astra theme installation by gracefully handling existing theme folders.
+    - Resolved CLI import issues.
+
+v4.4.42 - 14-November-2025
+- Fix:
+    - Gracefully handled exceptions that occur during Elementor template imports, preventing potential fatal errors during site option updates.
+    - AI Builder: Resolved an issue where the `ai-builder` route was incorrectly replaced with the `astra-sites`, causing access errors on page refresh.
+- Security Fix:
+    - Addressed a security bug. Props to WordFence for reporting it.
+- Misc:
+    - Sunsetting the discontinued `Checkout Plugins - Stripe for Woocommerce` plugin compatibility.
+
+v4.4.41 - 04-November-2025
+- Improvement:
+    - Added a toggle on the templates listing page to switch between Spectra legacy v2 and beta v3 templates.
+    - Added compatibility for importing Spectra v3 templates (Beta).
+    - AI Builder: Automatically use Unsplash image engine for Russian users as Pexels is blocked in Russia.
+
+v4.4.40 - 01-October-2025
+- Fix:
+    - Resolved a console error occurred on the Starter Templates page.
+
+v4.4.39 - 01-October-2025
+- Improvement:
+    - Enhanced import error handling to ensure more successful imports.
+    - Multisite support enabling sub-site admins to import classic templates.
+    - AI Builder: Fixed page creation conflict with SureCart plugin during import.
+
+v4.4.38 - 12-September-2025
+- Fix:
+    - AI Builder: Resolved an issue where the import process was getting stuck midway on non-English sites.
+
+v4.4.37 - 10-September-2025
+- Improvement:
+    - AI Builder: Applied missing internationalization to strings in site creation status messages.
+- Fix:
+    - Free Images: Fixed the issue where the Free Images tab was missing in the Beaver Builder editor.
+
+v4.4.36 - 25-August-2025
+- New:
+    - Introduced a filter to hide the AI Builder type during onboarding.
+    - Design Kit: Added compatibility with Spectra version 3.
+- Improvement:
+    - Ensured PHP 8.2 compatibility by replacing the deprecated FILTER_SANITIZE_STRING.
+    - Added headers to improve XML SSE import over the HTTP/2 protocol.
+- Fix:
+    - Fixed an issue where an incorrect Content-Type header prevented the NPS survey popup from closing.
+    - Finish Setup: Added safe existence checks for action item steps to prevent PHP warnings.
+
+v4.4.35 - 13-August-2025
+- Improvement:
+    - Added a "Finish Setup" redirection link on the import success page.
+    - Added a "Finish Setup" banner to better guide users through final configuration.
+
+v4.4.34 - 6-August-2025
+- Improvement:
+    - Improved UI for plugin installation notice.
+
+v4.4.33 - 30-July-2025
+- Improvement:
+    - Background template sync now resumes from the last fetched page, reducing redundant requests and speeding up load time.
+- Fix:
+    - Prevent UAELite from redirecting during Elementor page and block imports.
+
+v4.4.32 - 24-July-2025
+- Improvement:
+    - Improved the "Skip & Start Building" flow to ensure essential plugins are correctly set up during site import.
+
+v4.4.31 - 17-July-2025
+- New:
+    - AI Builder: Added compatibility with the Elementor plugin.
+- Improvement:
+    - Improved plugin installation architecture on import for enhanced error handling and scalability.
+    - NPS Survey: Rating prompt logic now allows disabling for guideline compliance.
+    - Refined the "Finish Setup" UI for a smoother experience.
+
+v4.4.30 - 14-July-2025
+- Improvement:
+    - AI Builder: Enhanced user experience with a confirmation popup for credit usage.
+    - Polished UI for plugin installation notice.
+
+v4.4.29 - 08-July-2025
+- Improvement:
+    - Added a clear plugin installation notice in the feature selection step to improve transparency.
+
+v4.4.28 - 03-July-2025
+- New:
+    - Integrated the "Finish Setup" course to guide users after import completion.
+    - Integrated SureRank plugin for SEO option in AI and Classic Templates onboarding.
+- Fix:
+    - AI Builder: Addressed missing alt text when importing Spectra images.
+
+v4.4.27 - 30-June-2025
+- New:
+    - Added compatibility with WooCommerce Cart Abandonment Recovery plugin.
+- Improvement:
+    - AI Builder: Updated UI for a more consistent and streamlined user experience.
+- Fix:
+    - Resolved an issue with Elementor templates import by preventing the processing of old images.
+    - Resolved an issue where Gutenberg batches of Elementor templates were not processed correctly.
+    - Resolved an issue where Preview Palette colors were not applying correctly to some new templates.
+    - Fixed an issue where WooCommerce dependent plugins showed the error `This plugin requires 1 plugin to be installed and activated: WooCommerce`.
+
+v4.4.26 - 18-June-2025
+- Fix:
+    - AI Builder: Resolved an issue where Elementor Page Builder option remained visible even when the it's disabled from settings page.
+
+v4.4.25 - 13-June-2025
+- Improvement:
+    - AI Builder: Enhanced user experience with clearer modal actions and a more streamlined interface.
+
+v4.4.24 - 09-June-2025
+- Improvement:
+    - Improved integration with WooPayments for a smoother setup experience.
+- Fix:
+    - Resolved an issue with saving block editor after import.
+
+v4.4.23 - 02-June-2025
+- New
+    - Added compatibility with WooPayments plugin.
+    - Added compatibility with Ultimate Addons for Elementor Lite and Pro plugins.
+
+v4.4.22 - 29-May-2025
+- Improvement:
+    - AI Builder: Improved the pricing flow for a smoother and more intuitive user experience.
+
+v4.4.21 - 26-May-2025
+- New:
+    - Added compatibility with the Spectra Pro plugin.
+    - Introducing the compatibility for new Signature templates.
+- Improvement:
+    - Improved compatibility with Spectra Popup Builder post types.
+    - Displayed the "Show Other Builders" option in the Builders dropdown when any supported page builder is disabled.
+- Fix:
+    - AI Builder: Resolved an issue where the premium access box was not displaying correctly for disconnected ZipWP users.
+
+v4.4.20 - 13-May-2025
+- Improvement:
+    - AI Builder: Optimized API for templates loading functionality in batches.
+    - Revised Features Selection on Classic Templates Onboarding.
+    - Refined the condition to detect Gutenberg pages more efficiently.
+
+v4.4.19 - 14-April-2025
+- New:
+    - Added compatibility with the Variation Swatches for WooCommerce plugin.
+    - Introduced support for AI-generated Elementor templates.
+- Improvement:
+    - Ensured compatibility with WordPress 6.8.
+
+v4.4.18 - 24-March-2025
+- New:
+    - Integrated Latepoint plugin for booking options in AI & Classic Templates onboarding.
+
+v4.4.17 - 20-March-2025
+- Fix: Addressed a critical bug causing an error in the customizer.
+
+v4.4.16 - 19-March-2025
+- New:
+    - Deprecated Beaver Builder starter templates, enable with `astra_sites_enable_legacy_beaver_builder_support` filter to continue using them - https://startertemplates.com/docs/sunsetting-beaver-builder-support/
+- Improvement:
+    - Improved memory error handling for Classic Template import by detecting memory limits and showing user-friendly messages.
+- Fix:
+    - Resolved an issue where Elementor templates and the sync progress modal were not loading initially on a fresh site.
+    - Resolved an `Undefined array key "id"` warning from Astra Notices library.
+
+v4.4.15 - 11-March-2025
+- New:
+    - Integrated SureMail plugin for SMTP option in Classic Templates onboarding.
+- Fix:
+    - Resolved an issue where `_load_textdomain_just_in_time` function was incorrectly triggered for the `astra-sites` text domain.
+    - Resolved inaccurate translations for the Estonian language.
+
+v4.4.14 - 24-February-2025
+- Improvement:
+    - AI Builder: Integrated SureMail plugin for SMTP feature support in AI onboarding.
+    - Added compatibility for LatePoint redirection during Classic Builder template onboarding.
+
+v4.4.13 - 21-February-2025
+- New:
+    - Introduced LatePoint Integration with the Wellness Coach template.
+- Fixes:
+    - Fixed template search issue in Chrome browser.
+    - Free Images: Editors can now search for free images.
+
+v4.4.12 - 10-February-2025
+- New: 
+    - AI Builder: Added filter to update the default business type.
+    - Added translations for the Estonian language.
+- Improvements:
+    - AI Builder: Added translation support to the Business Category API.
+    - Introduced a progress bar to provide real-time updates during template syncing.
+    - Reduced the likelihood of import failures caused by low memory availability.
+    - Improved mobile responsiveness for the Classic Builder templates.
+- Fixes:
+    - AI Builder: Removed unnecessary API request headers to improve compatibility.
+
+v4.4.11 - 07-January-2025
+- Improvements:
+    - Enhanced mobile responsiveness in the classic builder.
+    - Added compatibility for SureForms import.
+- Fix:
+    - Fixed search terms persisting in the Classic Templates Builder during navigation.
+
+v4.4.10 - 16-December-2024
+- New:
+    - Expanded plugin accessibility with translations in 7 new languages: [ Spanish, German, Dutch, Frensh, Italian, Polish, Portuguese ]
+    - AI Assistant: The AI Assistant is now Location Aware.
+- Improvements:
+    - AI Assistant: Revamped the entire UI of the Assistant Sidebar.
+    - Enhanced NPS Survey styles to ensure seamless compatibility with other plugins.
+- Fix:
+    - Removed redundant code related to authentication to enhance security and simplify maintenance.  
+    
+v4.4.9 - 02-December-2024
+- Improvements:
+    - AI Builder: Enhanced error handling in the import process with clearer error messages.
+    - AI Builder: Upgrade plan popup UI enhancements for a better user experience.
+    - AI Builder: Added import success action to trigger custom actions after successful site import.
+    - Design Kit: Improved business description screen for better user experience.
+    - Design Kit: UI enhancements for better usability.
+    - Design Kit: Improved code quality for enhanced performance and maintainability.
+    - UI/UX optimizations for a smoother Classic Templates Builder experience.
+    - SureCart template is now the default selection for eCommerce templates.
+- Fixes:
+    - Free Images: Removed garbage CSS conflicting with other plugins.
+
+v4.4.8 - 15-November-2024
+- Improvements:
+    - AI Builder: Hidding ecommerce templates if ecommerce feature is hidden.
+    - Free Images: Removed the "Free Images" option from the WordPress media library where images are not expected.
+    - NPS survey hidden for white-labeled environments.
+    - UI/UX optimizations for a smoother Classic Templates Builder experience.
+- Fixes:
+    - AI Builder: Addressed a security bug. Props to Patchstack for reporting it.
+    - AI Builder: Fixed SureCart settings import failed error.
+    - AI Builder: Resolved an issue causing the import process to fail due to unexpected SureForm plugin redirection upon activation.
+    - Free Images: Resolved an issue where the media library button text was incorrectly displayed in certain cases.
+	- Ensured selected eCommerce platform and feature plugin are synchronized.
+	- Resolved intermittent issue with other plugin updates failing.
+
+
+v4.4.7 - 04-November-2024
+- New:
+    - AI builder: Added compatibility for importing SureForms templates.
+    - AI builder: Added filter to hide specified features on feature selection screen.
+- Improvement:
+    - Prompted users for detailed business descriptions to enhance content generation.
+    - Enabled SureCart provisional account creation when the eCommerce feature is selected.
+    - Added page builder selection screen for classic templates.
+    - Added pre-import warning to alert users about potential overrides of existing settings during template import.
+    - Hiding non-FSE page builder options when the Spectra One theme is active.
+    - Design Kit: Generating business description based on the selected language.
+    - Design Kit: Optimized styles for better readability and usability on smaller screens.
+    - AI Assistant: Resolved PHP fatal error caused by a conflict with certain plugins.
 
 v4.4.6 - 16-October-2024
 - Fix: Updated outdated migrations that were causing PHP errors.
@@ -256,11 +677,11 @@ v4.4.5 - 15-October-2024
     - AI Builder: Added source parameters to URLs redirecting to ZipWP for better tracking.
     - Design Kit: Added source parameters to URLs redirecting to ZipWP for better tracking.
 - Tweak: Refactored the NPS code by separating it into an independent NPS library.
-- Improvement: 
+- Improvement:
     - Design Kit: Removed outdated options data that were previously left undeleted.
     - Design Kit: Optimized server API call execution for better performance.
     - Enhanced code quality and optimization for better performance and maintainability.
-- Fix: 
+- Fix:
     - Free Images: Fixed broken UI components for Elementor and Beaver Builder.
 
 v4.4.4 - 07-October-2024
@@ -268,7 +689,7 @@ v4.4.4 - 07-October-2024
 - Fix: Corrected CSS issues affecting the appearance and functionality of checkboxes on the feature page.
 
 v4.4.3 - 30-September-2024
-- New: 
+- New:
     - AI Builder: Added functionality to save failed site creations and allow reimporting them.
     - AI Builder: Displaying users ZipWP plan information.
     - AI Builder: Displaying alert notice when AI site generation count is nearing its limit.
@@ -282,9 +703,9 @@ v4.4.3 - 30-September-2024
     - AI Builder: Showing Premium template notice on customizer screen if user has free plan.
     - AI Builder: Added a validation on Image upload to check if the image URL is valid.
     - Design Kit: Added loading skeleton when uploading the images on AI onboarding.
-    - Design Kit: Added images validation on AI onboarding. 
+    - Design Kit: Added images validation on AI onboarding.
 
-- Fix: 
+- Fix:
     - AI Builder: Customizer 'Show site title' option was not applied correctly during site import.
     - Design Kit: Resolved CSS conflicts with the WordPress core blocks.
     - Design Kit: Fixed PHP warning when generating content.
@@ -292,7 +713,7 @@ v4.4.3 - 30-September-2024
     - Images Library: Resolved issue where image search results reset to default after applying filters.
 
 v4.4.2 - 03-September-2024
-- New: 
+- New:
     - AI Builder : Added a filter to update default website language.
     - AI Builder : Added image replacement compatibility for archive product banner image.
     - Added filter to disable the "Design Kit" library.
@@ -330,14 +751,14 @@ v4.4.0 - 07-August-2024
     - Design Kit: Resolved visibility issue with the "Design Kit" button in WordPress 6.6 with the full site editor.
 
 v4.3.9 - 25-July-2024
-- Improvement: Improved the UI/UX.  
-- Improvement: AI Builder - Better error message handling.  
-- Improvement: AI Builder - Added new icon for the ecommerce feature.  
-- Improvement: Improved the way Starter Templates translate strings in the script.  
-- Fix: AI Builder - Fixed an issue where the template preview designs were showing ternary operation results as HTML.  
-- Fix: AI Builder - Required plugins data was incorrect on the Elementor templates screen.  
-- Fix: AI Builder - Social icons title was not translation-ready.  
-- Fix: AI Builder - Fixed an issue where the import process was failing after changing the site language.  
+- Improvement: Improved the UI/UX.
+- Improvement: AI Builder - Better error message handling.
+- Improvement: AI Builder - Added new icon for the ecommerce feature.
+- Improvement: Improved the way Starter Templates translate strings in the script.
+- Fix: AI Builder - Fixed an issue where the template preview designs were showing ternary operation results as HTML.
+- Fix: AI Builder - Required plugins data was incorrect on the Elementor templates screen.
+- Fix: AI Builder - Social icons title was not translation-ready.
+- Fix: AI Builder - Fixed an issue where the import process was failing after changing the site language.
 - Fix: Resolved a fatal error encountered with the Ghost Kit plugin.
 
 v4.3.8 - 16-July-2024

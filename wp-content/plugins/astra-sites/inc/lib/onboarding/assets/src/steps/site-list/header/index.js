@@ -7,16 +7,25 @@ import Logo from '../../../components/logo';
 import PageBuilder from '../page-builder-filter';
 import ExitToDashboard from '../../../components/exist-to-dashboard';
 import MyFavorite from './my-favorite';
+import TrackingOption from './tracking-option';
 import SyncLibrary from './sync-library';
 import useWhatsNewRSS from 'whats-new-rss';
 import { __ } from '@wordpress/i18n';
 import Tooltip from '../../../components/tooltip/tooltip';
+import { useStateValue } from '../../../store/store';
 
 const SiteListHeader = () => {
+	const [ { bgSyncInProgress, sitesSyncing, currentIndex } ] =
+		useStateValue();
+
+	const areSitesSyncing =
+		( bgSyncInProgress || sitesSyncing ) && currentIndex === 2;
+
 	// Initialize our library hook.
 	useWhatsNewRSS( {
 		rssFeedURL: 'https://startertemplates.com/whats-new/feed/',
 		selector: '#st-whats-new',
+		uniqueKey: 'astra-sites',
 		triggerButton: {
 			beforeBtn:
 				'<div class="w-4 sm:w-8 h-8 sm:h-10 flex items-center whitespace-nowrap justify-center cursor-pointer rounded-full border border-slate-200">',
@@ -49,12 +58,18 @@ const SiteListHeader = () => {
 				<Logo />
 			</div>
 			<div className="st-header-right">
-				<Tooltip content={ __( "What's New", 'astra-sites' ) }>
-					<div id="st-whats-new"></div>
-				</Tooltip>
-				<MyFavorite />
+				<TrackingOption />
+				<div className="relative">
+					<Tooltip content={ __( "What's New", 'astra-sites' ) }>
+						<div id="st-whats-new"></div>
+					</Tooltip>
+					{ areSitesSyncing && (
+						<div className="w-full absolute h-full top-0 bg-white/75 cursor-not-allowed"></div>
+					) }
+				</div>
+				<MyFavorite isDisabled={ areSitesSyncing } />
 				<SyncLibrary />
-				<PageBuilder />
+				<PageBuilder isDisabled={ areSitesSyncing } />
 				<ExitToDashboard />
 			</div>
 		</div>

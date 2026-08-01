@@ -521,6 +521,7 @@ div.wpt-wrap.wpt-wrap .wpt-tr-tag.stock_status_outofstock input[type=checkbox]+l
  flex-direction: row;
  flex-basis: 100%;
  justify-content: start;
+ /* flex-wrap: nowrap; */
 }
 .wpt_table_body .wpt-wrap .wpt_action form.variations_form.cart{
 
@@ -550,8 +551,7 @@ div.wpt-wrap.wpt-wrap .wpt-tr-tag.stock_status_outofstock input[type=checkbox]+l
 .wpt_action form.variations_form.cart table.variations tr, 
 .wpt_action form.variations_form.cart table.variations td,
 .wpt_action form.variations_form.cart table.variations tr th {
- padding: 4px;
- margin: 0;
+ border: 0 none;
  background: transparent;
 }
 
@@ -567,7 +567,7 @@ body.wpt_table_body .wpt-wrap .wpt-table-tag .wpt-tbody-tag .wpt-tr-tag.wpt_row>
  background: transparent;
  margin: 0;
  box-shadow: none;
- min-width: 250px;
+ min-width: 200px;
  display: block;
 }
  
@@ -673,6 +673,23 @@ body.wpt_table_body .wpt-wrap .qib-button-wrapper .plus.qib-button{
 /* Medium devices (landscape tablets, 768px and up) */
 @media only screen and (max-width: 767px){
 
+  .wpt-auto-responsive.wpt-wrap .wpt-thead-tag {
+      display: none;
+      opacity: 0;
+  }
+  .wpt-auto-responsive.wpt-wrap .wpt-table-tag .wpt-tbody-tag .wpt-tr-tag:hover,
+  .wpt-auto-responsive.wpt-wrap .wpt-table-tag .wpt-tbody-tag .wpt-tr-tag:active,
+  .wpt-auto-responsive.wpt-wrap .wpt-table-tag .wpt-tbody-tag .wpt-tr-tag{
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: column;
+      margin-bottom: 14px !important;
+      border: 1px solid var(--wpt_btn_bg) !important;
+  }
+  /* for tick box left border color */
+  .wpt-auto-responsive .wpt-tr-tag.wpt-row.wpt-added-to-cart>.wpt-td-tag:first-child:before {
+      background: transparent !important;
+  } 
 }
 
 /* Extra small devices (phones, 600px and down) */
@@ -683,4 +700,13 @@ body.wpt_table_body .wpt-wrap .qib-button-wrapper .plus.qib-button{
 /* Extra small devices (phones, 500px and down) */
 @media only screen and (max-width: 500px){
  
+  body.wpt_table_body .wpt-wrap .wpt-table-tag .wpt-tbody-tag .wpt-tr-tag.wpt_row>.wpt-td-tag a.wpt_product_title_in_td{
+    min-width: 150px;
+  }
 }
+/*
+wpt-tr-tag visible_row wpt_row wpt-row wpt_row_115 wpt_row_serial_ wpt_row_product_id_20 product_id_20 no_filter variable product_type_variable stock_status_instock backorders_no sku_ status_publish not-individually-sold page_number-1
+
+wpt-tr-tag visible_row wpt_row wpt-row wpt_row_115 wpt_row_serial_ wpt_row_product_id_20 product_id_20 no_filter variable product_type_variable stock_status_instock backorders_no sku_ status_publish not-individually-sold page_number-1 wpt-added-to-cart
+
+*/

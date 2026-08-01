@@ -77,7 +77,7 @@ export const SITE_CREATION_STATUS_CODES = {
 		"It's taking a bit more than usual. Bear with us…",
 		'ai-builder'
 	),
-	A011: 'Done',
+	A011: 'Done', // Don't translate 'Done' as it is used as a status check.
 	R001: __(
 		'Oops, Site creation hiccupped, we are trying one more time',
 		'ai-builder'
@@ -143,17 +143,59 @@ export const getPercent = ( num, den ) => {
 	return ( num / den ) * 100;
 };
 
-export const toastBody = ( { title, message } ) => {
+export const toastBody = ( error ) => {
+	let { title, message, code } = error;
+
+	if ( 'internal_server_error' === code ) {
+		message = error?.data?.error?.message || message;
+	}
+
+	const cleanMessage = message?.replace( /<\/?p>/g, '' );
+
 	return !! title && !! message ? (
 		<div className="min-w-[224px]">
 			<p className="text-sm font-semibold text-white leading-5">
 				{ title }
 			</p>
-			<p className="mt-1 text-sm font-normal text-white leading-5">
-				{ message }
-			</p>
+			<p
+				className="mt-1 text-sm font-normal text-white leading-5"
+				dangerouslySetInnerHTML={ { __html: cleanMessage } }
+			></p>
 		</div>
 	) : (
-		<span className="text-white text-sm min-w-[224px]">{ message }</span>
+		<span
+			className="!text-white text-sm min-w-[224px]"
+			dangerouslySetInnerHTML={ { __html: cleanMessage } }
+		></span>
 	);
+};
+
+export const getScreenWidthBreakPoint = () => {
+	const width = window.innerWidth;
+
+	/** Tailwind CSS breakpoints */
+	const breakpoints = {
+		/** ExtraSmall */
+		xs: 512,
+		/** Small */
+		sm: 640,
+		/** Medium */
+		md: 768,
+		/** Large */
+		lg: 1024,
+		/** Extra Large */
+		xl: 1280,
+		/** 2x Extra Large */
+		'2xl': 1536,
+	};
+
+	/**
+	 *  Iterate through the breakpoints and return the first one
+	 *  where the width is less than or equal to the breakpoint.
+	 */
+	for ( const breakpoint in breakpoints ) {
+		if ( width <= breakpoints[ breakpoint ] ) {
+			return breakpoint;
+		}
+	}
 };

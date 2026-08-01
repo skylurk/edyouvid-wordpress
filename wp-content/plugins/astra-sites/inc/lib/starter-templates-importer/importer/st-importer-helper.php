@@ -236,4 +236,153 @@ class ST_Importer_Helper {
 		update_post_meta( $id, '_astra_sites_imported_post', true );
 		return $id;
 	}
+
+	/**
+	 * Get Business details.
+	 *
+	 * @since 4.0.0
+	 * @param string $key options name.
+	 * @return array<string, mixed>|array<int, string>|string|array<string>|array<string,string>
+	 */
+	public static function get_business_details( $key = '' ) {
+		$details = get_option(
+			'zipwp_user_business_details',
+			array(
+				'business_name'        => '',
+				'business_address'     => '',
+				'business_phone'       => '',
+				'business_email'       => '',
+				'business_category'    => '',
+				'business_description' => '',
+				'templates'            => array(),
+				'language'             => 'en',
+				'images'               => array(),
+				'image_keyword'        => array(),
+				'social_profiles'      => array(),
+			)
+		);
+
+		$details = array(
+			'business_name'        => ( ! empty( $details['business_name'] ) ) ? $details['business_name'] : '',
+			'business_address'     => ( ! empty( $details['business_address'] ) ) ? $details['business_address'] : '',
+			'business_phone'       => ( ! empty( $details['business_phone'] ) ) ? $details['business_phone'] : '',
+			'business_email'       => ( ! empty( $details['business_email'] ) ) ? $details['business_email'] : '',
+			'business_category'    => ( ! empty( $details['business_category'] ) ) ? $details['business_category'] : '',
+			'business_description' => ( ! empty( $details['business_description'] ) ) ? $details['business_description'] : '',
+			'templates'            => ( ! empty( $details['templates'] ) ) ? $details['templates'] : array(),
+			'language'             => ( ! empty( $details['language'] ) ) ? $details['language'] : 'en',
+			'images'               => ( ! empty( $details['images'] ) ) ? $details['images'] : array(),
+			'social_profiles'      => ( ! empty( $details['social_profiles'] ) ) ? $details['social_profiles'] : array(),
+			'image_keyword'        => ( ! empty( $details['image_keyword'] ) ) ? $details['image_keyword'] : array(),
+		);
+
+		if ( ! empty( $key ) ) {
+			return isset( $details[ $key ] ) ? $details[ $key ] : array();
+		}
+
+		return $details;
+	}
+
+	/**
+	 * Preserve JSON unicode escape sequences in block content before saving.
+	 *
+	 * WordPress's wp_insert_post() and wp_update_post() run wp_unslash() internally,
+	 * which calls stripslashes(). This corrupts \uXXXX sequences (e.g. \u0022, \u003e)
+	 * used in Gutenberg block comment JSON by stripping the backslash.
+	 *
+	 * This method double-escapes \uXXXX to \\uXXXX so that after stripslashes()
+	 * runs, the original \uXXXX is restored.
+	 *
+	 * @since 1.1.28
+	 *
+	 * @param string $content Post content containing block markup.
+	 * @return string Content with \uXXXX sequences preserved for safe saving.
+	 */
+	public static function preserve_block_unicode_escapes( $content ) {
+		if ( ! $content ) {
+			return $content;
+		}
+		// Negative lookbehind ensures already-escaped \\uXXXX is not escaped again,
+		// making this function safe to call multiple times on the same content.
+		$result = preg_replace_callback(
+			'/(?<!\\\\)\\\\u([0-9a-fA-F]{4})/',
+			function ( $matches ) {
+				return '\\\\u' . $matches[1];
+			},
+			$content
+		);
+		return is_string( $result ) ? $result : $content;
+	}
+
+	/**
+	 * Replace demo-site URLs with the current site URL.
+	 *
+	 * Rewrites `https?://websitedemos.net/<slug>/...` occurrences inside
+	 * string leaves of the supplied value to `<site_url>/...`, dropping the
+	 * demo host and the template slug so the tail path lines up with the
+	 * newly imported site. Image file URLs are preserved so the batch image
+	 * downloader can still fetch and localize them.
+	 *
+	 * Intended for classic-template imports only — AI imports don't ship
+	 * with `websitedemos.net` URLs, so callers gate accordingly.
+	 *
+	 * @since 1.1.33
+	 *
+	 * @param mixed $value Array or string value to scrub. Other types are
+	 *                     returned unchanged.
+	 * @return mixed Cleaned value with the same shape as the input.
+	 */
+	public static function replace_source_site_url( $value ) {
+		if ( is_array( $value ) ) {
+			foreach ( $value as $key => $inner ) {
+				$value[ $key ] = self::replace_source_site_url( $inner );
+			}
+			return $value;
+		}
+
+		if ( ! is_string( $value ) || false === stripos( $value, 'websitedemos.net' ) ) {
+			return $value;
+		}
+
+		$site_url = trailingslashit( get_site_url() );
+
+		$result = preg_replace_callback(
+			// Tail class excludes common prose terminators so a URL embedded in
+			// a sentence (e.g. `Visit …/page/, thanks`) doesn't swallow the `,`.
+			'#https?://websitedemos\.net/[^/"\'\s]+/[^"\'\s<>,;!?)\]]*#i',
+			function ( $matches ) use ( $site_url ) {
+				$url = $matches[0];
+
+				// Preserve image file URLs — batch image downloader will
+				// fetch and localize them on a later pass.
+				if ( (bool) preg_match( '~\.(?:jpe?g|png|gif|svg|webp|avif)(?:[?#][^\s]*)?$~i', $url ) ) {
+					return $url;
+				}
+
+				// Skip past `https?://` to the host.
+				$scheme_end = stripos( $url, '://' );
+				if ( false === $scheme_end ) {
+					return $site_url;
+				}
+				$host_start = $scheme_end + 3;
+
+				// First `/` after host closes the host segment.
+				$host_end = strpos( $url, '/', $host_start );
+				if ( false === $host_end ) {
+					return $site_url;
+				}
+
+				// Next `/` after that closes the slug segment.
+				$slug_end = strpos( $url, '/', $host_end + 1 );
+				if ( false === $slug_end ) {
+					return $site_url;
+				}
+
+				return $site_url . substr( $url, $slug_end + 1 );
+			},
+			$value
+		);
+
+		return is_string( $result ) ? $result : $value;
+	}
 }

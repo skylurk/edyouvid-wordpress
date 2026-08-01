@@ -36,7 +36,7 @@ if ( class_exists( 'WP_Background_Process' ) ) :
 		 */
 		protected function task( $process ) {
 
-			if ( method_exists( $process, 'import' ) ) {
+			if ( is_object( $process ) && method_exists( $process, 'import' ) ) {
 				$process->import();
 			}
 
@@ -52,17 +52,12 @@ if ( class_exists( 'WP_Background_Process' ) ) :
 		 * @since 1.0.11
 		 */
 		protected function complete() {
-
 			parent::complete();
 
 			do_action( 'astra_sites_batch_process_complete' );
 
 			update_option( 'astra_sites_batch_process_complete', 'yes' );
-
-			// Delete Log file.
-			delete_option( 'astra_sites_recent_import_log_file' );
 		}
-
 	}
 
 endif;

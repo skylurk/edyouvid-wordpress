@@ -7,6 +7,9 @@
 
 namespace Automattic\Jetpack\Sync;
 
+use Automattic\Jetpack\Constants;
+use Automattic\Jetpack\Sync\Queue\Queue_Storage_Table;
+
 /**
  * Class to manage the sync settings.
  */
@@ -57,6 +60,9 @@ class Settings {
 		'full_sync_limits'                       => true,
 		'checksum_disable'                       => true,
 		'dedicated_sync_enabled'                 => true,
+		'custom_queue_table_enabled'             => true,
+		'wpcom_rest_api_enabled'                 => true,
+		'sync_actions_blacklist'                 => true,
 	);
 
 	/**
@@ -110,7 +116,7 @@ class Settings {
 	public static function get_settings() {
 		$settings = array();
 		foreach ( array_keys( self::$valid_settings ) as $setting ) {
-			$settings[ $setting ] = self::get_setting( $setting );
+			$settings[ $setting ] = static::get_setting( $setting );
 		}
 
 		return $settings;
@@ -197,6 +203,88 @@ class Settings {
 		$validated_settings = array_intersect_key( $new_settings, self::$valid_settings );
 		foreach ( $validated_settings as $setting => $value ) {
 
+			/**
+			 * Custom table migration logic.
+			 *
+			 * This needs to happen before the option is updated, to avoid race conditions where we update the option,
+			 * but haven't yet created the table or can't create it.
+			 *
+			 * On high-traffic sites this can lead to Sync trying to write in a non-existent table.
+			 *
+			 * So to avoid this, we're going to first try to initialize everything and then update the option.
+			 */
+			if ( 'custom_queue_table_enabled' === $setting ) {
+				// Need to check the current value in the database to make sure we're not doing anything weird.
+				$old_value = get_option( self::SETTINGS_OPTION_PREFIX . $setting, null );
+
+				if ( ! $old_value && $value ) {
+					/**
+					 * The custom table has been enabled.
+					 *
+					 * - Initialize the custom table
+					 * - Migrate the data
+					 *
+					 * If something fails, migrate back to the options table and clean up everything about the custom table.
+					 */
+					$init_result = Queue_Storage_Table::initialize_custom_sync_table();
+
+					/**
+					 * Check if there was a problem when initializing the table.
+					 */
+					if ( is_wp_error( $init_result ) ) {
+						/**
+						 * Unable to initialize the table properly. Set the value to `false` as we can't enable it.
+						 */
+						$value = false;
+
+						/**
+						 * Send error to WPCOM, so we can track and take an appropriate action.
+						 */
+						$data = array(
+							'timestamp'     => microtime( true ),
+							'error_code'    => $init_result->get_error_code(),
+							'response_body' => $init_result->get_error_message(),
+						);
+
+						$sender = Sender::get_instance();
+						$sender->send_action( 'jetpack_sync_storage_error_custom_init', $data );
+
+					} elseif ( ! Queue_Storage_Table::migrate_from_options_table_to_custom_table() ) {
+						/**
+						 * If the migration fails, do a reverse migration and set the value to `false` as we can't
+						 * safely enable the table.
+						 */
+						Queue_Storage_Table::migrate_from_custom_table_to_options_table();
+
+						// Set $value to `false` as we couldn't do the migration, and we can't continue enabling the table.
+						$value = false;
+
+						/**
+						 * Send error to WPCOM, so we can track and take an appropriate action.
+						 */
+						$data = array(
+							'timestamp' => microtime( true ),
+							// TODO: Maybe add more details here for the migration, i.e. how many items where in the queue?
+						);
+
+						$sender = Sender::get_instance();
+						$sender->send_action( 'jetpack_sync_storage_error_custom_migrate', $data );
+					}
+				} elseif ( $old_value && ! $value ) {
+					if ( ! get_transient( Queue_Storage_Table::CUSTOM_QUEUE_TABLE_DISABLE_WPDB_ERROR_NOT_EXIST_FLAG ) ) {
+						/**
+						 * The custom table has been disabled, migrate what we can from the custom table to the options table unless
+						 * the custom table doesn't exist in the DB.
+						 */
+						Queue_Storage_Table::migrate_from_custom_table_to_options_table();
+					}
+				}
+			}
+
+			/**
+			 * Regular option update and handling
+			 */
+			$updated = false;
 			if ( self::is_network_setting( $setting ) ) {
 				if ( is_multisite() && is_main_site() ) {
 					$updated = update_site_option( self::SETTINGS_OPTION_PREFIX . $setting, $value );
@@ -216,6 +304,21 @@ class Settings {
 			if ( 'dedicated_sync_enabled' === $setting && $updated && (bool) $value ) {
 				if ( ! Dedicated_Sender::can_spawn_dedicated_sync_request() ) {
 					update_option( self::SETTINGS_OPTION_PREFIX . $setting, 0, true );
+					$listener = Listener::get_instance();
+					// Remove the last two actions from the queue since we failed to enable Dedicated Sync.
+					// Those would be `updated_option` with `jetpack_sync_settings_dedicated_sync_enabled` set to 1 and then 0 again.
+					$queue = $listener->get_sync_queue();
+					$items = $queue->peek_newest( 2 );
+					$key   = 'jetpack_sync_settings_dedicated_sync_enabled';
+
+					if (
+						isset( $items[0][1][0] )
+						&& isset( $items[1][1][0] )
+						&& $items[0][1][0] === $key
+						&& $items[1][1][0] === $key
+					) {
+						$queue->pop_newest( 2 );
+					}
 				}
 			}
 		}
@@ -231,7 +334,7 @@ class Settings {
 	 * @return boolean Whether the setting is a network setting.
 	 */
 	public static function is_network_setting( $setting ) {
-		return strpos( $setting, 'network_' ) === 0;
+		return str_starts_with( $setting, 'network_' );
 	}
 
 	/**
@@ -244,7 +347,7 @@ class Settings {
 	 * @return string SQL WHERE clause.
 	 */
 	public static function get_blacklisted_post_types_sql() {
-		return 'post_type NOT IN (\'' . join( '\', \'', array_map( 'esc_sql', self::get_setting( 'post_types_blacklist' ) ) ) . '\')';
+		return 'post_type NOT IN (\'' . implode( '\', \'', array_map( 'esc_sql', static::get_setting( 'post_types_blacklist' ) ) ) . '\')';
 	}
 
 	/**
@@ -259,7 +362,7 @@ class Settings {
 		return array(
 			'post_type' => array(
 				'operator' => 'NOT IN',
-				'values'   => array_map( 'esc_sql', self::get_setting( 'post_types_blacklist' ) ),
+				'values'   => array_map( 'esc_sql', static::get_setting( 'post_types_blacklist' ) ),
 			),
 		);
 	}
@@ -274,7 +377,25 @@ class Settings {
 	 * @return string SQL WHERE clause.
 	 */
 	public static function get_blacklisted_taxonomies_sql() {
-		return "taxonomy NOT IN ('" . join( "', '", array_map( 'esc_sql', self::get_setting( 'taxonomies_blacklist' ) ) ) . "')";
+		return "taxonomy NOT IN ('" . implode( "', '", array_map( 'esc_sql', static::get_setting( 'taxonomies_blacklist' ) ) ) . "')";
+	}
+
+	/**
+	 * Returns escaped SQL for whitelisted taxonomies.
+	 * Can be injected directly into a WHERE clause.
+	 *
+	 * @access public
+	 * @static
+	 *
+	 * @return string SQL WHERE clause.
+	 */
+	public static function get_whitelisted_taxonomies_sql() {
+		global $wp_taxonomies;
+
+		$allowed_taxonomies = array_keys( $wp_taxonomies );
+		$allowed_taxonomies = array_diff( $allowed_taxonomies, static::get_setting( 'taxonomies_blacklist' ) );
+
+		return "taxonomy IN ('" . implode( "', '", array_map( 'esc_sql', $allowed_taxonomies ) ) . "')";
 	}
 
 	/**
@@ -287,7 +408,7 @@ class Settings {
 	 * @return string SQL WHERE clause.
 	 */
 	public static function get_whitelisted_post_meta_sql() {
-		return 'meta_key IN (\'' . join( '\', \'', array_map( 'esc_sql', self::get_setting( 'post_meta_whitelist' ) ) ) . '\')';
+		return 'meta_key IN (\'' . implode( '\', \'', array_map( 'esc_sql', static::get_setting( 'post_meta_whitelist' ) ) ) . '\')';
 	}
 
 	/**
@@ -302,7 +423,7 @@ class Settings {
 		return array(
 			'meta_key' => array(
 				'operator' => 'IN',
-				'values'   => array_map( 'esc_sql', self::get_setting( 'post_meta_whitelist' ) ),
+				'values'   => array_map( 'esc_sql', static::get_setting( 'post_meta_whitelist' ) ),
 			),
 		);
 	}
@@ -319,7 +440,7 @@ class Settings {
 		return array(
 			'taxonomy' => array(
 				'operator' => 'NOT IN',
-				'values'   => array_map( 'esc_sql', self::get_setting( 'taxonomies_blacklist' ) ),
+				'values'   => array_map( 'esc_sql', static::get_setting( 'taxonomies_blacklist' ) ),
 			),
 		);
 	}
@@ -336,7 +457,7 @@ class Settings {
 		global $wp_taxonomies;
 
 		$allowed_taxonomies = array_keys( $wp_taxonomies );
-		$allowed_taxonomies = array_diff( $allowed_taxonomies, self::get_setting( 'taxonomies_blacklist' ) );
+		$allowed_taxonomies = array_diff( $allowed_taxonomies, static::get_setting( 'taxonomies_blacklist' ) );
 		return array(
 			'taxonomy' => array(
 				'operator' => 'IN',
@@ -355,7 +476,7 @@ class Settings {
 	 * @return string SQL WHERE clause.
 	 */
 	public static function get_whitelisted_comment_meta_sql() {
-		return 'meta_key IN (\'' . join( '\', \'', array_map( 'esc_sql', self::get_setting( 'comment_meta_whitelist' ) ) ) . '\')';
+		return 'meta_key IN (\'' . implode( '\', \'', array_map( 'esc_sql', static::get_setting( 'comment_meta_whitelist' ) ) ) . '\')';
 	}
 
 	/**
@@ -370,7 +491,7 @@ class Settings {
 		return array(
 			'meta_key' => array(
 				'operator' => 'IN',
-				'values'   => array_map( 'esc_sql', self::get_setting( 'comment_meta_whitelist' ) ),
+				'values'   => array_map( 'esc_sql', static::get_setting( 'comment_meta_whitelist' ) ),
 			),
 		);
 	}
@@ -395,6 +516,23 @@ class Settings {
 			'meta_key' => array(
 				'operator' => 'IN',
 				'values'   => array_map( 'esc_sql', $values ),
+			),
+		);
+	}
+
+	/**
+	 * Returns structured filter values for allowed comment types.
+	 *
+	 * @access public
+	 * @static
+	 *
+	 * @return array Comment type filter values.
+	 */
+	public static function get_allowed_comment_types_structured() {
+		return array(
+			'comment_type' => array(
+				'operator' => 'IN',
+				'values'   => array_map( 'esc_sql', Defaults::get_comment_types_whitelist() ),
 			),
 		);
 	}
@@ -467,7 +605,7 @@ class Settings {
 	 * @return boolean Whether sync is enabled.
 	 */
 	public static function is_sync_enabled() {
-		return ! ( self::get_setting( 'disable' ) || self::get_setting( 'network_disable' ) );
+		return ! ( static::get_setting( 'disable' ) || static::get_setting( 'network_disable' ) );
 	}
 
 	/**
@@ -508,7 +646,7 @@ class Settings {
 	 * @return boolean Whether we are currently syncing.
 	 */
 	public static function is_syncing() {
-		return (bool) self::$is_syncing || ( defined( 'REST_API_REQUEST' ) && REST_API_REQUEST );
+		return (bool) self::$is_syncing || Constants::is_true( 'REST_API_REQUEST' );
 	}
 
 	/**
@@ -558,7 +696,7 @@ class Settings {
 	 * @return boolean Whether sync is enabled.
 	 */
 	public static function is_sender_enabled( $queue_id ) {
-		return (bool) self::get_setting( $queue_id . '_sender_enabled' );
+		return (bool) static::get_setting( $queue_id . '_sender_enabled' );
 	}
 
 	/**
@@ -570,7 +708,7 @@ class Settings {
 	 * @return boolean Whether sync is enabled.
 	 */
 	public static function is_checksum_enabled() {
-		return ! (bool) self::get_setting( 'checksum_disable' );
+		return ! (bool) static::get_setting( 'checksum_disable' );
 	}
 
 	/**
@@ -582,7 +720,30 @@ class Settings {
 	 * @return boolean Whether dedicated Sync flow is enabled.
 	 */
 	public static function is_dedicated_sync_enabled() {
-		return (bool) self::get_setting( 'dedicated_sync_enabled' );
+		return (bool) static::get_setting( 'dedicated_sync_enabled' );
 	}
 
+	/**
+	 * Whether custom queue table is enabled.
+	 *
+	 * @access public
+	 * @static
+	 *
+	 * @return boolean Whether custom queue table is enabled.
+	 */
+	public static function is_custom_queue_table_enabled() {
+		return (bool) static::get_setting( 'custom_queue_table_enabled' );
+	}
+
+	/**
+	 * Whether wpcom rest api is enabled.
+	 *
+	 * @access public
+	 * @static
+	 *
+	 * @return boolean Whether wpcom rest api is enabled.
+	 */
+	public static function is_wpcom_rest_api_enabled() {
+		return (bool) static::get_setting( 'wpcom_rest_api_enabled' );
+	}
 }

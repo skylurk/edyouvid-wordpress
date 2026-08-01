@@ -446,15 +446,26 @@ class Media extends Settings_Component implements Setup {
 			return $is_oversize[ $attachment_id ];
 		}
 
-		$file_size = $this->get_attachment_file_size( $attachment_id );
-		$max_size  = ( wp_attachment_is_image( $attachment_id ) ? 'image_max_size_bytes' : 'video_max_size_bytes' );
-		$limit     = $this->plugin->components['connect']->usage['media_limits'][ $max_size ];
+		$file_size    = $this->get_attachment_file_size( $attachment_id );
+		$max_size_key = ( wp_attachment_is_image( $attachment_id ) ? 'image_max_size_bytes' : 'video_max_size_bytes' );
+		$usage        = $this->plugin->components['connect']->usage;
+		$media_limits = is_array( $usage ) && isset( $usage['media_limits'] ) ? $usage['media_limits'] : null;
+
+		// If the limit isn't available yet (e.g. plugin not connected, or API
+		// returned an unexpected response), treat the asset as not oversize
+		// rather than fatal-erroring on a string offset.
+		if ( ! is_array( $media_limits ) || ! isset( $media_limits[ $max_size_key ] ) ) {
+			$is_oversize[ $attachment_id ] = false;
+
+			return $is_oversize[ $attachment_id ];
+		}
+
+		$limit = $media_limits[ $max_size_key ];
 
 		$is_oversize[ $attachment_id ] = $file_size > $limit;
 
 		if ( $is_oversize[ $attachment_id ] ) {
-			$max_size    = ( wp_attachment_is_image( $attachment_id ) ? 'image_max_size_bytes' : 'video_max_size_bytes' );
-			$max_size_hr = size_format( $this->plugin->components['connect']->usage['media_limits'][ $max_size ] );
+			$max_size_hr = size_format( $limit );
 			// translators: variable is file size.
 			$message = sprintf( __( 'File size exceeds the maximum of %s. This media asset will be served from WordPress.', 'cloudinary' ), $max_size_hr );
 			update_post_meta( $attachment_id, Sync::META_KEYS['sync_error'], $message );
@@ -1981,7 +1992,7 @@ class Media extends Settings_Component implements Setup {
 		$test_parts = wp_parse_url( $url );
 		$cld_url    = wp_parse_url( $this->base_url, PHP_URL_HOST );
 
-		return isset( $test_parts['path'] ) && false !== strpos( $test_parts['host'], $cld_url );
+		return isset( $test_parts['path'], $test_parts['host'] ) && false !== strpos( $test_parts['host'], $cld_url );
 	}
 
 	/**
@@ -2058,7 +2069,7 @@ class Media extends Settings_Component implements Setup {
 		// External assets.
 		wp_enqueue_script( 'cloudinary-media-modal', $this->plugin->dir_url . '/js/media-modal.js', null, $this->plugin->version, true );
 		wp_enqueue_script( 'cloudinary-media-library', CLOUDINARY_ENDPOINTS_MEDIA_LIBRARY, $deps, $this->plugin->version, true );
-		wp_enqueue_script( 'cloudinary-terms-order', $this->plugin->dir_url . '/js/terms-order.js', array( 'jquery' ), $this->plugin->version, true );
+		wp_enqueue_script( 'cloudinary-terms-order', $this->plugin->dir_url . '/js/terms-order.js', array( 'jquery', 'wp-i18n' ), $this->plugin->version, true );
 		wp_enqueue_style( 'cloudinary' );
 		$params = array(
 			'nonce'     => wp_create_nonce( 'wp_rest' ),
@@ -3147,7 +3158,7 @@ class Media extends Settings_Component implements Setup {
 			// Internal components.
 			$this->global_transformations = new Global_Transformations( $this );
 			$this->gallery                = $this->plugin->get_component( 'gallery' );
-			$this->woocommerce_gallery    = new WooCommerceGallery( $this->gallery );
+			$this->woocommerce_gallery    = new WooCommerceGallery( $this->gallery, $this );
 			$this->filter                 = new Filter( $this );
 			$this->upgrade                = new Upgrade( $this );
 			$this->video                  = new Video( $this );
@@ -3266,5 +3277,64 @@ class Media extends Settings_Component implements Setup {
 			// Save to DB.
 			$setting->save_value();
 		}
+	}
+
+
+	/**
+	 * Get the size dimensions based on the size slug.
+	 *
+	 * Uses WordPress core API to retrieve registered image subsizes, which handles both
+	 * built-in sizes (thumbnail, medium, large, etc.) and custom registered sizes.
+	 *
+	 * @param string $size_slug The WordPress size slug (e.g., 'thumbnail', 'medium', 'large').
+	 *
+	 * @return array|null An array with width and height, or null if not found.
+	 */
+	public function get_size_from_slug( $size_slug ) {
+		// Use WordPress core API to get all registered image subsizes.
+		$image_subsizes = wp_get_registered_image_subsizes();
+
+		// Check if the requested size exists in registered subsizes.
+		if ( ! isset( $image_subsizes[ $size_slug ] ) ) {
+			return null;
+		}
+
+		$size_data = $image_subsizes[ $size_slug ];
+
+		// Return width and height if both are present and valid.
+		if ( ! empty( $size_data['width'] ) && ! empty( $size_data['height'] ) ) {
+			return array( (int) $size_data['width'], (int) $size_data['height'] );
+		}
+
+		return null;
+	}
+
+
+	/**
+	 * Extract WordPress image size from parent figure element.
+	 *
+	 * @param string $element The img tag element.
+	 * @param string $content The full HTML content.
+	 *
+	 * @return string|null The WordPress size slug (e.g., 'thumbnail', 'medium'), or null if not found.
+	 */
+	public function get_size_slug_from_parent_figure_class( $element, $content ) {
+		// If content is empty, we can't find a parent figure, so return null.
+		if ( empty( $content ) ) {
+			return null;
+		}
+
+		// Escape the element for use in regex.
+		$escaped_element = preg_quote( $element, '#' );
+
+		// Pattern: <figure class="...size-{size}...">...img element...[optional figcaption]</figure> .
+		$pattern = '#<figure\s+[^>]*class="[^"]*\bsize-(\w+)\b[^"]*"[^>]*>.*?' . $escaped_element . '.*?</figure>#is';
+
+		// Look for the parent figure tag that contains this img element.
+		if ( preg_match( $pattern, $content, $matches ) ) {
+			return $matches[1];
+		}
+
+		return null;
 	}
 }

@@ -7,13 +7,15 @@
 
 use Automattic\Jetpack\Assets;
 use Automattic\Jetpack\Blocks;
+use Automattic\Jetpack\Post_Media\Images;
+use Automattic\Jetpack\Status\Request;
 use Automattic\Jetpack\Sync\Settings;
 
 /**
  * The Jetpack_RelatedPosts class.
  */
 class Jetpack_RelatedPosts {
-	const VERSION   = '20211209';
+	const VERSION   = '20240116';
 	const SHORTCODE = 'jetpack-related-posts';
 
 	/**
@@ -128,7 +130,7 @@ class Jetpack_RelatedPosts {
 	/**
 	 * Get the blog ID.
 	 *
-	 * @return Object current blog id.
+	 * @return mixed current blog id.
 	 */
 	protected function get_blog_id() {
 		return Jetpack_Options::get_option( 'id' );
@@ -197,7 +199,7 @@ class Jetpack_RelatedPosts {
 	public function get_headline() {
 		$options = $this->get_options();
 
-		if ( $options['show_headline'] ) {
+		if ( ! empty( $options['show_headline'] ) ) {
 			$headline = sprintf(
 				/** This filter is already documented in modules/sharedaddy/sharing-service.php */
 				apply_filters( 'jetpack_sharing_headline_html', '<h3 class="jp-relatedposts-headline"><em>%s</em></h3>', esc_html( $options['headline'] ), 'related-posts' ),
@@ -218,7 +220,7 @@ class Jetpack_RelatedPosts {
 	 *
 	 * @param string $content Post content.
 	 *
-	 * @returns string
+	 * @return string
 	 */
 	public function filter_add_target_to_dom( $content ) {
 		// Do not output related posts for ActivityPub requests.
@@ -256,8 +258,8 @@ class Jetpack_RelatedPosts {
 			'showHeadline'      => $rp_settings['show_headline'],
 			'displayDate'       => isset( $rp_settings['show_date'] ) ? (bool) $rp_settings['show_date'] : true,
 			'displayContext'    => isset( $rp_settings['show_context'] ) && $rp_settings['show_context'],
-			'postLayout'        => isset( $rp_settings['layout'] ) ? $rp_settings['layout'] : 'grid',
-			'postsToShow'       => isset( $rp_settings['size'] ) ? $rp_settings['size'] : 3,
+			'postLayout'        => $rp_settings['layout'] ?? 'grid',
+			'postsToShow'       => $rp_settings['size'] ?? 3,
 			/** This filter is already documented in modules/related-posts/jetpack-related-posts.php */
 			'headline'          => apply_filters( 'jetpack_relatedposts_filter_headline', $this->get_headline() ),
 			'isServerRendered'  => true,
@@ -318,7 +320,7 @@ EOT;
 	/**
 	 * Returns the HTML for the related posts section if it's running in the loop or other instances where we don't support related posts.
 	 *
-	 * @returns string
+	 * @return string
 	 */
 	public function get_client_rendered_html_unsupported() {
 		if ( Settings::is_syncing() ) {
@@ -342,115 +344,126 @@ EOT;
 	public function render_block_item( $related_post, $block_attributes ) {
 		$instance_id = 'related-posts-item-' . uniqid();
 		$label_id    = $instance_id . '-label';
+		$title       = $related_post['title'];
+		$url         = $related_post['url'];
+		$rel         = $related_post['rel'];
+		$img         = '';
+		$list        = '';
 
 		$item_markup = sprintf(
-			'<ul id="%1$s" aria-labelledby="%2$s" class="jp-related-posts-i2__post" role="menuitem">',
-			esc_attr( $instance_id ),
-			esc_attr( $label_id )
+			'<li id="%1$s" class="jp-related-posts-i2__post">',
+			esc_attr( $instance_id )
 		);
 
-		$item_markup .= sprintf(
-			'<li class="jp-related-posts-i2__post-link"><a id="%1$s" href="%2$s" %4$s>%3$s</a></li>',
-			esc_attr( $label_id ),
-			esc_url( $related_post['url'] ),
-			esc_attr( $related_post['title'] ),
-			( ! empty( $related_post['rel'] ) ? 'rel="' . esc_attr( $related_post['rel'] ) . '"' : '' )
-		);
-
+		// Thumbnail
 		if ( ! empty( $block_attributes['show_thumbnails'] ) && ! empty( $related_post['img']['src'] ) ) {
-			$img_link = sprintf(
-				'<li class="jp-related-posts-i2__post-img-link"><a href="%1$s" %2$s><img loading="lazy" src="%3$s" width="%4$s" height="%5$s" alt="%6$s" %7$s/></a></li>',
-				esc_url( $related_post['url'] ),
-				( ! empty( $related_post['rel'] ) ? 'rel="' . esc_attr( $related_post['rel'] ) . '"' : '' ),
+			$img = sprintf(
+				'<img loading="lazy" class="jp-related-posts-i2__post-img" src="%1$s" alt="%2$s" %3$s/>',
 				esc_url( $related_post['img']['src'] ),
-				esc_attr( $related_post['img']['width'] ),
-				esc_attr( $related_post['img']['height'] ),
 				esc_attr( $related_post['img']['alt_text'] ),
 				( ! empty( $related_post['img']['srcset'] ) ? 'srcset="' . esc_attr( $related_post['img']['srcset'] ) . '"' : '' )
 			);
-
-			$item_markup .= $img_link;
 		}
 
+		// Link
+		$item_markup .= sprintf(
+			'<a id="%1$s" href="%2$s" class="jp-related-posts-i2__post-link" %3$s>%4$s%5$s</a>',
+			esc_attr( $label_id ),
+			esc_url( $url ),
+			( ! empty( $rel ) ? 'rel="' . esc_attr( $rel ) . '"' : '' ),
+			esc_html( $title ),
+			$img
+		);
+
+		// Date
 		if ( $block_attributes['show_date'] ) {
-			$date_tag = sprintf(
-				'<li class="jp-related-posts-i2__post-date">%1$s</li>',
-				esc_html( $related_post['date'] )
-			);
-
-			$item_markup .= $date_tag;
+			$list .= '<dt>' . __( 'Date', 'jetpack' ) . '</dt>';
+			$list .= '<dd class="jp-related-posts-i2__post-date">';
+			$list .= esc_html( $related_post['date'] );
+			$list .= '</dd>';
 		}
 
+		// Author
 		if ( $block_attributes['show_author'] ) {
-			$author_tag = sprintf(
-				'<li class="jp-related-posts-i2__post-author">%1$s</li>',
-				esc_html( $related_post['author'] )
-			);
-
-			$item_markup .= $author_tag;
+			$list .= '<dt>' . __( 'Author', 'jetpack' ) . '</dt>';
+			$list .= '<dd class="jp-related-posts-i2__post-author">';
+			$list .= esc_html( $related_post['author'] );
+			$list .= '</dd>';
 		}
 
+		// Context
 		if ( ( $block_attributes['show_context'] ) && ! empty( $related_post['block_context'] ) ) {
+			// translators: this is followed by the reason why the item is related to the current post
+			$list .= '<dt>' . __( 'In relation to', 'jetpack' ) . '</dt>';
+			$list .= '<dd class="jp-related-posts-i2__post-context">';
+
 			// Note: The original 'context' value is not used when rendering the block.
 			// It is still generated and available for the legacy rendering code path though.
 			// See './related-posts.js' for that usage.
-			$context_tag   = '';
 			$block_context = $related_post['block_context'];
+
 			if ( ! empty( $block_context['link'] ) ) {
-				$context_tag = sprintf(
-					'<li class="jp-related-posts-i2__post-context"><a href="%1$s">%2$s</a></li>',
+				$list .= sprintf(
+					'<a href="%1$s">%2$s</a>',
 					esc_url( $block_context['link'] ),
 					esc_html( $block_context['text'] )
 				);
 			} else {
-				$context_tag = sprintf(
-					'<li class="jp-related-posts-i2__post-context">%1$s</li>',
-					esc_html( $block_context['text'] )
-				);
+				$list .= esc_html( $block_context['text'] );
 			}
 
-			$item_markup .= $context_tag;
+			$list .= '</dd>';
 		}
 
-		$item_markup .= '</ul>';
+		// Metadata
+		if ( ! empty( $list ) ) {
+			$item_markup .= '<dl class="jp-related-posts-i2__post-defs">' . $list . '</dl>';
+		}
+
+		$item_markup .= '</li>';
 
 		return $item_markup;
 	}
 
 	/**
-	 * Render a related posts row.
+	 * Render the list of related posts.
 	 *
-	 * @param array $posts The posts to render into the row.
+	 * @param array $posts The posts to render into the list.
 	 * @param array $block_attributes Block attributes.
+	 * @return string
 	 */
-	public function render_block_row( $posts, $block_attributes ) {
-		$rows_markup = '';
+	public function render_post_list( $posts, $block_attributes ) {
+		$markup = '';
+
 		foreach ( $posts as $post ) {
-			$rows_markup .= $this->render_block_item( $post, $block_attributes );
+			$markup .= $this->render_block_item( $post, $block_attributes );
 		}
+
 		return sprintf(
-			'<div class="jp-related-posts-i2__row" data-post-count="%1$s">%2$s</div>',
+			// role="list" is required for accessibility as VoiceOver ignores unstyled lists.
+			'<ul class="jp-related-posts-i2__list" role="list" data-post-count="%1$s">%2$s</ul>',
 			count( $posts ),
-			$rows_markup
+			$markup
 		);
 	}
 
 	/**
 	 * Render the related posts markup.
 	 *
-	 * @param array  $attributes Block attributes.
-	 * @param string $content    String containing the related Posts block content.
+	 * @param array    $attributes Block attributes.
+	 * @param string   $content    String containing the related Posts block content.
+	 * @param WP_Block $block    The block object.
 	 * @return string
 	 */
-	public function render_block( $attributes, $content ) {
-		if ( ! jetpack_is_frontend() ) {
+	public function render_block( $attributes, $content, $block = null ) {
+		if ( ! Request::is_frontend() ) {
 			return $content;
 		}
 
 		$wrapper_attributes = array();
 		$post_id            = get_the_ID();
 		$block_attributes   = array(
-			'headline'        => isset( $attributes['headline'] ) ? $attributes['headline'] : null,
+			'headline'        => $attributes['headline'] ?? null,
 			'show_thumbnails' => isset( $attributes['displayThumbnails'] ) && $attributes['displayThumbnails'],
 			'show_author'     => isset( $attributes['displayAuthor'] ) ? (bool) $attributes['displayAuthor'] : false,
 			'show_headline'   => isset( $attributes['displayHeadline'] ) ? (bool) $attributes['displayHeadline'] : false,
@@ -470,31 +483,11 @@ EOT;
 			)
 		);
 
-		$display_lower_row = $block_attributes['size'] > 3;
-
 		if ( empty( $related_posts ) ) {
 			return '';
 		}
 
-		switch ( count( $related_posts ) ) {
-			case 2:
-			case 4:
-			case 5:
-				$top_row_end = 2;
-				break;
-
-			default:
-				$top_row_end = 3;
-				break;
-		}
-
-		$upper_row_posts = array_slice( $related_posts, 0, $top_row_end );
-		$lower_row_posts = array_slice( $related_posts, $top_row_end );
-
-		$rows_markup = $this->render_block_row( $upper_row_posts, $block_attributes );
-		if ( $display_lower_row ) {
-			$rows_markup .= $this->render_block_row( $lower_row_posts, $block_attributes );
-		}
+		$list_markup = $this->render_post_list( $related_posts, $block_attributes );
 
 		if ( empty( $attributes['isServerRendered'] ) ) {
 			// The get_server_rendered_html() path won't register a block,
@@ -503,7 +496,17 @@ EOT;
 		}
 
 		$headline_markup = '';
-		if ( $block_attributes['show_headline'] === true ) {
+
+		if ( isset( $block ) ) {
+			foreach ( $block->inner_blocks as $inner_block ) {
+				if ( 'core/heading' === $inner_block->name && ! empty( wp_strip_all_tags( $inner_block->inner_html ) ) ) {
+					$headline_markup = trim( $inner_block->inner_html );
+					break;
+				}
+			}
+		}
+
+		if ( empty( $headline_markup ) && $block_attributes['show_headline'] ) {
 			$headline = $block_attributes['headline'];
 			if ( strlen( trim( $headline ) ) !== 0 ) {
 				$headline_markup = sprintf(
@@ -512,13 +515,15 @@ EOT;
 				);
 			}
 		}
+
 		$display_markup = sprintf(
-			'<nav class="jp-relatedposts-i2%1$s"%2$s data-layout="%3$s">%4$s%5$s</nav>',
+			'<nav class="jp-relatedposts-i2%1$s"%2$s data-layout="%3$s" aria-label="%6$s">%4$s%5$s</nav>',
 			! empty( $wrapper_attributes['class'] ) ? ' ' . esc_attr( $wrapper_attributes['class'] ) : '',
 			! empty( $wrapper_attributes['style'] ) ? ' style="' . esc_attr( $wrapper_attributes['style'] ) . '"' : '',
 			esc_attr( $block_attributes['layout'] ),
 			$headline_markup,
-			$rows_markup
+			$list_markup,
+			empty( $headline_markup ) ? esc_attr__( 'Related Posts', 'jetpack' ) : esc_attr( wp_strip_all_tags( $headline_markup ) )
 		);
 
 		/**
@@ -667,7 +672,7 @@ EOT;
 			$current['show_date']       = ( isset( $input['show_date'] ) && '1' == $input['show_date'] ); // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual
 			$current['show_context']    = ( isset( $input['show_context'] ) && '1' == $input['show_context'] ); // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual
 			$current['layout']          = isset( $input['layout'] ) && in_array( $input['layout'], array( 'grid', 'list' ), true ) ? $input['layout'] : 'grid';
-			$current['headline']        = isset( $input['headline'] ) ? $input['headline'] : esc_html__( 'Related', 'jetpack' );
+			$current['headline']        = $input['headline'] ?? esc_html__( 'Related', 'jetpack' );
 		} else {
 			$current['enabled'] = false;
 		}
@@ -684,12 +689,11 @@ EOT;
 	 * HTML for admin settings page.
 	 *
 	 * @uses self::get_options, checked, esc_html__
-	 * @returns null
 	 */
 	public function print_setting_html() {
 		$options = $this->get_options();
 
-		$ui_settings_template = <<<EOT
+		$ui_settings_template = <<<'EOT'
 <p class="description">%s</p>
 <ul id="settings-reading-relatedposts-customize">
 	<li>
@@ -725,7 +729,7 @@ EOT;
 		);
 
 		if ( ! $this->allow_feature_toggle() ) {
-			$template = <<<EOT
+			$template = <<<'EOT'
 <input type="hidden" name="jetpack_relatedposts[enabled]" value="1" />
 %s
 EOT;
@@ -734,7 +738,7 @@ EOT;
 				$ui_settings // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- data is escaped when variable is set.
 			);
 		} else {
-			$template = <<<EOT
+			$template = <<<'EOT'
 <ul id="settings-reading-relatedposts">
 	<li>
 		<label><input type="radio" name="jetpack_relatedposts[enabled]" value="0" class="tog" %s /> %s</label>
@@ -760,7 +764,7 @@ EOT;
 	 * Head JS/CSS for admin settings page.
 	 *
 	 * @uses esc_html__
-	 * @returns null
+	 * @return null
 	 */
 	public function print_setting_head() {
 
@@ -840,7 +844,6 @@ EOT;
 			$extra_css = '';
 		}
 		// phpcs:disable WordPress.Security.EscapeOutput.HeredocOutputNotEscaped -- Escaped above where needed.
-		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- wpcom repo still uses WPCS v2, which uses a different code.
 		echo <<<EOT
 <style type="text/css">
 	#settings-reading-relatedposts .disabled { opacity:.5; filter:Alpha(opacity=50); }
@@ -910,7 +913,6 @@ EOT;
 	});
 </script>
 EOT;
-		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 		// phpcs:enable WordPress.Security.EscapeOutput.HeredocOutputNotEscaped
 	}
 
@@ -930,7 +932,7 @@ EOT;
 		}
 
 		if (
-			! $options['enabled']
+			empty( $options['enabled'] )
 			|| 0 === (int) $post_id
 			|| empty( $options['size'] )
 		) {
@@ -1161,6 +1163,7 @@ EOT;
 	 *
 	 * @param array $excludes array of post_ids to exclude.
 	 * @uses send_nosniff_header, self::get_for_post_id, get_the_ID
+	 * @return never
 	 */
 	protected function action_frontend_init_ajax( array $excludes ) {
 		define( 'DOING_AJAX', true );
@@ -1303,21 +1306,20 @@ EOT;
 
 		$response = array(
 			'version'         => self::VERSION,
-			'show_thumbnails' => (bool) $options['show_thumbnails'],
-			'show_date'       => (bool) $options['show_date'],
-			'show_context'    => (bool) $options['show_context'],
-			'layout'          => (string) $options['layout'],
-			'headline'        => (string) $options['headline'],
+			'show_thumbnails' => (bool) ( $options['show_thumbnails'] ?? false ),
+			'show_date'       => (bool) ( $options['show_date'] ?? true ),
+			'show_context'    => (bool) ( $options['show_context'] ?? true ),
+			'layout'          => (string) ( $options['layout'] ?? 'grid' ),
+			'headline'        => (string) ( $options['headline'] ?? '' ),
 			'items'           => array(),
 		);
 
-		if ( count( $related_posts ) === $options['size'] ) {
+		if ( ! empty( $options['size'] ) && count( $related_posts ) === $options['size'] ) {
 			$response['items'] = $related_posts;
 		}
 
-		echo wp_json_encode( $response );
-
-		exit();
+		// @phan-suppress-next-line PhanTypeMismatchArgumentProbablyReal -- It takes null, but its phpdoc only says int.
+		wp_send_json( $response, null, JSON_UNESCAPED_SLASHES );
 	}
 
 	/**
@@ -1441,10 +1443,10 @@ EOT;
 
 	/**
 	 * Generates the thumbnail image to be used for the post. Uses the
-	 * image as returned by Jetpack_PostImages::get_image()
+	 * image as returned by Images::get_image()
 	 *
 	 * @param int $post_id - the post ID.
-	 * @uses self::get_options, apply_filters, Jetpack_PostImages::get_image, Jetpack_PostImages::fit_image_url
+	 * @uses self::get_options, apply_filters, Images::get_image, Images::fit_image_url
 	 * @return string
 	 */
 	protected function generate_related_post_image_params( $post_id ) {
@@ -1479,58 +1481,56 @@ EOT;
 		}
 
 		// Try to get post image.
-		if ( class_exists( 'Jetpack_PostImages' ) ) {
-			$img_url    = '';
-			$post_image = Jetpack_PostImages::get_image(
-				$post_id,
-				$thumbnail_size
-			);
+		$img_url    = '';
+		$post_image = Images::get_image(
+			$post_id,
+			$thumbnail_size
+		);
 
-			if ( is_array( $post_image ) ) {
-				$img_url = $post_image['src'];
-			} elseif ( class_exists( 'Jetpack_Media_Summary' ) ) {
-				$media = Jetpack_Media_Summary::get( $post_id );
+		if ( is_array( $post_image ) ) {
+			$img_url = $post_image['src'];
+		} elseif ( class_exists( 'Jetpack_Media_Summary' ) ) {
+			$media = Jetpack_Media_Summary::get( $post_id );
 
-				if ( is_array( $media ) && ! empty( $media['image'] ) ) {
-					$img_url = $media['image'];
-				}
+			if ( is_array( $media ) && ! empty( $media['image'] ) ) {
+				$img_url = $media['image'];
+			}
+		}
+
+		if ( ! empty( $img_url ) ) {
+			if ( ! empty( $post_image['alt_text'] ) ) {
+				$image_params['alt_text'] = $post_image['alt_text'];
+			} else {
+				$image_params['alt_text'] = '';
 			}
 
-			if ( ! empty( $img_url ) ) {
-				if ( ! empty( $post_image['alt_text'] ) ) {
-					$image_params['alt_text'] = $post_image['alt_text'];
-				} else {
-					$image_params['alt_text'] = '';
-				}
+			$thumbnail_width  = 0;
+			$thumbnail_height = 0;
 
-				$thumbnail_width  = 0;
-				$thumbnail_height = 0;
+			if ( ! empty( $thumbnail_size['width'] ) ) {
+				$thumbnail_width       = $thumbnail_size['width'];
+				$image_params['width'] = $thumbnail_width;
+			}
 
-				if ( ! empty( $thumbnail_size['width'] ) ) {
-					$thumbnail_width       = $thumbnail_size['width'];
-					$image_params['width'] = $thumbnail_width;
-				}
+			if ( ! empty( $thumbnail_size['height'] ) ) {
+				$thumbnail_height       = $thumbnail_size['height'];
+				$image_params['height'] = $thumbnail_height;
+			}
 
-				if ( ! empty( $thumbnail_size['height'] ) ) {
-					$thumbnail_height       = $thumbnail_size['height'];
-					$image_params['height'] = $thumbnail_height;
-				}
+			$image_params['src'] = Images::fit_image_url(
+				$img_url,
+				$thumbnail_width,
+				$thumbnail_height
+			);
 
-				$image_params['src'] = Jetpack_PostImages::fit_image_url(
-					$img_url,
-					$thumbnail_width,
-					$thumbnail_height
-				);
-
-				// Add a srcset to handle zoomed views and high-density screens.
-				$srcset = Jetpack_PostImages::generate_cropped_srcset(
-					$post_image,
-					$thumbnail_width,
-					$thumbnail_height
-				);
-				if ( ! empty( $srcset ) ) {
-					$image_params['srcset'] = $srcset;
-				}
+			// Add a srcset to handle zoomed views and high-density screens.
+			$srcset = Images::generate_cropped_srcset(
+				$post_image,
+				$thumbnail_width,
+				$thumbnail_height
+			);
+			if ( ! empty( $srcset ) ) {
+				$image_params['srcset'] = $srcset;
 			}
 		}
 
@@ -1756,8 +1756,8 @@ EOT;
 		$categories = get_the_category( $post_id );
 		if ( is_array( $categories ) ) {
 			foreach ( $categories as $category ) {
-				$cat_link = get_category_link( $category );
-				if ( 'uncategorized' !== $category->slug && '' !== trim( $category->name ) ) {
+				if ( $category instanceof WP_Term && 'uncategorized' !== $category->slug && '' !== trim( $category->name ) ) {
+					$cat_link = get_category_link( $category );
 					return array(
 						'text' => trim( $category->name ),
 						'link' => $cat_link,
@@ -1768,8 +1768,8 @@ EOT;
 		$tags = get_the_terms( $post_id, 'post_tag' );
 		if ( is_array( $tags ) ) {
 			foreach ( $tags as $tag ) {
-				$tag_link = get_tag_link( $tag );
-				if ( '' !== trim( $tag->name ) ) {
+				if ( $tag instanceof WP_Term && '' !== trim( $tag->name ) ) {
+					$tag_link = get_tag_link( $tag );
 					return array(
 						'text' => trim( $tag->name ),
 						'link' => $tag_link,
@@ -1812,7 +1812,7 @@ EOT;
 		$categories = get_the_category( $post_id );
 		if ( is_array( $categories ) ) {
 			foreach ( $categories as $category ) {
-				if ( 'uncategorized' !== $category->slug && '' !== trim( $category->name ) ) {
+				if ( $category instanceof WP_Term && 'uncategorized' !== $category->slug && '' !== trim( $category->name ) ) {
 					$post_cat_context = sprintf(
 						// Translators: The category or tag name.
 						esc_html_x( 'In "%s"', 'in {category/tag name}', 'jetpack' ),
@@ -1836,7 +1836,7 @@ EOT;
 		$tags = get_the_terms( $post_id, 'post_tag' );
 		if ( is_array( $tags ) ) {
 			foreach ( $tags as $tag ) {
-				if ( '' !== trim( $tag->name ) ) {
+				if ( $tag instanceof WP_Term && '' !== trim( $tag->name ) ) {
 					$post_tag_context = sprintf(
 						// Translators: the category or tag name.
 						_x( 'In "%s"', 'in {category/tag name}', 'jetpack' ),
@@ -1882,18 +1882,27 @@ EOT;
 	/**
 	 * Determines if the current post is able to use related posts.
 	 *
-	 * @uses self::get_options, is_admin, is_single, apply_filters
+	 * @since 14.0 Checks for singular instead of single to allow usage on non-posts CPTs in block themes.
+	 * @uses self::get_options, is_admin, is_singular, apply_filters
 	 * @return bool
 	 */
 	protected function enabled_for_request() {
-		$enabled = is_single()
+		/*
+		 * On block themes, allow usage on any singular view (post, page, CPT).
+		 * On classic themes, only allow usage on single posts by default.
+		 */
+		$enabled_on_singular_views = wp_is_block_theme()
+			? is_singular()
+			: is_single();
+
+		$enabled = $enabled_on_singular_views
 			&& ! is_attachment()
 			&& ! is_admin()
 			&& ! is_embed()
 			&& ( ! $this->allow_feature_toggle() || $this->get_option( 'enabled' ) );
 
 		/**
-		 * Filter the Enabled value to allow related posts to be shown on pages as well.
+		 * Filter the Enabled value to allow related posts to be selectively enabled/disabled.
 		 *
 		 * @module related-posts
 		 *
@@ -1974,9 +1983,7 @@ EOT;
 	 * Render AMP's reader mode CSS.
 	 */
 	public function render_amp_reader_mode_css() {
-		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- this is loading a CSS file.
-		echo file_get_contents( __DIR__ . '/related-posts.css' );
-		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		echo file_get_contents( __DIR__ . '/related-posts.css' );  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- this is loading a CSS file.
 	}
 
 	/**
@@ -2026,6 +2033,16 @@ EOT;
 	public function rest_register_related_posts() {
 		/** This filter is already documented in class.json-api-endpoints.php */
 		$post_types = apply_filters( 'rest_api_allowed_post_types', array( 'post', 'page', 'revision' ) );
+
+		/**
+		 * Filter the post types that are allowed to have related posts.
+		 *
+		 * @since 15.3
+		 *
+		 * @param array $post_types The post types that are allowed to have related posts.
+		 */
+		$post_types = apply_filters( 'jetpack_related_posts_rest_api_allowed_post_types', $post_types );
+
 		foreach ( $post_types as $post_type ) {
 			register_rest_field(
 				$post_type,
@@ -2052,6 +2069,22 @@ EOT;
 	 * @return array
 	 */
 	public function rest_get_related_posts( $object ) {
+		if ( ! isset( $object['id'] ) ) {
+			return array();
+		}
+
+		// If the Related Posts option is turned off, don't get the related posts.
+		$options = \Jetpack_Options::get_option( 'relatedposts', array() );
+		if ( empty( $options['enabled'] ) || ! $options['enabled'] ) {
+			return array();
+		}
+
+		// If the current post doesn't contain a Related Posts block, and we're also on an admin page, don't get the related posts.
+		// This will ensure that if the feature is enabled, we can still retrieve Related Posts via the REST API.
+		if ( ! has_block( 'jetpack/related-posts' ) && is_admin() ) {
+			return array();
+		}
+
 		return $this->get_for_post_id( $object['id'], array( 'size' => 6 ) );
 	}
 }

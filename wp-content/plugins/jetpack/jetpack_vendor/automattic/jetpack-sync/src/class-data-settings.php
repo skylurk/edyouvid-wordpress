@@ -22,18 +22,22 @@ class Data_Settings {
 			'Automattic\\Jetpack\\Sync\\Modules\\Full_Sync_Immediately', // enable Initial Sync on Site Connection.
 			'Automattic\\Jetpack\\Sync\\Modules\\Options',
 			'Automattic\\Jetpack\\Sync\\Modules\\Updates',
+			'Automattic\\Jetpack\\Sync\\Modules\\Stats', // Daily heartbeat data.
 		),
 		'jetpack_sync_callable_whitelist'  => array(
-			'site_url'                => array( 'Automattic\\Jetpack\\Connection\\Urls', 'site_url' ),
-			'home_url'                => array( 'Automattic\\Jetpack\\Connection\\Urls', 'home_url' ),
-			'get_plugins'             => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_plugins' ),
-			'get_themes'              => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_themes' ),
-			'paused_plugins'          => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_paused_plugins' ),
-			'paused_themes'           => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_paused_themes' ),
-			'timezone'                => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_timezone' ),
-			'wp_get_environment_type' => 'wp_get_environment_type',
-			'wp_max_upload_size'      => 'wp_max_upload_size',
-			'wp_version'              => array( 'Automattic\\Jetpack\\Sync\\Functions', 'wp_version' ),
+			'site_url'                          => array( 'Automattic\\Jetpack\\Connection\\Urls', 'site_url' ),
+			'home_url'                          => array( 'Automattic\\Jetpack\\Connection\\Urls', 'home_url' ),
+			'get_plugins'                       => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_plugins' ),
+			'get_themes'                        => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_themes' ),
+			'jetpack_connection_active_plugins' => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_jetpack_connection_active_plugins' ),
+			'jetpack_package_versions'          => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_jetpack_package_versions' ),
+			'paused_plugins'                    => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_paused_plugins' ),
+			'paused_themes'                     => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_paused_themes' ),
+			'timezone'                          => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_timezone' ),
+			'wp_get_environment_type'           => 'wp_get_environment_type',
+			'wp_max_upload_size'                => 'wp_max_upload_size',
+			'wp_version'                        => array( 'Automattic\\Jetpack\\Sync\\Functions', 'wp_version' ),
+			'jetpack_sync_active_modules'       => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_jetpack_sync_active_modules' ),
 		),
 		'jetpack_sync_constants_whitelist' => array(
 			'ABSPATH',
@@ -69,10 +73,7 @@ class Data_Settings {
 			'jetpack_sync_settings_taxonomies_blacklist',
 			'jetpack_sync_settings_dedicated_sync_enabled',
 			'jetpack_sync_settings_custom_queue_table_enabled',
-			/**
-			 * Connection related options
-			 */
-			'jetpack_connection_active_plugins',
+			'jetpack_sync_settings_wpcom_rest_api_enabled',
 			/**
 			 * Generic site options
 			 */
@@ -84,6 +85,7 @@ class Data_Settings {
 			'stylesheet',
 			'time_format',
 			'timezone_string',
+			'active_plugins',
 		),
 	);
 
@@ -221,7 +223,7 @@ class Data_Settings {
 	 */
 	private function add_filters_for_enabled_module( $module, $filters_settings ) {
 		$module_mapping     = self::MODULE_FILTER_MAPPING;
-		$filters_for_module = isset( $module_mapping[ $module ] ) ? $module_mapping[ $module ] : array();
+		$filters_for_module = $module_mapping[ $module ] ?? array();
 
 		foreach ( $filters_for_module as $filter ) {
 			if ( isset( $filters_settings[ $filter ] ) ) {
@@ -240,7 +242,7 @@ class Data_Settings {
 	 */
 	private function add_filters_for_disabled_module( $module ) {
 		$module_mapping     = self::MODULE_FILTER_MAPPING;
-		$filters_for_module = isset( $module_mapping[ $module ] ) ? $module_mapping[ $module ] : array();
+		$filters_for_module = $module_mapping[ $module ] ?? array();
 
 		foreach ( $filters_for_module as $filter ) {
 			$this->add_custom_filter_setting( $filter, array() );

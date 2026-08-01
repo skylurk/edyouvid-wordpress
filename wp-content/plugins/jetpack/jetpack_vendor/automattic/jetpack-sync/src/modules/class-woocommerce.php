@@ -7,7 +7,12 @@
 
 namespace Automattic\Jetpack\Sync\Modules;
 
+use WC_Order;
 use WP_Error;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 /**
  * Class to handle sync for WooCommerce.
@@ -60,14 +65,50 @@ class WooCommerce extends Module {
 	private $order_item_table_name;
 
 	/**
-	 * The table in the database.
+	 * The table name.
+	 *
+	 * @access public
+	 *
+	 * @return string
+	 * @deprecated since 3.11.0 Use table() instead.
+	 */
+	public function table_name() {
+		_deprecated_function( __METHOD__, '3.11.0', 'Automattic\\Jetpack\\Sync\\WooCommerce->table' );
+		return $this->order_item_table_name;
+	}
+
+	/**
+	 * The table in the database with the prefix.
+	 *
+	 * @access public
+	 *
+	 * @return string|bool
+	 */
+	public function table() {
+		global $wpdb;
+		return $wpdb->prefix . 'woocommerce_order_items';
+	}
+
+	/**
+	 * The id field in the database.
 	 *
 	 * @access public
 	 *
 	 * @return string
 	 */
-	public function table_name() {
-		return $this->order_item_table_name;
+	public function id_field() {
+		return 'order_item_id';
+	}
+
+	/**
+	 * The full sync action name for this module.
+	 *
+	 * @access public
+	 *
+	 * @return string
+	 */
+	public function full_sync_action_name() {
+		return 'jetpack_full_sync_woocommerce_order_items';
 	}
 
 	/**
@@ -88,11 +129,13 @@ class WooCommerce extends Module {
 		add_filter( 'jetpack_sync_comment_meta_whitelist', array( $this, 'add_woocommerce_comment_meta_whitelist' ), 10 );
 
 		add_filter( 'jetpack_sync_before_enqueue_woocommerce_new_order_item', array( $this, 'filter_order_item' ) );
-		add_filter( 'jetpack_sync_before_enqueue_woocommerce_update_order_item', array( $this, 'filter_order_item' ) );
 		add_filter( 'jetpack_sync_whitelisted_comment_types', array( $this, 'add_review_comment_types' ) );
 
 		// Blacklist Action Scheduler comment types.
 		add_filter( 'jetpack_sync_prevent_sending_comment_data', array( $this, 'filter_action_scheduler_comments' ), 10, 2 );
+
+		// Preprocess action to be sent by Jetpack sync.
+		add_action( 'woocommerce_remove_order_items', array( $this, 'action_woocommerce_remove_order_items' ), 10, 2 );
 	}
 
 	/**
@@ -126,9 +169,10 @@ class WooCommerce extends Module {
 
 		// Order items.
 		add_action( 'woocommerce_new_order_item', $callable, 10, 4 );
-		add_action( 'woocommerce_update_order_item', $callable, 10, 4 );
 		add_action( 'woocommerce_delete_order_item', $callable, 10, 1 );
+		add_action( 'woocommerce_remove_order_item_ids', $callable, 10, 1 );
 		$this->init_listeners_for_meta_type( 'order_item', $callable );
+		$this->init_meta_whitelist_handler( 'order_item', array( $this, 'filter_meta' ) );
 
 		// Payment tokens.
 		add_action( 'woocommerce_new_payment_token', $callable, 10, 1 );
@@ -141,6 +185,7 @@ class WooCommerce extends Module {
 		add_action( 'woocommerce_grant_product_download_access', $callable, 10, 1 );
 
 		// Tax rates.
+		// These are ignored on WP.com: tax items are derived from order data via wc_order_tax_lookup, which isn’t present there.
 		add_action( 'woocommerce_tax_rate_added', $callable, 10, 2 );
 		add_action( 'woocommerce_tax_rate_updated', $callable, 10, 2 );
 		add_action( 'woocommerce_tax_rate_deleted', $callable, 10, 1 );
@@ -180,7 +225,7 @@ class WooCommerce extends Module {
 	 */
 	public function init_before_send() {
 		// Full sync.
-		add_filter( 'jetpack_sync_before_send_jetpack_full_sync_woocommerce_order_items', array( $this, 'expand_order_item_ids' ) );
+		add_filter( 'jetpack_sync_before_send_jetpack_full_sync_woocommerce_order_items', array( $this, 'build_full_sync_action_array' ) );
 	}
 
 	/**
@@ -198,6 +243,57 @@ class WooCommerce extends Module {
 	}
 
 	/**
+	 * Handler for filtering out non-whitelisted order item meta.
+	 *
+	 * @since 4.22.3
+	 *
+	 * @param array $args Hook arguments.
+	 * @return array|false False if not whitelisted, the original hook args otherwise.
+	 */
+	public function filter_meta( $args ) {
+		if (
+			! empty( $args[2] ) && $this->is_whitelisted_order_item_meta( $args[2] )
+		) {
+			return $args;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Whether an order item meta key is whitelisted for sync.
+	 *
+	 * @access public
+	 *
+	 * @since 4.22.3
+	 *
+	 * @param string $meta_key Order item meta key.
+	 * @return bool True if whitelisted.
+	 */
+	public function is_whitelisted_order_item_meta( $meta_key ) {
+		return is_string( $meta_key ) && in_array( $meta_key, self::$order_item_meta_whitelist, true );
+	}
+
+	/**
+	 * Retrieve the order item ids to be removed and send them as one action
+	 *
+	 * @param WC_Order $order The order argument.
+	 * @param string   $type Order item type.
+	 */
+	public function action_woocommerce_remove_order_items( WC_Order $order, $type ) {
+		if ( $type ) {
+			$order_items = $order->get_items( $type );
+		} else {
+			$order_items = $order->get_items();
+		}
+		$order_item_ids = array_keys( $order_items );
+
+		if ( $order_item_ids ) {
+			do_action( 'woocommerce_remove_order_item_ids', $order_item_ids );
+		}
+	}
+
+	/**
 	 * Expand order item IDs to order items and their meta.
 	 *
 	 * @access public
@@ -206,14 +302,17 @@ class WooCommerce extends Module {
 	 *
 	 * @param array $args The hook arguments.
 	 * @return array $args Expanded order items with meta.
+	 * @deprecated since 4.7.0
 	 */
 	public function expand_order_item_ids( $args ) {
+		_deprecated_function( __METHOD__, '4.7.0' );
 		$order_item_ids = $args[0];
 
 		global $wpdb;
 
 		$order_item_ids_sql = implode( ', ', array_map( 'intval', $order_item_ids ) );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$order_items = $wpdb->get_results(
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			"SELECT * FROM $this->order_item_table_name WHERE order_item_id IN ( $order_item_ids_sql )"
@@ -224,21 +323,18 @@ class WooCommerce extends Module {
 			$this->get_metadata( $order_item_ids, 'order_item', static::$order_item_meta_whitelist ),
 		);
 	}
-
 	/**
 	 * Extract the full order item from the database by its ID.
 	 *
 	 * @access public
-	 *
-	 * @todo Refactor table name to use a $wpdb->prepare placeholder.
 	 *
 	 * @param int $order_item_id Order item ID.
 	 * @return object Order item.
 	 */
 	public function build_order_item( $order_item_id ) {
 		global $wpdb;
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $this->order_item_table_name WHERE order_item_id = %d", $order_item_id ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct database access is intentional; caching is not required for this query.
+		return $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE order_item_id = %d', $this->order_item_table_name, $order_item_id ) );
 	}
 
 	/**
@@ -263,14 +359,14 @@ class WooCommerce extends Module {
 	 * @todo Refactor the SQL query to use $wpdb->prepare().
 	 *
 	 * @param array $config Full sync configuration for this sync module.
-	 * @return array Number of items yet to be enqueued.
+	 * @return int Number of items yet to be enqueued.
 	 */
 	public function estimate_full_sync_actions( $config ) {
 		global $wpdb;
 
 		$query = "SELECT count(*) FROM $this->order_item_table_name WHERE " . $this->get_where_sql( $config );
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$count = $wpdb->get_var( $query );
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$count = (int) $wpdb->get_var( $query );
 
 		return (int) ceil( $count / self::ARRAY_CHUNK_SIZE );
 	}
@@ -405,8 +501,130 @@ class WooCommerce extends Module {
 		'woocommerce_api_enabled',
 		'woocommerce_allow_tracking',
 		'woocommerce_task_list_hidden',
-		'woocommerce_onboarding_profile',
 		'woocommerce_cod_settings',
+		'woocommerce_store_address',
+		'woocommerce_store_address_2',
+		'woocommerce_store_city',
+		'woocommerce_store_postcode',
+		'woocommerce_admin_install_timestamp',
+		'woocommerce_enable_signup_from_checkout_for_subscriptions', // This and the below options relate to the WooCommerce Accounts and Privacy settings page. Required for the Activity Log.
+		'woocommerce_enable_myaccount_registration',
+		'woocommerce_registration_generate_password',
+		'woocommerce_erasure_request_removes_order_data',
+		'woocommerce_erasure_request_removes_subscription_data',
+		'woocommerce_erasure_request_removes_download_data',
+		'woocommerce_allow_bulk_remove_personal_data',
+		'woocommerce_registration_privacy_policy_text',
+		'woocommerce_checkout_privacy_policy_text',
+		'woocommerce_delete_inactive_accounts',
+		'woocommerce_trash_pending_orders',
+		'woocommerce_trash_failed_orders',
+		'woocommerce_trash_cancelled_orders',
+		'woocommerce_anonymize_refunded_orders',
+		'woocommerce_anonymize_completed_orders',
+		'woocommerce_anonymize_ended_subscriptions',
+		'woocommerce_enable_delayed_account_creation',
+		'woocommerce_gateway_stripe_retention',
+		'wc_downloads_approved_directories_mode', // This and the below options relate to the WooCommerce Products settings page. Required for the Activity Log.
+		'woocommerce_attribute_lookup_direct_updates',
+		'woocommerce_attribute_lookup_enabled',
+		'woocommerce_attribute_lookup_optimized_updates',
+		'woocommerce_cart_redirect_after_add',
+		'woocommerce_downloads_add_hash_to_filename',
+		'woocommerce_downloads_count_partial',
+		'woocommerce_downloads_deliver_inline',
+		'woocommerce_downloads_grant_access_after_payment',
+		'woocommerce_downloads_redirect_fallback_allowed',
+		'woocommerce_downloads_require_login',
+		'woocommerce_enable_reviews',
+		'woocommerce_hold_stock_minutes',
+		'woocommerce_review_rating_required',
+		'woocommerce_review_rating_verification_label',
+		'woocommerce_review_rating_verification_required',
+		'woocommerce_shop_page_id',
+		'woocommerce_stock_email_recipient',
+		'woocommerce_stock_format',
+		'woocommerce_analytics_enabled', // This and the below options relate to the WooCommerce Advanced settings page. Required for the Activity Log.
+		'woocommerce_cart_page_id',
+		'woocommerce_checkout_order_received_endpoint',
+		'woocommerce_checkout_page_id',
+		'woocommerce_checkout_pay_endpoint',
+		'woocommerce_custom_orders_table_data_sync_enabled',
+		'woocommerce_custom_orders_table_enabled',
+		'woocommerce_feature_block_email_editor_enabled',
+		'woocommerce_feature_blueprint_enabled',
+		'woocommerce_feature_cost_of_goods_sold_enabled',
+		'woocommerce_feature_customer_review_request_enabled',
+		'woocommerce_feature_deferred_transactional_emails_enabled',
+		'woocommerce_feature_destroy-empty-sessions_enabled',
+		'woocommerce_feature_email_improvements_enabled',
+		'woocommerce_feature_mcp_integration_enabled',
+		'woocommerce_feature_order_attribution_enabled',
+		'woocommerce_feature_point_of_sale_enabled',
+		'woocommerce_feature_product_instance_caching_enabled',
+		'woocommerce_feature_rate_limit_checkout_enabled',
+		'woocommerce_feature_remote_logging_enabled',
+		'woocommerce_feature_rest_api_caching_enabled',
+		'woocommerce_feature_site_visibility_badge_enabled',
+		'woocommerce_hpos_datastore_caching_enabled',
+		'woocommerce_hpos_fts_index_enabled',
+		'woocommerce_logout_endpoint',
+		'woocommerce_myaccount_add_payment_method_endpoint',
+		'woocommerce_myaccount_delete_payment_method_endpoint',
+		'woocommerce_myaccount_downloads_endpoint',
+		'woocommerce_myaccount_edit_account_endpoint',
+		'woocommerce_myaccount_edit_address_endpoint',
+		'woocommerce_myaccount_lost_password_endpoint',
+		'woocommerce_myaccount_orders_endpoint',
+		'woocommerce_myaccount_page_id',
+		'woocommerce_myaccount_payment_methods_endpoint',
+		'woocommerce_myaccount_set_default_payment_method_endpoint',
+		'woocommerce_myaccount_subscription_payment_method_endpoint',
+		'woocommerce_myaccount_subscriptions_endpoint',
+		'woocommerce_myaccount_view_order_endpoint',
+		'woocommerce_myaccount_view_subscription_endpoint',
+		'woocommerce_show_marketplace_suggestions',
+		'woocommerce_terms_page_id',
+		'woocommerce_pickup_location_settings',  // This and the below options relate to the WooCommerce Shipping settings page. Required for the Activity Log.
+		'pickup_location_pickup_locations',
+		'woocommerce_ship_to_destination',
+		'woocommerce_shipping_cost_requires_address',
+		'woocommerce_shipping_debug_mode',
+		'woocommerce_shipping_hide_rates_when_free',
+		'woocommerce-ppcp-data-payment', // This and the below options relate to the Pay with PayPal payments settings page. Required for the Activity Log.
+		'woocommerce-ppcp-data-settings',
+		'woocommerce_ppcp-applepay_settings',
+		'woocommerce_ppcp-axo-gateway_settings',
+		'woocommerce_ppcp-bancontact_settings',
+		'woocommerce_ppcp-blik_settings',
+		'woocommerce_ppcp-card-button-gateway_settings',
+		'woocommerce_ppcp-credit-card-gateway_settings',
+		'woocommerce_ppcp-eps_settings',
+		'woocommerce-ppcp-data-common',
+		'woocommerce-ppcp-data-onboarding',
+		'woocommerce_ppcp-googlepay_settings',
+		'woocommerce_ppcp-ideal_settings',
+		'woocommerce_ppcp-multibanco_settings',
+		'woocommerce_ppcp-mybank_settings',
+		'woocommerce_ppcp-oxxo-gateway_settings',
+		'woocommerce_ppcp-p24_settings',
+		'woocommerce_ppcp-pay-upon-invoice-gateway_settings',
+		'woocommerce_ppcp-pwc_settings',
+		'woocommerce_ppcp-trustly_settings',
+		'_wcpay_feature_customer_multi_currency', // This and the below options relate to WooPayments.
+		'current_protection_level',
+		'woocommerce_woocommerce_payments_apple_pay_settings',
+		'woocommerce_woocommerce_payments_google_pay_settings',
+		'woocommerce_woocommerce_payments_settings',
+		'wc_stripe_agentic_commerce_webhook_secret',  // This and the below options relate to additional payment types.
+		'woocommerce_amazon_payments_advanced_settings',
+		'woocommerce_gift_cards_pay_settings',
+		'woocommerce_square_cash_app_pay_settings',
+		'woocommerce_square_credit_card_settings',
+		'woocommerce_stripe_settings',
+		'woocommerce_bacs_accounts', // This and the below options relate to offline payments.
+		'woocommerce_bacs_settings',
+		'woocommerce_cheque_settings',
 	);
 
 	/**
@@ -525,14 +743,15 @@ class WooCommerce extends Module {
 		'_date_completed',
 		'_date_paid',
 		'_payment_tokens',
-		'_billing_address_index',
-		'_shipping_address_index',
+		// '_billing_address_index', do not sync these as they contain personal data.
+		// '_shipping_address_index',
 		'_recorded_sales',
 		'_recorded_coupon_usage_counts',
 		// See https://github.com/woocommerce/woocommerce/blob/8ed6e7436ff87c2153ed30edd83c1ab8abbdd3e9/includes/data-stores/class-wc-order-data-store-cpt.php#L539 .
 		'_download_permissions_granted',
 		// See https://github.com/woocommerce/woocommerce/blob/8ed6e7436ff87c2153ed30edd83c1ab8abbdd3e9/includes/data-stores/class-wc-order-data-store-cpt.php#L594 .
 		'_order_stock_reduced',
+		'_cart_hash',
 
 		// Woocommerce order refunds.
 		// See https://github.com/woocommerce/woocommerce/blob/b8a2815ae546c836467008739e7ff5150cb08e93/includes/data-stores/class-wc-order-refund-data-store-cpt.php#L20 .
@@ -583,13 +802,14 @@ class WooCommerce extends Module {
 	/**
 	 * Returns a list of order_item objects by their IDs.
 	 *
-	 * @param array $ids List of order_item IDs to fetch.
+	 * @param array  $ids List of order_item IDs to fetch.
+	 * @param string $order Either 'ASC' or 'DESC'.
 	 *
 	 * @access public
 	 *
 	 * @return array|object|null
 	 */
-	public function get_order_item_by_ids( $ids ) {
+	public function get_order_item_by_ids( $ids, $order = '' ) {
 		global $wpdb;
 
 		if ( ! is_array( $ids ) ) {
@@ -607,8 +827,77 @@ class WooCommerce extends Module {
 		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
 
 		$query = "SELECT * FROM {$this->order_item_table_name} WHERE order_item_id IN ( $placeholders )";
+		if ( ! empty( $order ) && in_array( $order, array( 'ASC', 'DESC' ), true ) ) {
+			$query .= " ORDER BY order_item_id $order";
+		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		return $wpdb->get_results( $wpdb->prepare( $query, $ids ), ARRAY_A );
+	}
+
+	/**
+	 * Build the full sync action object for WooCommerce order items.
+	 *
+	 * @access public
+	 *
+	 * @param array $args An array with the order items and the previous end.
+	 *
+	 * @return array An array with the order items, order item meta and the previous end.
+	 */
+	public function build_full_sync_action_array( $args ) {
+		list( $filtered_order_items, $previous_end ) = $args;
+		return array(
+			'order_items'     => $filtered_order_items['objects'],
+			'order_item_meta' => $filtered_order_items['meta'],
+			'previous_end'    => $previous_end,
+		);
+	}
+
+	/**
+	 * Given the Module Configuration and Status return the next chunk of items to send.
+	 * This function also expands the posts and metadata and filters them based on the maximum size constraints.
+	 *
+	 * @param array $config This module Full Sync configuration.
+	 * @param array $status This module Full Sync status.
+	 * @param int   $chunk_size Chunk size.
+	 *
+	 * @return array
+	 */
+	public function get_next_chunk( $config, $status, $chunk_size ) {
+
+		$order_item_ids = parent::get_next_chunk( $config, $status, $chunk_size );
+
+		if ( empty( $order_item_ids ) ) {
+			return array();
+		}
+		// Fetch the order items in DESC order for the next chunk logic to work.
+		$order_items = $this->get_order_item_by_ids( $order_item_ids, 'DESC' );
+
+		// If no orders were fetched, make sure to return the expected structure so that status is updated correctly.
+		if ( empty( $order_items ) ) {
+			return array(
+				'object_ids' => $order_item_ids,
+				'objects'    => array(),
+			);
+		}
+
+		// Get the order IDs from the orders that were fetched.
+		$fetched_order_item_ids = wp_list_pluck( $order_items, 'order_item_id' );
+		$metadata               = $this->get_metadata( $fetched_order_item_ids, 'order_item', static::$order_item_meta_whitelist );
+
+		// Filter the orders and metadata based on the maximum size constraints.
+		list( $filtered_order_item_ids, $filtered_order_items, $filtered_order_items_metadata ) = $this->filter_objects_and_metadata_by_size(
+			'order_item',
+			$order_items,
+			$metadata,
+			self::MAX_META_LENGTH,
+			self::MAX_SIZE_FULL_SYNC
+		);
+
+		return array(
+			'object_ids' => $filtered_order_item_ids,
+			'objects'    => $filtered_order_items,
+			'meta'       => $filtered_order_items_metadata,
+		);
 	}
 }

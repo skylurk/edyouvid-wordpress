@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-const { __ } = wp.i18n;
+import { __, sprintf } from "@wordpress/i18n";
 const {
   ToggleControl,
   SelectControl,
@@ -23,14 +23,8 @@ const VIDEO_POSTER_ALLOWED_MEDIA_TYPES = ["image"];
 const { useInstanceId } = wp.compose;
 
 const VideoSettings = ({ setAttributes, attributes }) => {
-  const {
-    mutedPreview,
-    autoplay,
-    playsInline,
-    preload,
-    poster,
-    mutedOverlay,
-  } = attributes;
+  const { mutedPreview, autoplay, playsInline, preload, poster, mutedOverlay } =
+    attributes;
 
   const instanceId = useInstanceId(VideoSettings);
 
@@ -188,8 +182,10 @@ const VideoSettings = ({ setAttributes, attributes }) => {
         <PanelRow>
           <SelectControl
             label={
-              <Flex>
-                <div>{__("Performance Preference", "presto-player")}</div>
+              <Flex justify="flex-start" align="center" gap={1}>
+                <div style={{ whiteSpace: "nowrap" }}>
+                  {__("Performance Preference", "presto-player")}
+                </div>
                 <a
                   href="https://prestoplayer.com/docs/performance-preferences-explained"
                   target="_blank"
@@ -226,50 +222,76 @@ const VideoSettings = ({ setAttributes, attributes }) => {
           />
         </PanelRow>
       )}
-      <MediaUploadCheck>
-        <BaseControl className="editor-video-poster-control">
-          <BaseControl.VisualLabel>
-            <p>{__("Poster image", "presto-player")}</p>
-          </BaseControl.VisualLabel>
-          <MediaUpload
-            title={__("Select poster image", "presto-player")}
-            onSelect={onSelectPoster}
-            allowedTypes={VIDEO_POSTER_ALLOWED_MEDIA_TYPES}
-            render={({ open }) => (
+      <PanelRow>
+        <MediaUploadCheck>
+          <BaseControl className="editor-video-poster-control">
+            <BaseControl.VisualLabel>
+              {__("Poster image", "presto-player")}
+            </BaseControl.VisualLabel>
+            <MediaUpload
+              title={__("Select poster image", "presto-player")}
+              onSelect={onSelectPoster}
+              allowedTypes={VIDEO_POSTER_ALLOWED_MEDIA_TYPES}
+              render={({ open }) => (
+                <Button
+                  className="presto-setting__poster"
+                  isPrimary
+                  onClick={open}
+                  aria-describedby={videoPosterDescription}
+                >
+                  {!poster
+                    ? __("Select", "presto-player")
+                    : __("Replace", "presto-player")}
+                </Button>
+              )}
+            />
+            <p id={videoPosterDescription} hidden>
+              {poster
+                ? sprintf(
+                    __("The current poster image url is %s", "presto-player"),
+                    poster
+                  )
+                : __(
+                    "There is no poster image currently selected",
+                    "presto-player"
+                  )}
+            </p>
+            {!!poster && (
               <Button
-                className="presto-setting__poster"
-                isPrimary
-                onClick={open}
-                aria-describedby={videoPosterDescription}
+                onClick={onRemovePoster}
+                className="presto-setting__remove-poster"
+                isTertiary
               >
-                {!poster
-                  ? __("Select", "presto-player")
-                  : __("Replace", "presto-player")}
+                {__("Remove", "presto-player")}
               </Button>
             )}
+          </BaseControl>
+        </MediaUploadCheck>
+      </PanelRow>
+      <PanelRow>
+        <div style={{ width: "100%", flex: 1 }}>
+          <SelectControl
+            label={__("Aspect Ratio", "presto-player")}
+            value={attributes?.ratio}
+            onChange={(value) => {
+              setAttributes({ ratio: value });
+            }}
+            options={[
+              { value: "original", label: __("Original", "presto-player") },
+              { value: "1:1", label: __("Square - 1:1", "presto-player") },
+              { value: "4:3", label: __("Standard - 4:3", "presto-player") },
+              { value: "3:4", label: __("Portrait - 3:4", "presto-player") },
+              { value: "3:2", label: __("Classic - 3:2", "presto-player") },
+              {
+                value: "2:3",
+                label: __("Classic Portrait - 2:3", "presto-player"),
+              },
+              { value: "16:9", label: __("Wide - 16:9", "presto-player") },
+              { value: "9:16", label: __("Tall - 9:16", "presto-player") },
+            ]}
           />
-          <p id={videoPosterDescription} hidden>
-            {poster
-              ? sprintf(
-                  __("The current poster image url is %s", "presto-player"),
-                  poster
-                )
-              : __(
-                  "There is no poster image currently selected",
-                  "presto-player"
-                )}
-          </p>
-          {!!poster && (
-            <Button
-              onClick={onRemovePoster}
-              className="presto-setting__remove-poster"
-              isTertiary
-            >
-              {__("Remove", "presto-player")}
-            </Button>
-          )}
-        </BaseControl>
-      </MediaUploadCheck>
+        </div>
+      </PanelRow>
     </>
   );
 };

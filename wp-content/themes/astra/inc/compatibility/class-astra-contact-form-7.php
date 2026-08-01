@@ -13,7 +13,7 @@ if ( ! class_exists( 'WPCF7' ) ) {
 /**
  * Astra Contact Form 7 Compatibility
  */
-if ( ! class_exists( 'Astra_Contact_Form_7' ) ) :
+if ( ! class_exists( 'Astra_Contact_Form_7' ) ) {
 
 	/**
 	 * Astra Contact Form 7 Compatibility
@@ -21,7 +21,6 @@ if ( ! class_exists( 'Astra_Contact_Form_7' ) ) :
 	 * @since 1.0.0
 	 */
 	class Astra_Contact_Form_7 {
-
 		/**
 		 * Member Variable
 		 *
@@ -52,8 +51,8 @@ if ( ! class_exists( 'Astra_Contact_Form_7' ) ) :
 		 * @since 1.0.0
 		 */
 		public function add_styles() {
-			$file_prefix = ( SCRIPT_DEBUG ) ? '' : '.min';
-			$dir_name    = ( SCRIPT_DEBUG ) ? 'unminified' : 'minified';
+			$file_prefix = '.min';
+			$dir_name    = 'minified';
 
 			if ( is_rtl() ) {
 				$file_prefix .= '-rtl';
@@ -66,7 +65,7 @@ if ( ! class_exists( 'Astra_Contact_Form_7' ) ) :
 
 	}
 
-endif;
+}
 
 /**
  * Kicking this off by calling 'get_instance()' method

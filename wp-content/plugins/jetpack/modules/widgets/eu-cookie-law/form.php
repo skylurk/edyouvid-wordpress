@@ -2,12 +2,18 @@
 /**
  * EU Cookie Law Widget form.
  *
+ * @html-template Jetpack_EU_Cookie_Law_Widget::form
  * @package automattic/jetpack
  */
 
 use Automattic\Jetpack\Redirect;
 
-// phpcs:disable VariableAnalysis.CodeAnalysis.VariableAnalysis.UndefinedVariable
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
+// phpcs:disable VariableAnalysis.CodeAnalysis.VariableAnalysis.UndefinedVariable -- HTML template, let Phan handle it.
+
 ?>
 <p>
 	<strong>
@@ -146,7 +152,7 @@ use Automattic\Jetpack\Redirect;
 
 <p>
 	<strong>
-		<?php esc_html_x( 'Capture consent & hide the banner', 'action', 'jetpack' ); ?>
+		<?php echo esc_html_x( 'Capture consent & hide the banner', 'action', 'jetpack' ); ?>
 	</strong>
 	<ul>
 		<li>
@@ -208,7 +214,7 @@ use Automattic\Jetpack\Redirect;
 
 <p>
 	<strong>
-		<?php esc_html_x( 'Consent expires after', 'action', 'jetpack' ); ?>
+		<?php echo esc_html_x( 'Consent expires after', 'action', 'jetpack' ); ?>
 	</strong>
 	<ul>
 		<li>

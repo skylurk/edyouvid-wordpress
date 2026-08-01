@@ -7,6 +7,7 @@ export default {
 
   supports: {
     align: true,
+    inserter: false,
   },
 
   // dynamic save function

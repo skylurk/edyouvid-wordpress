@@ -16,8 +16,6 @@
  * via a child theme.
  *
  * @package     Astra
- * @author      Astra
- * @copyright   Copyright (c) 2020, Astra
  * @link        https://wpastra.com/
  * @since       Astra 1.0.0
  */
@@ -37,7 +35,6 @@ if ( ! class_exists( 'Astra_After_Setup_Theme' ) ) {
 	 * Astra_After_Setup_Theme initial setup
 	 */
 	class Astra_After_Setup_Theme {
-
 		/**
 		 * Instance
 		 *
@@ -63,6 +60,7 @@ if ( ! class_exists( 'Astra_After_Setup_Theme' ) ) {
 		 */
 		public function __construct() {
 			add_action( 'after_setup_theme', array( $this, 'setup_theme' ), 2 );
+			add_action( 'init', array( $this, 'init' ) );
 			add_action( 'wp', array( $this, 'setup_content_width' ) );
 		}
 
@@ -74,14 +72,6 @@ if ( ! class_exists( 'Astra_After_Setup_Theme' ) ) {
 		public function setup_theme() {
 
 			do_action( 'astra_class_loaded' );
-
-			/**
-			 * Make theme available for translation.
-			 * Translations can be filed in the /languages/ directory.
-			 * If you're building a theme based on Next, use a find and replace
-			 * to change 'astra' to the name of your theme in all the template files.
-			 */
-			load_theme_textdomain( 'astra', ASTRA_THEME_DIR . '/languages' );
 
 			/**
 			 * Theme Support
@@ -98,6 +88,12 @@ if ( ! class_exists( 'Astra_After_Setup_Theme' ) ) {
 
 			// Enable support for Post Thumbnails on posts and pages.
 			add_theme_support( 'post-thumbnails' );
+
+			// Add support for starter content ( wp preview ).
+			if ( class_exists( 'Astra_Starter_Content', false ) ) {
+				$astra_starter_content = new Astra_Starter_Content();
+				add_theme_support( 'starter-content', $astra_starter_content->get() );
+			}
 
 			// Switch default core markup for search form, comment form, and comments.
 			// to output valid HTML5.
@@ -148,22 +144,26 @@ if ( ! class_exists( 'Astra_After_Setup_Theme' ) ) {
 			 * specifically font, colors, icons, and column width.
 			 */
 			/* Directory and Extension */
-			$dir_name    = ( SCRIPT_DEBUG ) ? 'unminified' : 'minified';
-			$file_prefix = ( SCRIPT_DEBUG ) ? '' : '.min';
+			$dir_name    = 'minified';
+			$file_prefix = '.min';
 			if ( apply_filters( 'astra_theme_editor_style', true ) ) {
 				add_editor_style( 'assets/css/' . $dir_name . '/editor-style' . $file_prefix . '.css' );
 			}
 
 			if ( apply_filters( 'astra_fullwidth_oembed', true ) ) {
-				// Filters the oEmbed process to run the responsive_oembed_wrapper() function.
+				// Filters the oEmbed process to run the responsive_oembed_wrapper() function - Fixes the legacy classic editor embeds.
 				add_filter( 'embed_oembed_html', array( $this, 'responsive_oembed_wrapper' ), 10, 3 );
 			}
+			// Enable support for responsive embedded content.
+			add_theme_support( 'responsive-embeds' );
 
 			// WooCommerce.
 			add_theme_support( 'woocommerce' );
 
 			// Rank Math Breadcrumb.
-			add_theme_support( 'rank-math-breadcrumbs' );
+			if ( true === apply_filters( 'astra_rank_math_theme_support', true ) ) {
+				add_theme_support( 'rank-math-breadcrumbs' );
+			}
 
 			// Native AMP Support.
 			if ( true === apply_filters( 'astra_amp_support', true ) ) {
@@ -180,6 +180,80 @@ if ( ! class_exists( 'Astra_After_Setup_Theme' ) ) {
 
 			// Remove Template Editor support until WP 5.9 since more Theme Blocks are going to be introduced.
 			remove_theme_support( 'block-templates' );
+
+			// Let WooCommerce know, Astra is not compatible with New Product Editor.
+			add_filter( 'option_woocommerce_feature_product_block_editor_enabled', '__return_false' );
+
+			add_filter( 'woocommerce_create_pages', array( $this, 'astra_enforce_woo_shortcode_pages' ), 99 );
+
+			if ( function_exists( 'wp_theme_has_theme_json' ) && wp_theme_has_theme_json() ) {
+				add_filter( 'wp_theme_json_data_theme', array( $this, 'modify_theme_palette_names' ) );
+			}
+		}
+
+		/**
+		 * Modify theme palette names.
+		 *
+		 * @param WP_Theme_JSON_Data $theme_json settings.
+		 * @return WP_Theme_JSON_Data
+		 */
+		public function modify_theme_palette_names( $theme_json ) {
+			/** @psalm-suppress UndefinedDocblockClass */
+			$json_data        = $theme_json->get_data();
+			$new_palette_data = array();
+
+			if ( ! empty( $json_data['settings']['color']['palette']['theme'] ) ) {
+				$palette      = $json_data['settings']['color']['palette']['theme'];
+				$color_labels = Astra_Global_Palette::get_palette_labels(); // Use the reusable function for labels.
+				$name_pair    = array();
+				foreach ( $color_labels as $index => $label ) {
+					$name_pair[ 'ast-global-color-' . $index ] = $label;
+				}
+
+				foreach ( $palette as $index => $color_data ) {
+					$slug                       = ! empty( $color_data['slug'] ) ? $color_data['slug'] : '';
+					$new_palette_data[ $index ] = array(
+						'name'  => isset( $name_pair[ $slug ] ) ? $name_pair[ $slug ] : '',
+						'slug'  => $slug,
+						'color' => isset( $color_data['color'] ) ? $color_data['color'] : '',
+					);
+				}
+			}
+
+			if ( ! empty( $new_palette_data ) ) {
+				$new_data = array(
+					'version'  => 1,
+					'settings' => array(
+						'color' => array(
+							'palette' => array(
+								'theme' => $new_palette_data,
+							),
+						),
+					),
+				);
+
+				/** @psalm-suppress UndefinedDocblockClass */
+				$theme_json->update_with( $new_data );
+			}
+
+			return $theme_json;
+		}
+
+		/**
+		 * Initialize theme.
+		 *
+		 * @return void
+		 *
+		 * @since 4.8.8
+		 */
+		public function init() {
+			/**
+			 * Make theme available for translation.
+			 * Translations can be filed in the /languages/ directory.
+			 * If you're building a theme based on Next, use a find and replace
+			 * to change 'astra' to the name of your theme in all the template files.
+			 */
+			load_theme_textdomain( 'astra', ASTRA_THEME_DIR . '/languages' );
 		}
 
 		/**
@@ -222,7 +296,6 @@ if ( ! class_exists( 'Astra_After_Setup_Theme' ) ) {
 					$content_width = apply_filters( 'astra_content_width', astra_get_option( 'site-content-width', 1200 ) );
 				}
 			}
-
 		}
 
 		/**
@@ -231,12 +304,18 @@ if ( ! class_exists( 'Astra_After_Setup_Theme' ) ) {
 		 * @param  string $html The oEmbed markup.
 		 * @param  string $url The URL being embedded.
 		 * @param  array  $attr An array of attributes.
+		 * @param  bool   $core_yt_block Whether the oEmbed is being rendered by the core YouTube block.
 		 *
 		 * @return string       Updated embed markup.
 		 */
-		public function responsive_oembed_wrapper( $html, $url, $attr ) {
+		public function responsive_oembed_wrapper( $html, $url, $attr, $core_yt_block = false ) {
+			// Only process in the_content filter for classic (non-Gutenberg) content.
+			if ( ! doing_filter( 'the_content' ) || has_blocks() ) {
+				return $html;
+			}
 
 			$add_astra_oembed_wrapper = apply_filters( 'astra_responsive_oembed_wrapper_enable', true );
+			$ast_embed_wrapper_class  = apply_filters( 'astra_embed_wrapper_class', '' );
 
 			$allowed_providers = apply_filters(
 				'astra_allowed_fullwidth_oembed_providers',
@@ -246,16 +325,61 @@ if ( ! class_exists( 'Astra_After_Setup_Theme' ) ) {
 					'youtu.be',
 					'wistia.com',
 					'wistia.net',
+					'spotify.com',
+					'soundcloud.com',
+					'animoto.com',
+					'cloudup.com',
+					'poll.fm',
+					'dai.ly',
+					'mixcloud.com',
+					'pca.st',
+					'reddit.com',
+					'scribd.com',
+					'slideshare.net',
+					'speakerdeck.com',
+					'tumblr.com',
+					'videopress.com',
+					'wordpress.org',
+					'wordpress.tv',
+					'imgur.com',
+					'ted.com',
 				)
 			);
 
-			if ( astra_strposa( $url, $allowed_providers ) ) {
-				if ( $add_astra_oembed_wrapper ) {
-					$html = ( '' !== $html ) ? '<div class="ast-oembed-container">' . $html . '</div>' : '';
+			if ( astra_strposa( $url, $allowed_providers ) && $add_astra_oembed_wrapper ) {
+				if ( $core_yt_block ) {
+					$embed_html = wp_oembed_get( $url );
+					$html       = false !== $embed_html ? '<div class="wp-block-embed__wrapper"> <div class="ast-oembed-container ' . esc_attr( $ast_embed_wrapper_class ) . '" style="height: 100%;">' . $embed_html . '</div> </div>' : '';
+				} else {
+					$html = '' !== $html ? '<div class="ast-oembed-container ' . esc_attr( $ast_embed_wrapper_class ) . '" style="height: 100%;">' . $html . '</div>' : '';
 				}
+			} elseif ( '' === $html || $url === trim( $html ) ) {
+				$embed_html = wp_oembed_get( $url, array( 'width' => 600 ) );
+				$html       = $embed_html ? $embed_html : $url;
+				wp_maybe_enqueue_oembed_host_js( $html );
 			}
 
 			return $html;
+		}
+
+		/**
+		 * Enforce WooCommerce shortcode pages due to following reasons.
+		 *
+		 * 1. In WooCommerce 8.3 version cart & checkout pages are directly added with blocks and not with shortcodes.
+		 * 2. Due to which most of Astra extended features are not working on cart & checkout pages.
+		 *
+		 * This is temporary workaround, once Astra ready with WooCommerce 8.3 version, this will be removed.
+		 *
+		 * @since 4.5.1
+		 * @param array $pages_data Array of WooCommerce pages.
+		 *
+		 * @return array
+		 */
+		public function astra_enforce_woo_shortcode_pages( $pages_data ) {
+			$pages_data['cart']['content']     = '<!-- wp:shortcode -->[woocommerce_cart]<!-- /wp:shortcode -->';
+			$pages_data['checkout']['content'] = '<!-- wp:shortcode -->[woocommerce_checkout]<!-- /wp:shortcode -->';
+
+			return $pages_data;
 		}
 	}
 }

@@ -46,7 +46,7 @@ class Row extends Table_Base{
      *
      * @var array
      */
-    public $avialable_variables = [];
+    public $available_variables = [];
     
     public $attributes = [];
     public $available_variations = [];
@@ -75,7 +75,7 @@ class Row extends Table_Base{
      * Actually in action column, we have used a class $row_class, which is manage product type
      * if variable product, row class will go 'data_product_variations woocommerce-variation-add-to-cart variations_button woocommerce-variation-add-to-cart-disabled'
      * 
-     * and I will send it  over there using our method data_for_extract();
+     * and I will send it  over there using our method data_for_extract(); now changed to set_available_vars() method, where we have added all variable for item and td content, so user will able to use it for any purpose.
      *
      * @var string
      */
@@ -124,20 +124,7 @@ class Row extends Table_Base{
         $this->tr_tag = $shortcode->tr_tag;
         $this->td_tag = $shortcode->td_tag;
 
-        // if($shortcode->generated_row){
-        //     $this->td_tag_here = 'div';
-
-        //     $this->is_column_label = $shortcode->is_column_label;
-
-        //     // Wiil add 'wpt-mobile-label-show' claas which will help to display column label in mobile @by Fazle Bari  
-        //     if( $this->is_column_label =='show' ){
-        //         $this->generated_td_start = '<' . $this->td_tag_here . ' class="wpt-td-tag wpt-replace-td-in-tr wpt-mobile-label-show">';
-        //     }else{
-        //         $this->generated_td_start = '<' . $this->td_tag_here . ' class="wpt-td-tag wpt-replace-td-in-tr">';
-        //     }
-            
-        //     $this->generated_td_end = '</' . $this->td_tag_here . '>';
-        // }
+        
 
         if($this->filter){
             $this->generate_taxo_n_row_attr( $this->filter );
@@ -218,7 +205,7 @@ class Row extends Table_Base{
          * because, we can be need assinging something on class.
          */
         $this->tr_class = Table_Attr::tr_class( $this );
-
+        
         global $product;
         $this->row_attr = apply_filters('wpt_table_row_attr', $this->row_attr, $this);
         
@@ -236,7 +223,8 @@ class Row extends Table_Base{
         if($this->wp_force){
             wp('p=' . $this->product_id . '&post_type=product');
         }
-        extract($this->data_for_extract());
+        $this->set_available_vars();
+        extract($this->available_variables);
 
         ?>
         <<?php echo esc_html( $this->tr_tag ); ?>
@@ -356,8 +344,8 @@ class Row extends Table_Base{
             
             $tag = ! empty( $settings['tag'] ) ? $settings['tag'] : 'div';
             $tag_class = $settings['tag_class'] ?? '';
+            $tag_class .= ' item_inside_cell wpt_' . $keyword;
             if( $this->is_column_label ){
-                $tag_class .= ' item_inside_cell wpt_' . $keyword;
                 $tag_class .= ' autoresponsive-label-show';
             }
 
@@ -440,7 +428,8 @@ class Row extends Table_Base{
     }
     public function inner_each_item( string $keyword, string $parent_keyword ){
         global $product;
-        extract($this->data_for_extract());
+        $this->set_available_vars();
+        extract($this->available_variables);
 
 
 
@@ -583,12 +572,12 @@ class Row extends Table_Base{
      * @since 3.2.4.2
      * 
      * @author Saiful Islam <codersaiful@gmail.com>
-     * @return Array a set of collection for Inner Item or for any TD. I need to extract it actually
+     * @return array a set of collection for Inner Item or for any TD. I need to extract it actually
      */
-    private function data_for_extract(){
+    private function set_available_vars(){
         $serial = ( ($this->page_number - 1) * $this->posts_per_page ) + $this->serial_number;
         
-        $this->avialable_variables = [
+        $this->available_variables = [
             'id' => $this->product_id,
             'args' => $this->args,
             'table_type' => $this->table_type,
@@ -619,6 +608,6 @@ class Row extends Table_Base{
             'wpt_table_row_serial' => $serial,
         ];
 
-        return $this->apply_filter( 'wpt_avialable_variables', $this->avialable_variables );
+        return $this->apply_filter( 'wpt_available_variables', $this->available_variables );
     }
 }

@@ -18,15 +18,15 @@ const AISitesNotice = ( { className, ...props } ) => {
 			{ showAISitesNotice() && (
 				<div
 					className={ classNames(
-						'p-2.5 gap-1 border border-alert-error/30 bg-alert-error-bg rounded-md flex',
+						'p-2.5 gap-1 border border-alert-error/30 bg-alert-error-bg rounded-md flex mb-6',
 						className
 					) }
 					{ ...props }
 				>
-					<span className="self-center">
+					<span className="self-start mt-1">
 						<LightningIcon />
 					</span>
-					<div className="w-full flex gap-1 justify-between">
+					<div className="w-full flex flex-col md:flex-row gap-1 justify-between">
 						<p className="text-body-text text-sm">
 							<span className="font-semibold pr-1">
 								{ __(
@@ -45,8 +45,8 @@ const AISitesNotice = ( { className, ...props } ) => {
 							rel="noreferrer"
 							className="no-underline"
 						>
-							<div className="p-0 font-semibold  text-sm text-blue-crayola min-w-fit">
-								{ __( 'Buy Add-ons', 'ai-builder' ) }
+							<div className="p-0 font-semibold  text-sm text-blue-crayola min-w-fit w-max">
+								{ __( 'Upgrade Now', 'ai-builder' ) }
 							</div>
 						</a>
 					</div>

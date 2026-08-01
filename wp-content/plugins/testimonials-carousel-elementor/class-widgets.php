@@ -6,10 +6,10 @@
  * @package    TestimonialsCarouselElementor
  * @subpackage WordPress
  * @author
- * @copyright
+ * @copyright  2026 UAPP GROUP
  * @license    https://opensource.org/licenses/GPL-3.0 GPL-3.0-only
  * @link
- * @since      11.7.0
+ * @since      12.0.1
  * php version 7.4.1
  */
 
@@ -25,7 +25,7 @@ defined('ABSPATH') || die();
  *
  * Main Plugin class
  *
- * @since 11.7.0
+ * @since 12.0.1
  */
 class Widgets
 {
@@ -33,7 +33,7 @@ class Widgets
   /**
    * Instance
    *
-   * @since  11.7.0
+   * @since  12.0.1
    * @access private
    * @static
    *
@@ -47,7 +47,7 @@ class Widgets
    * Ensures only one instance of the class is loaded or can be loaded.
    *
    * @return Plugin An instance of the class.
-   * @since  11.7.0
+   * @since  12.0.1
    * @access public
    *
    */
@@ -65,7 +65,7 @@ class Widgets
    *
    * Load widgets files
    *
-   * @since  11.7.0
+   * @since  12.0.1
    * @access private
    */
   private function include_widgets_files()
@@ -80,6 +80,7 @@ class Widgets
     require_once 'widgets/testimonials-carousel/class-testimonialscarousel-blog.php';
     require_once 'widgets/testimonials-carousel/class-testimonialscarousel-creative.php';
     require_once 'widgets/testimonials-carousel/class-testimonialscarousel-thumbnails.php';
+    require_once 'widgets/testimonials-carousel/class-testimonialscarousel-quotes.php';
 
     // 3D Animated Carousel
     require_once 'widgets/animated-carousel/class-testimonialscarousel-coverflow.php';
@@ -96,7 +97,7 @@ class Widgets
    *
    * Load widgets templates files
    *
-   * @since  11.7.0
+   * @since  12.0.1
    * @access private
    */
   private function include_widgets_templates_files()
@@ -110,7 +111,7 @@ class Widgets
    *
    * Load widgets templates controls
    *
-   * @since  11.7.0
+   * @since  12.0.1
    * @access private
    */
   private function include_widgets_templates_controls()
@@ -124,7 +125,7 @@ class Widgets
    *
    * Register new Elementor widgets.
    *
-   * @since  11.7.0
+   * @since  12.0.1
    * @access public
    */
   public function register_widgets()
@@ -139,24 +140,27 @@ class Widgets
     $this->include_widgets_templates_controls();
 
     // Register the plugin widget Testimonials Carousel.
-    Plugin::instance()->widgets_manager->register_widget_type(new Widgets\TestimonialsCarousel());
-    Plugin::instance()->widgets_manager->register_widget_type(new Widgets\TestimonialsCarousel_Logo());
-    Plugin::instance()->widgets_manager->register_widget_type(new Widgets\TestimonialsCarousel_Centered());
-    Plugin::instance()->widgets_manager->register_widget_type(new Widgets\TestimonialsCarousel_Bottom());
-    Plugin::instance()->widgets_manager->register_widget_type(new Widgets\TestimonialsCarousel_Gallery_Coverflow());
-    Plugin::instance()->widgets_manager->register_widget_type(new Widgets\TestimonialsCarousel_Employees());
-    Plugin::instance()->widgets_manager->register_widget_type(new Widgets\TestimonialsCarousel_Blog());
-    Plugin::instance()->widgets_manager->register_widget_type(new Widgets\TestimonialsCarousel_Creative());
-    Plugin::instance()->widgets_manager->register_widget_type(new Widgets\TestimonialsCarousel_Thumbnails());
+    $widgets_manager = Plugin::instance()->widgets_manager;
+
+    $widgets_manager->register(new Widgets\TestimonialsCarousel());
+    $widgets_manager->register(new Widgets\TestimonialsCarousel_Logo());
+    $widgets_manager->register(new Widgets\TestimonialsCarousel_Centered());
+    $widgets_manager->register(new Widgets\TestimonialsCarousel_Bottom());
+    $widgets_manager->register(new Widgets\TestimonialsCarousel_Gallery_Coverflow());
+    $widgets_manager->register(new Widgets\TestimonialsCarousel_Employees());
+    $widgets_manager->register(new Widgets\TestimonialsCarousel_Blog());
+    $widgets_manager->register(new Widgets\TestimonialsCarousel_Creative());
+    $widgets_manager->register(new Widgets\TestimonialsCarousel_Thumbnails());
+    $widgets_manager->register(new Widgets\TestimonialsCarousel_Quotes());
 
     // Register the plugin widget 3d Animated Carousel.
-    Plugin::instance()->widgets_manager->register_widget_type(new Widgets\TestimonialsCarousel_Coverflow());
-    Plugin::instance()->widgets_manager->register_widget_type(new Widgets\TestimonialsCarousel_Cube());
-    Plugin::instance()->widgets_manager->register_widget_type(new Widgets\TestimonialsCarousel_Cube_360());
+    $widgets_manager->register(new Widgets\TestimonialsCarousel_Coverflow());
+    $widgets_manager->register(new Widgets\TestimonialsCarousel_Cube());
+    $widgets_manager->register(new Widgets\TestimonialsCarousel_Cube_360());
 
     // Register the plugin widget Section With Carousel.
-    Plugin::instance()->widgets_manager->register_widget_type(new Widgets\Section_With_Cube());
-    Plugin::instance()->widgets_manager->register_widget_type(new Widgets\Section_With_Cube_360());
+    $widgets_manager->register(new Widgets\Section_With_Cube());
+    $widgets_manager->register(new Widgets\Section_With_Cube_360());
   }
 
   /**
@@ -164,13 +168,12 @@ class Widgets
    *
    * Register plugin action hooks and filters
    *
-   * @since  11.7.0
+   * @since  12.0.1
    * @access public
    */
   public function __construct()
   {
-    // Register the widgets.
-    add_action('elementor/widgets/widgets_registered', array($this, 'register_widgets'));
+    add_action('elementor/widgets/register', array($this, 'register_widgets'));
   }
 }
 

@@ -415,6 +415,14 @@ class THWCFD_Utils_Field {
 				$field = new WCFE_Checkout_Field_Tel();
 			}else if($type === 'phone'){
 				$field = new WCFE_Checkout_Field_Tel();
+			}else if($type === 'number'){
+            	$field = new WCFE_Checkout_Field_Number();
+			}else if($type === 'url'){
+				$field = new WCFE_Checkout_Field_URL();
+			}else if($type === 'paragraph'){
+				$field = new WCFE_Checkout_Field_Paragraph();
+			}else if($type === 'heading'){
+				$field = new WCFE_Checkout_Field_Heading();
 			}
 		}else{
 			$field = new WCFE_Checkout_Field_InputText();

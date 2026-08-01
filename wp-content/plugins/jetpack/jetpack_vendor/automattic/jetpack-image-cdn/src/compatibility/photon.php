@@ -9,6 +9,10 @@
 
 namespace Automattic\Jetpack\Image_CDN\Compatibility;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Disable the unpackaged photon version living in Jetpack.
  *
@@ -23,9 +27,9 @@ function jetpack_image_cdn_photon_compat() {
 	 * Photon used have different functions names. They are later replaced by methods in
 	 * Image_CDN_Core class. And the filters are now handled by the Image_CDN_Core class itself.
 	 */
-	remove_filter( 'jetpack_photon_url', 'jetpack_photon_url', 10, 3 );
-	remove_filter( 'jetpack_photon_pre_args', 'jetpack_photon_parse_wpcom_query_args', 10, 2 );
-	remove_filter( 'jetpack_photon_skip_for_url', 'jetpack_photon_banned_domains', 9, 2 );
+	remove_filter( 'jetpack_photon_url', 'jetpack_photon_url', 10 );
+	remove_filter( 'jetpack_photon_pre_args', 'jetpack_photon_parse_wpcom_query_args', 10 );
+	remove_filter( 'jetpack_photon_skip_for_url', 'jetpack_photon_banned_domains', 9 );
 	remove_filter( 'widget_text', 'jetpack_photon_support_text_widgets' );
 
 	/*

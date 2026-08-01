@@ -28,6 +28,7 @@ class Defaults {
 		'avatar_rating',
 		'blog_charset',
 		'blog_public',
+		'wpcom_data_sharing_opt_out',
 		'blogdescription',
 		'blogname',
 		'carousel_background_color',
@@ -77,8 +78,8 @@ class Defaults {
 		'jetpack_available_modules',
 		'jetpack_comment_form_color_scheme',
 		'jetpack_comment_likes_enabled',
-		'jetpack_connection_active_plugins',
 		'jetpack_excluded_extensions',
+		'jetpack_holiday_snow_enabled',
 		'jetpack_mailchimp',
 		'jetpack_options',
 		'jetpack_portfolio',
@@ -87,7 +88,10 @@ class Defaults {
 		'jetpack_protect_key',
 		'jetpack_publicize_options',
 		'jetpack_relatedposts',
+		'jetpack_social_message_template',
+		'jetpack_social_notes_config',
 		'jetpack_social_settings',
+		'jetpack_social_utm_settings',
 		'jetpack_sso_match_by_email',
 		'jetpack_sso_require_two_step',
 		'jetpack_sync_non_blocking', // is non-blocking Jetpack Sync flow enabled.
@@ -98,6 +102,7 @@ class Defaults {
 		'jetpack_sync_settings_taxonomies_blacklist',
 		'jetpack_sync_settings_dedicated_sync_enabled', // is Dedicated Sync flow enabled.
 		'jetpack_sync_settings_custom_queue_table_enabled', // is custom queue table enabled.
+		'jetpack_sync_settings_wpcom_rest_api_enabled', // is wpcom rest api enabled.
 		'jetpack_testimonial',
 		'jetpack_testimonial_posts_per_page',
 		'jetpack_wga',
@@ -165,6 +170,7 @@ class Defaults {
 		'videopress_private_enabled_for_site',
 		'wordads_ccpa_enabled',
 		'wordads_ccpa_privacy_policy_url',
+		'wordads_cmp_enabled',
 		'wordads_custom_adstxt',
 		'wordads_custom_adstxt_enabled',
 		'wordads_display_archive',
@@ -172,12 +178,19 @@ class Defaults {
 		'wordads_display_page',
 		'wordads_display_post',
 		'wordads_second_belowpost',
+		'wordads_inline_enabled',
 		'woocommerce_custom_orders_table_enabled',
 		'wp_mobile_app_promos',
 		'wp_mobile_excerpt',
 		'wp_mobile_featured_images',
 		'wp_page_for_privacy_policy',
+		'wpcom_ai_site_prompt',
+		'wpcom_classic_early_release',
+		'wpcom_newsletter_send_default',
 		'wpcom_featured_image_in_email',
+		'jetpack_gravatar_in_email',
+		'jetpack_author_in_email',
+		'jetpack_post_date_in_email',
 		'wpcom_gifting_subscription',
 		'wpcom_is_fse_activated',
 		'wpcom_legacy_contact',
@@ -189,6 +202,20 @@ class Defaults {
 		'wpcom_reader_views_enabled',
 		'wpcom_site_setup',
 		'wpcom_subscription_emails_use_excerpt',
+		'jetpack_subscriptions_reply_to',
+		'jetpack_subscriptions_from_name',
+		'jetpack_verbum_subscription_modal',
+		'jetpack_blocks_disabled',
+		'jetpack_newsletters_publishing_default_frequency',
+		'jetpack_scheduled_plugins_update',
+		'jetpack_waf_automatic_rules',
+		'jetpack_waf_ip_allow_list',
+		'jetpack_waf_ip_allow_list_enabled',
+		'jetpack_waf_ip_block_list',
+		'jetpack_waf_ip_block_list_enabled',
+		'jetpack_waf_share_data',
+		'jetpack_waf_share_debug_data',
+		'jetpack_waf_automatic_rules_last_updated_timestamp',
 	);
 
 	/**
@@ -299,37 +326,40 @@ class Defaults {
 	 * @var array Default whitelist of callables.
 	 */
 	public static $default_callable_whitelist = array(
-		'get_loaded_extensions'            => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_loaded_extensions' ),
-		'get_plugins'                      => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_plugins' ),
-		'get_themes'                       => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_themes' ),
-		'get_plugins_action_links'         => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_plugins_action_links' ),
-		'has_file_system_write_access'     => array( 'Automattic\\Jetpack\\Sync\\Functions', 'file_system_write_access' ),
-		'home_url'                         => array( 'Automattic\\Jetpack\\Connection\\Urls', 'home_url' ),
-		'hosting_provider'                 => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_hosting_provider' ),
-		'is_fse_theme'                     => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_is_fse_theme' ),
-		'is_main_network'                  => array( __CLASS__, 'is_multi_network' ),
-		'is_multi_site'                    => 'is_multisite',
-		'is_version_controlled'            => array( 'Automattic\\Jetpack\\Sync\\Functions', 'is_version_controlled' ),
-		'locale'                           => 'get_locale',
-		'main_network_site'                => array( 'Automattic\\Jetpack\\Connection\\Urls', 'main_network_site_url' ),
-		'main_network_site_wpcom_id'       => array( 'Automattic\\Jetpack\\Sync\\Functions', 'main_network_site_wpcom_id' ),
-		'paused_plugins'                   => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_paused_plugins' ),
-		'paused_themes'                    => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_paused_themes' ),
-		'post_type_features'               => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_post_type_features' ),
-		'post_types'                       => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_post_types' ),
-		'rest_api_allowed_post_types'      => array( 'Automattic\\Jetpack\\Sync\\Functions', 'rest_api_allowed_post_types' ),
-		'rest_api_allowed_public_metadata' => array( 'Automattic\\Jetpack\\Sync\\Functions', 'rest_api_allowed_public_metadata' ),
-		'roles'                            => array( 'Automattic\\Jetpack\\Sync\\Functions', 'roles' ),
-		'shortcodes'                       => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_shortcodes' ),
-		'site_icon_url'                    => array( 'Automattic\\Jetpack\\Sync\\Functions', 'site_icon_url' ),
-		'site_url'                         => array( 'Automattic\\Jetpack\\Connection\\Urls', 'site_url' ),
-		'taxonomies'                       => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_taxonomies' ),
-		'theme_support'                    => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_theme_support' ),
-		'timezone'                         => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_timezone' ),
-		'wp_get_environment_type'          => 'wp_get_environment_type',
-		'wp_max_upload_size'               => 'wp_max_upload_size',
-		'wp_version'                       => array( 'Automattic\\Jetpack\\Sync\\Functions', 'wp_version' ),
-		'active_modules'                   => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_active_modules' ),
+		'get_loaded_extensions'             => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_loaded_extensions' ),
+		'get_plugins'                       => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_plugins' ),
+		'get_themes'                        => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_themes' ),
+		'get_plugins_action_links'          => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_plugins_action_links' ),
+		'has_file_system_write_access'      => array( 'Automattic\\Jetpack\\Sync\\Functions', 'file_system_write_access' ),
+		'home_url'                          => array( 'Automattic\\Jetpack\\Connection\\Urls', 'home_url' ),
+		'hosting_provider'                  => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_hosting_provider' ),
+		'is_fse_theme'                      => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_is_fse_theme' ),
+		'is_main_network'                   => array( __CLASS__, 'is_multi_network' ),
+		'is_multi_site'                     => 'is_multisite',
+		'is_version_controlled'             => array( 'Automattic\\Jetpack\\Sync\\Functions', 'is_version_controlled' ),
+		'locale'                            => 'get_locale',
+		'main_network_site'                 => array( 'Automattic\\Jetpack\\Connection\\Urls', 'main_network_site_url' ),
+		'main_network_site_wpcom_id'        => array( 'Automattic\\Jetpack\\Sync\\Functions', 'main_network_site_wpcom_id' ),
+		'paused_plugins'                    => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_paused_plugins' ),
+		'paused_themes'                     => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_paused_themes' ),
+		'post_type_features'                => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_post_type_features' ),
+		'post_types'                        => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_post_types' ),
+		'rest_api_allowed_post_types'       => array( 'Automattic\\Jetpack\\Sync\\Functions', 'rest_api_allowed_post_types' ),
+		'rest_api_allowed_public_metadata'  => array( 'Automattic\\Jetpack\\Sync\\Functions', 'rest_api_allowed_public_metadata' ),
+		'roles'                             => array( 'Automattic\\Jetpack\\Sync\\Functions', 'roles' ),
+		'shortcodes'                        => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_shortcodes' ),
+		'site_icon_url'                     => array( 'Automattic\\Jetpack\\Sync\\Functions', 'site_icon_url' ),
+		'site_url'                          => array( 'Automattic\\Jetpack\\Connection\\Urls', 'site_url' ),
+		'taxonomies'                        => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_taxonomies' ),
+		'theme_support'                     => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_theme_support' ),
+		'timezone'                          => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_timezone' ),
+		'wp_get_environment_type'           => 'wp_get_environment_type',
+		'wp_max_upload_size'                => 'wp_max_upload_size',
+		'wp_version'                        => array( 'Automattic\\Jetpack\\Sync\\Functions', 'wp_version' ),
+		'active_modules'                    => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_active_modules' ),
+		'jetpack_connection_active_plugins' => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_jetpack_connection_active_plugins' ),
+		'jetpack_package_versions'          => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_jetpack_package_versions' ),
+		'jetpack_sync_active_modules'       => array( 'Automattic\\Jetpack\\Sync\\Functions', 'get_jetpack_sync_active_modules' ),
 	);
 
 	/**
@@ -433,6 +463,14 @@ class Defaults {
 		'wp_log', // WP Logging Plugin.
 		'wpephpcompat_jobs',
 		'wprss_feed_item',
+		'tribe-ea-record', // The Events Calendar Plugin - Store Event Aggregator record information.
+		'wphb_minify_group', // Hummingbird Plugin - Used internally to keep data about assets minification.
+		'bigcommerce_task', // BigCommerce Plugin - Store import queue.
+		'secupress_log_err404', // SecuPress Plugin - Log 404 pages
+		'iw_omnibus_price_log', // Omnibus Plugin - Log price changes.
+		'od_url_metrics', // Optimization Detective - Log URL metrics.
+		'ap_outbox', // ActivityPub Outbox; only used for broadcasting ActivityPub activity to followers.
+		'shop_order_placehold', // WooCommerce placeholder - Used to maintain compatibility and references when switching between WP Posts-based order storage and the newer HPOS tables.
 	);
 
 	/**
@@ -735,10 +773,12 @@ class Defaults {
 		'_wp_attachment_is_custom_background',
 		'_wp_attachment_is_custom_header',
 		'_wp_attachment_metadata',
+		'_wp_old_date',
 		'_wp_page_template',
 		'_wp_trash_meta_comments_status',
 		'_wpas_feature_enabled',
-		'_wpas_is_tweetstorm',
+		'_wpas_connection_overrides',
+		'_wpas_customize_per_network',
 		'_wpas_mess',
 		'_wpas_options',
 		'advanced_seo_description', // Jetpack_SEO_Posts::DESCRIPTION_META_KEY.
@@ -754,6 +794,7 @@ class Defaults {
 		'videopress_guid',
 		'vimeo_poster_image',
 		'_jetpack_blogging_prompt_key',
+		'footnotes', // Core footnotes block
 	);
 
 	/**
@@ -785,6 +826,7 @@ class Defaults {
 		'hc_foreign_user_id',
 		'hc_post_as',
 		'hc_wpcom_id_sig',
+		'protocol',
 	);
 
 	/**
@@ -804,6 +846,32 @@ class Defaults {
 		 * @param array The default list of comment meta data keys.
 		 */
 		return apply_filters( 'jetpack_sync_comment_meta_whitelist', self::$comment_meta_whitelist );
+	}
+
+	/**
+	 * Comment types whitelist.
+	 *
+	 * @var array Comment types that are synced.
+	 */
+	public static $comment_types_whitelist = array( '', 'comment', 'trackback', 'pingback', 'review', 'note' );
+
+	/**
+	 * Get the comment types whitelist.
+	 *
+	 * @return array
+	 */
+	public static function get_comment_types_whitelist() {
+		/**
+		 * Comment types present in this list will be synced to WordPress.com.
+		 *
+		 * @module sync
+		 *
+		 * @since 1.6.3
+		 * @since-jetpack 7.6.0
+		 *
+		 * @param array A list of comment types.
+		 */
+		return apply_filters( 'jetpack_sync_whitelisted_comment_types', self::$comment_types_whitelist );
 	}
 
 	/**
@@ -834,6 +902,7 @@ class Defaults {
 		'editor-color-palette',
 		'editor-font-sizes',
 		'editor-gradient-presets',
+		'editor-spacing-sizes',
 		'editor-style', // deprecated.
 		'editor-styles',
 		'html5',
@@ -1150,6 +1219,13 @@ class Defaults {
 	public static $default_comment_meta_whitelist = array();
 
 	/**
+	 * Default for sync actions blacklist.
+	 *
+	 * @var array Empty array.
+	 */
+	public static $default_sync_actions_blacklist = array();
+
+	/**
 	 * Default for disabling sync across the site.
 	 *
 	 * @var int Bool-ish. Default to 0.
@@ -1261,41 +1337,58 @@ class Defaults {
 	 * @var array list of module names.
 	 */
 	public static $default_full_sync_config = array(
-		'comments'           => 1,
 		'constants'          => 1,
 		'functions'          => 1,
 		'options'            => 1,
-		'posts'              => 1,
-		'term_relationships' => 1,
 		'terms'              => 1,
 		'themes'             => 1,
-		'updates'            => 1,
 		'users'              => 1,
+		'posts'              => 1,
+		'comments'           => 1,
+		'updates'            => 1,
+		'term_relationships' => 1,
 	);
 
+	/**
+	 * Default Full Sync limits for one module.
+	 *
+	 * @var array list of limits.
+	 */
+	public static $default_full_sync_limits_per_module = array(
+		'chunk_size' => 100,
+		'max_chunks' => 10,
+	);
 	/**
 	 * Default Full Sync max objects to send on a single request.
 	 *
 	 * @var array list of module => max.
 	 */
 	public static $default_full_sync_limits = array(
-		'comments'           => array(
+		'comments'                => array(
 			'chunk_size' => 100,
 			'max_chunks' => 10,
 		),
-		'posts'              => array(
-			'chunk_size' => 100,
+		'posts'                   => array(
+			'chunk_size' => 500,
 			'max_chunks' => 1,
 		),
-		'term_relationships' => array(
+		'term_relationships'      => array(
 			'chunk_size' => 1000,
 			'max_chunks' => 10,
 		),
-		'terms'              => array(
+		'terms'                   => array(
 			'chunk_size' => 1000,
 			'max_chunks' => 10,
 		),
-		'users'              => array(
+		'users'                   => array(
+			'chunk_size' => 100,
+			'max_chunks' => 10,
+		),
+		'woocommerce'             => array(
+			'chunk_size' => 100,
+			'max_chunks' => 10,
+		),
+		'woocommerce_hpos_orders' => array(
 			'chunk_size' => 100,
 			'max_chunks' => 10,
 		),
@@ -1314,4 +1407,20 @@ class Defaults {
 	 * @var int Bool-ish. Default 0.
 	 */
 	public static $default_custom_queue_table_enabled = 0;
+
+	/**
+	 * Default for enabling wpcom rest api for Sync.
+	 *
+	 * @var int Bool-ish. Default 1.
+	 */
+	public static $default_wpcom_rest_api_enabled = 1;
+
+	/**
+	 * A list of 'jetpack_options' specific keys we want to ignore.
+	 *
+	 * @var array
+	 */
+	public static $jetpack_options_blacklist = array(
+		'last_heartbeat',
+	);
 }

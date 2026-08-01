@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage setup
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -360,7 +360,6 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			</body>
 			</html>
 				<?php
-				// phpcs:ignore
 				echo Generate_Modal::generate_modal(
 					'notify-admin-settings-page',
 					'',
@@ -583,6 +582,8 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 					\wp_send_json_error( new \WP_Error( 400, \esc_html__( 'Nonce checking failed', 'wp-2fa' ) ), 400 );
 					return false;
 				}
+
+				unset( $user_id );
 			}
 
 			if ( empty( $user_id ) ) {
@@ -596,17 +597,33 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			}
 
 			// Grab email address if it's provided.
-			$email = sanitize_email( $user->user_email );
-			if ( isset( $_POST['email_address'] ) ) {
-				$email = sanitize_email( \wp_unslash( $_POST['email_address'] ) );
-			}
+			$email = \sanitize_email( $user->user_email );
 
-			if ( wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
-				User_Helper::set_nominated_email_for_user( $email, $user );
+			if ( isset( $_POST['email_address'] ) && ! empty( trim( $_POST['email_address'] ) ) ) {
+				$email = \sanitize_email( \wp_unslash( $_POST['email_address'] ) );
+
+				if ( ! \is_email( $email ) ) {
+					if ( \wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
+						\wp_send_json_error( new \WP_Error( 400, \esc_html__( 'Please use a valid email address', 'wp-2fa' ) ), 400 );
+						return false;
+					}
+
+					return false;
+				}
+
+				if ( ! Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'specify-email_hotp' ) ) {
+					\wp_send_json_error( new \WP_Error( 400, \esc_html__( 'The email address in the request does not match the user\'s email address. Please try again.', 'wp-2fa' ) ), 400 );
+
+					return false;
+				}
 			}
 
 			$email_address = '';
-			if ( ! empty( $nominated_email_address ) ) {
+
+			if ( \wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
+				$email_address = $email;	
+				// User_Helper::set_nominated_email_for_user( $email, $user );
+			} elseif ( ! empty( $nominated_email_address ) ) {
 				if ( 'nominated_email_address' === $nominated_email_address ) {
 					$email_address = User_Helper::get_nominated_email_for_user( $user );
 				} elseif ( 'backup_email_address' === $nominated_email_address ) {

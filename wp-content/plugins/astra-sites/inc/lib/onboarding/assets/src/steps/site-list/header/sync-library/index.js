@@ -1,26 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Toaster } from '@brainstormforce/starter-templates-components';
 import Tooltip from '../../../../components/tooltip/tooltip';
 import { __ } from '@wordpress/i18n';
 import ICONS from '../../../../../icons';
 import { useStateValue } from '../../../../store/store';
-import { isSyncSuccess, SyncStart } from './utils';
+import {
+	isSyncSuccess,
+	isSyncUptoDate,
+	fetchSitesPageCount,
+	fetchPagedSites,
+	fetchCategoriesAndTags,
+} from './utils';
 import './style.scss';
 import { classNames, getStepIndex } from '../../../../utils/functions';
 
 const SyncLibrary = () => {
-	const [ { currentIndex, bgSyncInProgress }, dispatch ] = useStateValue();
+	const [ { currentIndex, bgSyncInProgress, sitesSyncing }, dispatch ] =
+		useStateValue();
 
 	const [ syncState, setSyncState ] = useState( {
-		isLoading: false,
 		updatedData: null,
 		syncStatus: null,
 	} );
 
-	const { isLoading, updatedData, syncStatus } = syncState;
+	const { updatedData, syncStatus } = syncState;
 
 	useEffect( () => {
-		if ( isLoading ) {
+		if ( sitesSyncing ) {
 			window.onbeforeunload = () => {
 				return true;
 			};
@@ -29,12 +35,14 @@ const SyncLibrary = () => {
 				window.onbeforeunload = null;
 			};
 		}
-	}, [ isLoading ] );
+	}, [ sitesSyncing ] );
 
-	if ( getStepIndex( 'page-builder' ) === currentIndex ) {
+	if (
+		getStepIndex( 'page-builder' ) === currentIndex ||
+		getStepIndex( 'classic-page-builder' ) === currentIndex
+	) {
 		return null;
 	}
-
 	if ( syncStatus === true && !! updatedData ) {
 		const { sites, categories, categoriesAndTags } = updatedData;
 
@@ -55,17 +63,60 @@ const SyncLibrary = () => {
 	const handleClick = async ( event ) => {
 		event.stopPropagation();
 
-		if ( isLoading || bgSyncInProgress ) {
+		if ( sitesSyncing || bgSyncInProgress ) {
 			return;
 		}
 
-		setSyncState( { ...syncState, isLoading: true } );
-		const newData = await SyncStart();
+		dispatch( {
+			type: 'set',
+			sitesSyncing: true,
+			syncPageCount: 0,
+			syncPageInProgress: 0,
+		} );
+
+		// If the sync is already up to date, we don't need to sync again.
+		const syncUptoDate = await isSyncUptoDate();
+		const sites = ! syncUptoDate ? await syncSites() : null;
+		const { categories = null, tags = null } = ! syncUptoDate
+			? await fetchCategoriesAndTags()
+			: {};
+
 		setSyncState( {
-			isLoading: false,
-			updatedData: newData,
+			updatedData: {
+				allSitesData: sites,
+				categories,
+				categoriesAndTags: tags,
+			},
 			syncStatus: isSyncSuccess(),
 		} );
+
+		dispatch( {
+			type: 'set',
+			sitesSyncing: false,
+		} );
+	};
+
+	const syncSites = async () => {
+		// const newData = await SyncStart();
+		const { totalPages: pageCount } = await fetchSitesPageCount();
+		dispatch( {
+			type: 'set',
+			syncPageCount: pageCount,
+			syncPageInProgress: 0,
+		} );
+
+		const sites = [];
+		for ( let i = 0; i < pageCount; i++ ) {
+			sites.push( await fetchPagedSites( i + 1 ) );
+			dispatch( {
+				type: 'set',
+				syncPageInProgress: i + 1,
+			} );
+		}
+		if ( sites.length > 0 ) {
+			return sites;
+		}
+		return null;
 	};
 
 	return (
@@ -73,7 +124,7 @@ const SyncLibrary = () => {
 			<div
 				className={ classNames(
 					'relative st-sync-library',
-					isLoading && 'loading',
+					sitesSyncing && 'loading',
 					bgSyncInProgress && 'cursor-not-allowed'
 				) }
 				onClick={ handleClick }
@@ -100,7 +151,7 @@ const SyncLibrary = () => {
 					</div>
 				</Tooltip>
 			</div>
-			{ ! isLoading && syncStatus === true && (
+			{ ! sitesSyncing && syncStatus === true && (
 				<Toaster
 					type="success"
 					message={ __(
@@ -111,7 +162,7 @@ const SyncLibrary = () => {
 					bottomRight={ true }
 				/>
 			) }
-			{ ! isLoading && syncStatus === false && (
+			{ ! sitesSyncing && syncStatus === false && (
 				<Toaster
 					type="error"
 					message={ __( 'Library refreshed failed!', 'astra-sites' ) }

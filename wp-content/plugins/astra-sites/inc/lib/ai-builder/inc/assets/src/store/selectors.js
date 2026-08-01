@@ -36,6 +36,15 @@ const selectors = {
 	getContinueProgressModalInfo( { continueProgressModal } ) {
 		return continueProgressModal;
 	},
+	getConfirmationStartOverModalInfo( { confirmationStartOverModal } ) {
+		return confirmationStartOverModal;
+	},
+	getSignupLoginModalInfo( { signupLoginModal } ) {
+		return signupLoginModal;
+	},
+	getReconnectModalInfo( { reconnectModal } ) {
+		return reconnectModal;
+	},
 	getPlanInfoModalInfo( { planInformationModal } ) {
 		return planInformationModal;
 	},
@@ -68,6 +77,18 @@ const selectors = {
 
 	getSiteFeatures( { stepData: { siteFeatures } } ) {
 		return siteFeatures;
+	},
+
+	getSiteGoals( { stepData: { siteGoals, siteGoalsOther } } ) {
+		return { siteGoals, siteGoalsOther };
+	},
+
+	getSiteTone( { stepData: { siteTone } } ) {
+		return siteTone;
+	},
+
+	getUserKeywords( { stepData: { userKeywords } } ) {
+		return userKeywords;
 	},
 
 	getSiteFeaturesData( state ) {

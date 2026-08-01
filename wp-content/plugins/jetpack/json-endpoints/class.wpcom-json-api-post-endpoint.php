@@ -1,5 +1,9 @@
 <?php // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Post Endpoint class.
  */
@@ -112,11 +116,6 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 			}
 		}
 
-		if ( isset( $_SERVER['HTTP_USER_AGENT'] ) && strpos( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ), 'wp-windows8' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- we're not using this value and making changes, just checking if it exists.
-			remove_shortcode( 'gallery', 'gallery_shortcode' );
-			add_shortcode( 'gallery', array( $this, 'win8_gallery_shortcode' ) );
-		}
-
 		switch ( $field ) {
 			case 'name':
 				$post_id = $this->get_post_id_by_name( $field_value );
@@ -197,7 +196,7 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 					if ( 'display' === $context ) {
 						$response[ $key ] = (string) get_the_title( $post->ID );
 					} else {
-						$response[ $key ] = (string) htmlspecialchars_decode( $post->post_title, ENT_QUOTES );
+						$response[ $key ] = htmlspecialchars_decode( $post->post_title, ENT_QUOTES );
 					}
 					break;
 				case 'URL':
@@ -245,7 +244,7 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 				case 'password':
 					$response[ $key ] = (string) $post->post_password;
 					if ( 'edit' === $context ) {
-						$response[ $key ] = htmlspecialchars_decode( (string) $response[ $key ], ENT_QUOTES );
+						$response[ $key ] = htmlspecialchars_decode( $response[ $key ], ENT_QUOTES );
 					}
 					break;
 				/** (object|false) */
@@ -255,7 +254,7 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 						if ( 'display' === $context ) {
 							$parent_title = (string) get_the_title( $parent->ID );
 						} else {
-							$parent_title = (string) htmlspecialchars_decode( $post->post_title, ENT_QUOTES );
+							$parent_title = htmlspecialchars_decode( $post->post_title, ENT_QUOTES );
 						}
 						$response[ $key ] = (object) array(
 							'ID'    => (int) $parent->ID,
@@ -281,7 +280,7 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 					$sitewide_likes_enabled = (bool) apply_filters( 'wpl_is_enabled_sitewide', ! get_option( 'disabled_likes' ) );
 					$post_likes_switched    = get_post_meta( $post->ID, 'switch_like_status', true );
 					$post_likes_enabled     = $post_likes_switched || ( $sitewide_likes_enabled && $post_likes_switched !== '0' );
-					$response[ $key ]       = (bool) $post_likes_enabled;
+					$response[ $key ]       = $post_likes_enabled;
 					break;
 				case 'sharing_enabled':
 					$show = true;
@@ -405,7 +404,7 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 							}
 						}
 					}
-					$response[ $key ] = (array) $publicize_urls;
+					$response[ $key ] = $publicize_urls;
 					break;
 				case 'tags':
 					$response[ $key ] = array();
@@ -571,115 +570,9 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 	}
 
 	/**
-	 * Win8 Gallery shortcode.
-	 *
-	 * @param array $attr - the attribute.
-	 */
-	public function win8_gallery_shortcode( $attr ) {
-		global $post;
-
-		static $instance = 0;
-		++$instance;
-
-		// @todo - find out if this is a bug, intentionally unused, or can be removed.
-		$output = ''; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-
-		// We're trusting author input, so let's at least make sure it looks like a valid orderby statement
-		if ( isset( $attr['orderby'] ) ) {
-			$attr['orderby'] = sanitize_sql_orderby( $attr['orderby'] );
-			if ( ! $attr['orderby'] ) {
-				unset( $attr['orderby'] );
-			}
-		}
-
-		$atts = shortcode_atts(
-			array(
-				'order'     => 'ASC',
-				'orderby'   => 'menu_order ID',
-				'id'        => $post->ID,
-				'include'   => '',
-				'exclude'   => '',
-				'slideshow' => false,
-			),
-			$attr,
-			'gallery'
-		);
-		$id   = ! empty( $atts['id'] ) ? (int) $atts['id'] : 0;
-
-		// Custom image size and always use it.
-		add_image_size( 'win8app-column', 480 );
-		$size = 'win8app-column';
-
-		if ( 'RAND' === $atts['order'] ) {
-			$orderby = 'none';
-		} else {
-			$orderby = $atts['orderby'];
-		}
-
-		if ( ! empty( $atts['include'] ) ) {
-			$include      = preg_replace( '/[^0-9,]+/', '', $atts['include'] );
-			$_attachments = get_posts(
-				array(
-					'include'        => $include,
-					'post_status'    => 'inherit',
-					'post_type'      => 'attachment',
-					'post_mime_type' => 'image',
-					'order'          => $atts['order'],
-					'orderby'        => $orderby,
-				)
-			);
-			$attachments  = array();
-			foreach ( $_attachments as $key => $val ) {
-				$attachments[ $val->ID ] = $_attachments[ $key ];
-			}
-		} elseif ( ! empty( $atts['exclude'] ) ) {
-			$exclude     = preg_replace( '/[^0-9,]+/', '', $atts['exclude'] );
-			$attachments = get_children(
-				array(
-					'post_parent'    => $id,
-					'exclude'        => $exclude,
-					'post_status'    => 'inherit',
-					'post_type'      => 'attachment',
-					'post_mime_type' => 'image',
-					'order'          => $atts['order'],
-					'orderby'        => $orderby,
-				)
-			);
-		} else {
-			$attachments = get_children(
-				array(
-					'post_parent'    => $id,
-					'post_status'    => 'inherit',
-					'post_type'      => 'attachment',
-					'post_mime_type' => 'image',
-					'order'          => $atts['order'],
-					'orderby'        => $orderby,
-				)
-			);
-		}
-
-		if ( ! empty( $attachments ) ) {
-			foreach ( $attachments as $id => $attachment ) {
-				$link = isset( $attr['link'] ) && 'file' === $attr['link']
-					? wp_get_attachment_link( $id, $size, false, false )
-					: wp_get_attachment_link( $id, $size, true, false );
-				// phpcs:disable VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-				if ( $captiontag && trim( $attachment->post_excerpt ) ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UndefinedVariable
-					$output .= "<div class='wp-caption aligncenter'>$link
-						<p class='wp-caption-text'>" . wptexturize( $attachment->post_excerpt ) . '</p>
-						</div>';
-				} else {
-					$output .= $link . ' ';
-				}
-				// phpcs:enable VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-			}
-		}
-	}
-
-	/**
 	 * Returns attachment object.
 	 *
-	 * @param object - $attachment attachment row.
+	 * @param object $attachment attachment row.
 	 *
 	 * @return object
 	 */

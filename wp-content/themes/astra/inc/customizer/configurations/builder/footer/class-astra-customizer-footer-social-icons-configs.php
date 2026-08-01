@@ -3,8 +3,6 @@
  * Astra Theme Customizer Configuration Builder.
  *
  * @package     astra-builder
- * @author      Astra
- * @copyright   Copyright (c) 2020, Astra
  * @link        https://wpastra.com/
  * @since       3.0.0
  */
@@ -24,7 +22,6 @@ if ( ! class_exists( 'Astra_Customizer_Config_Base' ) ) {
  * @since 3.0.0
  */
 class Astra_Customizer_Footer_Social_Icons_Configs extends Astra_Customizer_Config_Base {
-
 	/**
 	 * Social Icons Customizer Configurations.
 	 *
@@ -34,10 +31,7 @@ class Astra_Customizer_Footer_Social_Icons_Configs extends Astra_Customizer_Conf
 	 * @return Array Astra Customizer Configurations with updated configurations.
 	 */
 	public function register_configuration( $configurations, $wp_customize ) {
-
-		$configurations = Astra_Social_Icon_Component_Configs::register_configuration( $configurations, 'footer', 'section-fb-social-icons-' );
-
-		return $configurations;
+		return astra_social_footer_configuration( $configurations );
 	}
 }
 
@@ -46,4 +40,3 @@ class Astra_Customizer_Footer_Social_Icons_Configs extends Astra_Customizer_Conf
  */
 
 new Astra_Customizer_Footer_Social_Icons_Configs();
-

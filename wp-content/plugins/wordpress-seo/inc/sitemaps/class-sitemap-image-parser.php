@@ -124,7 +124,10 @@ class WPSEO_Sitemap_Image_Parser {
 		 * @param array $images  Array of image items.
 		 * @param int   $post_id ID of the post.
 		 */
-		$images = apply_filters( 'wpseo_sitemap_urlimages', $images, $post->ID );
+		$image_list = apply_filters( 'wpseo_sitemap_urlimages', $images, $post->ID );
+		if ( isset( $image_list ) && is_array( $image_list ) ) {
+			$images = $image_list;
+		}
 
 		return $images;
 	}
@@ -145,6 +148,17 @@ class WPSEO_Sitemap_Image_Parser {
 			$images[] = [
 				'src'   => $this->get_absolute_url( $this->image_url( $attachment->ID ) ),
 			];
+		}
+
+		/**
+		 * Filter images to be included for the term in XML sitemap.
+		 *
+		 * @param array $image_list Array of image items.
+		 * @param int   $term_id    ID of the post.
+		 */
+		$image_list = apply_filters( 'wpseo_sitemap_urlimages_term', $images, $term->term_id );
+		if ( isset( $image_list ) && is_array( $image_list ) ) {
+			$images = $image_list;
 		}
 
 		return $images;
@@ -243,7 +257,7 @@ class WPSEO_Sitemap_Image_Parser {
 			$id = $post_id;
 
 			if ( ! empty( $gallery['id'] ) ) {
-				$id = intval( $gallery['id'] );
+				$id = (int) $gallery['id'];
 			}
 
 			// Forked from core gallery_shortcode() to have exact same logic. R.
@@ -453,7 +467,7 @@ class WPSEO_Sitemap_Image_Parser {
 			[
 				'posts_per_page' => count( $ids_to_include ),
 				'post__in'       => $ids_to_include,
-			]
+			],
 		);
 
 		$gallery_attachments = [];

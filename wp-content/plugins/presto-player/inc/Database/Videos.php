@@ -4,32 +4,31 @@ namespace PrestoPlayer\Database;
 
 use PrestoPlayer\Database\Table;
 
-class Videos
-{
-    protected $table;
-    protected $version = 4;
-    protected $name = 'presto_player_videos';
+class Videos {
 
-    public function __construct(Table $table)
-    {
-        $this->table = $table;
-    }
+	protected $table;
+	protected $version = 4;
+	protected $name    = 'presto_player_videos';
 
-    public function getName()
-    {
-        global $wpdb;
-        return $wpdb->prefix . $this->name;
-    }
+	public function __construct( Table $table ) {
+		$this->table = $table;
+	}
 
-    /**
-     * Add videos table
-     * This is used for global video analytics
-     *
-     * @return void
-     */
-    public function install()
-    {
-        return $this->table->create($this->name, "
+	public function getName() {
+		global $wpdb;
+		return $wpdb->prefix . $this->name;
+	}
+
+	/**
+	 * Add videos table
+	 * This is used for global video analytics
+	 *
+	 * @return void
+	 */
+	public function install() {
+		return $this->table->create(
+			$this->name,
+			'
             id bigint(20) unsigned NOT NULL auto_increment,
             title varchar(255) NOT NULL,
             type varchar(155) NOT NULL,
@@ -46,20 +45,21 @@ class Videos
             KEY attachment_id (attachment_id),
             KEY created_at (created_at),
             KEY updated_at (updated_at)
-        ", $this->version);
-    }
+        ',
+			$this->version
+		);
+	}
 
-    /**
-     * Uninstall tables
-     *
-     * @return void
-     */
-    public function uninstall()
-    {
-        $this->table->drop($this->getName());
-    }
+	/**
+	 * Uninstall tables
+	 *
+	 * @return void
+	 */
+	public function uninstall() {
+		$this->table->drop( $this->getName() );
+	}
 
-    public function exists(){
-        return $this->table->exists($this->name);
-    }
+	public function exists() {
+		return $this->table->exists( $this->name );
+	}
 }

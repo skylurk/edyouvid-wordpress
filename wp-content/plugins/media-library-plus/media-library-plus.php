@@ -3,7 +3,7 @@
 Plugin Name: Media Library Folders
 Plugin URI: https://maxgalleria.com
 Description: Gives you the ability to adds folders and move files in the WordPress Media Library.
-Version: 8.3.6
+Version: 8.3.8
 Author: Max Foundry
 Author URI: https://maxfoundry.com
 
@@ -75,7 +75,7 @@ class MGMediaLibraryFolders {
   
 	public function set_global_constants() {	
 		define('MAXGALLERIA_MEDIA_LIBRARY_VERSION_KEY', 'maxgalleria_media_library_version');
-		define('MAXGALLERIA_MEDIA_LIBRARY_VERSION_NUM', '8.3.6');
+		define('MAXGALLERIA_MEDIA_LIBRARY_VERSION_NUM', '8.3.8');
 		define('MAXGALLERIA_MEDIA_LIBRARY_IGNORE_NOTICE', 'maxgalleria_media_library_ignore_notice');
 		define('MAXGALLERIA_MEDIA_LIBRARY_PLUGIN_NAME', trim(dirname(plugin_basename(__FILE__)), '/'));
     if(!defined('MAXGALLERIA_MEDIA_LIBRARY_PLUGIN_DIR'))
@@ -84,6 +84,10 @@ class MGMediaLibraryFolders {
 		  define('MAXGALLERIA_MEDIA_LIBRARY_PLUGIN_URL', plugin_dir_url('') . MAXGALLERIA_MEDIA_LIBRARY_PLUGIN_NAME);
 		if(!defined('MAXGALLERIA_MEDIA_LIBRARY_NONCE'))
       define("MAXGALLERIA_MEDIA_LIBRARY_NONCE", "mgmlp_nonce");
+    
+		if(!defined('MLFP_LOAD_IMAGE_NONCE'))
+      define("MLFP_LOAD_IMAGE_NONCE", "mlfp_load_image_nonce");
+    
 		if(!defined('MAXGALLERIA_MEDIA_LIBRARY_POST_TYPE'))
       define("MAXGALLERIA_MEDIA_LIBRARY_POST_TYPE", "mgmlp_media_folder");
     define("MAXGALLERIA_MEDIA_LIBRARY_UPLOAD_FOLDER_NAME", "mgmlp_upload_folder_name");
@@ -201,9 +205,8 @@ class MGMediaLibraryFolders {
     add_action('wp_ajax_nopriv_create_new_folder', array($this, 'create_new_folder'));
     add_action('wp_ajax_create_new_folder', array($this, 'create_new_folder'));
     
-    add_action('wp_ajax_nopriv_delete_maxgalleria_media', array($this, 'delete_maxgalleria_media'));
     add_action('wp_ajax_delete_maxgalleria_media', array($this, 'delete_maxgalleria_media'));
-    
+        
     add_action('wp_ajax_nopriv_upload_attachment', array($this, 'upload_attachment'));
     add_action('wp_ajax_upload_attachment', array($this, 'upload_attachment'));
     
@@ -217,7 +220,6 @@ class MGMediaLibraryFolders {
     add_action('wp_ajax_nopriv_add_to_max_gallery', array($this, 'add_to_max_gallery'));
     add_action('wp_ajax_add_to_max_gallery', array($this, 'add_to_max_gallery'));
     
-    add_action('wp_ajax_nopriv_maxgalleria_rename_image', array($this, 'maxgalleria_rename_image'));
     add_action('wp_ajax_maxgalleria_rename_image', array($this, 'maxgalleria_rename_image'));
         
     add_action('wp_ajax_nopriv_sort_contents', array($this, 'sort_contents'));
@@ -411,13 +413,13 @@ class MGMediaLibraryFolders {
               jQuery(clone).attr('id', image_id);
               jQuery(clone).attr('src', '');
               jQuery(clone).removeAttr('srcset'); 
-              // replace with new element in order to loadd the image
+              // replace with new element in order to load the image
               jQuery(element).replaceWith(clone);
 
               jQuery.ajax({
                 type: "POST",
                 async: false,
-                data: { action: "mlfp_load_image", src: src, nonce: '<?php echo wp_create_nonce(MAXGALLERIA_MEDIA_LIBRARY_NONCE) ?>' },
+                data: { action: "mlfp_load_image", src: src, nonce: '<?php echo wp_create_nonce(MLFP_LOAD_IMAGE_NONCE) ?>' }, 
                 url: '<?php echo admin_url('admin-ajax.php') ?>',
                 success: function (data) {
                   if(data.length > 0)
@@ -440,7 +442,7 @@ class MGMediaLibraryFolders {
   /* manually loads an image file */
   public function mlfp_load_image () {    
     
-    if ( !wp_verify_nonce( $_POST['nonce'], MAXGALLERIA_MEDIA_LIBRARY_NONCE)) {
+    if ( !wp_verify_nonce( $_POST['nonce'], MLFP_LOAD_IMAGE_NONCE)) {
       exit(esc_html__('Missing nonce! Please refresh this page.','maxgalleria-media-library'));
     }
     
@@ -488,7 +490,7 @@ class MGMediaLibraryFolders {
   /* manually load image on the front end of the site */
   public function mlfp_load_fe_image () {
     
-    if ( !wp_verify_nonce( $_POST['nonce'], MAXGALLERIA_MEDIA_LIBRARY_NONCE)) {
+    if ( !wp_verify_nonce( $_POST['nonce'], MLFP_LOAD_IMAGE_NONCE)) {
       exit(esc_html__('Missing nonce! Please refresh this page.','maxgalleria-media-library'));
     }
     
@@ -732,6 +734,7 @@ class MGMediaLibraryFolders {
                        'folder_check' => esc_html__('Checking for new folders...', 'maxgalleria-media-library' ),
                        'bda_user_role' => $this->bda_user_role,  
                        'link_copied' => esc_html__('download link has been copied to the clipboard', 'maxgalleria-media-library'),
+                       'lin_nonce'=> wp_create_nonce(MLFP_LOAD_IMAGE_NONCE),
                        'nonce'=> wp_create_nonce(MAXGALLERIA_MEDIA_LIBRARY_NONCE))
                      ); 
 
@@ -775,6 +778,7 @@ class MGMediaLibraryFolders {
     return array( 
       'ajaxurl' => admin_url( 'admin-ajax.php' ),
       'nonce'=> wp_create_nonce(MAXGALLERIA_MEDIA_LIBRARY_NONCE),
+      'lin_nonce'=> wp_create_nonce(MLFP_LOAD_IMAGE_NONCE),
       'upload_message' => esc_html__('Select the folder where you wish to view or upload files.', 'maxgalleria-media-library'),
       'uploads_folder_id' => $upload_id,
       'bda' => $this->bda,
@@ -2871,6 +2875,211 @@ AND meta_key = '_wp_attached_file'", $parent_folder_id);
   }
   
   public function delete_maxgalleria_media() {
+
+    global $wpdb, $is_IIS;
+
+    $folder_deleted = true;
+    $message        = '';
+
+    /**
+     * Combined auth gate:
+     * - Must be logged in
+     * - Must have upload_files capability
+     */
+    if ( ! is_user_logged_in() || ! current_user_can( 'upload_files' ) ) {
+      // Keep original wording for capability failure, but also covers not-logged-in
+      $data = array(
+        'message' => esc_html__( 'You do not have the capability to upload files.', 'maxgalleria-media-library' ),
+        'refresh' => false,
+      );
+      echo wp_json_encode( $data );
+      wp_die();
+    }
+
+    // Nonce check
+    $nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+    if ( ! wp_verify_nonce( $nonce, MAXGALLERIA_MEDIA_LIBRARY_NONCE ) ) {
+      $data = array(
+        'message' => esc_html__( 'Missing or invalid nonce! Please refresh this page.', 'maxgalleria-media-library' ),
+        'refresh' => false,
+      );
+      echo wp_json_encode( $data );
+      wp_die();
+    }
+
+    // Parse IDs as absint list
+    $delete_ids = array();
+    if ( isset( $_POST['serial_delete_ids'] ) ) {
+      $raw = wp_unslash( $_POST['serial_delete_ids'] );
+      $raw = str_replace( '"', '', $raw );
+      $parts = array_filter( array_map( 'trim', explode( ',', $raw ) ) );
+      $delete_ids = array_values( array_filter( array_map( 'absint', $parts ) ) );
+    }
+
+    // Parent folder
+    $parent_folder = isset( $_POST['parent_id'] ) ? absint( wp_unslash( $_POST['parent_id'] ) ) : 0;
+    if ( ! $parent_folder ) {
+      $parent_folder = (int) $this->uploads_folder_ID;
+    }
+
+    $table          = $wpdb->prefix . MAXGALLERIA_MEDIA_LIBRARY_FOLDER_TABLE;
+    $current_user_id = get_current_user_id();
+    $is_admin_like   = current_user_can( 'manage_options' ); // "admin-like" gate
+
+    foreach ( $delete_ids as $delete_id ) {
+
+      // prevent uploads folder from being deleted
+      if ( (int) $delete_id === (int) $this->uploads_folder_ID ) {
+        $message = esc_html__( 'The uploads folder cannot be deleted.', 'maxgalleria-media-library' );
+        $data = array( 'message' => $message, 'refresh' => false );
+        echo wp_json_encode( $data );
+        wp_die();
+      }
+
+      // Load the post object once (also protects against missing IDs)
+      $post = get_post( $delete_id );
+      if ( ! $post ) {
+        continue;
+      }
+
+      // 2) For each ID: current_user_can('delete_post', $id) must pass
+      if ( ! current_user_can( 'delete_post', $delete_id ) ) {
+        continue; // or return an error if you prefer strict behavior
+      }
+
+      // 4) For folder post type: admin-only
+      if ( $post->post_type === MAXGALLERIA_MEDIA_LIBRARY_POST_TYPE && ! $is_admin_like ) {
+        continue;
+      }
+
+      // 3) For attachments: enforce owner-only unless admin-like
+      if ( $post->post_type === 'attachment' && ! $is_admin_like ) {
+        if ( (int) $post->post_author !== (int) $current_user_id ) {
+          continue;
+        }
+      }
+
+      $sql = $wpdb->prepare(
+        "SELECT p.post_title, p.post_type, pm.meta_value AS attached_file
+         FROM {$wpdb->posts} p
+         LEFT JOIN {$wpdb->postmeta} pm
+           ON (pm.post_id = p.ID AND pm.meta_key = %s)
+         WHERE p.ID = %d",
+        '_wp_attached_file',
+        $delete_id
+      );
+
+      $row = $wpdb->get_row( $sql );
+      if ( ! $row ) {
+        continue;
+      }
+
+      $baseurl        = rtrim( $this->upload_dir['baseurl'], '/' ) . '/';
+      $image_location = $baseurl . ltrim( (string) $row->attached_file, '/' );
+      $folder_path    = $this->get_absolute_path( $image_location );
+      $del_post       = array( 'post_id' => $delete_id );
+
+      if ( $row->post_type === MAXGALLERIA_MEDIA_LIBRARY_POST_TYPE ) { // folder
+
+        $sql_count  = $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE folder_id = %d", $delete_id );
+        $row_count  = (int) $wpdb->get_var( $sql_count );
+
+        if ( $row_count > 0 ) {
+          $message = esc_html__( 'The folder, ', 'maxgalleria-media-library' ) . $row->post_title .
+            esc_html__( ', is not empty. Please delete or move files from the folder', 'maxgalleria-media-library' ) . PHP_EOL;
+
+          $data = array( 'message' => esc_html( $message ), 'refresh' => false );
+          echo wp_json_encode( $data );
+          wp_die();
+        }
+
+        if ( file_exists( $folder_path ) && is_dir( $folder_path ) ) {
+          @chmod( $folder_path, 0777 );
+          $this->remove_hidden_files( $folder_path );
+
+          if ( $this->is_dir_empty( $folder_path ) ) {
+            if ( ! rmdir( $folder_path ) ) {
+              $message = esc_html__( 'The folder could not be deleted.', 'maxgalleria-media-library' );
+            }
+          } else {
+            $message        = esc_html__( 'The folder is not empty and could not be deleted.', 'maxgalleria-media-library' );
+            $folder_deleted = false;
+          }
+        }
+
+        if ( $folder_deleted ) {
+          wp_delete_post( $delete_id, true );
+          $wpdb->delete( $table, $del_post );
+          $message = esc_html__( 'The folder was deleted.', 'maxgalleria-media-library' );
+        }
+
+        $folders = $this->get_folder_data( $parent_folder );
+        $data = array(
+          'message' => esc_html( $message ),
+          'folders' => $folders,
+          'refresh' => $folder_deleted,
+        );
+        echo wp_json_encode( $data );
+        wp_die();
+
+      } else { // attachment (or other non-folder post types)
+
+        // Ensure we only call wp_delete_attachment on attachments
+        if ( $post->post_type !== 'attachment' ) {
+          continue;
+        }
+
+        $metadata            = wp_get_attachment_metadata( $delete_id );
+        $image_path          = $this->get_absolute_path( $image_location );
+        $path_to_thumbnails  = pathinfo( $image_path, PATHINFO_DIRNAME );
+
+        if ( wp_delete_attachment( $delete_id, true ) !== false ) {
+          $wpdb->delete( $table, $del_post );
+          $message = esc_html__( 'The file(s) were deleted', 'maxgalleria-media-library' ) . PHP_EOL;
+
+          // ensure the attachment is deleted
+          if ( file_exists( $image_path ) ) {
+            unlink( $image_path );
+          }
+
+          if ( isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ) {
+            foreach ( $metadata['sizes'] as $source_path ) {
+              if ( empty( $source_path['file'] ) ) {
+                continue;
+              }
+
+              $thumbnail_file = $path_to_thumbnails . DIRECTORY_SEPARATOR . $source_path['file'];
+
+              if ( $is_IIS || strtoupper( substr( PHP_OS, 0, 3 ) ) === 'WIN' || strtoupper( substr( PHP_OS, 0, 13 ) ) === 'MICROSOFT-IIS' ) {
+                $thumbnail_file = str_replace( '/', '\\', $thumbnail_file );
+              }
+
+              if ( file_exists( $thumbnail_file ) ) {
+                unlink( $thumbnail_file );
+              }
+            }
+          }
+
+        } else {
+          $message = esc_html__( 'The file(s) were not deleted', 'maxgalleria-media-library' ) . PHP_EOL;
+        }
+      }
+    }
+
+    $files   = $this->display_folder_contents( $parent_folder, true, '', false );
+    $refresh = true;
+
+    $data = array(
+      'message' => esc_html( $message ),
+      'files'   => $files,
+      'refresh' => $refresh,
+    );
+
+    echo wp_json_encode( $data );
+    wp_die();
+  }  
+  
+  public function delete_maxgalleria_media1() {
         
     global $wpdb, $is_IIS;
     $delete_ids = array();
@@ -3401,7 +3610,7 @@ where post_type = 'attachment' and pm.meta_key = '_wp_attached_file' and SUBSTRI
               jQuery.ajax({
                 type: 'POST',
                 async: true,
-                data: { action: 'mlfp_load_image', src: src, nonce: mgmlp_ajax.nonce },
+                data: { action: 'mlfp_load_image', src: src, nonce: '<?php echo wp_create_nonce(MLFP_LOAD_IMAGE_NONCE) ?>' },
                 url: mgmlp_ajax.ajaxurl,
                 success: function (data) {
                   if(data.length > 0)
@@ -3418,8 +3627,286 @@ where post_type = 'attachment' and pm.meta_key = '_wp_attached_file' and SUBSTRI
     </script>          
     <?php
   }  
-              
+  
   public function maxgalleria_rename_image() {
+
+    global $wpdb, $blog_id, $is_IIS;
+    
+    /**
+     * Combined auth gate:
+     * - Must be logged in
+     * - Must have upload_files capability
+     */
+    if ( ! is_user_logged_in() || ! current_user_can( 'upload_files' ) ) {
+      // Keep original wording for capability failure, but also covers not-logged-in
+      $data = array(
+        'message' => esc_html__( 'You do not have the capability to upload files.', 'maxgalleria-media-library' ),
+        'refresh' => false,
+      );
+      echo wp_json_encode( $data );
+      wp_die();
+    }
+    
+    // Nonce check
+    $nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+    if ( ! wp_verify_nonce( $nonce, MAXGALLERIA_MEDIA_LIBRARY_NONCE ) ) {
+      echo esc_html__( 'missing nonce! Please refresh this page.', 'maxgalleria-media-library' );
+      die();
+    }
+
+    // Baseline capability check (keep existing behavior)
+    if ( ! current_user_can( 'upload_files' ) ) {
+      echo esc_html__( 'You do not have the capability to upload files.', 'maxgalleria-media-library' );
+      die();
+    }
+
+    // Input: file id
+    $file_id = isset( $_POST['image_id'] ) ? absint( wp_unslash( $_POST['image_id'] ) ) : 0;
+    if ( ! $file_id ) {
+      echo esc_html__( 'Invalid image ID.', 'maxgalleria-media-library' );
+      die();
+    }
+
+    // Input: new file name (base name, without extension; extension is kept from original)
+    $new_file_name = isset( $_POST['new_file_name'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['new_file_name'] ) ) ) : '';
+    if ( $new_file_name === '' ) {
+      echo esc_html__( 'Invalid file name.', 'maxgalleria-media-library' );
+      die();
+    }
+
+    // Do not allow whitespace
+    if ( preg_match( '/\s/', $new_file_name ) ) {
+      echo esc_html__( 'The file name cannot contain spaces or tabs.', 'maxgalleria-media-library' );
+      die();
+    }
+
+    // Block path traversal / separators explicitly
+    if ( strpos( $new_file_name, '/' ) !== false || strpos( $new_file_name, '\\' ) !== false || strpos( $new_file_name, '..' ) !== false ) {
+      echo esc_html__( 'Invalid file name.', 'maxgalleria-media-library' );
+      die();
+    }
+
+    // Sanitize base name (no extension expected here)
+    $new_file_name = sanitize_file_name( $new_file_name );
+    if ( $new_file_name === '' ) {
+      echo esc_html__( 'Invalid file name.', 'maxgalleria-media-library' );
+      die();
+    }
+
+    /**
+     * Object-level authorization (IDOR fix)
+     * - Must be allowed to edit this attachment
+     * - Owner-only unless admin-like
+     */
+    $post = get_post( $file_id );
+    if ( ! $post || $post->post_type !== 'attachment' ) {
+      echo esc_html__( 'The file does not exist on this site.', 'maxgalleria-media-library' );
+      die();
+    }
+
+    if ( ! current_user_can( 'edit_post', $file_id ) ) {
+      echo esc_html__( 'You are not allowed to rename this file.', 'maxgalleria-media-library' );
+      die();
+    }
+
+    $is_admin_like = current_user_can( 'manage_options' );
+    if ( ! $is_admin_like && (int) $post->post_author !== (int) get_current_user_id() ) {
+      echo esc_html__( 'You are not allowed to rename files you do not own.', 'maxgalleria-media-library' );
+      die();
+    }
+
+    // Fetch current attached file path
+    $sql = $wpdb->prepare(
+      "SELECT p.ID, pm.meta_value AS attached_file, p.post_title, p.post_name
+       FROM {$wpdb->posts} p
+       LEFT JOIN {$wpdb->postmeta} pm
+         ON (pm.post_id = p.ID AND pm.meta_key = %s)
+       WHERE p.ID = %d",
+      '_wp_attached_file',
+      $file_id
+    );
+
+    $row = $wpdb->get_row( $sql );
+
+    if ( empty( $row ) ) {
+      echo esc_html__( 'The file does not exist on this site.', 'maxgalleria-media-library' );
+      die();
+    }
+
+    // Build locations/paths
+    $image_location = $this->build_location_url( $row->attached_file );
+
+    // Preserve alt text
+    $alt_text = get_post_meta( $file_id, '_wp_attachment_image_alt', true );
+
+    // Keep original extension, but allow changing base name
+    $original_ext        = pathinfo( $image_location, PATHINFO_EXTENSION );
+    $full_new_file_name  = $new_file_name . '.' . $original_ext;
+
+    $destination_path = $this->get_absolute_path( pathinfo( $image_location, PATHINFO_DIRNAME ) );
+    $new_file_name    = wp_unique_filename( $destination_path, $full_new_file_name, null );
+
+    $new_file_title = $this->remove_extension( $new_file_name );
+
+    $old_file_path = $this->get_absolute_path( $image_location );
+
+    $new_file_url = pathinfo( $image_location, PATHINFO_DIRNAME ) . DIRECTORY_SEPARATOR . $new_file_name;
+
+    if ( is_multisite() ) {
+      $url_slug     = 'site' . $blog_id . '/';
+      $new_file_url = str_replace( $url_slug, '', $new_file_url );
+    }
+
+    $new_file_path = $this->get_absolute_path( $new_file_url );
+
+    if ( $this->is_windows() ) {
+      $old_file_path = str_replace( '\\', '/', $old_file_path );
+      $new_file_path = str_replace( '\\', '/', $new_file_path );
+    }
+
+    $rename_image_location = $this->get_base_file( $image_location );
+    $rename_destination    = $this->get_base_file( $new_file_url );
+
+    $position = strrpos( $image_location, '.' );
+    $image_location_no_extension = ( $position !== false ) ? substr( $image_location, 0, $position ) : $image_location;
+
+    // Rename file on disk
+    if ( rename( $old_file_path, $new_file_path ) ) {
+
+      /**
+       * Keep explicit thumbnail deletion (as requested / real-world behavior)
+       * Guard for missing metadata or missing sizes.
+       */
+      $metadata = wp_get_attachment_metadata( $file_id );
+      $path_to_thumbnails = pathinfo( $old_file_path, PATHINFO_DIRNAME );
+
+      if ( is_array( $metadata ) && isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ) {
+        foreach ( $metadata['sizes'] as $source_path ) {
+          if ( empty( $source_path['file'] ) ) {
+            continue;
+          }
+
+          $thumbnail_file = $path_to_thumbnails . DIRECTORY_SEPARATOR . $source_path['file'];
+
+          if ( $is_IIS || strtoupper( substr( PHP_OS, 0, 3 ) ) === 'WIN' || strtoupper( substr( PHP_OS, 0, 13 ) ) === 'MICROSOFT-IIS' ) {
+            $thumbnail_file = str_replace( '/', '\\', $thumbnail_file );
+          }
+
+          if ( file_exists( $thumbnail_file ) ) {
+            unlink( $thumbnail_file );
+          }
+        }
+      }
+
+      // Update attachment post record
+      $data = array(
+        'guid'       => $new_file_url,
+        'post_title' => $new_file_title,
+        'post_name'  => $new_file_name,
+      );
+      $where = array( 'ID' => $file_id );
+      $wpdb->update( $wpdb->posts, $data, $where );
+
+      /**
+       * IMPORTANT FIX: do NOT wipe all postmeta for this attachment.
+       * This preserves ACF / SEO / custom fields.
+       */
+
+      // get the uploads dir name
+      $basedir = $this->upload_dir['baseurl'];
+      $uploads_dir_name_pos = strrpos( $basedir, '/' );
+      $uploads_dir_name = ( $uploads_dir_name_pos !== false ) ? substr( $basedir, $uploads_dir_name_pos + 1 ) : '';
+
+      // find the name and cut off the part with the uploads path
+      $string_position = ( $uploads_dir_name !== '' ) ? strpos( $new_file_url, $uploads_dir_name ) : false;
+      $uploads_dir_length = strlen( $uploads_dir_name ) + 1;
+
+      if ( $string_position !== false ) {
+        $uploads_location = substr( $new_file_url, $string_position + $uploads_dir_length );
+      } else {
+        // Fallback: best-effort relative path
+        $uploads_location = ltrim( $new_file_url, '/' );
+      }
+
+      if ( $this->is_windows() ) {
+        $uploads_location = str_replace( '\\', '/', $uploads_location );
+      }
+
+      $uploads_location = ltrim( $uploads_location, '/' );
+
+      update_post_meta( $file_id, '_wp_attached_file', $uploads_location );
+
+      if ( strlen( trim( $alt_text ) ) > 0 ) {
+        update_post_meta( $file_id, '_wp_attachment_image_alt', $alt_text );
+      }
+
+      // Regenerate metadata for the renamed file
+      $attach_data = wp_generate_attachment_metadata( $file_id, $new_file_path );
+      wp_update_attachment_metadata( $file_id, $attach_data );
+
+      // SiteOrigin Panels updates (unchanged)
+      if ( class_exists( 'SiteOrigin_Panels' ) ) {
+        $this->update_serial_postmeta_records( $rename_image_location, $rename_destination );
+      }
+
+      // Beaver Builder updates (hardened query, rest unchanged)
+      if ( class_exists( 'FLBuilderLoader' ) ) {
+
+        $like = '%' . $wpdb->esc_like( $rename_image_location ) . '%';
+        $bb_sql = $wpdb->prepare(
+          "SELECT ID FROM {$wpdb->posts} WHERE post_content LIKE %s",
+          $like
+        );
+
+        $records = $wpdb->get_results( $bb_sql );
+
+        foreach ( $records as $record ) {
+          $this->update_bb_postmeta( $record->ID, $rename_image_location, $rename_destination );
+        }
+
+        // clearing BB caches
+        if ( class_exists( 'FLBuilderModel' ) && method_exists( 'FLBuilderModel', 'delete_asset_cache_for_all_posts' ) ) {
+          FLBuilderModel::delete_asset_cache_for_all_posts();
+        }
+        if ( class_exists( 'FLCustomizer' ) && method_exists( 'FLCustomizer', 'clear_all_css_cache' ) ) {
+          FLCustomizer::clear_all_css_cache();
+        }
+      }
+
+      // Update post content links across posts (hardened query)
+      $replace_sql = $wpdb->prepare(
+        "UPDATE {$wpdb->posts}
+         SET post_content = REPLACE(post_content, %s, %s)",
+        $rename_image_location,
+        $rename_destination
+      );
+      $result = $wpdb->query( $replace_sql );
+
+      // for updating wp pagebuilder (unchanged)
+      if ( defined( 'WPPB_LICENSE' ) ) {
+        $this->update_wppb_data( $image_location_no_extension, $new_file_url );
+      }
+
+      // for updating themify images (unchanged)
+      if ( function_exists( 'themify_builder_activate' ) ) {
+        $this->update_themify_data( $image_location_no_extension, $new_file_url );
+      }
+
+      // for updating elementor background images (unchanged)
+      if ( is_plugin_active( "elementor/elementor.php" ) ) {
+        $this->update_elementor_data( $file_id, $image_location_no_extension, $new_file_url );
+      }
+
+      echo esc_html__( 'Updating attachment links, please wait...The file was renamed', 'maxgalleria-media-library' );
+      die();
+    }
+
+    // If rename failed
+    echo esc_html__( 'The file could not be renamed.', 'maxgalleria-media-library' );
+    die();
+  }  
+              
+  public function maxgalleria_rename_image1() {
     
     global $wpdb, $blog_id, $is_IIS;
     
@@ -6280,74 +6767,151 @@ AND meta_key = '_wp_attached_file'";
   public function update_elementor_data($image_id, $replace_image_location, $replace_destination_url) {
     
     global $wpdb;
-    $save = false;
     
     $base_file_name = basename($replace_image_location);
     
-    $sql = "select post_id, meta_id, meta_value from {$wpdb->prefix}postmeta where meta_key = '_elementor_data' and meta_value like '%$base_file_name%'";
+    $sql = $wpdb->prepare(
+      "select post_id, meta_id, meta_value from {$wpdb->prefix}postmeta where meta_key = '_elementor_data' and meta_value like %s",
+      '%' . $wpdb->esc_like($base_file_name) . '%'
+    );
     
     $rows = $wpdb->get_results($sql);
+
     if($rows) {
       foreach($rows as $row) {
+        $save = false;
+        $saved = false;
+        $jarrays = null;
+        $data_format = '';
         
         // check for serialized data
         $data = @unserialize($row->meta_value);
-        if($data === false)
+        if($data === false) {
+          $data_format = 'json';
           $jarrays = json_decode($row->meta_value, true);
-        else {
+        } else {
+          $data_format = 'serialized';
           $jarrays = $data; 
         }
         
         if(is_array($jarrays)) {          
           foreach($jarrays as &$jarray) {
-            if($this->search_elementor_array($image_id, $jarray, $replace_image_location, $replace_destination_url, $row->post_id))
+            if($this->search_elementor_array($image_id, $jarray, $replace_image_location, $replace_destination_url, $row->post_id)) {
               $save = true;
+            }
           }
-        } else {
-            //error_log("is not an array");
         }
+
         if($save) {
-          update_post_meta($row->post_id, '_elementor_data', $jarrays);
+          if($data_format === 'json') {
+            $meta_value = wp_json_encode($jarrays);
+            $updated = $wpdb->update(
+              $wpdb->postmeta,
+              array('meta_value' => $meta_value),
+              array('meta_id' => $row->meta_id),
+              array('%s'),
+              array('%d')
+            );
+            wp_cache_delete($row->post_id, 'post_meta');
+          } else {
+            $meta_value = $jarrays;
+            $updated = update_post_meta($row->post_id, '_elementor_data', $meta_value);
+          }
+          $saved = ($updated !== false);
         }
         $this->update_elemenator_css_file($row->post_id, $replace_image_location, $replace_destination_url);
+        if($saved) {
+          $this->clear_elementor_post_generated_data($row->post_id);
+        }
       }
     }
+  }
+
+  public function clear_elementor_post_generated_data($post_id) {
+
+    delete_post_meta($post_id, '_elementor_css');
+    delete_post_meta($post_id, '_elementor_element_cache');
+    delete_post_meta($post_id, '_elementor_page_assets');
+
+    if(class_exists('\Elementor\Core\Files\CSS\Post')) {
+      try {
+        $post_css = new \Elementor\Core\Files\CSS\Post($post_id);
+        $post_css->delete();
+      } catch(\Throwable $exception) {
+        // Elementor cache cleanup is best-effort; the meta update above is already complete.
+      }
+    }
+
+    clean_post_cache($post_id);
   }
 
   public function search_elementor_array($image_id, &$jarray, $replace_image_location, $replace_destination_url, $post_id) {
   
     $save = false;
+    if(!is_array($jarray)) {
+      return $save;
+    }
+
+    $destination_url_without_extension = $this->get_base_file($replace_destination_url);
+
+    if(array_key_exists('id', $jarray) && (string) $jarray['id'] === (string) $image_id && array_key_exists('url', $jarray) && is_string($jarray['url'])) {
+      $jarray['url'] = $replace_destination_url;
+      $save = true;
+    }
+
+    foreach($jarray as $key => &$value) {
+      if(is_array($value)) {
+        if($this->search_elementor_array($image_id, $value, $replace_image_location, $replace_destination_url, $post_id)) {
+          $save = true;
+        }
+      } else if(is_string($value) && strpos($value, $replace_image_location) !== false) {
+        $value = str_replace($replace_image_location, $destination_url_without_extension, $value);
+        $save = true;
+      }
+    }
+    unset($value);
+
     if(array_key_exists('settings', $jarray)) {
-      if($jarray['settings'] !== null) { // Add null check here
+      if(is_array($jarray['settings'])) {
         if(array_key_exists('background_background', $jarray['settings'])) {
           if($jarray['settings']['background_background'] == 'classic') {
-            if(array_key_exists('id', $jarray['settings']['background_image'])) {
+            if(array_key_exists('background_image', $jarray['settings']) && is_array($jarray['settings']['background_image']) && array_key_exists('id', $jarray['settings']['background_image'])) {
               if($jarray['settings']['background_image']['id'] == $image_id) {
                 $jarray['settings']['background_image']['url'] = $replace_destination_url;
                 $save = true;              
               }              
             }          
           }        
-        }        
+        }
       }
-    }    
+    }
+
+    return $save;
   }  
   
   public function search_elementor_array1($image_id, &$jarray, $replace_image_location, $replace_destination_url, $post_id) {
     
     $save = false;
-    if(array_key_exists('settings', $jarray)) {
-      if(array_key_exists('background_background', $jarray['settings'])) {
-        if($jarray['settings']['background_background'] == 'classic') {
-          if(array_key_exists('id', $jarray['settings']['background_image'])) {
-            if($jarray['settings']['background_image']['id'] == $image_id) {
-              $jarray['settings']['background_image']['url'] = $replace_destination_url;
-              $save = true;              
-            }              
-          }          
-        }        
+
+    if(!is_array($jarray)) {
+      return $save;
+    }
+
+    if(array_key_exists('settings', $jarray) && is_array($jarray['settings'])) {
+      if(array_key_exists('background_background', $jarray['settings']) && $jarray['settings']['background_background'] == 'classic') {
+        if(
+          array_key_exists('background_image', $jarray['settings'])
+          && is_array($jarray['settings']['background_image'])
+          && array_key_exists('id', $jarray['settings']['background_image'])
+          && $jarray['settings']['background_image']['id'] == $image_id
+        ) {
+          $jarray['settings']['background_image']['url'] = $replace_destination_url;
+          $save = true;              
+        }
       }
-    }    
+    }
+
+    return $save;
   }
   
   public function update_elemenator_css_file($post_id, $replace_image_location, $replace_destination_url) {
@@ -6357,10 +6921,14 @@ AND meta_key = '_wp_attached_file'";
     $position = strrpos($replace_destination_url, '.');
     
     $url_without_extension = substr($replace_destination_url, 0, $position);
-    
+
     if(file_exists($css_file_path)) {
         
       $css = file_get_contents($css_file_path);
+
+      if($css === false) {
+        return;
+      }
 
       $css = str_replace($replace_image_location, $url_without_extension, $css);
 

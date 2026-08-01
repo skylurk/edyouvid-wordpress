@@ -1,5 +1,9 @@
 <?php // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 new WPCOM_JSON_API_Site_Settings_V1_2_Endpoint(
 	array(
 		'description'      => 'Get detailed settings information about a site.',
@@ -68,7 +72,7 @@ new WPCOM_JSON_API_Site_Settings_V1_2_Endpoint(
 			'moderation_notify'                       => '(bool) Email me when a comment is helf for moderation?',
 			'social_notifications_like'               => '(bool) Email me when someone likes my post?',
 			'social_notifications_reblog'             => '(bool) Email me when someone reblogs my post?',
-			'social_notifications_subscribe'          => '(bool) Email me when someone follows my blog?',
+			'social_notifications_subscribe'          => '(bool) Email me when someone subscribes to my blog?',
 			'comment_moderation'                      => '(bool) Moderate comments for manual approval?',
 			'comment_previously_approved'             => '(bool) Moderate comments unless author has a previously-approved comment?',
 			'comment_max_links'                       => '(int) Moderate comments that contain X or more links',
@@ -119,6 +123,8 @@ new WPCOM_JSON_API_Site_Settings_V1_2_Endpoint(
 
 /**
  * Site settings v1_2 endpoint.
+ *
+ * @phan-constructor-used-for-side-effects
  */
 class WPCOM_JSON_API_Site_Settings_V1_2_Endpoint extends WPCOM_JSON_API_Site_Settings_Endpoint {
 

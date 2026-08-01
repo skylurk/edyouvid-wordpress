@@ -19,6 +19,7 @@ buddypress
 cache
 code-profiler
 copysafe-pdf
+civicrm
 dynamic_avia
 edd
 elementor

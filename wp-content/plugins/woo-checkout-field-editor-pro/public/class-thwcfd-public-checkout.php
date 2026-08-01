@@ -657,8 +657,15 @@ class THWCFD_Public_Checkout {
 	 * Display custom fields in emails
 	 */
 	public function display_custom_fields_in_emails($ofields, $sent_to_admin, $order){
+		if(!is_array($ofields)){
+			$ofields = array();
+		}
+		
 		$custom_fields = array();
 		$fields = THWCFD_Utils::get_checkout_fields();
+		if(!is_array($fields)){
+			return $ofields;
+		}
 
 		$order_id = THWCFD_Utils::get_order_id($order);
 		$order = wc_get_order( $order_id );

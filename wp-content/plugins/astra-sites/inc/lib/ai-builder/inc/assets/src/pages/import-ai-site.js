@@ -16,13 +16,14 @@ import {
 	setSiteTitle,
 	saveTypography,
 	setSiteLanguage,
+	showErrorToast,
+	generateAnalyticsLead,
 } from '../utils/import-site/import-utils';
 const { migrateSvg, reportError } = aiBuilderVars;
-let sendReportFlag = reportError;
 const successMessageDelay = 8000; // 8 seconds delay for fully assets load.
 import { STORE_KEY } from '../store';
 import ErrorModel from '../components/error-model';
-import { TOTAL_STEPS, useNavigateSteps } from '../router';
+import { stepNextButtonClick, TOTAL_STEPS, useNavigateSteps } from '../router';
 import { SITE_CREATION_STATUS_CODES, getLocalStorageItem } from '../helpers';
 
 const RANDOM_FINAL_FINISHING_MESSAGES = [
@@ -64,6 +65,8 @@ const ImportAiSite = () => {
 		aiSiteTitleVisible,
 		aiActiveTypography,
 		aiActivePallette,
+		siteFeatures,
+		siteFeaturesData,
 	} = useSelect( ( select ) => {
 		const {
 			getWebsiteInfo,
@@ -72,6 +75,8 @@ const ImportAiSite = () => {
 			getSiteTitleVisible,
 			getActiveTypography,
 			getActiveColorPalette,
+			getSiteFeatures,
+			getSiteFeaturesData,
 		} = select( STORE_KEY );
 		return {
 			websiteInfo: getWebsiteInfo(),
@@ -80,6 +85,8 @@ const ImportAiSite = () => {
 			aiSiteTitleVisible: getSiteTitleVisible(),
 			aiActiveTypography: getActiveTypography(),
 			aiActivePallette: getActiveColorPalette(),
+			siteFeatures: getSiteFeatures(),
+			siteFeaturesData: getSiteFeaturesData(),
 		};
 	}, [] );
 
@@ -168,34 +175,47 @@ const ImportAiSite = () => {
 		solution = '',
 		stack = ''
 	) => {
+		const error = JSON.stringify( {
+			primaryText: primary,
+			secondaryText: secondary,
+			errorCode: code,
+			errorText: text,
+			solutionText: solution,
+			tryAgain: true,
+			stack,
+			tryAgainCount,
+		} );
+
 		if ( tryAgainCount >= 2 ) {
-			// generateAnalyticsLead( tryAgainCount, false, templateId, builder );
+			generateAnalyticsLead( tryAgainCount, false, {
+				id: templateId,
+				page_builder: stepsData?.pageBuilder,
+				template_type: stepsData?.selectedTemplateIsPremium
+					? 'premium'
+					: 'free',
+				error,
+			} );
 		}
-		if ( ! sendReportFlag ) {
+		if ( ! reportError ) {
 			return;
 		}
 		const reportErr = new FormData();
 		reportErr.append( 'action', 'astra-sites-report_error' );
 		reportErr.append( '_ajax_nonce', aiBuilderVars._ajax_nonce );
+		reportErr.append( 'type', 'ai-builder' );
+		reportErr.append( 'page_builder', stepsData?.pageBuilder );
+		reportErr.append(
+			'template_type',
+			stepsData?.selectedTemplateIsPremium ? 'premium' : 'free'
+		);
+
 		reportErr.append(
 			'local_storage',
 			JSON.stringify(
 				getLocalStorageItem( 'ai-builder-onboarding-details' )
 			)
 		);
-		reportErr.append(
-			'error',
-			JSON.stringify( {
-				primaryText: primary,
-				secondaryText: secondary,
-				errorCode: code,
-				errorText: text,
-				solutionText: solution,
-				tryAgain: true,
-				stack,
-				tryAgainCount,
-			} )
-		);
+		reportErr.append( 'error', error );
 		reportErr.append( 'id', templateId );
 		reportErr.append( 'plugins', JSON.stringify( requiredPlugins ) );
 		fetch( ajaxurl, {
@@ -224,6 +244,73 @@ const ImportAiSite = () => {
 	}, [] );
 
 	/**
+	 * Retry wrapper for import steps that can transiently return non-JSON
+	 * (e.g. server timeout returning HTML). importFn must accept a
+	 * suppressErrorReporting boolean as its first argument.
+	 *
+	 * @param  root0
+	 * @param  root0.importFn
+	 * @param  root0.importName
+	 * @param  root0.maxRetries
+	 * @param  root0.initialDelay
+	 */
+	const importWithRetry = async ( {
+		importFn,
+		importName = 'Import',
+		maxRetries = 2,
+		initialDelay = 2000,
+	} ) => {
+		for ( let attempt = 1; attempt <= maxRetries; attempt++ ) {
+			const isLastAttempt = attempt === maxRetries;
+
+			if ( attempt > 1 ) {
+				dispatch( {
+					importStatus: sprintf(
+						// translators: %1$s: Import name, %2$d: current attempt, %3$d: max attempts.
+						__( '%1$s (retry attempt %2$d/%3$d)…', 'ai-builder' ),
+						importName,
+						attempt - 1,
+						maxRetries - 1
+					),
+				} );
+			}
+
+			// On last attempt, allow error reporting; suppress on earlier attempts
+			const result = await importFn( ! isLastAttempt );
+
+			// If result is false and not the last attempt, retry
+			if ( result === false && ! isLastAttempt ) {
+				// Calculate exponential backoff delay
+				const delay = initialDelay * Math.pow( 2, attempt - 1 );
+
+				dispatch( {
+					importStatus: sprintf(
+						// translators: Import name, seconds to wait.
+						__(
+							'%1$s encountered an error. Retrying in %2$d seconds…',
+							'ai-builder'
+						),
+						importName,
+						Math.floor( delay / 1000 )
+					),
+				} );
+
+				// Wait before retry
+				await new Promise( ( resolve ) =>
+					setTimeout( resolve, delay )
+				);
+
+				continue;
+			}
+
+			// Either success or last attempt - return the result
+			return result;
+		}
+
+		return false;
+	};
+
+	/**
 	 * Start Import Part 1.
 	 */
 	const importPart1 = async () => {
@@ -240,11 +327,17 @@ const ImportAiSite = () => {
 		}
 
 		if ( imageDownloadStatus ) {
-			customizerStatus = await importCustomizerJson();
+			customizerStatus = await importWithRetry( {
+				importFn: importCustomizerJson,
+				importName: __( 'Customizer Import', 'ai-builder' ),
+			} );
 		}
 
 		if ( customizerStatus ) {
-			spectraStatus = await importSpectraSettings();
+			spectraStatus = await importWithRetry( {
+				importFn: importSpectraSettings,
+				importName: __( 'Spectra Settings Import', 'ai-builder' ),
+			} );
 		}
 
 		if ( spectraStatus ) {
@@ -265,11 +358,18 @@ const ImportAiSite = () => {
 		let finalStepStatus = false;
 		let gtReplaceBatch = false;
 		let imagesReplaceBatch = false;
+		let setSiteOptions = false;
 
-		optionsStatus = await importSiteOptions();
+		optionsStatus = await importWithRetry( {
+			importFn: importSiteOptions,
+			importName: __( 'Site Options Import', 'ai-builder' ),
+		} );
 
 		if ( optionsStatus ) {
-			widgetStatus = await importWidgets();
+			widgetStatus = await importWithRetry( {
+				importFn: importWidgets,
+				importName: __( 'Widgets Import', 'ai-builder' ),
+			} );
 		}
 
 		if ( widgetStatus ) {
@@ -281,12 +381,50 @@ const ImportAiSite = () => {
 		}
 
 		if ( imagesReplaceBatch ) {
-			finalStepStatus = await importDone();
+			finalStepStatus = await importWithRetry( {
+				importFn: importDone,
+				importName: __( 'Final Finishings', 'ai-builder' ),
+			} );
 		}
 
 		if ( finalStepStatus ) {
-			await waitForFullMigration();
+			setSiteOptions = await waitForFullMigration();
 		}
+
+		if ( setSiteOptions ) {
+			await importSuccess();
+
+			generateAnalyticsLead( tryAgainCount, true, {
+				id: templateId,
+				page_builder: stepsData?.pageBuilder,
+				template_type: stepsData?.selectedTemplateIsPremium
+					? 'premium'
+					: 'free',
+			} );
+		}
+	};
+
+	/**
+	 * Import Success.
+	 */
+	const importSuccess = async () => {
+		const data = new FormData();
+		data.append( 'action', 'astra-sites-import_success' );
+		data.append( '_ajax_nonce', aiBuilderVars._ajax_nonce );
+
+		const status = await fetch( ajaxurl, {
+			method: 'post',
+			body: data,
+		} )
+			.then( ( response ) => response.json() )
+			.then( async ( response ) => {
+				if ( response.success ) {
+					return true;
+				}
+				return false;
+			} );
+
+		return status;
 	};
 
 	/**
@@ -410,6 +548,7 @@ const ImportAiSite = () => {
 			'_ajax_nonce',
 			aiBuilderVars._ajax_nonce
 		);
+		activatePluginOptions.append( 'slug', plugin.slug );
 		fetch( ajaxurl, {
 			method: 'post',
 			body: activatePluginOptions,
@@ -457,12 +596,13 @@ const ImportAiSite = () => {
 						error,
 						'',
 						sprintf(
-							// translators: Support article URL.
+							// translators: %1$s is the opening <a> tag with the URL, %2$s is the closing </a> tag.
 							__(
-								'<a href="%1$s">Read article</a> to resolve the issue and continue importing template.',
+								'%1$sRead article%2$s to resolve the issue and continue importing the template.',
 								'ai-builder'
 							),
-							'https://wpastra.com/docs/enable-debugging-in-wordpress/#how-to-use-debugging'
+							'<a href="https://wpastra.com/docs/enable-debugging-in-wordpress/#how-to-use-debugging" target="_blank">',
+							'</a>'
 						),
 						text
 					);
@@ -491,12 +631,13 @@ const ImportAiSite = () => {
 					error?.data?.message,
 					'',
 					sprintf(
-						// translators: Support article URL.
+						// translators: %1$s is the opening <a> tag, %2$s is the closing </a> tag.
 						__(
-							'<a href="%1$s">Read article</a> to resolve the issue and continue importing template.',
+							'%1$sRead article%2$s to resolve the issue and continue importing the template.',
 							'ai-builder'
 						),
-						'https://wpastra.com/docs/enable-debugging-in-wordpress/#how-to-use-debugging'
+						'<a href="https://wpastra.com/docs/enable-debugging-in-wordpress/#how-to-use-debugging" target="_blank">',
+						'</a>'
 					),
 					error
 				);
@@ -970,12 +1111,15 @@ const ImportAiSite = () => {
 				importStatus: __( 'Resetting posts done.', 'ai-builder' ),
 			} );
 		} else {
-			report( __( 'Resetting posts failed.', 'ai-builder' ), '', err );
+			showErrorToast(
+				__( 'Resetting posts failed.', 'ai-builder' ),
+				err
+			);
 		}
 		return status;
 	};
 
-	const importCustomizerJson = async () => {
+	const importCustomizerJson = async ( suppressErrorReporting = false ) => {
 		if ( ! customizerImportFlag ) {
 			percentage.current += 5;
 			dispatch( {
@@ -1012,6 +1156,9 @@ const ImportAiSite = () => {
 					}
 					throw data.data;
 				} catch ( error ) {
+					if ( suppressErrorReporting ) {
+						return false;
+					}
 					report(
 						__(
 							'Importing Customizer failed due to parse JSON error.',
@@ -1027,6 +1174,9 @@ const ImportAiSite = () => {
 				}
 			} )
 			.catch( ( error ) => {
+				if ( suppressErrorReporting ) {
+					return false;
+				}
 				report(
 					__( 'Importing Customizer Failed.', 'ai-builder' ),
 					'',
@@ -1068,9 +1218,8 @@ const ImportAiSite = () => {
 					);
 				}
 			} catch ( error ) {
-				report(
+				showErrorToast(
 					__( 'Downloading images failed.', 'ai-builder' ),
-					'',
 					error
 				);
 			}
@@ -1107,6 +1256,12 @@ const ImportAiSite = () => {
 		} );
 		if ( wxr.success ) {
 			importXML( wxr.data );
+		} else {
+			report(
+				'Importing Site Content Failed.',
+				'',
+				JSON.stringify( wxr.data ?? wxr, null, 4 )
+			);
 		}
 
 		return true;
@@ -1114,12 +1269,18 @@ const ImportAiSite = () => {
 
 	/**
 	 * 6. Import Spectra Settings.
+	 *
+	 * @param  suppressErrorReporting
 	 */
-	const importSpectraSettings = async () => {
+	const importSpectraSettings = async ( suppressErrorReporting = false ) => {
 		const spectraSettings =
 			templateResponse[ 'astra-site-spectra-options' ] || '';
 
-		if ( '' === spectraSettings || 'null' === spectraSettings ) {
+		if (
+			'' === spectraSettings ||
+			'null' === spectraSettings ||
+			spectraSettings?.length === 0
+		) {
 			return true;
 		}
 
@@ -1154,6 +1315,9 @@ const ImportAiSite = () => {
 					}
 					throw data.data;
 				} catch ( error ) {
+					if ( suppressErrorReporting ) {
+						return false;
+					}
 					report(
 						__(
 							'Importing Spectra Settings failed due to parse JSON error.',
@@ -1169,6 +1333,9 @@ const ImportAiSite = () => {
 				}
 			} )
 			.catch( ( error ) => {
+				if ( suppressErrorReporting ) {
+					return false;
+				}
 				report(
 					__( 'Importing Spectra Settings Failed.', 'ai-builder' ),
 					'',
@@ -1188,14 +1355,27 @@ const ImportAiSite = () => {
 		const sourceCurrency =
 			templateResponse?.[ 'astra-site-surecart-settings' ]?.currency ||
 			'usd';
-		if ( '' === sourceID || 'null' === sourceID ) {
-			return true;
-		}
+
 		const surecart = new FormData();
 		surecart.append( 'action', 'astra-sites-import_surecart_settings' );
+		surecart.append( '_ajax_nonce', aiBuilderVars._ajax_nonce );
+
+		if ( '' === sourceID || 'null' === sourceID ) {
+			const enabledFeatures = siteFeatures
+				.filter( ( feature ) => feature?.enabled )
+				.map( ( feature ) => feature?.id );
+			if (
+				enabledFeatures?.includes( 'ecommerce' ) &&
+				siteFeaturesData?.ecommerce_type === 'surecart'
+			) {
+				surecart.append( 'create_account', true );
+			} else {
+				return true;
+			}
+		}
+
 		surecart.append( 'source_id', sourceID );
 		surecart.append( 'source_currency', sourceCurrency );
-		surecart.append( '_ajax_nonce', aiBuilderVars._ajax_nonce );
 
 		const status = await fetch( ajaxurl, {
 			method: 'post',
@@ -1317,8 +1497,10 @@ const ImportAiSite = () => {
 
 	/**
 	 * 6. Import Site Option table values.
+	 *
+	 * @param  suppressErrorReporting
 	 */
-	const importSiteOptions = async () => {
+	const importSiteOptions = async ( suppressErrorReporting = false ) => {
 		dispatch( {
 			importStatus: __( 'Importing Site Options.', 'ai-builder' ),
 		} );
@@ -1344,6 +1526,9 @@ const ImportAiSite = () => {
 					}
 					throw data.data;
 				} catch ( error ) {
+					if ( suppressErrorReporting ) {
+						return false;
+					}
 					report(
 						__(
 							'Importing Site Options failed due to parse JSON error.',
@@ -1359,6 +1544,9 @@ const ImportAiSite = () => {
 				}
 			} )
 			.catch( ( error ) => {
+				if ( suppressErrorReporting ) {
+					return false;
+				}
 				report(
 					__( 'Importing Site Options Failed.', 'ai-builder' ),
 					'',
@@ -1372,8 +1560,10 @@ const ImportAiSite = () => {
 
 	/**
 	 * 7. Import Site Widgets.
+	 *
+	 * @param  suppressErrorReporting
 	 */
-	const importWidgets = async () => {
+	const importWidgets = async ( suppressErrorReporting = false ) => {
 		if ( ! widgetImportFlag ) {
 			percentage.current += 3;
 			dispatch( {
@@ -1413,6 +1603,9 @@ const ImportAiSite = () => {
 					}
 					throw data.data;
 				} catch ( error ) {
+					if ( suppressErrorReporting ) {
+						return false;
+					}
 					report(
 						__(
 							'Importing Widgets failed due to parse JSON error.',
@@ -1428,6 +1621,9 @@ const ImportAiSite = () => {
 				}
 			} )
 			.catch( ( error ) => {
+				if ( suppressErrorReporting ) {
+					return false;
+				}
 				report(
 					__( 'Importing Widgets Failed.', 'ai-builder' ),
 					'',
@@ -1444,7 +1640,7 @@ const ImportAiSite = () => {
 		} );
 
 		const finalSteps = new FormData();
-		finalSteps.append( 'action', 'astra-sites-gutenberg_batch' );
+		finalSteps.append( 'action', 'astra-sites-page_builder_batch' );
 		finalSteps.append( '_ajax_nonce', aiBuilderVars._ajax_nonce );
 
 		const status = await fetch( ajaxurl, {
@@ -1474,7 +1670,7 @@ const ImportAiSite = () => {
 					throw data.data;
 				} catch ( error ) {
 					report(
-						__( 'Gutenberg batch failed.', 'ai-builder' ),
+						__( 'Batch process failed.', 'ai-builder' ),
 						'',
 						error,
 						'',
@@ -1496,7 +1692,7 @@ const ImportAiSite = () => {
 			} )
 			.catch( ( error ) => {
 				report(
-					__( 'Gutenberg Batch Failed.', 'ai-builder' ),
+					__( 'Batch process failed.', 'ai-builder' ),
 					'',
 					error
 				);
@@ -1576,8 +1772,10 @@ const ImportAiSite = () => {
 
 	/**
 	 * 9. Final setup - Invoking Batch process.
+	 *
+	 * @param  suppressErrorReporting
 	 */
-	const importDone = async () => {
+	const importDone = async ( suppressErrorReporting = false ) => {
 		dispatch( {
 			importStatus: __( 'Final finishing.', 'ai-builder' ),
 		} );
@@ -1613,6 +1811,9 @@ const ImportAiSite = () => {
 					}
 					throw data.data;
 				} catch ( error ) {
+					if ( suppressErrorReporting ) {
+						return false;
+					}
 					report(
 						__(
 							'Final finishing failed due to parse JSON error.',
@@ -1639,6 +1840,9 @@ const ImportAiSite = () => {
 				}
 			} )
 			.catch( ( error ) => {
+				if ( suppressErrorReporting ) {
+					return false;
+				}
 				report(
 					__( 'Final finishing Failed.', 'ai-builder' ),
 					'',
@@ -1670,6 +1874,12 @@ const ImportAiSite = () => {
 					importPercent: 100,
 					importEnd: true,
 				} );
+
+				stepNextButtonClick( {
+					stepNumber: 8,
+					slug: 'building-website',
+				} );
+
 				setShowProgressBar( false );
 				return true;
 			} else if ( response?.data?.data === 'no' ) {
@@ -1797,7 +2007,6 @@ const ImportAiSite = () => {
 				themeStatus: true,
 			} );
 		}
-		sendReportFlag = false;
 	};
 
 	const tryAainCallback = () => {
@@ -1968,7 +2177,6 @@ const ImportAiSite = () => {
 	 */
 	useEffect( () => {
 		if ( requiredPluginsDone && themeStatus ) {
-			sendReportFlag = reportError;
 			importPart1();
 		}
 	}, [ requiredPluginsDone, themeStatus ] );
@@ -2031,7 +2239,7 @@ const ImportAiSite = () => {
 	return (
 		<>
 			<div className="flex flex-1 flex-col items-center justify-center w-full gap-y-4 pb-10">
-				<div className="flex items-center justify-center gap-x-6">
+				<div className="flex flex-col sm:flex-row items-center justify-center gap-6">
 					{ showProgressBar && ! importError && (
 						<CircularProgressBar
 							colorCircle="rgba(var(--zip-blue-crayola) / var(--zip-circle-bg-opacity, 0.102))"
@@ -2060,7 +2268,7 @@ const ImportAiSite = () => {
 					) }
 					<div className="flex flex-col">
 						{ ! importEnd && ! importError && (
-							<h4 className="text-xl">
+							<h4 className="text-xl sm:text-left text-center">
 								{ __(
 									'We are building your website…',
 									'ai-builder'
@@ -2076,7 +2284,7 @@ const ImportAiSite = () => {
 				</div>
 				{ ! importError && (
 					<>
-						<div className="relative flex items-center justify-center px-10 py-6 h-120 w-120 bg-loading-website-grid-texture">
+						<div className="relative flex items-center justify-center px-0 sm:px-10 py-6 h-120 w-120 bg-loading-website-grid-texture">
 							<img
 								className="w-[30rem] h-[20.875rem]"
 								src={ migrateSvg }

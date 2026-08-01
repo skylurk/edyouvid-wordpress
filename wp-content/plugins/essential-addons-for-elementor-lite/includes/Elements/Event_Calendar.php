@@ -286,6 +286,27 @@ class Event_Calendar extends Widget_Base
 		    ]
 	    );
 
+        $repeater->add_control(
+            'eael_event_location',
+            [
+                'label' => __('Location', 'essential-addons-for-elementor-lite'),
+                'type' => Controls_Manager::TEXT,
+                'dynamic'     => [ 'active' => true ],
+                'label_block' => true,
+            ]
+        );
+
+        $repeater->add_control(
+            'eael_event_category',
+            [
+                'label' => __('Category', 'essential-addons-for-elementor-lite'),
+                'type' => Controls_Manager::TEXT,
+                'dynamic'     => [ 'active' => true ],
+                'label_block' => true,
+            ]
+        );
+
+
         $repeater->end_controls_tab();
 
         $repeater->start_controls_tab(
@@ -370,7 +391,7 @@ class Event_Calendar extends Widget_Base
             [
                 'label' => __('Start Date', 'essential-addons-for-elementor-lite'),
                 'type' => Controls_Manager::DATE_TIME,
-                'default' => gmdate('Y-m-d H:i', current_time('timestamp', 0)),
+                'default' => wp_date('Y-m-d H:i', current_time('timestamp', 0)),
             ]
         );
 
@@ -379,7 +400,7 @@ class Event_Calendar extends Widget_Base
             [
                 'label' => __('End Date', 'essential-addons-for-elementor-lite'),
                 'type' => Controls_Manager::DATE_TIME,
-                'default' => gmdate('Y-m-d H:i', strtotime("+6 months", current_time('timestamp', 0))),
+                'default' => wp_date('Y-m-d H:i', strtotime("+6 months", current_time('timestamp', 0))),
             ]
         );
 
@@ -428,7 +449,7 @@ class Event_Calendar extends Widget_Base
                 [
                     'label' => __('Start Date', 'essential-addons-for-elementor-lite'),
                     'type' => Controls_Manager::DATE_TIME,
-                    'default' => gmdate('Y-m-d H:i', current_time('timestamp', 0)),
+                    'default' => wp_date('Y-m-d H:i', current_time('timestamp', 0)),
                     'condition' => [
                         'eael_the_events_calendar_fetch' => 'date_range',
                     ],
@@ -440,7 +461,7 @@ class Event_Calendar extends Widget_Base
                 [
                     'label' => __('End Date', 'essential-addons-for-elementor-lite'),
                     'type' => Controls_Manager::DATE_TIME,
-                    'default' => gmdate('Y-m-d H:i', strtotime("+6 months", current_time('timestamp', 0))),
+                    'default' => wp_date('Y-m-d H:i', strtotime("+6 months", current_time('timestamp', 0))),
                     'condition' => [
                         'eael_the_events_calendar_fetch' => 'date_range',
                     ],
@@ -590,7 +611,7 @@ class Event_Calendar extends Widget_Base
             ]
         );
 
-        $default_date = gmdate('Y-m-d');
+        $default_date = wp_date('Y-m-d');
 	    $this->add_control(
 		    'eael_event_calendar_default_date',
 		    [
@@ -707,6 +728,32 @@ class Event_Calendar extends Widget_Base
                 'description' => __('Limit the number of events displayed on a day. The rest will show up in a popover.', 'essential-addons-for-elementor-lite'),
             ]
         );
+
+        $this->add_control(
+            'eael_event_calendar_show_search',
+            [
+                'label' => esc_html__( 'Show Search', 'essential-addons-for-elementor-lite' ),
+                'type' => Controls_Manager::SWITCHER,
+                'label_on' => esc_html__( 'Yes', 'essential-addons-for-elementor-lite' ),
+                'label_off' => esc_html__( 'No', 'essential-addons-for-elementor-lite' ),
+                'return_value' => 'yes',
+                'default' => 'no',
+            ]
+        );
+
+        $this->add_control(
+            'eael_event_calendar_search_placeholder',
+            [
+                'label'       => esc_html__( 'Search Placeholder', 'essential-addons-for-elementor-lite' ),
+                'type'        => Controls_Manager::TEXT,
+                'placeholder' => esc_html__( 'Search', 'essential-addons-for-elementor-lite' ),
+                'default'     => esc_html__( 'Search', 'essential-addons-for-elementor-lite' ),
+                'condition'   => [
+                    'eael_event_calendar_show_search' => 'yes'
+                ]
+            ]
+        );
+
 
         if (apply_filters('eael/is_plugin_active', 'eventON/eventon.php') && apply_filters('eael/pro_enabled', false)) {
             $this->add_control(
@@ -875,10 +922,10 @@ class Event_Calendar extends Widget_Base
 			    'type' => Controls_Manager::SELECT,
 			    'options' => apply_filters( 'eael_calendar_column_heading_week_date_formats', [
 				    '' => esc_html__( 'Default', 'essential-addons-for-elementor-lite' ),
-				    'ddd Do' => gmdate( 'M j' ).'th',
-				    'dddd Do' => gmdate('l j').'th',
-				    'dddd D/Y' => gmdate( 'l j/Y' ),
-				    'ddd D/Y' => gmdate( 'M j/Y' ),
+				    'ddd Do' => wp_date( 'M j' ).'th',
+				    'dddd Do' => wp_date('l j').'th',
+				    'dddd D/Y' => wp_date( 'l j/Y' ),
+				    'ddd D/Y' => wp_date( 'M j/Y' ),
 			    ] ),
 		    ]
 	    );
@@ -899,22 +946,22 @@ class Event_Calendar extends Widget_Base
 				'type' => Controls_Manager::SELECT,
 				'default' => 'MMM Do',
 				'options' => [
-					'MMM Do'      => gmdate('M jS'),     // Sep 29th
-                    'MMMM Do'     => gmdate('F jS'),     // September 29th
-                    'Do MMM'      => gmdate('jS M'),     // 29th Sep
-                    'Do MMMM'     => gmdate('jS F'),     // 29th September
-                    'MM-DD-YYYY'  => gmdate('m-d-Y'),    // 09-29-2024
-                    'YYYY-DD-MM'  => gmdate('Y-d-m'),    // 2024-29-09
-                    'YYYY-MM-DD'  => gmdate('Y-m-d'),    // 2024-09-29
-                    'DD/MM/YYYY'  => gmdate('d/m/Y'),    // 29/09/2024
-                    'MM/DD/YYYY'  => gmdate('m/d/Y'),    // 09/29/2024
-                    'YYYY/MM/DD'  => gmdate('Y/m/d'),    // 2024/09/29
-                    'DD.MM.YYYY'  => gmdate('d.m.Y'),    // 29/09/2024
-                    'MM.DD.YYYY'  => gmdate('m.d.Y'),    // 09/29/2024
-                    'YYYY.MM.DD'  => gmdate('Y.m.d'),    // 2024/09/29
-                    'D-MMM-YYYY'  => gmdate('j-M-Y'),    // 29-Sep-2024
-                    'MMMM YYYY'   => gmdate('F Y'),      // September 2024
-                    'MMM YYYY'    => gmdate('M Y'),      // Sep 2024
+					'MMM Do'      => wp_date('M jS'),     // Sep 29th
+                    'MMMM Do'     => wp_date('F jS'),     // September 29th
+                    'Do MMM'      => wp_date('jS M'),     // 29th Sep
+                    'Do MMMM'     => wp_date('jS F'),     // 29th September
+                    'MM-DD-YYYY'  => wp_date('m-d-Y'),    // 09-29-2024
+                    'YYYY-DD-MM'  => wp_date('Y-d-m'),    // 2024-29-09
+                    'YYYY-MM-DD'  => wp_date('Y-m-d'),    // 2024-09-29
+                    'DD/MM/YYYY'  => wp_date('d/m/Y'),    // 29/09/2024
+                    'MM/DD/YYYY'  => wp_date('m/d/Y'),    // 09/29/2024
+                    'YYYY/MM/DD'  => wp_date('Y/m/d'),    // 2024/09/29
+                    'DD.MM.YYYY'  => wp_date('d.m.Y'),    // 29/09/2024
+                    'MM.DD.YYYY'  => wp_date('m.d.Y'),    // 09/29/2024
+                    'YYYY.MM.DD'  => wp_date('Y.m.d'),    // 2024/09/29
+                    'D-MMM-YYYY'  => wp_date('j-M-Y'),    // 29-Sep-2024
+                    'MMMM YYYY'   => wp_date('F Y'),      // September 2024
+                    'MMM YYYY'    => wp_date('M Y'),      // Sep 2024
 				],
 			]
 		);
@@ -1009,7 +1056,7 @@ class Event_Calendar extends Widget_Base
             ]
         );
 
-        $default_date = gmdate('Y-m-d');
+        $default_date = wp_date('Y-m-d');
         $this->add_control(
             'eael_table_event_calendar_default_date',
             [
@@ -1333,24 +1380,24 @@ class Event_Calendar extends Widget_Base
 			    'type'      => Controls_Manager::SELECT,
 			    'default'   => 'jS F Y',
 			    'options'   => [
-				    'F j, Y'    => gmdate( 'F j, Y' ),                   // January 1, 2022
-				    'Y-m-d'     => gmdate( 'Y-m-d' ),
-				    "d-m-Y"     => gmdate( "d-m-y" ),
-				    "m-d-Y"     => gmdate( "m-d-y" ),
-				    'Y.m.d'     => gmdate( 'Y.m.d' ),
-				    "d.m.Y"     => gmdate( "d.m.y" ),
-				    "m.d.Y"     => gmdate( "m.d.y" ),
-				    'm/d/Y'     => gmdate( 'm/d/Y' ),                    // 01/01/2022
-				    'd/m/Y'     => gmdate( 'd/m/Y' ),                    // 01/01/2022
-				    'Y/m/d'     => gmdate( 'Y/m/d' ),                    // 2022/01/01
-				    'M j, Y'    => gmdate( 'M j, Y' ),                   // Jan 1, 2022
-				    'jS F Y'    => gmdate( 'jS F Y' ),                   // 1st January 2022
-				    'D, M j, Y' => gmdate( 'D, M j, Y' ),                // Sat, Jan 1, 2022
-				    'l, F j, Y' => gmdate( 'l, F j, Y' ),                // Saturday, January 1, 2022
-				    'j F, Y'    => gmdate( 'j F, Y' ),                   // 1 January, 2022
-				    'l, j F, Y' => gmdate( 'l, j F, Y' ),                // Saturday, 1 January, 2022
-				    'D, d M Y'  => gmdate( 'D, d M Y' ),                 // Sat, 01 Jan 2022
-				    'l, d-M-Y'  => gmdate( 'l, d-M-Y' ),                 // Saturday, 01-Jan-2022
+				    'F j, Y'    => wp_date( 'F j, Y' ),                   // January 1, 2022
+				    'Y-m-d'     => wp_date( 'Y-m-d' ),
+				    "d-m-Y"     => wp_date( "d-m-y" ),
+				    "m-d-Y"     => wp_date( "m-d-y" ),
+				    'Y.m.d'     => wp_date( 'Y.m.d' ),
+				    "d.m.Y"     => wp_date( "d.m.y" ),
+				    "m.d.Y"     => wp_date( "m.d.y" ),
+				    'm/d/Y'     => wp_date( 'm/d/Y' ),                    // 01/01/2022
+				    'd/m/Y'     => wp_date( 'd/m/Y' ),                    // 01/01/2022
+				    'Y/m/d'     => wp_date( 'Y/m/d' ),                    // 2022/01/01
+				    'M j, Y'    => wp_date( 'M j, Y' ),                   // Jan 1, 2022
+				    'jS F Y'    => wp_date( 'jS F Y' ),                   // 1st January 2022
+				    'D, M j, Y' => wp_date( 'D, M j, Y' ),                // Sat, Jan 1, 2022
+				    'l, F j, Y' => wp_date( 'l, F j, Y' ),                // Saturday, January 1, 2022
+				    'j F, Y'    => wp_date( 'j F, Y' ),                   // 1 January, 2022
+				    'l, j F, Y' => wp_date( 'l, j F, Y' ),                // Saturday, 1 January, 2022
+				    'D, d M Y'  => wp_date( 'D, d M Y' ),                 // Sat, 01 Jan 2022
+				    'l, d-M-Y'  => wp_date( 'l, d-M-Y' ),                 // Saturday, 01-Jan-2022
 			    ],
 			    'condition' => [
 				    'eael_ec_show_date'         => 'yes',
@@ -1367,13 +1414,13 @@ class Event_Calendar extends Widget_Base
 			    'type'      => Controls_Manager::SELECT,
 			    'default'   => 'g:i A',
 			    'options'   => [             // 00:00
-				    'g:i a'   => gmdate( 'g:i a' ),            // 12:00 am/pm
-				    'g:i:s a' => gmdate( 'g:i:s a' ),            // 12:00 am/pm
-				    'g:i A'   => gmdate( 'g:i A' ),            // 12:00 AM/PM
-				    'g:i:s A' => gmdate( 'g:i:s A' ),            // 12:00 AM/PM
-				    'g:i:s'   => gmdate( 'g:i:s' ),            // 12:00 AM/PM
-				    'H:i'     => gmdate( 'H:i' ) . esc_html__( ' (24 Hours)', 'essential-addons-for-elementor-lite' ),
-				    'H:i:s'   => gmdate( 'H:i:s' ) . esc_html__( ' (24 Hours)', 'essential-addons-for-elementor-lite' ),
+				    'g:i a'   => wp_date( 'g:i a' ),            // 12:00 am/pm
+				    'g:i:s a' => wp_date( 'g:i:s a' ),            // 12:00 am/pm
+				    'g:i A'   => wp_date( 'g:i A' ),            // 12:00 AM/PM
+				    'g:i:s A' => wp_date( 'g:i:s A' ),            // 12:00 AM/PM
+				    'g:i:s'   => wp_date( 'g:i:s' ),            // 12:00 AM/PM
+				    'H:i'     => wp_date( 'H:i' ) . esc_html__( ' (24 Hours)', 'essential-addons-for-elementor-lite' ),
+				    'H:i:s'   => wp_date( 'H:i:s' ) . esc_html__( ' (24 Hours)', 'essential-addons-for-elementor-lite' ),
 			    ],
 			    'condition' => [
 				    'eael_ec_show_date'         => 'yes',
@@ -3488,6 +3535,271 @@ class Event_Calendar extends Widget_Base
         );
 
         $this->end_controls_section();
+
+        /**
+         * Calendar Layout design Search
+         */
+	    $this->start_controls_section(
+		    'eael_event_calendar_search_calendar_input_styling',
+		    [
+			    'label'     => __( 'Search Input', 'essential-addons-for-elementor-lite' ),
+			    'tab'       => Controls_Manager::TAB_STYLE,
+			    'condition' => [
+				    'eael_event_display_layout' => 'calendar',
+				    'eael_event_calendar_show_search' => 'yes'
+			    ]
+		    ]
+	    );
+
+	    $this->add_responsive_control(
+		    'eael_event_calendar_search_calendar_input_width',
+		    [
+			    'label'      => esc_html__( 'Width', 'essential-addons-for-elementor-lite' ),
+			    'type'       => Controls_Manager::SLIDER,
+			    'size_units' => [ 'px', '%', 'em' ],
+			    'range'      => [
+				    'px' => [
+					    'min'  => 0,
+					    'max'  => 1000,
+					    'step' => 5,
+				    ],
+				    '%'  => [
+					    'min' => 0,
+					    'max' => 100,
+				    ],
+			    ],
+			    'selectors'  => [
+				    '{{WRAPPER}} .eael-event-calendar-wrapper .eael-event-calendar-search .eael-event-calendar-search-input' => 'width: {{SIZE}}{{UNIT}};',
+			    ],
+		    ]
+	    );
+
+	    $this->add_group_control(
+		    Group_Control_Typography::get_type(),
+		    [
+			    'name'     => 'eael_event_calendar_search_calendar_input_typography',
+			    'selector' => '{{WRAPPER}} .eael-event-calendar-search-input',
+		    ]
+	    );
+
+	    $this->add_control(
+		    'eael_event_calendar_search_calendar_input_text_color',
+		    [
+			    'label'     => esc_html__( 'Text Color', 'essential-addons-for-elementor-lite' ),
+			    'type'      => Controls_Manager::COLOR,
+			    'selectors' => [
+				    '{{WRAPPER}} .eael-event-calendar-search-input' => 'color: {{VALUE}};',
+			    ],
+		    ]
+	    );
+
+	    $this->add_control(
+		    'eael_event_calendar_search_calendar_input_placeholder_color',
+		    [
+			    'label'     => esc_html__( 'Placeholder Color', 'essential-addons-for-elementor-lite' ),
+			    'type'      => Controls_Manager::COLOR,
+			    'selectors' => [
+				    '{{WRAPPER}} .eael-event-calendar-search-input::placeholder' => 'color: {{VALUE}};',
+			    ],
+		    ]
+	    );
+
+	    $this->add_group_control(
+		    Group_Control_Background::get_type(),
+		    [
+			    'name'     => 'eael_event_calendar_search_calendar_input_background',
+			    'types'    => [ 'classic', 'gradient' ],
+			    'selector' => '{{WRAPPER}} .eael-event-calendar-search-input',
+		    ]
+	    );
+
+	    $this->add_group_control(
+		    Group_Control_Border::get_type(),
+		    [
+			    'name'     => 'eael_event_calendar_search_calendar_input_border',
+			    'selector' => '{{WRAPPER}} .eael-event-calendar-search-input',
+		    ]
+	    );
+
+	    $this->add_control(
+		    'eael_event_calendar_search_calendar_input_border_radius',
+		    [
+			    'label'      => esc_html__( 'Border Radius', 'essential-addons-for-elementor-lite' ),
+			    'type'       => Controls_Manager::DIMENSIONS,
+			    'size_units' => [ 'px', '%', 'em' ],
+			    'selectors'  => [
+				    '{{WRAPPER}} .eael-event-calendar-search-input' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+			    ],
+		    ]
+	    );
+
+	    $this->add_group_control(
+		    Group_Control_Box_Shadow::get_type(),
+		    [
+			    'name'     => 'eael_event_calendar_search_calendar_input_box_shadow',
+			    'selector' => '{{WRAPPER}} .eael-event-calendar-search-input',
+		    ]
+	    );
+
+	    $this->add_responsive_control(
+		    'eael_event_calendar_search_calendar_input_padding',
+		    [
+			    'label'      => esc_html__( 'Padding', 'essential-addons-for-elementor-lite' ),
+			    'type'       => Controls_Manager::DIMENSIONS,
+			    'size_units' => [ 'px', '%', 'em' ],
+			    'selectors'  => [
+				    '{{WRAPPER}} .eael-event-calendar-search-input' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+			    ],
+		    ]
+	    );
+
+	    $this->add_responsive_control(
+		    'eael_event_calendar_search_calendar_input_margin',
+		    [
+			    'label'      => esc_html__( 'Margin', 'essential-addons-for-elementor-lite' ),
+			    'type'       => Controls_Manager::DIMENSIONS,
+			    'size_units' => [ 'px', '%', 'em' ],
+			    'selectors'  => [
+				    '{{WRAPPER}} .eael-event-calendar-search' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+			    ],
+		    ]
+	    );
+
+        $this->end_controls_section();
+
+        /**
+         * Search Suggestions design Search
+         */
+	    $this->start_controls_section(
+		    'eael_event_calendar_search_suggestions_styling',
+		    [
+			    'label'     => __( 'Search Suggestions', 'essential-addons-for-elementor-lite' ),
+			    'tab'       => Controls_Manager::TAB_STYLE,
+			    'condition' => [
+				    'eael_event_display_layout' => 'calendar',
+				    'eael_event_calendar_show_search' => 'yes'
+			    ]
+		    ]
+	    );
+
+	    $this->add_control(
+		    'eael_event_calendar_suggestions_container_heading',
+		    [
+			    'label'     => esc_html__( 'Container', 'essential-addons-for-elementor-lite' ),
+			    'type'      => Controls_Manager::HEADING,
+		    ]
+	    );
+
+	    $this->add_group_control(
+		    Group_Control_Background::get_type(),
+		    [
+			    'name'     => 'eael_event_calendar_suggestions_background',
+			    'types'    => [ 'classic', 'gradient' ],
+			    'selector' => '{{WRAPPER}} .eael-event-calendar-search-suggestions',
+		    ]
+	    );
+
+	    $this->add_group_control(
+		    Group_Control_Border::get_type(),
+		    [
+			    'name'     => 'eael_event_calendar_suggestions_border',
+			    'selector' => '{{WRAPPER}} .eael-event-calendar-search-suggestions',
+		    ]
+	    );
+
+	    $this->add_control(
+		    'eael_event_calendar_suggestions_border_radius',
+		    [
+			    'label'      => esc_html__( 'Border Radius', 'essential-addons-for-elementor-lite' ),
+			    'type'       => Controls_Manager::DIMENSIONS,
+			    'size_units' => [ 'px', '%', 'em' ],
+			    'selectors'  => [
+				    '{{WRAPPER}} .eael-event-calendar-search-suggestions' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+			    ],
+		    ]
+	    );
+
+	    $this->add_group_control(
+		    Group_Control_Box_Shadow::get_type(),
+		    [
+			    'name'     => 'eael_event_calendar_suggestions_box_shadow',
+			    'selector' => '{{WRAPPER}} .eael-event-calendar-search-suggestions',
+		    ]
+	    );
+
+	    $this->add_control(
+		    'eael_event_calendar_suggestion_item_heading',
+		    [
+			    'label'     => esc_html__( 'Suggestion Item', 'essential-addons-for-elementor-lite' ),
+			    'type'      => Controls_Manager::HEADING,
+			    'separator' => 'before',
+		    ]
+	    );
+
+	    $this->add_group_control(
+		    Group_Control_Typography::get_type(),
+		    [
+			    'name'     => 'eael_event_calendar_suggestion_title_typography',
+			    'label'    => esc_html__( 'Title Typography', 'essential-addons-for-elementor-lite' ),
+			    'selector' => '{{WRAPPER}} .eael-event-calendar-search-suggestions .suggestion-item .suggestion-title',
+		    ]
+	    );
+
+	    $this->add_control(
+		    'eael_event_calendar_suggestion_title_color',
+		    [
+			    'label'     => esc_html__( 'Title Color', 'essential-addons-for-elementor-lite' ),
+			    'type'      => Controls_Manager::COLOR,
+			    'selectors' => [
+				    '{{WRAPPER}} .eael-event-calendar-search-suggestions .suggestion-item .suggestion-title' => 'color: {{VALUE}};',
+			    ],
+		    ]
+	    );
+
+	    $this->add_group_control(
+		    Group_Control_Typography::get_type(),
+		    [
+			    'name'     => 'eael_event_calendar_suggestion_meta_typography',
+			    'label'    => esc_html__( 'Meta Typography', 'essential-addons-for-elementor-lite' ),
+			    'selector' => '{{WRAPPER}} .eael-event-calendar-search-suggestions .suggestion-item .suggestion-meta',
+		    ]
+	    );
+
+	    $this->add_control(
+		    'eael_event_calendar_suggestion_meta_color',
+		    [
+			    'label'     => esc_html__( 'Meta Color', 'essential-addons-for-elementor-lite' ),
+			    'type'      => Controls_Manager::COLOR,
+			    'selectors' => [
+				    '{{WRAPPER}} .eael-event-calendar-search-suggestions .suggestion-item .suggestion-meta' => 'color: {{VALUE}};',
+			    ],
+		    ]
+	    );
+
+	    $this->add_control(
+		    'eael_event_calendar_suggestion_item_hover_bg',
+		    [
+			    'label'     => esc_html__( 'Hover Background color', 'essential-addons-for-elementor-lite' ),
+			    'type'      => Controls_Manager::COLOR,
+			    'selectors' => [
+				    '{{WRAPPER}} .eael-event-calendar-search-suggestions .suggestion-item:hover' => 'background: {{VALUE}};',
+			    ],
+		    ]
+	    );
+
+	    $this->add_control(
+		    'eael_event_calendar_suggestion_item_padding',
+		    [
+			    'label'      => esc_html__( 'Padding', 'essential-addons-for-elementor-lite' ),
+			    'type'       => Controls_Manager::DIMENSIONS,
+			    'size_units' => [ 'px', '%', 'em' ],
+			    'selectors'  => [
+				    '{{WRAPPER}} .eael-event-calendar-search-suggestions .suggestion-item' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+			    ],
+		    ]
+	    );
+
+        $this->end_controls_section();
     }
 
     protected function render() {
@@ -3508,7 +3820,7 @@ class Event_Calendar extends Widget_Base
 
 	    $local          = $settings['eael_event_calendar_language'];
 	    $default_view   = $settings['eael_event_calendar_default_view'];
-	    $default_date   = $settings['eael_event_default_date_type'] === 'custom' ? $settings['eael_event_calendar_default_date'] : gmdate( 'Y-m-d' );
+	    $default_date   = $settings['eael_event_default_date_type'] === 'custom' ? $settings['eael_event_calendar_default_date'] : wp_date( 'Y-m-d' );
 	    $time_format    = $settings['eael_event_time_format'];
 	    $event_limit    = ! empty( $settings['eael_event_limit'] ) ? intval( $settings['eael_event_limit'] ) : 2;
 	    $multi_days_event_day_count = ! empty( $settings['eael_event_multi_days_event_day_count'] ) && 'yes' ===  $settings['eael_event_multi_days_event_day_count'] ? 1 : 0;
@@ -3519,6 +3831,16 @@ class Event_Calendar extends Widget_Base
 	    ];
 
 	    echo '<div class="eael-event-calendar-wrapper layout-' . esc_attr( $settings['eael_event_display_layout'] ) . '">';
+        
+        if ( $settings['eael_event_display_layout'] === 'calendar' && $settings['eael_event_calendar_show_search'] === 'yes' ) {
+            ?>
+            <div class="eael-event-calendar-search-wrap eael-event-calendar-search">
+                <input type="search" id="eael-event-calendar-search-input-<?php echo esc_attr( $this->get_id() ) ?>" placeholder="<?php echo esc_html( $settings['eael_event_calendar_search_placeholder'] )?>" class="eael-event-calendar-search-input">
+                <div class="eael-event-calendar-search-suggestions"></div>
+            </div>
+            <?php
+        }
+
 
 	    if ( $settings['eael_event_display_layout'] === 'calendar' ) {
 		    echo '<div id="eael-event-calendar-' . esc_attr( $this->get_id() ) . '" class="eael-event-calendar-cls"
@@ -3610,7 +3932,7 @@ class Event_Calendar extends Widget_Base
 			}
 
 			foreach ( $data as $event ) {
-				$start        = gmdate( 'Y-m-d', strtotime( $event['start'] ) );
+				$start        = wp_date( 'Y-m-d', strtotime( $event['start'] ) );
 				$is_old_event = false;
 				if ( 'current' === $settings["eael_table_ec_default_date_type"] ) {
 					$is_old_event = $this->is_old_event( $start );
@@ -3679,7 +4001,7 @@ class Event_Calendar extends Widget_Base
                     } else{
                         $start    = date_i18n( $date_format, $start_time );
                         $end      = date_i18n( $date_format, $end_time );
-                        $same_day = gmdate( 'Ymd', $start_time ) === gmdate( 'Ymd', $end_time );
+                        $same_day = wp_date( 'Ymd', $start_time ) === wp_date( 'Ymd', $end_time );
                     }
                     
 					if ( $time_format && $same_day ) {
@@ -3828,12 +4150,12 @@ class Event_Calendar extends Widget_Base
             foreach ($events as $event) {
 
                 if ($event['eael_event_all_day'] == 'yes') {
-                    $start = !empty( $event["eael_event_start_date_allday"] ) ? $event["eael_event_start_date_allday"] : gmdate('Y-m-d', current_time('timestamp', 0));
-					$_end  = !empty( $event["eael_event_end_date_allday"] ) ? $event["eael_event_end_date_allday"] : gmdate('Y-m-d', current_time('timestamp', 0));
-                    $end = gmdate('Y-m-d', strtotime("+1 days", strtotime($_end)));
+                    $start = !empty( $event["eael_event_start_date_allday"] ) ? $event["eael_event_start_date_allday"] : wp_date('Y-m-d', current_time('timestamp', 0));
+					$_end  = !empty( $event["eael_event_end_date_allday"] ) ? $event["eael_event_end_date_allday"] : wp_date('Y-m-d', current_time('timestamp', 0));
+                    $end = wp_date('Y-m-d', strtotime("+1 days", strtotime($_end)));
                 } else {
-                    $start = !empty( $event["eael_event_start_date"] ) ? $event["eael_event_start_date"] : gmdate('Y-m-d', current_time('timestamp', 0));
-					$_end  = !empty( $event["eael_event_end_date"] ) ? $event["eael_event_end_date"] : gmdate('Y-m-d', strtotime("+59 minute", current_time('timestamp', 0)) );
+                    $start = !empty( $event["eael_event_start_date"] ) ? $event["eael_event_start_date"] : wp_date('Y-m-d', current_time('timestamp', 0));
+					$_end  = !empty( $event["eael_event_end_date"] ) ? $event["eael_event_end_date"] : wp_date('Y-m-d', strtotime("+59 minute", current_time('timestamp', 0)) );
                     $end = gmdate('Y-m-d H:i', strtotime($_end))  . ":01";
                 }
 
@@ -3845,7 +4167,7 @@ class Event_Calendar extends Widget_Base
                 }
 
                 if( $settings['eael_old_events_hide'] === 'start' ){
-                    $default_date = $settings['eael_event_default_date_type'] === 'custom' ? $settings['eael_event_calendar_default_date'] : gmdate( 'Y-m-d' );
+                    $default_date = $settings['eael_event_default_date_type'] === 'custom' ? $settings['eael_event_calendar_default_date'] : wp_date( 'Y-m-d' );
                     $should_show  = $this->is_old_event( $start, $default_date );
 
                     if ( $should_show ) {
@@ -3886,6 +4208,8 @@ class Event_Calendar extends Widget_Base
 		            'nofollow'          => $event['eael_event_link']['nofollow'],
 		            'is_redirect'       => $event['eael_event_redirection'],
 		            'custom_attributes' => $custom_attributes,
+                    'location'          => sanitize_text_field( $event['eael_event_location'] ),
+                    'category'          => sanitize_text_field( $event['eael_event_category'] ),
                     'event_link'        => $event['eael_event_link']
 	            ];
 
@@ -3918,7 +4242,7 @@ class Event_Calendar extends Widget_Base
         $arg = [
             'key' => $settings['eael_event_google_api_key'],
             'maxResults' => $settings['eael_google_calendar_max_result'],
-            'timeMin' => urlencode(gmdate('c', $start_date)),
+            'timeMin' => urlencode(wp_date('c', $start_date)),
             'singleEvents' => 'true',
             'calendar_id' => urlencode($settings['eael_event_calendar_id']),
         ];
@@ -3926,15 +4250,15 @@ class Event_Calendar extends Widget_Base
         $transient_args =  [
             'key' => $settings['eael_event_google_api_key'],
             'maxResults' => $settings['eael_google_calendar_max_result'],
-            'timeMin' => urlencode(gmdate('Y-m-d H', $start_date)),
+            'timeMin' => urlencode(wp_date('Y-m-d H', $start_date)),
             'singleEvents' => 'true',
             'calendar_id' => urlencode($settings['eael_event_calendar_id']),
             'cache_time' => $settings['eael_event_calendar_data_cache_limit']
         ];
 
         if (!empty($end_date) && $end_date > $start_date) {
-          $arg['timeMax'] = urlencode(gmdate('c', $end_date));
-          $transient_args['timeMax'] = urlencode(gmdate('Y-m-d H', $end_date));
+          $arg['timeMax'] = urlencode(wp_date('c', $end_date));
+          $transient_args['timeMax'] = urlencode(wp_date('Y-m-d H', $end_date));
         }
 
         $transient_key = 'eael_google_calendar_' . md5(implode('', $transient_args));
@@ -4000,7 +4324,7 @@ class Event_Calendar extends Widget_Base
                 }
 
 	            if( $settings['eael_old_events_hide'] === 'start' ){
-                    $default_date = $settings['eael_event_default_date_type'] === 'custom' ? $settings['eael_event_calendar_default_date'] : gmdate( 'Y-m-d' );
+                    $default_date = $settings['eael_event_default_date_type'] === 'custom' ? $settings['eael_event_calendar_default_date'] : wp_date( 'Y-m-d' );
                     $should_show  = $this->is_old_event( $ev_start_date, $default_date, 'yes' === $all_day );
 
                     if ( $should_show ) {
@@ -4024,6 +4348,8 @@ class Event_Calendar extends Widget_Base
                     'allDay'         => $all_day,
                     'external'       => 'on',
                     'nofollow'       => 'on',
+                    'google_event_id'=> $item->id,
+                    'backgroundColor'=> '',
                 ];
             }
 
@@ -4084,7 +4410,7 @@ class Event_Calendar extends Widget_Base
 
 
             if (tribe_event_is_all_day($event->ID)) {
-              $end = gmdate('Y-m-d', strtotime("+1 days", strtotime(tribe_get_end_date($event->ID, true, $date_format))));
+              $end = wp_date('Y-m-d', strtotime("+1 days", strtotime(tribe_get_end_date($event->ID, true, $date_format))));
             } else {
               $end = gmdate('Y-m-d H:i', strtotime(tribe_get_end_date($event->ID, true, $date_format))) . ":01";
             }
@@ -4110,7 +4436,7 @@ class Event_Calendar extends Widget_Base
             }
 
             if( $settings['eael_old_events_hide'] === 'start' ){
-                $default_date = $settings['eael_event_default_date_type'] === 'custom' ? $settings['eael_event_calendar_default_date'] : gmdate( 'Y-m-d' );
+                $default_date = $settings['eael_event_default_date_type'] === 'custom' ? $settings['eael_event_calendar_default_date'] : wp_date( 'Y-m-d' );
                 $should_show  = $this->is_old_event( $start, $default_date );
 
                 if ( $should_show ) {
@@ -4135,6 +4461,8 @@ class Event_Calendar extends Widget_Base
                 'external' => 'on',
                 'nofollow' => 'on',
                 'imageUrl' => get_the_post_thumbnail_url($event->ID, 'full'),
+                'location' => function_exists('tribe_get_venue') ? tribe_get_venue($event->ID) : '',
+                'category' => function_exists('tribe_get_event_categories') ? wp_strip_all_tags(tribe_get_event_categories($event->ID, ['label' => '', 'label_before' => '', 'label_after' => ''])) : '',
             ];
         }
         

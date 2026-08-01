@@ -110,7 +110,7 @@ class WCCS_Cart {
 			return false;
 		}
 
-		return WCCS()->WCCS_Cart_Items_Helpers->products_exists_in_items(
+		return WCCS_Cart_Items_Helpers::products_exists_in_items(
 			$this->get_cart(),
 			$products,
 			$type,
@@ -127,7 +127,7 @@ class WCCS_Cart {
 			return false;
 		}
 
-		return WCCS()->WCCS_Cart_Items_Helpers->categories_exists_in_items(
+		return WCCS_Cart_Items_Helpers::categories_exists_in_items(
 			$this->get_cart(),
 			$categories,
 			$type,
@@ -195,7 +195,35 @@ class WCCS_Cart {
 		return apply_filters( 'wccs_cart_' . __FUNCTION__, (float) $subtotal, $items, $include_tax, $exclude_excluded_products );
 	}
 
-	public function filter_cart_items( array $items, $exclude_excluded_products = false, array $exclude_items = array() ) {
+	/**
+	 * Get given cart items subtotal.
+	 * 
+	 * @param array $cart_items
+	 * @param boolean $include_tax
+	 * 
+	 * @return float
+	 */
+	public function get_cart_items_subtotal( $cart_items, $include_tax = true ) {
+		if ( empty( $cart_items ) ) {
+			return 0;
+		}
+
+		$subtotal = 0;
+		foreach ( $cart_items as $cart_item ) {
+			$subtotal += $include_tax ?
+				apply_filters( 'wccs_cart_item_line_subtotal', $cart_item['line_subtotal'], $cart_item ) +
+				apply_filters( 'wccs_cart_item_line_subtotal_tax', $cart_item['line_subtotal_tax'], $cart_item ) :
+				apply_filters( 'wccs_cart_item_line_subtotal', $cart_item['line_subtotal'], $cart_item );
+		}
+
+		return apply_filters( 'wccs_cart_get_cart_items_subtotal', (float) $subtotal, $cart_items, $include_tax );
+	}
+
+	public function filter_cart_items( 
+		array $items, 
+		$exclude_excluded_products = false, 
+		array $exclude_items = array() 
+	) {
 		if ( ! $this->cart_initialized() || empty( $items ) ) {
 			return array();
 		}
@@ -207,10 +235,10 @@ class WCCS_Cart {
 
 		$cart_items = array();
 		foreach ( $cart_contents as $cart_item_key => $cart_item ) {
-			$product   = $cart_item['data'];
+			$product = $cart_item['data'];
 			$variation = (int) $cart_item['variation_id'];
 			if ( 0 < $variation ) {
-				$product   = (int) $cart_item['product_id'];
+				$product = (int) $cart_item['product_id'];
 				$variation = $cart_item['data'];
 			}
 
@@ -316,7 +344,7 @@ class WCCS_Cart {
 			return array();
 		}
 
-		$pricing          = WCCS()->pricing;
+		$pricing = WCCS()->pricing;
 		$valid_cart_items = array();
 
 		if ( array( 'all_products' ) === $include || array( 'all_categories' ) === $include ) {
@@ -385,10 +413,17 @@ class WCCS_Cart {
 	 * @param  array|null $cart_items        When it is null it use default cart items.
 	 * @param  string     $sort              Possible values is price
 	 * @param  string     $order             Possible values are asc, desc
+	 * @param  boolean    $include_hierarchy Include hierarchy is usefull when items has hierarchy like product categories.
 	 *
 	 * @return array
 	 */
-	public function get_cart_quantities_based_on( $quantity_based_on = 'single_product', array $cart_items = null, $sort = '', $order = 'desc' ) {
+	public function get_cart_quantities_based_on(
+		$quantity_based_on = 'single_product',
+		$cart_items = null,
+		$sort = '',
+		$order = 'desc',
+		$include_hierarchy = false
+	) {
 		if ( empty( $quantity_based_on ) ) {
 			return array();
 		} elseif ( ! $this->cart_initialized() ) {
@@ -407,7 +442,7 @@ class WCCS_Cart {
 		$cart_quantities = array();
 
 		switch ( $quantity_based_on ) {
-			case 'single_product' :
+			case 'single_product':
 				foreach ( $cart_items as $cart_item_key => $cart_item ) {
 					if ( ! isset( $cart_quantities[ $cart_item['product_id'] ] ) ) {
 						$cart_quantities[ $cart_item['product_id'] ] = array(
@@ -421,7 +456,7 @@ class WCCS_Cart {
 				}
 				break;
 
-			case 'all_products' :
+			case 'all_products':
 				foreach ( $cart_items as $cart_item_key => $cart_item ) {
 					if ( ! isset( $cart_quantities['all_products'] ) ) {
 						$cart_quantities['all_products'] = array(
@@ -435,7 +470,7 @@ class WCCS_Cart {
 				}
 				break;
 
-			default :
+			default:
 				break;
 		}
 

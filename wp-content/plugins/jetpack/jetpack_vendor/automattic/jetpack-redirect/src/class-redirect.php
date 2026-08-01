@@ -48,12 +48,12 @@ class Redirect {
 
 		$source_key = 'source';
 
-		if ( 0 === strpos( $source, 'https://' ) ) {
+		if ( \str_starts_with( $source, 'https://' ) ) {
 			$source_key = 'url';
 			$source_url = \wp_parse_url( $source );
 
 			// discard any query and fragments.
-			$source = 'https://' . $source_url['host'] . ( isset( $source_url['path'] ) ? $source_url['path'] : '' );
+			$source = 'https://' . $source_url['host'] . ( $source_url['path'] ?? '' );
 		}
 
 		$to_be_added = array(
@@ -70,9 +70,7 @@ class Redirect {
 
 		}
 
-		if ( ! empty( $to_be_added ) ) {
-			$url = add_query_arg( $to_be_added, $url );
-		}
+		$url = add_query_arg( $to_be_added, $url );
 
 		return $url;
 	}

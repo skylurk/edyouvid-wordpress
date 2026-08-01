@@ -31,7 +31,7 @@ if ( typeof wpActiveEditor != 'undefined') {
         jQuery.ajax({
           type: "POST",
           async: true,
-          data: { action: "mlfp_load_fe_image", src: src, image_id: image_id, nonce: mlfpmedia.nonce },
+          data: { action: "mlfp_load_fe_image", src: src, image_id: image_id, nonce: mlfpmedia.lin_nonce },
           url: mlfpmedia.ajaxurl,
           success: function (data) {
             if(data.length > 0) {

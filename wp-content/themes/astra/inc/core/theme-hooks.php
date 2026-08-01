@@ -5,8 +5,6 @@
  * @see  https://github.com/zamoose/themehookalliance
  *
  * @package     Astra
- * @author      Astra
- * @copyright   Copyright (c) 2020, Astra
  * @link        https://wpastra.com/
  * @since       Astra 1.0.0
  */
@@ -444,6 +442,15 @@ function astra_entry_content_single() {
 }
 
 /**
+ * Entry content single-page.
+ *
+ * @since 4.0.0
+ */
+function astra_entry_content_single_page() {
+	do_action( 'astra_entry_content_single_page' );
+}
+
+/**
  * 404
  */
 function astra_entry_content_404_page() {
@@ -493,7 +500,7 @@ if ( ! function_exists( 'wp_body_open' ) ) {
 	 *
 	 * @since 1.8.7
 	 */
-	function wp_body_open() {
-		do_action( 'wp_body_open' );
+	function wp_body_open() { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound
+		do_action( 'wp_body_open' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 	}
 }

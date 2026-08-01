@@ -12,6 +12,10 @@ namespace Automattic\Jetpack\Extensions\OpenTable;
 use Automattic\Jetpack\Blocks;
 use Jetpack_Gutenberg;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Registers the block for use in Gutenberg
  * This is done via an action so that we can disable
@@ -49,7 +53,7 @@ function load_assets( $attributes ) {
 	}
 
 	// Handles case of deprecated version using theme instead of block styles.
-	if ( ! $class_name || strpos( $class_name, 'is-style-' ) === false ) {
+	if ( ! $class_name || ! str_contains( $class_name, 'is-style-' ) ) {
 		$classes[] = sprintf( 'is-style-%s', $style );
 	}
 
@@ -108,7 +112,7 @@ function load_assets( $attributes ) {
  * @param array  $attributes Array of block attributes.
  * @param string $attribute_name The attribute to get.
  *
- * @return string The filtered attribute
+ * @return string|null The filtered attribute
  */
 function get_attribute( $attributes, $attribute_name ) {
 	if ( isset( $attributes[ $attribute_name ] ) ) {
@@ -126,7 +130,7 @@ function get_attribute( $attributes, $attribute_name ) {
 		'newtab' => 'false',
 	);
 
-	return isset( $default_attributes[ $attribute_name ] ) ? $default_attributes[ $attribute_name ] : null;
+	return $default_attributes[ $attribute_name ] ?? null;
 }
 
 /**
@@ -152,7 +156,7 @@ function get_type_attribute( $attributes ) {
  * Get the block theme attribute
  *
  * OpenTable has a confusing mix of themes and types for the widget. A type
- * can have a theme, but the button style can not have a theme. The other two
+ * can have a theme, but the button style cannot have a theme. The other two
  * types (multi and standard) can have one of the three themes.
  *
  * We have combined these into a `style` attribute as really there are 4 styles

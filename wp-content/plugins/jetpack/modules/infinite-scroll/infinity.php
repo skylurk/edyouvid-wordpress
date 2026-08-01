@@ -3,7 +3,10 @@
 // phpcs:disable Universal.Files.SeparateFunctionsFromOO.Mixed -- TODO: Move classes to appropriately-named class files.
 
 use Automattic\Jetpack\Assets;
-use Automattic\Jetpack\Redirect;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 /*
 Plugin Name: The Neverending Home Page.
@@ -20,6 +23,8 @@ Text Domain: jetpack
 /**
  * Class: The_Neverending_Home_Page relies on add_theme_support, expects specific
  * styling from each theme; including fixed footer.
+ *
+ * @phan-constructor-used-for-side-effects
  */
 class The_Neverending_Home_Page {
 	/**
@@ -90,21 +95,22 @@ class The_Neverending_Home_Page {
 	 * @return object
 	 */
 	public static function get_settings() {
+		$defaults = array(
+			'type'            => 'scroll', // scroll | click
+			'requested_type'  => 'scroll', // store the original type for use when logic overrides it
+			'footer_widgets'  => false, // true | false | sidebar_id | array of sidebar_ids -- last two are checked with is_active_sidebar
+			'container'       => 'content', // container html id
+			'wrapper'         => true, // true | false | html class -- the html class.
+			'render'          => false, // optional function, otherwise the `content` template part will be used
+			'footer'          => true, // boolean to enable or disable the infinite footer | string to provide an html id to derive footer width from
+			'footer_callback' => false, // function to be called to render the IS footer, in place of the default
+			'posts_per_page'  => false, // phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_posts_per_page -- int | false to set based on IS type
+			'click_handle'    => true, // boolean to enable or disable rendering the click handler div. If type is click and this is false, page must include its own trigger with the HTML ID `infinite-handle`.
+		);
+
 		if ( self::$settings === null ) {
 			$css_pattern = '#[^A-Z\d\-_]#i';
 
-			$defaults = array(
-				'type'            => 'scroll', // scroll | click
-				'requested_type'  => 'scroll', // store the original type for use when logic overrides it
-				'footer_widgets'  => false, // true | false | sidebar_id | array of sidebar_ids -- last two are checked with is_active_sidebar
-				'container'       => 'content', // container html id
-				'wrapper'         => true, // true | false | html class -- the html class.
-				'render'          => false, // optional function, otherwise the `content` template part will be used
-				'footer'          => true, // boolean to enable or disable the infinite footer | string to provide an html id to derive footer width from
-				'footer_callback' => false, // function to be called to render the IS footer, in place of the default
-				'posts_per_page'  => false, // phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_posts_per_page -- int | false to set based on IS type
-				'click_handle'    => true, // boolean to enable or disable rendering the click handler div. If type is click and this is false, page must include its own trigger with the HTML ID `infinite-handle`.
-			);
 			$settings = $defaults;
 			// Validate settings passed through add_theme_support()
 			$_settings = get_theme_support( 'infinite-scroll' );
@@ -214,6 +220,7 @@ class The_Neverending_Home_Page {
 			// Otherwise, if a widget area ID or array of IDs was provided in the footer_widgets parameter, check if any contains any widgets.
 			// It is safe to use `is_active_sidebar()` before the sidebar is registered as this function doesn't check for a sidebar's existence when determining if it contains any widgets.
 			if ( function_exists( 'infinite_scroll_has_footer_widgets' ) ) {
+				// @phan-suppress-next-line PhanUndeclaredFunction -- Checked above. See also https://github.com/phan/phan/issues/1204.
 				$settings['footer_widgets'] = (bool) infinite_scroll_has_footer_widgets();
 			} elseif ( is_array( $settings['footer_widgets'] ) ) {
 				$sidebar_ids                = $settings['footer_widgets'];
@@ -251,7 +258,7 @@ class The_Neverending_Home_Page {
 			// Ensure that IS is enabled and no footer widgets exist if the IS type isn't already "click".
 			if ( 'click' !== $settings['type'] ) {
 				// Check the setting status
-				$disabled = '' === get_option( self::$option_name_enabled ) ? true : false;
+				$disabled = '' === get_option( self::$option_name_enabled );
 
 				// Footer content or Reading option check
 				if ( $settings['footer_widgets'] || $disabled ) {
@@ -265,20 +272,22 @@ class The_Neverending_Home_Page {
 			}
 
 			// Store final settings in a class static to avoid reparsing
-			/**
-			 * Filter the array of Infinite Scroll settings.
-			 *
-			 * @module infinite-scroll
-			 *
-			 * @since 2.0.0
-			 *
-			 * @param array $settings Array of Infinite Scroll settings.
-			 */
-			self::$settings = apply_filters( 'infinite_scroll_settings', $settings );
+			self::$settings = $settings;
 		}
 
-		/** This filter is already documented in modules/infinite-scroll/infinity.php */
-		return (object) apply_filters( 'infinite_scroll_settings', self::$settings );
+		/**
+		 * Filter the array of Infinite Scroll settings.
+		 *
+		 * @module infinite-scroll
+		 *
+		 * @since 2.0.0
+		 *
+		 * @param array $settings Array of Infinite Scroll settings.
+		 */
+		$filtered_settings = apply_filters( 'infinite_scroll_settings', self::$settings );
+
+		// Ensure all properties are still set.
+		return (object) wp_parse_args( $filtered_settings, $defaults );
 	}
 
 	/**
@@ -288,12 +297,13 @@ class The_Neverending_Home_Page {
 	 * @return int
 	 */
 	public static function posts_per_page() {
-		$posts_per_page             = self::get_settings()->posts_per_page ? self::get_settings()->posts_per_page : self::wp_query()->get( 'posts_per_page' );
+		$settings                   = self::get_settings();
+		$posts_per_page             = $settings->posts_per_page ? $settings->posts_per_page : self::wp_query()->get( 'posts_per_page' );
 		$posts_per_page_core_option = get_option( 'posts_per_page' );
 
 		// If Infinite Scroll is set to click, and if the site owner changed posts_per_page, let's use that.
 		if (
-			'click' === self::get_settings()->type
+			'click' === $settings->type
 				&& ( '10' !== $posts_per_page_core_option )
 		) {
 			$posts_per_page = $posts_per_page_core_option;
@@ -381,9 +391,9 @@ class The_Neverending_Home_Page {
 
 		// This is to cope with an issue in certain themes or setups where posts are returned but found_posts is 0.
 		if ( 0 === $entries ) {
-			return (bool) ( ! is_countable( self::wp_query()->posts ) || ( count( self::wp_query()->posts ) < $posts_per_page ) );
+			return ( ! is_countable( self::wp_query()->posts ) || ( count( self::wp_query()->posts ) < $posts_per_page ) );
 		}
-		$paged = max( 1, self::wp_query()->get( 'paged' ) );
+		$paged = max( 1, (int) self::wp_query()->get( 'paged' ) );
 
 		// Are there enough posts for more than the first page?
 		if ( $entries <= $posts_per_page ) {
@@ -431,34 +441,9 @@ class The_Neverending_Home_Page {
 			return;
 		}
 
-		if ( defined( 'IS_WPCOM' ) && IS_WPCOM ) {
-			// This setting is no longer configurable in wp-admin on WordPress.com -- leave a pointer
-			add_settings_field(
-				self::$option_name_enabled,
-				'<span id="infinite-scroll-options">' . esc_html__( 'Infinite Scroll Behavior', 'jetpack' ) . '</span>',
-				array( $this, 'infinite_setting_html_calypso_placeholder' ),
-				'reading'
-			);
-			return;
-		}
-
 		// Add the setting field [infinite_scroll] and place it in Settings > Reading
 		add_settings_field( self::$option_name_enabled, '<span id="infinite-scroll-options">' . esc_html__( 'Infinite Scroll Behavior', 'jetpack' ) . '</span>', array( $this, 'infinite_setting_html' ), 'reading' );
 		register_setting( 'reading', self::$option_name_enabled, 'esc_attr' );
-	}
-
-	/**
-	 * Render the redirect link to the infinite scroll settings in Calypso.
-	 */
-	public function infinite_setting_html_calypso_placeholder() {
-		$details     = get_blog_details();
-		$writing_url = Redirect::get_url( 'calypso-settings-writing', array( 'site' => $details->domain ) );
-		echo '<span>' . sprintf(
-			/* translators: Variables are the enclosing link to the settings page */
-			esc_html__( 'This option has moved. You can now manage it %1$shere%2$s.', 'jetpack' ),
-			'<a href="' . esc_url( $writing_url ) . '">',
-			'</a>'
-		) . '</span>';
 	}
 
 	/**
@@ -466,9 +451,10 @@ class The_Neverending_Home_Page {
 	 * for the infinite_scroll setting.
 	 */
 	public function infinite_setting_html() {
+		$settings = self::get_settings();
 
 		// If the blog has footer widgets, show a notice instead of the checkbox
-		if ( self::get_settings()->footer_widgets || 'click' === self::get_settings()->requested_type ) {
+		if ( $settings->footer_widgets || 'click' === $settings->requested_type ) {
 			echo '<label><em>' . esc_html__( 'We&rsquo;ve changed this option to a click-to-scroll version for you since you have footer widgets in Appearance &rarr; Widgets, or your theme uses click-to-scroll as the default behavior.', 'jetpack' ) . '</em></label>';
 		} else {
 			echo '<label><input name="infinite_scroll" type="checkbox" value="1" ' . checked( 1, '' !== get_option( self::$option_name_enabled ), false ) . ' /> ' . esc_html__( 'Check to load posts as you scroll. Uncheck to show clickable button to load posts', 'jetpack' ) . '</label>';
@@ -564,13 +550,14 @@ class The_Neverending_Home_Page {
 	 * @return string
 	 */
 	public function body_class() {
-		$classes = '';
+		$settings = self::get_settings();
+		$classes  = '';
 		// Do not add infinity-scroll class if disabled through the Reading page
-		$disabled = '' === get_option( self::$option_name_enabled ) ? true : false;
-		if ( ! $disabled || 'click' === self::get_settings()->type ) {
+		$disabled = '' === get_option( self::$option_name_enabled );
+		if ( ! $disabled || 'click' === $settings->type ) {
 			$classes = 'infinite-scroll';
 
-			if ( 'scroll' === self::get_settings()->type ) {
+			if ( 'scroll' === $settings->type ) {
 				$classes .= ' neverending';
 			}
 		}
@@ -591,7 +578,11 @@ class The_Neverending_Home_Page {
 		$excluded_posts = array();
 		// loop through posts returned by wp_query call
 		foreach ( self::wp_query()->get_posts() as $post ) {
+			if ( ! $post instanceof \WP_Post ) {
+				continue;
+			}
 
+			// @phan-suppress-next-line PhanPluginDuplicateConditionalNullCoalescing -- probably would be safe to collapse, but not changing just in case.
 			$orderby   = isset( self::wp_query()->query_vars['orderby'] ) ? self::wp_query()->query_vars['orderby'] : '';
 			$post_date = ( ! empty( $post->post_date ) ? $post->post_date : false );
 			if ( 'modified' === $orderby || false === $post_date ) {
@@ -620,7 +611,7 @@ class The_Neverending_Home_Page {
 		// applies to search page only
 		if ( true === self::wp_query()->is_search() ) {
 			// set post__not_in array in query_vars in case it does not exists
-			if ( false === isset( $query_vars['post__not_in'] ) ) {
+			if ( ! isset( $query_vars['post__not_in'] ) ) {
 				$query_vars['post__not_in'] = array();
 			}
 			// get excluded posts
@@ -647,10 +638,13 @@ class The_Neverending_Home_Page {
 
 		// grab the last posts in the stack as if the last one is title-matching the rest is title-matching as well
 		$post = end( self::wp_query()->posts );
+		if ( ! $post instanceof WP_Post ) {
+			return false;
+		}
 
 		// code inspired by WP_Query class
 		if ( preg_match_all( '/".*?("|$)|((?<=[\t ",+])|^)[^\t ",+]+/', self::wp_query()->get( 's' ), $matches ) ) {
-			$search_terms = self::wp_query()->query_vars['search_terms'];
+			$search_terms = self::wp_query()->query_vars['search_terms'] ?? null;
 			// if the search string has only short terms or stopwords, or is 10+ terms long, match it as sentence
 			if ( empty( $search_terms ) || ! is_countable( $search_terms ) || count( $search_terms ) > 9 ) {
 				$search_terms = array( self::wp_query()->get( 's' ) );
@@ -661,7 +655,7 @@ class The_Neverending_Home_Page {
 
 		// actual testing. As search query combines multiple keywords with AND, it's enough to check if any of the keywords is present in the title
 		$term = current( $search_terms );
-		if ( ! empty( $term ) && false !== strpos( $post->post_title, $term ) ) {
+		if ( ! empty( $term ) && str_contains( $post->post_title, $term ) ) {
 			return true;
 		}
 
@@ -693,9 +687,9 @@ class The_Neverending_Home_Page {
 			return false;
 		}
 
-		$post      = end( self::wp_query()->posts );
-		$orderby   = isset( self::wp_query()->query_vars['orderby'] ) ?
-			self::wp_query()->query_vars['orderby'] : '';
+		$post = end( self::wp_query()->posts );
+		// @phan-suppress-next-line PhanPluginDuplicateConditionalNullCoalescing -- probably would be safe to collapse, but not changing just in case.
+		$orderby   = isset( self::wp_query()->query_vars['orderby'] ) ? self::wp_query()->query_vars['orderby'] : '';
 		$post_date = ( ! empty( $post->post_date ) ? $post->post_date : false );
 		switch ( $orderby ) {
 			case 'modified':
@@ -721,7 +715,7 @@ class The_Neverending_Home_Page {
 			$query = self::wp_query();
 		}
 
-		$orderby = isset( $query->query_vars['orderby'] ) ? $query->query_vars['orderby'] : '';
+		$orderby = $query->query_vars['orderby'] ?? '';
 
 		switch ( $orderby ) {
 			case 'modified':
@@ -752,11 +746,12 @@ class The_Neverending_Home_Page {
 
 			$sort_field = self::get_query_sort_field( $query );
 
-			if ( 'post_date' !== $sort_field || 'DESC' !== $_REQUEST['query_args']['order'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- no changes made to the site.
+			if ( 'post_date' !== $sort_field ||
+			! isset( $_REQUEST['query_args']['order'] ) || 'DESC' !== $_REQUEST['query_args']['order'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- no changes made to the site.
 				return $where;
 			}
 
-			$query_before = sanitize_text_field( wp_unslash( $_REQUEST['query_before'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- no changes made to the site.
+			$query_before = isset( $_REQUEST['query_before'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['query_before'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- no changes made to the site.
 
 			if ( empty( $query_before ) ) {
 				return $where;
@@ -770,6 +765,8 @@ class The_Neverending_Home_Page {
 			 * will always return results prior to (descending sort)
 			 * or before (ascending sort) the last post date.
 			 *
+			 * @deprecated 14.0
+			 *
 			 * @module infinite-scroll
 			 *
 			 * @param string $clause SQL Date query.
@@ -777,9 +774,9 @@ class The_Neverending_Home_Page {
 			 * @param string $operator @deprecated Query operator.
 			 * @param string $last_post_date @deprecated Last Post Date timestamp.
 			 */
-			$operator       = 'ASC' === $_REQUEST['query_args']['order'] ? '>' : '<'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- no changes to the site.
-			$last_post_date = sanitize_text_field( wp_unslash( $_REQUEST['last_post_date'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- no changes to the site.
-			$where         .= apply_filters( 'infinite_scroll_posts_where', $clause, $query, $operator, $last_post_date );
+			$operator       = '<';
+			$last_post_date = isset( $_REQUEST['last_post_date'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['last_post_date'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- no changes to the site
+			$where         .= apply_filters_deprecated( 'infinite_scroll_posts_where', array( $clause, $query, $operator, $last_post_date ), '14.0', '' );
 		}
 
 		return $where;
@@ -881,6 +878,8 @@ class The_Neverending_Home_Page {
 		global $wp_rewrite;
 		global $currentday;
 
+		$settings = self::get_settings();
+
 		// Default click handle text
 		$click_handle_text = __( 'Older posts', 'jetpack' );
 
@@ -902,9 +901,11 @@ class The_Neverending_Home_Page {
 			if (
 				is_a( $taxonomy, 'WP_Taxonomy' )
 				&& is_countable( $taxonomy->object_type )
+				&& ! empty( $taxonomy->object_type )
 				&& count( $taxonomy->object_type ) < 2
 			) {
-				$post_type = $taxonomy->object_type[0];
+				// It seems [0] doesn't work, as sometimes plugins can deregister a taxonomy but not reindex.
+				$post_type = reset( $taxonomy->object_type );
 			}
 		}
 
@@ -930,15 +931,15 @@ class The_Neverending_Home_Page {
 
 		// Base JS settings
 		$js_settings = array(
-			'id'               => self::get_settings()->container,
+			'id'               => $settings->container,
 			'ajaxurl'          => esc_url_raw( self::ajax_url() ),
-			'type'             => esc_js( self::get_settings()->type ),
+			'type'             => esc_js( $settings->type ),
 			'wrapper'          => self::has_wrapper(),
-			'wrapper_class'    => is_string( self::get_settings()->wrapper ) ? esc_js( self::get_settings()->wrapper ) : 'infinite-wrap',
-			'footer'           => is_string( self::get_settings()->footer ) ? esc_js( self::get_settings()->footer ) : self::get_settings()->footer,
-			'click_handle'     => esc_js( self::get_settings()->click_handle ),
-			'text'             => esc_js( $click_handle_text ),
-			'totop'            => esc_js( __( 'Scroll back to top', 'jetpack' ) ),
+			'wrapper_class'    => is_string( $settings->wrapper ) ? esc_js( $settings->wrapper ) : 'infinite-wrap',
+			'footer'           => is_string( $settings->footer ) ? esc_js( $settings->footer ) : $settings->footer,
+			'click_handle'     => esc_js( $settings->click_handle ),
+			'text'             => $click_handle_text,
+			'totop'            => __( 'Scroll back to top', 'jetpack' ),
 			'currentday'       => $currentday,
 			'order'            => 'DESC',
 			'scripts'          => array(),
@@ -955,7 +956,7 @@ class The_Neverending_Home_Page {
 			'query_before'     => current_time( 'mysql' ),
 			'last_post_date'   => self::get_last_post_date(),
 			'body_class'       => self::body_class(),
-			'loading_text'     => esc_js( __( 'Loading new page', 'jetpack' ) ),
+			'loading_text'     => __( 'Loading new page', 'jetpack' ),
 		);
 
 		// Optional order param
@@ -989,7 +990,7 @@ class The_Neverending_Home_Page {
 
 		?>
 		<script type="text/javascript">
-		var infiniteScroll = <?php echo wp_json_encode( array( 'settings' => $js_settings ), JSON_HEX_TAG ); ?>;
+		var infiniteScroll = <?php echo wp_json_encode( array( 'settings' => $js_settings ), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP ); ?>;
 		</script>
 		<?php
 	}
@@ -1024,7 +1025,7 @@ class The_Neverending_Home_Page {
 			}
 
 			// Slashes everywhere we need them
-			if ( 0 !== strpos( $path, '/' ) ) {
+			if ( ! str_starts_with( $path, '/' ) ) {
 				$path = '/' . $path;
 			}
 
@@ -1108,8 +1109,8 @@ class The_Neverending_Home_Page {
 
 					return out;
 				};
-				extend( window.infiniteScroll.settings.scripts, <?php echo wp_json_encode( $scripts ); ?> );
-				extend( window.infiniteScroll.settings.styles, <?php echo wp_json_encode( $styles ); ?> );
+				extend( window.infiniteScroll.settings.scripts, <?php echo wp_json_encode( $scripts, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP ); ?> );
+				extend( window.infiniteScroll.settings.styles, <?php echo wp_json_encode( $styles, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP ); ?> );
 			})();
 		</script>
 		<?php
@@ -1152,7 +1153,7 @@ class The_Neverending_Home_Page {
 					// Jetpack block scripts should always be sent, even if they've been
 					// sent before. These scripts only run once on when loaded, they don't
 					// watch for new blocks being added.
-					if ( 0 === strpos( $script_name, 'jetpack-block-' ) ) {
+					if ( str_starts_with( $script_name, 'jetpack-block-' ) ) {
 						return true;
 					}
 
@@ -1162,7 +1163,6 @@ class The_Neverending_Home_Page {
 
 			// If new scripts are needed, extract relevant data from $wp_scripts
 			if ( ! empty( $new_scripts ) ) {
-				global $wp_version;
 				$results['scripts'] = array();
 
 				foreach ( $new_scripts as $handle ) {
@@ -1174,14 +1174,8 @@ class The_Neverending_Home_Page {
 						continue;
 					}
 
-					// Remove conditional once WordPress 6.3 is the minimum required version.
-					if ( version_compare( $wp_version, '6.3', '>=' ) ) {
-						$before_handle = $wp_scripts->get_inline_script_data( $handle, 'before' );
-						$after_handle  = $wp_scripts->get_inline_script_data( $handle, 'after' );
-					} else {
-						$before_handle = $wp_scripts->print_inline_script( $handle, 'before', false );
-						$after_handle  = $wp_scripts->print_inline_script( $handle, 'after', false );
-					}
+					$before_handle = $wp_scripts->get_inline_script_data( $handle, 'before' );
+					$after_handle  = $wp_scripts->get_inline_script_data( $handle, 'after' );
 
 					// Provide basic script data
 					$script_data = array(
@@ -1380,14 +1374,14 @@ class The_Neverending_Home_Page {
 	 */
 	public function query() {
 		if ( ! isset( $_REQUEST['page'] ) || ! current_theme_supports( 'infinite-scroll' ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- no changes to the site.
-			die;
+			die( 0 );
 		}
 
 		// @todo see if we should validate this nonce since we use it to form a query.
 		$page = (int) $_REQUEST['page']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- we're casting this to an int and not making changes to the site.
 
 		// Sanitize and set $previousday. Expected format: dd.mm.yy
-		if ( isset( $_REQUEST['currentday'] ) && preg_match( '/^\d{2}\.\d{2}\.\d{2}$/', $_REQUEST['currentday'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput, WordPress.Security.NonceVerification.Recommended -- manually validating, no changes to site
+		if ( isset( $_REQUEST['currentday'] ) && is_string( $_REQUEST['currentday'] ) && preg_match( '/^\d{2}\.\d{2}\.\d{2}$/', $_REQUEST['currentday'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput, WordPress.Security.NonceVerification.Recommended -- manually validating, no changes to site
 			global $previousday;
 			$previousday = $_REQUEST['currentday']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput
 		}
@@ -1438,7 +1432,7 @@ class The_Neverending_Home_Page {
 
 		$infinite_scroll_query->query( $query_args );
 
-		remove_filter( 'posts_where', array( $this, 'query_time_filter' ), 10, 2 );
+		remove_filter( 'posts_where', array( $this, 'query_time_filter' ), 10 );
 
 		$results = array();
 
@@ -1481,6 +1475,7 @@ class The_Neverending_Home_Page {
 					if ( false !== $callback && is_callable( $callback ) ) {
 						rewind_posts();
 						ob_start();
+
 						add_action( 'infinite_scroll_render', $callback );
 
 						/**
@@ -1489,6 +1484,9 @@ class The_Neverending_Home_Page {
 						 * for more details as to why it was introduced.
 						 */
 						do_action( 'infinite_scroll_render' );
+
+						// Fire wp_head to ensure that all necessary scripts are enqueued. Output isn't used, but scripts are extracted in self::action_wp_footer.
+						wp_head();
 
 						$results['html'] = ob_get_clean();
 						remove_action( 'infinite_scroll_render', $callback );
@@ -1547,7 +1545,20 @@ class The_Neverending_Home_Page {
 					sharing_register_post_for_share_counts( get_the_ID() );
 				}
 
-				$results['postflair'] = array_flip( $jetpack_sharing_counts );
+				// If sharing counts are not initialized for any reason, we initialize them here.
+				if ( ! is_array( $jetpack_sharing_counts ) ) {
+					$jetpack_sharing_counts = array();
+				} else {
+					// Filter out non-string and non-integer values to avoid warnings with array_flip.
+					$flippable_jetpack_sharing_counts = array_filter(
+						$jetpack_sharing_counts,
+						function ( $value ) {
+							return is_string( $value ) || is_int( $value );
+						}
+					);
+				}
+
+				$results['postflair'] = array_flip( $flippable_jetpack_sharing_counts ?? array() );
 			}
 		} else {
 			/** This action is already documented in modules/infinite-scroll/infinity.php */
@@ -1567,7 +1578,9 @@ class The_Neverending_Home_Page {
 			 * @param array $query_args Array of main query arguments.
 			 * @param WP_Query $wp_query WP Query.
 			 */
-			apply_filters( 'infinite_scroll_results', $results, $query_args, self::wp_query() )
+			apply_filters( 'infinite_scroll_results', $results, $query_args, self::wp_query() ),
+			null, // @phan-suppress-current-line PhanTypeMismatchArgumentProbablyReal -- It takes null, but its phpdoc only says int.
+			JSON_UNESCAPED_SLASHES
 		);
 	}
 
@@ -1706,13 +1719,15 @@ class The_Neverending_Home_Page {
 			return;
 		}
 
+		$settings = self::get_settings();
+
 		// Bail if theme requested footer not show
-		if ( false === self::get_settings()->footer ) {
+		if ( false === $settings->footer ) {
 			return;
 		}
 
 		// We only need the new footer for the 'scroll' type
-		if ( 'scroll' !== self::get_settings()->type || ! self::archive_supports_infinity() ) {
+		if ( 'scroll' !== $settings->type || ! self::archive_supports_infinity() ) {
 			return;
 		}
 
@@ -1721,8 +1736,8 @@ class The_Neverending_Home_Page {
 		}
 
 		// Display a footer, either user-specified or a default
-		if ( false !== self::get_settings()->footer_callback && is_callable( self::get_settings()->footer_callback ) ) {
-			call_user_func( self::get_settings()->footer_callback, self::get_settings() );
+		if ( false !== $settings->footer_callback && is_callable( $settings->footer_callback ) ) {
+			call_user_func( $settings->footer_callback, $settings );
 		} else {
 			self::default_footer();
 		}
@@ -1786,7 +1801,7 @@ class The_Neverending_Home_Page {
 	 */
 	public function filter_grunion_redirect_url( $url ) {
 		// Remove IS query args, if present
-		if ( false !== strpos( $url, 'infinity=scrolling' ) ) {
+		if ( str_contains( $url, 'infinity=scrolling' ) ) {
 			$url = remove_query_arg(
 				array(
 					'infinity',
@@ -1823,7 +1838,7 @@ class The_Neverending_Home_Page {
 				$scripts_data[ $key ]['extra_data'] = sprintf(
 					'window.%s = %s',
 					'_wpmejsSettings',
-					wp_json_encode( apply_filters( 'mejs_settings', $mejs_settings ) )
+					wp_json_encode( apply_filters( 'mejs_settings', $mejs_settings ), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP )
 				);
 			}
 		}
@@ -1984,7 +1999,7 @@ class The_Neverending_Home_Page {
 <amp-next-page max-pages="<?php echo esc_attr( static::amp_get_max_pages() ); ?>">
 	<script type="application/json">
 		[
-			<?php echo wp_json_encode( $this->amp_next_page() ); ?>
+			<?php echo wp_json_encode( $this->amp_next_page(), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP ); ?>
 		]
 	</script>
 	<div separator>
@@ -2082,7 +2097,7 @@ class The_Neverending_Home_Page {
 	protected static function amp_get_max_pages() {
 		global $wp_query;
 
-		return (int) $wp_query->max_num_pages - $wp_query->query_vars['paged'];
+		return (int) $wp_query->max_num_pages - (int) $wp_query->query_vars['paged'];
 	}
 
 	/**

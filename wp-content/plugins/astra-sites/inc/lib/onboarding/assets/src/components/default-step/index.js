@@ -2,9 +2,13 @@ import React, { useEffect, useLayoutEffect } from 'react';
 import ICONS from '../../../icons';
 import { useStateValue } from '../../store/store';
 import { getStepIndex } from '../../utils/functions';
+import SyncInProgressModal from '../sync-in-progress-modal';
 
 const DefaultStep = ( { preview, content, controls, actions, stepName } ) => {
-	const [ { showSidebar, currentIndex }, dispatch ] = useStateValue();
+	const [
+		{ bgSyncInProgress, showSidebar, currentIndex, sitesSyncing },
+		dispatch,
+	] = useStateValue();
 
 	const toggleSidebar = () => {
 		dispatch( {
@@ -58,12 +62,12 @@ const DefaultStep = ( { preview, content, controls, actions, stepName } ) => {
 					style={ {
 						padding:
 							currentIndex === getStepIndex( 'site-list' )
-								? '5% 6% 6% 6%'
+								? '5% 6% calc(6% + 60px)'
 								: '',
 					} }
 				>
 					<div
-						className={ `content-wrapper
+						className={ `content-wrapper pb-14 sm:pb-0 mb-24
 					${
 						currentIndex === getStepIndex( 'customizer' )
 							? 'flex flex-col items-start h-full'
@@ -88,6 +92,12 @@ const DefaultStep = ( { preview, content, controls, actions, stepName } ) => {
 							</div>
 						) }
 					</div>
+					<SyncInProgressModal
+						open={
+							( bgSyncInProgress || sitesSyncing ) &&
+							currentIndex === 2
+						}
+					/>
 				</div>
 
 				{ actions &&

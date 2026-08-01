@@ -9,6 +9,7 @@ namespace Automattic\Jetpack\Scan;
 
 use Automattic\Jetpack\Assets;
 use Automattic\Jetpack\Redirect;
+use WP_Admin_Bar;
 
 /**
  * Class Main
@@ -105,8 +106,19 @@ class Admin_Bar_Notice {
 		}
 
 		// We don't know about threats in the cache lets load the JS that fetches the info and updates the admin bar.
-		Assets::enqueue_async_script( self::SCRIPT_NAME, '_inc/build/scan/admin-bar-notice.min.js', 'modules/scan/admin-bar-notice.js', array( 'admin-bar' ), self::SCRIPT_VERSION, true );
-
+		Assets::register_script(
+			self::SCRIPT_NAME,
+			'_inc/build/scan/admin-bar-notice.min.js',
+			JETPACK__PLUGIN_FILE,
+			array(
+				'in_footer'    => true,
+				'strategy'     => 'defer',
+				'nonmin_path'  => 'modules/scan/admin-bar-notice.js',
+				'dependencies' => array( 'admin-bar' ),
+				'version'      => self::SCRIPT_VERSION,
+				'enqueue'      => true,
+			)
+		);
 		$script_data = array(
 			'nonce'              => wp_create_nonce( 'wp_rest' ),
 			'scan_endpoint'      => get_rest_url( null, 'jetpack/v4/scan' ),
@@ -163,10 +175,11 @@ class Admin_Bar_Notice {
 		);
 
 		if ( $has_threats ) {
-			$node['href']            = esc_url( Redirect::get_url( 'calypso-scanner' ) );
-			$node['meta']['onclick'] = 'window.open( this.href ); return false;';
-			$node['meta']['class']   = 'error';
-			$node['title']           = sprintf(
+			$node['href']           = esc_url( Redirect::get_url( 'calypso-scanner' ) );
+			$node['meta']['target'] = '_blank';
+			$node['meta']['rel']    = 'noopener noreferrer';
+			$node['meta']['class']  = 'error';
+			$node['title']          = sprintf(
 				esc_html(
 				/* translators: %s is the alert icon */
 					_n( '%s Threat found', '%s Threats found', $this->get_threat_count(), 'jetpack' )
@@ -198,7 +211,7 @@ class Admin_Bar_Notice {
 			return null;
 		}
 		// Return true if there is at least one threat found.
-		return (bool) isset( $scan_state->threats[0] );
+		return isset( $scan_state->threats[0] );
 	}
 
 	/**

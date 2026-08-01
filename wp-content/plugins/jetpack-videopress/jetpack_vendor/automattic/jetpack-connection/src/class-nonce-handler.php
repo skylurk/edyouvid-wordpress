@@ -90,6 +90,8 @@ class Nonce_Handler {
 		// Raw query so we can avoid races: add_option will also update.
 		$show_errors = $this->db->hide_errors();
 
+		$return = false;
+
 		// Running `try...finally` to make sure that we re-enable errors in case of an exception.
 		try {
 			$old_nonce = $this->db->get_row(
@@ -105,8 +107,6 @@ class Nonce_Handler {
 						'no'
 					)
 				);
-			} else {
-				$return = false;
 			}
 		} finally {
 			$this->db->show_errors( $show_errors );
@@ -184,7 +184,7 @@ class Nonce_Handler {
 		// Removing zeroes in case AUTO_INCREMENT of the options table is broken, and all ID's are zeroes.
 		$ids = array_filter( $ids );
 
-		if ( ! count( $ids ) ) {
+		if ( array() === $ids ) {
 			// There's nothing to remove.
 			return false;
 		}
@@ -209,5 +209,4 @@ class Nonce_Handler {
 
 		return true;
 	}
-
 }

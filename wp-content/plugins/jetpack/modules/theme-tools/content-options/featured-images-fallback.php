@@ -5,37 +5,46 @@
  * @package automattic/jetpack
  */
 
-/**
- * Get one image from a specified post in the following order:
- * Featured Image then first image from the_content HTML
- * and filter the post_thumbnail_html
- *
- * @param string       $html              The HTML for the image markup.
- * @param int          $post_id           The post ID to check.
- * @param int          $post_thumbnail_id The ID of the featured image.
- * @param string       $size              The image size to return, defaults to 'post-thumbnail'.
- * @param string|array $attr              Optional. Query string or array of attributes.
- *
- * @return string      $html              Thumbnail image with markup.
- */
-function jetpack_featured_images_fallback_get_image( $html, $post_id, $post_thumbnail_id, $size, $attr ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-	$opts = jetpack_featured_images_get_settings();
+use Automattic\Jetpack\Post_Media\Images;
 
-	if ( ! empty( $html ) || (bool) 1 !== (bool) $opts['fallback-option'] ) {
-		return trim( $html );
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
-	if ( jetpack_featured_images_should_load() ) {
-		if (
-			( true === $opts['archive'] && ( is_home() || is_archive() || is_search() ) && ! $opts['archive-option'] )
-			|| ( true === $opts['post'] && is_single() && ! $opts['post-option'] )
-			|| ! $opts['fallback-option']
-		) {
+if ( ! function_exists( 'jetpack_featured_images_fallback_get_image' ) ) {
+
+	/**
+	 * Get one image from a specified post in the following order:
+	 * Featured Image then first image from the_content HTML
+	 * and filter the post_thumbnail_html
+	 *
+	 * @deprecated 13.9 Moved to Classic Theme Helper package.
+	 * @param string       $html              The HTML for the image markup.
+	 * @param int          $post_id           The post ID to check.
+	 * @param int          $post_thumbnail_id The ID of the featured image.
+	 * @param string       $size              The image size to return, defaults to 'post-thumbnail'.
+	 * @param string|array $attr              Optional. Query string or array of attributes.
+	 *
+	 * @return string      $html              Thumbnail image with markup.
+	 */
+	function jetpack_featured_images_fallback_get_image( $html, $post_id, $post_thumbnail_id, $size, $attr ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+		_deprecated_function( __FUNCTION__, 'jetpack-13.9' );
+		$opts = jetpack_featured_images_get_settings();
+
+		if ( ! empty( $html ) || (bool) 1 !== (bool) $opts['fallback-option'] ) {
 			return trim( $html );
 		}
-	}
 
-	if ( class_exists( 'Jetpack_PostImages' ) ) {
+		if ( jetpack_featured_images_should_load() ) {
+			if (
+				( true === $opts['archive'] && ( is_home() || is_archive() || is_search() ) && ! $opts['archive-option'] )
+				|| ( true === $opts['post'] && is_single() && ! $opts['post-option'] )
+				|| ! $opts['fallback-option']
+			) {
+				return trim( $html );
+			}
+		}
+
 		global $_wp_additional_image_sizes;
 
 		$args = array(
@@ -45,7 +54,7 @@ function jetpack_featured_images_fallback_get_image( $html, $post_id, $post_thum
 			'from_attachment' => false,
 		);
 
-		$image = Jetpack_PostImages::get_image( $post_id, $args );
+		$image = Images::get_image( $post_id, $args );
 
 		if ( ! empty( $image ) ) {
 			$image['width']  = '';
@@ -84,13 +93,13 @@ function jetpack_featured_images_fallback_get_image( $html, $post_id, $post_thum
 					$height = $dims[1];
 				}
 
-				$image_src    = Jetpack_PostImages::fit_image_url( $image['src'], $width, $height );
-				$image_srcset = Jetpack_PostImages::generate_cropped_srcset( $image, $width, $height, true );
+				$image_src    = Images::fit_image_url( $image['src'], $width, $height );
+				$image_srcset = Images::generate_cropped_srcset( $image, $width, $height, true );
 				$image_sizes  = 'min(' . $width . 'px, 100vw)';
 			} else {
 				// If we're not aware of the source dimensions, leave the size calculations to the CDN, and
 				// fall back to a simpler `<img>` tag without `width`/`height` or `srcset`.
-				$image_src = Jetpack_PostImages::fit_image_url( $image['src'], $image['width'], $image['height'] );
+				$image_src = Images::fit_image_url( $image['src'], $image['width'], $image['height'] );
 
 				// Use the theme's crop setting rather than forcing to true.
 				$image_src = add_query_arg( 'crop', $image['crop'], $image_src );
@@ -125,39 +134,43 @@ function jetpack_featured_images_fallback_get_image( $html, $post_id, $post_thum
 
 			return trim( $html );
 		}
-	}
 
-	return trim( $html );
+		return trim( $html );
+	}
+	add_filter( 'post_thumbnail_html', 'jetpack_featured_images_fallback_get_image', 10, 5 );
+
 }
-add_filter( 'post_thumbnail_html', 'jetpack_featured_images_fallback_get_image', 10, 5 );
 
-/**
- * Get URL of one image from a specified post in the following order:
- * Featured Image then first image from the_content HTML
- *
- * @param int    $post_id           The post ID to check.
- * @param int    $post_thumbnail_id The ID of the featured image.
- * @param string $size              The image size to return, defaults to 'post-thumbnail'.
- *
- * @return string|null $image_src         The URL of the thumbnail image.
- */
-function jetpack_featured_images_fallback_get_image_src( $post_id, $post_thumbnail_id, $size ) {
-	$image_src = wp_get_attachment_image_src( $post_thumbnail_id, $size );
-	$image_src = ( ! empty( $image_src[0] ) ) ? $image_src[0] : null;
-	$opts      = jetpack_featured_images_get_settings();
+if ( ! function_exists( 'jetpack_featured_images_fallback_get_image_src' ) ) {
 
-	if ( ! empty( $image_src ) || (bool) 1 !== (bool) $opts['fallback-option'] ) {
-		return esc_url( $image_src );
-	}
+	/**
+	 * Get URL of one image from a specified post in the following order:
+	 * Featured Image then first image from the_content HTML
+	 *
+	 * @deprecated 13.9 Moved to Classic Theme Helper package.
+	 * @param int    $post_id           The post ID to check.
+	 * @param int    $post_thumbnail_id The ID of the featured image.
+	 * @param string $size              The image size to return, defaults to 'post-thumbnail'.
+	 *
+	 * @return string|null $image_src         The URL of the thumbnail image.
+	 */
+	function jetpack_featured_images_fallback_get_image_src( $post_id, $post_thumbnail_id, $size ) {
+		_deprecated_function( __FUNCTION__, 'jetpack-13.9' );
+		$image_src = wp_get_attachment_image_src( $post_thumbnail_id, $size );
+		$image_src = ( ! empty( $image_src[0] ) ) ? $image_src[0] : null;
+		$opts      = jetpack_featured_images_get_settings();
 
-	if ( jetpack_featured_images_should_load() ) {
-		if ( ( true === $opts['archive'] && ( is_home() || is_archive() || is_search() ) && ! $opts['archive-option'] )
-			|| ( true === $opts['post'] && is_single() && ! $opts['post-option'] ) ) {
-				return esc_url( $image_src );
+		if ( ! empty( $image_src ) || (bool) 1 !== (bool) $opts['fallback-option'] ) {
+			return esc_url( $image_src );
 		}
-	}
 
-	if ( class_exists( 'Jetpack_PostImages' ) ) {
+		if ( jetpack_featured_images_should_load() ) {
+			if ( ( true === $opts['archive'] && ( is_home() || is_archive() || is_search() ) && ! $opts['archive-option'] )
+				|| ( true === $opts['post'] && is_single() && ! $opts['post-option'] ) ) {
+					return esc_url( $image_src );
+			}
+		}
+
 		global $_wp_additional_image_sizes;
 
 		$args = array(
@@ -167,7 +180,7 @@ function jetpack_featured_images_fallback_get_image_src( $post_id, $post_thumbna
 			'from_attachment' => false,
 		);
 
-		$image = Jetpack_PostImages::get_image( $post_id, $args );
+		$image = Images::get_image( $post_id, $args );
 
 		if ( ! empty( $image ) ) {
 			$image['width']  = '';
@@ -180,46 +193,60 @@ function jetpack_featured_images_fallback_get_image_src( $post_id, $post_thumbna
 				$image['crop']   = $_wp_additional_image_sizes[ $size ]['crop'];
 			}
 
-			$image_src = Jetpack_PostImages::fit_image_url( $image['src'], $image['width'], $image['height'] );
+			$image_src = Images::fit_image_url( $image['src'], $image['width'], $image['height'] );
 
 			// Use the theme's crop setting rather than forcing to true.
 			$image_src = add_query_arg( 'crop', $image['crop'], $image_src );
 
 			return esc_url( $image_src );
 		}
+
+		return esc_url( $image_src );
 	}
 
-	return esc_url( $image_src );
 }
 
-/**
- * Check if post has an image attached, including a fallback.
- *
- * @param  int $post The post ID to check.
- *
- * @return bool
- */
-function jetpack_has_featured_image( $post = null ) {
-	return (bool) get_the_post_thumbnail( $post );
-}
+if ( ! function_exists( 'jetpack_has_featured_image' ) ) {
 
-/**
- * Adds custom class to the array of post classes.
- *
- * @param array $classes Classes for the post element.
- * @param array $class   Optional. Comma separated list of additional classes.
- * @param array $post_id Unique The post ID to check.
- *
- * @return array $classes
- */
-function jetpack_featured_images_post_class( $classes, $class, $post_id ) {
-	$post_password_required = post_password_required( $post_id );
-	$opts                   = jetpack_featured_images_get_settings();
-
-	if ( jetpack_has_featured_image( $post_id ) && (bool) 1 === (bool) $opts['fallback-option'] && ! is_attachment() && ! $post_password_required && 'post' === get_post_type() ) {
-		$classes[] = 'has-post-thumbnail';
+	/**
+	 * Check if post has an image attached, including a fallback.
+	 *
+	 * @deprecated 13.9 Moved to Classic Theme Helper package.
+	 * @param  int $post The post ID to check.
+	 *
+	 * @return bool
+	 */
+	function jetpack_has_featured_image( $post = null ) {
+		_deprecated_function( __FUNCTION__, 'jetpack-13.9' );
+		return (bool) get_the_post_thumbnail( $post );
 	}
 
-	return $classes;
 }
-add_filter( 'post_class', 'jetpack_featured_images_post_class', 10, 3 );
+
+if ( ! function_exists( 'jetpack_featured_images_post_class' ) ) {
+
+	/**
+	 * Adds custom class to the array of post classes.
+	 *
+	 * @deprecated 13.9 Moved to Classic Theme Helper package.
+	 * @param array $classes Classes for the post element.
+	 * @param array $class   Optional. Comma-separated list of additional classes.
+	 * @param array $post_id Unique The post ID to check.
+	 *
+	 * @return array $classes
+	 */
+	function jetpack_featured_images_post_class( $classes, $class, $post_id ) {
+		_deprecated_function( __FUNCTION__, 'jetpack-13.9' );
+		$post_password_required = post_password_required( $post_id );
+		$opts                   = jetpack_featured_images_get_settings();
+
+		if ( jetpack_has_featured_image( $post_id ) && (bool) 1 === (bool) $opts['fallback-option'] && ! is_attachment() && ! $post_password_required && 'post' === get_post_type() ) {
+			$classes[] = 'has-post-thumbnail';
+			$classes[] = 'fallback-thumbnail';
+		}
+
+		return $classes;
+	}
+	add_filter( 'post_class', 'jetpack_featured_images_post_class', 10, 3 );
+
+}

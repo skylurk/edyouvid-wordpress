@@ -4,11 +4,10 @@ namespace PrestoPlayer\Services;
 
 use PrestoPlayer\Database\Migrations as DatabaseMigrations;
 
-class Migrations
-{
+class Migrations {
 
-    public function register()
-    {
-        DatabaseMigrations::run();
-    }
+
+	public function register() {
+		DatabaseMigrations::run();
+	}
 }

@@ -1,30 +1,37 @@
 <?php
+/**
+ * Vimeo Block.
+ *
+ * @package PrestoPlayer\Blocks
+ */
 
 namespace PrestoPlayer\Blocks;
 
 use PrestoPlayer\Support\Block;
 
-class VimeoBlock extends Block
-{
-    /**
-     * Block name
-     *
-     * @var string
-     */
-    protected $name = 'vimeo';
+/**
+ * Vimeo Block.
+ */
+class VimeoBlock extends Block {
 
-    /**
-     * Register the block type.
-     *
-     * @return void
-     */
-    public function registerBlockType()
-    {
-        register_block_type(
-            PRESTO_PLAYER_PLUGIN_DIR . 'src/admin/blocks/blocks/vimeo',
-            array(
-                'render_callback' => [$this, 'html'],
-            )
-        );
-    }
+	/**
+	 * Block name.
+	 *
+	 * @var string
+	 */
+	protected $name = 'vimeo';
+
+	/**
+	 * Register the block type.
+	 *
+	 * @return void
+	 */
+	public function registerBlockType() {
+		register_block_type(
+			PRESTO_PLAYER_PLUGIN_DIR . 'src/admin/blocks/blocks/vimeo',
+			array(
+				'render_callback' => array( $this, 'html' ),
+			)
+		);
+	}
 }

@@ -197,7 +197,7 @@ if (!class_exists('WT_UserImport_Uninstall_Feedback')) :
                         
                         modal.on('click', 'a.review-and-deactivate', function (e) {
                                 e.preventDefault();
-                                window.open("https://wordpress.org/support/plugin/users-customers-import-export-for-wp-woocommerce/reviews/?filter=5#new-post");
+                                window.open("https://wordpress.org/support/plugin/users-customers-import-export-for-wp-woocommerce/reviews/#new-post");
                                 window.location.href = deactivateLink;
                             });
                         modal.on('click', 'a.doc-and-support-doc', function (e) {

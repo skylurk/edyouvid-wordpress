@@ -5,6 +5,169 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.2] - 2026-06-09
+### Changed
+- Update package dependencies. [#49273]
+
+## [0.9.1] - 2026-06-08
+### Changed
+- Internal updates.
+
+## [0.9.0] - 2026-06-05
+### Added
+- Add a shared, token-only WPDS design-tokens stylesheet and enqueue it on Jetpack admin pages so `var(--wpds-*)` values resolve at runtime. [#49345]
+
+## [0.8.9] - 2026-06-03
+### Changed
+- Internal updates.
+
+## [0.8.8] - 2026-06-02
+### Changed
+- Update dependencies. [#48834]
+
+## [0.8.7] - 2026-06-01
+### Added
+- Hide WordPress core admin notices on Jetpack admin pages. [#49237]
+
+## [0.8.6] - 2026-05-21
+### Changed
+- Update package dependencies. [#48405]
+
+## [0.8.5] - 2026-05-19
+### Changed
+- Internal updates.
+
+## [0.8.4] - 2026-05-14
+### Changed
+- Update dependencies. [#48778]
+
+## [0.8.3] - 2026-05-11
+### Changed
+- Update dependencies.
+
+## [0.8.2] - 2026-05-04
+### Changed
+- Internal: No longer require automattic/jetpack-changelogger as a per-project dev dependency. [#48225]
+
+## [0.8.1] - 2026-04-20
+### Changed
+- Update package dependencies. [#48106]
+
+## [0.8.0] - 2026-04-10
+### Changed
+- Hide the sidebar upsell when the site is not connected to Jetpack or is in offline mode. [#47967]
+
+## [0.7.1] - 2026-04-09
+### Changed
+- Update package dependencies. [#47890]
+
+## [0.7.0] - 2026-04-06
+### Added
+- Add "Upgrade Jetpack" menu item for free users in the Jetpack admin menu. [#47418]
+- Admin: Record Tracks when the Jetpack sidebar "Upgrade Jetpack" link is clicked. [#47937]
+
+### Changed
+- Update design of the sidebar upsell. [#47909]
+
+### Fixed
+- Fix upgrade menu item color on problematic admin color schemes and add build pipeline for CSS assets. [#47903]
+
+## [0.6.0] - 2026-03-30
+### Changed
+- Sidebar: Change "Anti-spam" to "Akismet Anti-spam". [#47834]
+
+## [0.5.12] - 2026-03-09
+### Changed
+- Simplify Akismet admin menu title from 'Akismet Anti-spam' to 'Anti-spam'. [#47417]
+
+## [0.5.11] - 2025-08-04
+### Changed
+- Internal updates.
+
+## [0.5.10] - 2025-06-06
+### Fixed
+- Fix the Jetpack submenu order for WordPress.com sites that use Nav Unification. [#43781]
+
+## [0.5.9] - 2025-05-05
+### Fixed
+- Remove the Jetpack submenu only if My Jetpack is present. [#43282]
+
+## [0.5.8] - 2025-04-28
+### Changed
+- Internal updates.
+
+## [0.5.7] - 2025-03-21
+### Changed
+- Internal updates.
+
+## [0.5.6] - 2025-03-17
+### Changed
+- Internal updates.
+
+## [0.5.5] - 2025-03-12
+### Changed
+- Internal updates.
+
+## [0.5.4] - 2025-03-05
+### Changed
+- Internal updates.
+
+## [0.5.3] - 2025-02-24
+### Changed
+- Update dependencies.
+
+## [0.5.2] - 2025-02-03
+### Added
+- Add `remove_menu` method to `Admin_Menu` class. [#41422]
+
+## [0.5.1] - 2024-11-25
+### Changed
+- Update dependencies. [#40286]
+
+## [0.5.0] - 2024-11-14
+### Removed
+- General: Update minimum PHP version to 7.2. [#40147]
+
+## [0.4.6] - 2024-11-04
+### Added
+- Enable test coverage. [#39961]
+
+## [0.4.5] - 2024-09-05
+### Changed
+- Jetpack menu: only register Jetpack admin page for contributor roles and above. [#39081]
+
+## [0.4.4] - 2024-08-29
+### Changed
+- Admin menu: change order of Jetpack sub-menu items [#39095]
+
+## [0.4.3] - 2024-08-23
+### Changed
+- Updated package dependencies. [#39004]
+
+## [0.4.2] - 2024-04-22
+### Changed
+- Internal updates.
+
+## [0.4.1] - 2024-03-12
+### Changed
+- Internal updates.
+
+## [0.4.0] - 2024-03-01
+### Added
+- Register menus in network admin as well as regular admin. [#36058]
+
+## [0.3.2] - 2024-01-29
+### Fixed
+- Wait until 'admin_menu' action to call `add_menu()`, to avoid triggering the l10n load too early. [#35279]
+
+## [0.3.1] - 2023-11-24
+
+## [0.3.0] - 2023-11-20
+### Changed
+- Updated required PHP version to >= 7.0. [#34192]
+
+## [0.2.25] - 2023-11-14
+
 ## [0.2.24] - 2023-10-30
 ### Fixed
 - Handle Akismet submenu even if Jetpack is present, as Jetpack now relies on this package to do so. [#33559]
@@ -124,6 +287,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixing menu visibility issues.
 
+[0.9.2]: https://github.com/Automattic/jetpack-admin-ui/compare/0.9.1...0.9.2
+[0.9.1]: https://github.com/Automattic/jetpack-admin-ui/compare/0.9.0...0.9.1
+[0.9.0]: https://github.com/Automattic/jetpack-admin-ui/compare/0.8.9...0.9.0
+[0.8.9]: https://github.com/Automattic/jetpack-admin-ui/compare/0.8.8...0.8.9
+[0.8.8]: https://github.com/Automattic/jetpack-admin-ui/compare/0.8.7...0.8.8
+[0.8.7]: https://github.com/Automattic/jetpack-admin-ui/compare/0.8.6...0.8.7
+[0.8.6]: https://github.com/Automattic/jetpack-admin-ui/compare/0.8.5...0.8.6
+[0.8.5]: https://github.com/Automattic/jetpack-admin-ui/compare/0.8.4...0.8.5
+[0.8.4]: https://github.com/Automattic/jetpack-admin-ui/compare/0.8.3...0.8.4
+[0.8.3]: https://github.com/Automattic/jetpack-admin-ui/compare/0.8.2...0.8.3
+[0.8.2]: https://github.com/Automattic/jetpack-admin-ui/compare/0.8.1...0.8.2
+[0.8.1]: https://github.com/Automattic/jetpack-admin-ui/compare/0.8.0...0.8.1
+[0.8.0]: https://github.com/Automattic/jetpack-admin-ui/compare/0.7.1...0.8.0
+[0.7.1]: https://github.com/Automattic/jetpack-admin-ui/compare/0.7.0...0.7.1
+[0.7.0]: https://github.com/Automattic/jetpack-admin-ui/compare/0.6.0...0.7.0
+[0.6.0]: https://github.com/Automattic/jetpack-admin-ui/compare/0.5.12...0.6.0
+[0.5.12]: https://github.com/Automattic/jetpack-admin-ui/compare/0.5.11...0.5.12
+[0.5.11]: https://github.com/Automattic/jetpack-admin-ui/compare/0.5.10...0.5.11
+[0.5.10]: https://github.com/Automattic/jetpack-admin-ui/compare/0.5.9...0.5.10
+[0.5.9]: https://github.com/Automattic/jetpack-admin-ui/compare/0.5.8...0.5.9
+[0.5.8]: https://github.com/Automattic/jetpack-admin-ui/compare/0.5.7...0.5.8
+[0.5.7]: https://github.com/Automattic/jetpack-admin-ui/compare/0.5.6...0.5.7
+[0.5.6]: https://github.com/Automattic/jetpack-admin-ui/compare/0.5.5...0.5.6
+[0.5.5]: https://github.com/Automattic/jetpack-admin-ui/compare/0.5.4...0.5.5
+[0.5.4]: https://github.com/Automattic/jetpack-admin-ui/compare/0.5.3...0.5.4
+[0.5.3]: https://github.com/Automattic/jetpack-admin-ui/compare/0.5.2...0.5.3
+[0.5.2]: https://github.com/Automattic/jetpack-admin-ui/compare/0.5.1...0.5.2
+[0.5.1]: https://github.com/Automattic/jetpack-admin-ui/compare/0.5.0...0.5.1
+[0.5.0]: https://github.com/Automattic/jetpack-admin-ui/compare/0.4.6...0.5.0
+[0.4.6]: https://github.com/Automattic/jetpack-admin-ui/compare/0.4.5...0.4.6
+[0.4.5]: https://github.com/Automattic/jetpack-admin-ui/compare/0.4.4...0.4.5
+[0.4.4]: https://github.com/Automattic/jetpack-admin-ui/compare/0.4.3...0.4.4
+[0.4.3]: https://github.com/Automattic/jetpack-admin-ui/compare/0.4.2...0.4.3
+[0.4.2]: https://github.com/Automattic/jetpack-admin-ui/compare/0.4.1...0.4.2
+[0.4.1]: https://github.com/Automattic/jetpack-admin-ui/compare/0.4.0...0.4.1
+[0.4.0]: https://github.com/Automattic/jetpack-admin-ui/compare/0.3.2...0.4.0
+[0.3.2]: https://github.com/Automattic/jetpack-admin-ui/compare/0.3.1...0.3.2
+[0.3.1]: https://github.com/Automattic/jetpack-admin-ui/compare/0.3.0...0.3.1
+[0.3.0]: https://github.com/Automattic/jetpack-admin-ui/compare/0.2.25...0.3.0
+[0.2.25]: https://github.com/Automattic/jetpack-admin-ui/compare/0.2.24...0.2.25
 [0.2.24]: https://github.com/Automattic/jetpack-admin-ui/compare/0.2.23...0.2.24
 [0.2.23]: https://github.com/Automattic/jetpack-admin-ui/compare/0.2.22...0.2.23
 [0.2.22]: https://github.com/Automattic/jetpack-admin-ui/compare/0.2.21...0.2.22

@@ -12,6 +12,10 @@ namespace Automattic\Jetpack\Extensions\Google_Calendar;
 use Automattic\Jetpack\Blocks;
 use Jetpack_Gutenberg;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Registers the block for use in Gutenberg
  * This is done via an action so that we can disable
@@ -34,7 +38,7 @@ add_action( 'init', __NAMESPACE__ . '\register_block' );
  * @return string
  */
 function load_assets( $attr ) {
-	$height  = isset( $attr['height'] ) ? $attr['height'] : '600';
+	$height  = $attr['height'] ?? '600';
 	$url     = isset( $attr['url'] )
 		? Jetpack_Gutenberg::validate_block_embed_url( $attr['url'], array( 'calendar.google.com' ) ) :
 		'';

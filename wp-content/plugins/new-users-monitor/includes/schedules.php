@@ -4,6 +4,10 @@
  * schedules.php
  */
 	
+	if ( ! defined( 'ABSPATH' ) ) {
+		exit; // Exit if accessed directly
+	}
+	
 	// Шедуллер. Клиринг при деактивации.
 	register_deactivation_hook( __FILE__, 'num_deactivation');
 	function num_deactivation() {

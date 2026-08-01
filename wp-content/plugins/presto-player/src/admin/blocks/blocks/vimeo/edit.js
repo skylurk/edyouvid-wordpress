@@ -1,14 +1,8 @@
 /**
  * WordPress dependencies
  */
-const {
-  Button,
-  Disabled,
-  Toolbar,
-  Placeholder,
-  Spinner,
-  withNotices,
-} = wp.components;
+const { Button, Disabled, Toolbar, Placeholder, Spinner, withNotices } =
+  wp.components;
 import { BlockControls, InspectorControls } from "@wordpress/block-editor";
 const { useEffect } = wp.element;
 const { __ } = wp.i18n;
@@ -27,6 +21,7 @@ import Player from "@/admin/blocks/shared/Player";
 import LinkPlaceholder from "@/admin/blocks/shared/LinkPlaceholder";
 import { getVimeoId } from "@/shared/util.js";
 import { usePrevious } from "@/admin/blocks/util";
+import Editing from "../../shared/Editing";
 
 export default compose([withPlayerData(), withPlayerEdit()])(
   withNotices(
@@ -120,16 +115,11 @@ export default compose([withPlayerData(), withPlayerEdit()])(
         <>
           <BlockControls>
             <Toolbar>
-              {/* <TracksEditor
-              tracks={tracks}
-              onChange={(newTracks) => {
-                setAttributes({ tracks: newTracks });
-              }}
-            /> */}
               <Button onClick={() => onRemoveSrc()}>
                 {__("Replace", "presto-player")}
               </Button>
             </Toolbar>
+            <Editing />
           </BlockControls>
 
           <InspectorControls>

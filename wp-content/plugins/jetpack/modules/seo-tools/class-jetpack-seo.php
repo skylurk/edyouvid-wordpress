@@ -7,6 +7,8 @@
 
 /**
  * An SEO expert walks into a bar, bars, pub, public house, Irish pub, drinks, beer, wine, liquor, Grey Goose, Cristal...
+ *
+ * @phan-constructor-used-for-side-effects
  */
 class Jetpack_SEO {
 	/**
@@ -57,6 +59,39 @@ class Jetpack_SEO {
 		Jetpack_SEO_Posts::register_post_meta();
 		// Exclude posts with 'jetpack_seo_noindex' set true from the Jetpack sitemap.
 		add_filter( 'jetpack_sitemap_skip_post', array( 'Jetpack_SEO_Posts', 'exclude_noindex_posts_from_jetpack_sitemap' ), 10, 2 );
+		add_action( 'rest_api_init', array( $this, 'add_custom_field_post_type_meta' ) );
+	}
+
+	/**
+	 * Add custom field meta to all public post types that don't already have it.
+	 */
+	public function add_custom_field_post_type_meta() {
+		/**
+		 * Filter the list of post types for which custom fields support is added.
+		 *
+		 * This filter allows modification of the post types that will be processed
+		 * to add support for custom fields if they do not already support it.
+		 *
+		 * @since 14.2
+		 *
+		 * @param array $post_types An array of post type names.
+		 */
+		$post_types = apply_filters(
+			'jetpack_seo_custom_field_post_types',
+			get_post_types(
+				array(
+					'public'   => true,
+					'show_ui'  => true,
+					'_builtin' => false,
+				)
+			)
+		);
+
+		foreach ( $post_types as $post_type ) {
+			if ( ! post_type_supports( $post_type, 'custom-fields' ) ) {
+				add_post_type_support( $post_type, 'custom-fields' );
+			}
+		}
 	}
 
 	/**
@@ -68,6 +103,9 @@ class Jetpack_SEO {
 		$authors = array();
 
 		foreach ( $wp_query->posts as $post ) {
+			if ( ! $post instanceof WP_Post ) {
+				continue;
+			}
 			$authors[] = get_the_author_meta( 'display_name', (int) $post->post_author );
 		}
 
@@ -161,7 +199,7 @@ class Jetpack_SEO {
 			$meta['description'] = sprintf(
 				/* translators: first property is an user's display name, the second is the site's title. */
 				_x( 'Read all of the posts by %1$s on %2$s', 'Read all of the posts by Author Name on Blog Title', 'jetpack' ),
-				isset( $obj->display_name ) ? $obj->display_name : __( 'the author', 'jetpack' ),
+				$obj->display_name ?? __( 'the author', 'jetpack' ),
 				get_bloginfo( 'title' )
 			);
 		} elseif ( is_tag() || is_category() || is_tax() ) {
@@ -242,6 +280,10 @@ class Jetpack_SEO {
 		 * @param array Array that consists of meta name and meta content pairs.
 		 */
 		$meta = apply_filters( 'jetpack_seo_meta_tags', $meta );
+
+		if ( ! is_array( $meta ) ) {
+			return;
+		}
 
 		// Output them.
 		foreach ( $meta as $name => $content ) {

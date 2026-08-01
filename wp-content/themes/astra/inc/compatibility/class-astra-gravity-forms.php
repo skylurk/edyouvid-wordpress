@@ -13,7 +13,7 @@ if ( ! class_exists( 'GFForms' ) ) {
 /**
  * Astra Gravity Forms
  */
-if ( ! class_exists( 'Astra_Gravity_Forms' ) ) :
+if ( ! class_exists( 'Astra_Gravity_Forms' ) ) {
 
 	/**
 	 * Astra Gravity Forms
@@ -21,7 +21,6 @@ if ( ! class_exists( 'Astra_Gravity_Forms' ) ) :
 	 * @since 1.0.0
 	 */
 	class Astra_Gravity_Forms {
-
 		/**
 		 * Member Variable
 		 *
@@ -43,6 +42,9 @@ if ( ! class_exists( 'Astra_Gravity_Forms' ) ) :
 		 * Constructor
 		 */
 		public function __construct() {
+			if ( Astra_Dynamic_CSS::astra_4_6_0_compatibility() ) {
+				return;
+			}
 			add_action( 'gform_enqueue_scripts', array( $this, 'add_styles' ) );
 		}
 
@@ -52,8 +54,8 @@ if ( ! class_exists( 'Astra_Gravity_Forms' ) ) :
 		 * @since 1.0.0
 		 */
 		public function add_styles() {
-			$file_prefix = ( SCRIPT_DEBUG ) ? '' : '.min';
-			$dir_name    = ( SCRIPT_DEBUG ) ? 'unminified' : 'minified';
+			$file_prefix = '.min';
+			$dir_name    = 'minified';
 
 			if ( is_rtl() ) {
 				$file_prefix .= '-rtl';
@@ -66,7 +68,7 @@ if ( ! class_exists( 'Astra_Gravity_Forms' ) ) :
 
 	}
 
-endif;
+}
 
 /**
  * Kicking this off by calling 'get_instance()' method

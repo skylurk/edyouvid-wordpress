@@ -2,25 +2,22 @@
 
 namespace PrestoPlayer\Seeds;
 
-class Seeder
-{
-    protected $seeders;
+class Seeder {
 
-    public function __construct(PresetSeeder $presetSeeder, AudioPresetSeeder $audioPresetSeeder)
-    {
-        $this->seeders[] = $presetSeeder;
-        $this->seeders[] = $audioPresetSeeder;
-    }
+	protected $seeders;
 
-    public function register()
-    {
-        add_action('admin_init', [$this, 'seed']);
-    }
+	public function __construct( PresetSeeder $presetSeeder, AudioPresetSeeder $audioPresetSeeder ) {
+		$this->seeders[] = $presetSeeder;
+		$this->seeders[] = $audioPresetSeeder;
+	}
 
-    public function seed()
-    {
-        foreach ($this->seeders as $seeder) {
-            $seeder->run();
-        }
-    }
+	public function register() {
+		add_action( 'admin_init', array( $this, 'seed' ) );
+	}
+
+	public function seed() {
+		foreach ( $this->seeders as $seeder ) {
+			$seeder->run();
+		}
+	}
 }

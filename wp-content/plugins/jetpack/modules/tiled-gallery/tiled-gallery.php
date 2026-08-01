@@ -4,6 +4,10 @@ use Automattic\Jetpack\Assets;
 use Automattic\Jetpack\Image_CDN\Image_CDN;
 use Automattic\Jetpack\Status;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 // Include the class file containing methods for rounding constrained array elements.
 // Here the constrained array element is the dimension of a row, group or an image in the tiled gallery.
 require_once __DIR__ . '/math/class-constrained-array-rounding.php';
@@ -68,7 +72,7 @@ class Jetpack_Tiled_Gallery {
 			array(
 				'order'     => 'ASC',
 				'orderby'   => 'menu_order ID',
-				'id'        => isset( $post->ID ) ? $post->ID : 0,
+				'id'        => $post->ID ?? 0,
 				'include'   => '',
 				'exclude'   => '',
 				'type'      => '',
@@ -182,7 +186,10 @@ class Jetpack_Tiled_Gallery {
 			),
 			array(),
 			JETPACK__VERSION,
-			false
+			array(
+				'in_footer' => true,
+				'strategy'  => 'defer',
+			)
 		);
 		wp_enqueue_style( 'tiled-gallery', plugins_url( 'tiled-gallery/tiled-gallery.css', __FILE__ ), array(), '2023-08-21' );
 		wp_style_add_data( 'tiled-gallery', 'rtl', 'replace' );

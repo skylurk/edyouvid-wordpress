@@ -6,7 +6,7 @@ use Automattic\Jetpack\Redirect;
 
 // Disable direct access/execution to/of the widget code.
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+	exit( 0 );
 }
 
 /**
@@ -44,10 +44,6 @@ class Jetpack_My_Community_Widget extends WP_Widget {
 			)
 		);
 
-		if ( is_active_widget( false, false, $this->id_base ) || is_active_widget( false, false, 'monster' ) || is_customize_preview() ) {
-			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_style' ) );
-		}
-
 		$this->default_title = esc_html__( 'Community', 'jetpack' );
 
 		add_filter( 'widget_types_to_hide_from_legacy_widget_block', array( $this, 'hide_widget_in_block_editor' ) );
@@ -82,7 +78,7 @@ class Jetpack_My_Community_Widget extends WP_Widget {
 	 * @return string|void
 	 */
 	public function form( $instance ) {
-		$title = isset( $instance['title'] ) ? $instance['title'] : false;
+		$title = $instance['title'] ?? false;
 		if ( false === $title ) {
 			$title = $this->default_title;
 		}
@@ -190,6 +186,9 @@ class Jetpack_My_Community_Widget extends WP_Widget {
 		if ( false === $title ) {
 			$title = $this->default_title;
 		}
+
+		// Enqueue front end assets.
+		$this->enqueue_style();
 
 		echo $args['before_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 

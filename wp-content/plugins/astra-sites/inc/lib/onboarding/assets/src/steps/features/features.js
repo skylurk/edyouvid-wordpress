@@ -1,5 +1,5 @@
 import { __ } from '@wordpress/i18n';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useStateValue } from '../../store/store';
 const { imageDir } = starterTemplates;
 import {
@@ -16,12 +16,20 @@ import {
 	ShoppingCartIcon,
 	ArrowLongRightIcon,
 	ChevronUpIcon,
+	EnvelopeIcon,
+	CalendarIcon,
+	ArrowTrendingUpIcon,
+	UsersIcon,
 } from '@heroicons/react/24/outline';
-import { classNames } from '../../utils/functions';
-import { checkRequiredPlugins } from '../import-site/import-utils';
+import { classNames, trackOnboardingStep } from '../../utils/functions';
+import {
+	checkRequiredPlugins,
+	getFeaturePluginList,
+} from '../import-site/import-utils';
 import Container from './container';
 import Button from './button';
 import Dropdown from './dropdown';
+import RequiredPlugins from './RequiredPlugins';
 
 const ICON_SET = {
 	heart: HeartIcon,
@@ -33,6 +41,10 @@ const ICON_SET = {
 	'contact-form': QueueListIcon,
 	blog: Squares2X2Icon,
 	ecommerce: ShoppingCartIcon,
+	envelope: EnvelopeIcon,
+	calendar: CalendarIcon,
+	'arrow-trending-up': ArrowTrendingUpIcon,
+	users: UsersIcon,
 };
 
 const getPluginProps = ( id ) => {
@@ -117,7 +129,7 @@ const EcommerceOptions = ( {
 							<ChevronUpIcon
 								className={ classNames(
 									'w-3 h-3 text-app-active-icon',
-									open ? 'transform rotate-180' : ''
+									open ? '' : 'transform rotate-180'
 								) }
 							/>
 						) }
@@ -162,69 +174,88 @@ const EcommerceOptions = ( {
 const ClassicFeatures = () => {
 	const [
 		{
-			requiredPlugins,
 			siteFeatures,
 			currentIndex,
 			selectedTemplateID,
 			isEcommerce,
 			selectedEcommercePlugin,
+			templateResponse,
 		},
 		dispatch,
 	] = useStateValue();
 	const storedState = useStateValue();
-	const [ selectedEcom, setSelectedEcom ] = useState( 'surecart' );
+	const [ selectedEcom, setSelectedEcom ] = useState();
 	const [ ecomSupported, setEcomSupported ] = useState( [
 		'surecart',
 		'woocommerce',
 	] );
 
-	useEffect( () => {
-		if ( isEcommerce ) {
-			const activeSlugs = requiredPlugins?.required_plugins?.active?.map(
-				( plugin ) => plugin.slug
-			);
-			const inactiveSlugs =
-				requiredPlugins?.required_plugins?.inactive?.map(
-					( plugin ) => plugin.slug
-				);
+	// Template required plugins list.
+	const templateRequiredPluginsList = useMemo( () => {
+		return ( templateResponse?.[ 'required-plugins' ] ?? [] )?.map(
+			( plugin ) => ( {
+				...plugin,
+				compulsory: true,
+			} )
+		);
+	}, [ templateResponse ] );
 
-			setEcomSupported( [ 'surecart', 'woocommerce' ] );
-			if (
-				activeSlugs.includes( 'surecart' ) ||
-				inactiveSlugs.includes( 'surecart' )
-			) {
-				setSelectedEcom( 'surecart' );
-			} else {
-				setSelectedEcom( 'woocommerce' ); // Default to WooCommerce if surecart is not found
+	useEffect( () => {
+		const allSlugs =
+			templateRequiredPluginsList?.map( ( plugin ) => plugin.slug ) || [];
+
+		setEcomSupported( [ 'surecart', 'woocommerce' ] );
+
+		// Handle selected ecommerce plugin
+		if ( isEcommerce ) {
+			if ( ! selectedEcom || selectedEcom !== selectedEcommercePlugin ) {
+				setSelectedEcom(
+					allSlugs?.includes( 'surecart' )
+						? 'surecart'
+						: 'woocommerce'
+				);
+			}
+		} else {
+			setSelectedEcom( selectedEcom || 'surecart' );
+		}
+
+		// Update features in a single pass
+		const updatedFeatures = siteFeatures.map( ( feature ) => {
+			const hasRequiredPlugin = feature?.plugins?.some( ( slug ) =>
+				allSlugs.includes( slug )
+			);
+
+			if ( feature.id === 'ecommerce' ) {
+				return {
+					...feature,
+					compulsory: isEcommerce || hasRequiredPlugin,
+					enabled: isEcommerce || hasRequiredPlugin,
+				};
 			}
 
-			const updatedFeatures = siteFeatures.map( ( feature ) => {
-				if ( feature.id === 'ecommerce' ) {
-					return { ...feature, compulsory: true, enabled: true };
-				}
-				return feature;
-			} );
-			dispatch( {
-				type: 'set',
-				siteFeatures: updatedFeatures,
-			} );
-		} else {
-			setEcomSupported( [ 'surecart', 'woocommerce' ] );
-			setSelectedEcom( 'surecart' ); // Default to 'surecart'
+			return {
+				...feature,
+				compulsory: hasRequiredPlugin || feature.compulsory,
+				enabled: hasRequiredPlugin || feature.enabled,
+			};
+		} );
 
-			// Ensure the ecommerce feature is not compulsory when no plugin is selected
-			const updatedFeatures = siteFeatures.map( ( feature ) => {
-				if ( feature.id === 'ecommerce' ) {
-					return { ...feature, compulsory: false };
-				}
-				return feature;
-			} );
-			dispatch( {
-				type: 'set',
-				siteFeatures: updatedFeatures,
-			} );
-		}
-	}, [ selectedTemplateID, isEcommerce, selectedEcommercePlugin ] );
+		dispatch( {
+			type: 'set',
+			siteFeatures: updatedFeatures,
+		} );
+	}, [
+		selectedTemplateID,
+		isEcommerce,
+		selectedEcommercePlugin,
+		templateRequiredPluginsList,
+	] );
+
+	useEffect( () => {
+		// Track features step when component mounts
+		trackOnboardingStep( 'features' );
+	}, [] );
+
 	const handleToggleFeature = ( featureId ) => () => {
 		const updatedFeatures = siteFeatures.map( ( feature ) => {
 			if ( feature.compulsory ) {
@@ -243,23 +274,19 @@ const ClassicFeatures = () => {
 	};
 
 	const setNextStep = async () => {
-		dispatch( {
-			type: 'set',
-			currentIndex: currentIndex + 1,
-		} );
-
 		const enabledFeatureIds = siteFeatures
 			.filter( ( component ) => component.enabled )
 			.map( ( component ) => component.id );
 
-		dispatch( {
-			type: 'set',
-			enabledFeatureIds,
-		} );
-
 		storedState[ 0 ].enabledFeatureIds = enabledFeatureIds;
+		storedState[ 0 ].selectedEcommercePlugin = selectedEcom;
 
 		await checkRequiredPlugins( storedState );
+		await dispatch( {
+			type: 'set',
+			enabledFeatureIds,
+			currentIndex: currentIndex + 1,
+		} );
 	};
 	const skipStep = () => {
 		dispatch( {
@@ -267,60 +294,76 @@ const ClassicFeatures = () => {
 			currentIndex: currentIndex + 1,
 		} );
 	};
-	return (
-		<Container className="grid grid-cols-1 gap-8 auto-rows-auto !max-w-[55rem] w-full mx-auto">
-			<div className="space-y-4 text-left">
-				<div className="space-y-3">
-					<div className="text-heading-text !text-[1.75rem] font-semibold leading-9">
-						{ __( 'Select features', 'astra-sites' ) }
-					</div>
-					<p className="text-body-text !text-base font-normal leading-6">
-						{ __(
-							'Select the features you want on this website',
-							'astra-sites'
-						) }
-					</p>
-				</div>
-			</div>
-			{ /* Feature Cards */ }
-			<div className="grid grid-cols-1 lg:grid-cols-2 auto-rows-auto gap-x-8 gap-y-5 w-full">
-				{ siteFeatures.map( ( feature ) => {
-					const isEcommerceFeature = feature.id === 'ecommerce';
 
-					const FeatureIcon = ICON_SET?.[ feature?.icon ];
-					return (
-						<div
-							key={ feature?.id }
-							className={ classNames(
-								'relative py-4 pl-4 pr-5 rounded-md shadow-sm border border-solid bg-white border-button-disabled transition-colors duration-150 ease-in-out',
-								feature?.enabled && 'border-classic-button',
-								'cursor-pointer'
+	// Generate the list of plugins required for the selected features along with the template required plugins.
+	const featurePluginsList = useMemo( () => {
+		const enabledFeatureIds =
+			siteFeatures
+				?.filter( ( feature ) => feature.enabled )
+				.map( ( feature ) => feature.id ) ?? [];
+
+		const allPlugins = [
+			...templateRequiredPluginsList,
+			...( getFeaturePluginList(
+				enabledFeatureIds,
+				selectedEcom,
+				templateRequiredPluginsList?.map( ( plugin ) => plugin.slug )
+			) ?? [] ),
+		];
+
+		// Remove duplicates based on plugin slug
+		const uniquePlugins = allPlugins.reduce( ( acc, plugin ) => {
+			if ( ! acc.some( ( p ) => p.slug === plugin.slug ) ) {
+				acc.push( plugin );
+			}
+			return acc;
+		}, [] );
+
+		return uniquePlugins;
+	}, [ templateRequiredPluginsList, siteFeatures, selectedEcom ] );
+
+	return (
+		<>
+			<Container className="grid grid-cols-1 gap-6 auto-rows-auto !max-w-[55rem] w-full mx-auto">
+				<div className="space-y-4 text-left">
+					<div className="space-y-3">
+						<div className="text-heading-text !text-[1.75rem] font-semibold leading-9">
+							{ __( 'Select features', 'astra-sites' ) }
+						</div>
+						<p className="text-body-text !text-base font-normal leading-6">
+							{ __(
+								'Select the features you want on this website',
+								'astra-sites'
 							) }
-						>
-							<div className="flex items-start justify-start gap-3">
-								<div className="p-0.5 shrink-0">
-									{ FeatureIcon && (
-										<FeatureIcon className="text-zip-body-text w-7 h-7" />
-									) }
-									{ ! FeatureIcon && (
-										<WrenchIcon className="text-zip-body-text w-7 h-7" />
-									) }
-								</div>
-								<div className="space-y-1 mr-0 w-full">
-									<p className="p-0 m-0 !text-base !font-semibold !text-zip-app-heading !text-left">
-										{ feature?.title }
-									</p>
-									<div className="flex justify-between items-start w-full">
-										<p className="p-0 m-0 !text-sm !font-normal !text-zip-body-text">
-											{ feature?.description }
+						</p>
+					</div>
+				</div>
+				{ /* Feature Cards */ }
+				<div className="grid grid-cols-1 lg:grid-cols-2 auto-rows-auto gap-4 w-full">
+					{ siteFeatures.map( ( feature ) => {
+						const isEcommerceFeature = feature.id === 'ecommerce';
+						const FeatureIcon =
+							ICON_SET?.[ feature?.icon ] || WrenchIcon;
+						return (
+							<div
+								key={ feature?.id }
+								className={ classNames(
+									'relative py-4 pl-4 pr-5 rounded-md shadow-sm border border-solid bg-white border-button-disabled transition-colors duration-150 ease-in-out',
+									feature?.enabled && 'border-classic-button',
+									'cursor-pointer'
+								) }
+							>
+								<div className="!flex !items-start !w-full">
+									<FeatureIcon className="w-8 h-8 text-app-active-icon" />
+
+									<div className="!ml-3 !w-full text-left">
+										<p className="!text-md !mb-1 !text-base !font-semibold !leading-6">
+											{ feature?.title }
 										</p>
-										<div
-											className="relative z-10"
-											onClick={ ( e ) => {
-												e.stopPropagation();
-												e.preventDefault();
-											} }
-										>
+										<div className="flex justify-between !items-start !w-full">
+											<p className="text-app-body-text text-sm font-normal leading-5 w-full">
+												{ feature?.description }
+											</p>
 											{ isEcommerceFeature && (
 												<EcommerceOptions
 													ecomSupported={
@@ -329,75 +372,85 @@ const ClassicFeatures = () => {
 													selectedEcom={
 														selectedEcom
 													}
+													disabled={
+														feature?.compulsory ===
+														true
+													} // Disabled if feature is compulsory
 													onChange={ setSelectedEcom }
-													disabled={ isEcommerce }
 													dispatch={ dispatch }
 												/>
 											) }
 										</div>
 									</div>
 								</div>
-							</div>
-							{ /* Check mark */ }
+								{ /* Check mark */ }
 
-							<span
-								className={ classNames(
-									'inline-flex absolute top-4 right-4 p-[0.1875rem] border border-solid border-zip-app-inactive-icon rounded',
-									feature?.enabled &&
-										'border-classic-button bg-classic-button',
-									feature?.compulsory &&
-										'border-button-disabled bg-button-disabled'
-								) }
-							>
-								<CheckIcon
-									className="w-2.5 h-2.5 text-white"
-									strokeWidth={ 4 }
-								/>
-							</span>
-							{ ! feature?.compulsory && (
-								<div
-									className="absolute inset-0 cursor-pointer"
-									onClick={ handleToggleFeature(
-										feature?.id
+								<span
+									className={ classNames(
+										'inline-flex absolute top-4 right-4 p-[0.1875rem] border border-solid border-zip-app-inactive-icon rounded',
+										feature?.enabled &&
+											'border-classic-button bg-classic-button',
+										feature?.compulsory &&
+											'border-button-disabled bg-button-disabled'
 									) }
-								/>
-							) }
-						</div>
-					);
-				} ) }
-			</div>
-			<div className="flex justify-between items-center mt-2">
-				<div className="flex gap-4">
-					<Button
-						variant="primary"
-						className="!bg-classic-button border border-solid border-classic-button flex gap-2 items-center h-11 text-[15px] leading-[15px]"
-						onClick={ setNextStep }
-					>
-						<span>{ __( 'Continue', 'astra-sites' ) }</span>
-						<ArrowLongRightIcon className="w-4 h-4 !fill-none" />
-					</Button>
-
-					<Button
-						variant="blank"
-						className="!bg-transparent !text-classic-button border border-solid border-classic-button px-4 py-2 rounded inline-flex items-center justify-center h-11 text-[15px] leading-[15px]"
-						onClick={ () =>
-							dispatch( {
-								type: 'set',
-								currentIndex: currentIndex - 1,
-							} )
-						}
-					>
-						{ __( 'Back', 'astra-sites' ) }
-					</Button>
+								>
+									<CheckIcon
+										className="w-2.5 h-2.5 text-white"
+										strokeWidth={ 4 }
+									/>
+								</span>
+								{ ! feature?.compulsory && (
+									<div
+										className="absolute inset-0 cursor-pointer"
+										onClick={ handleToggleFeature(
+											feature?.id
+										) }
+									/>
+								) }
+							</div>
+						);
+					} ) }
 				</div>
-				<a
-					className="text-zip-body-text no-underline text-base font-normal cursor-pointer"
-					onClick={ skipStep }
-				>
-					{ __( 'Skip this step', 'astra-sites' ) }
-				</a>
-			</div>
-		</Container>
+
+				{ !! featurePluginsList?.length && (
+					<RequiredPlugins pluginsList={ featurePluginsList } />
+				) }
+
+				<div className="flex justify-between items-center">
+					<div className="flex gap-4 max-md:flex-col flex-1">
+						<Button
+							variant="primary"
+							className="!bg-classic-button border border-solid border-classic-button flex gap-2 items-center h-11 text-[15px] leading-[15px]"
+							onClick={ setNextStep }
+						>
+							<span>{ __( 'Continue', 'astra-sites' ) }</span>
+							<ArrowLongRightIcon className="w-4 h-4 !fill-none" />
+						</Button>
+
+						<div className="flex justify-between items-center w-full">
+							<Button
+								variant="blank"
+								className="!bg-transparent !text-classic-button border border-solid border-classic-button px-4 py-2 rounded inline-flex items-center justify-center h-11 text-[15px] leading-[15px]"
+								onClick={ () =>
+									dispatch( {
+										type: 'set',
+										currentIndex: currentIndex - 1,
+									} )
+								}
+							>
+								{ __( 'Back', 'astra-sites' ) }
+							</Button>
+							<a
+								className="text-zip-body-text no-underline text-base font-normal cursor-pointer"
+								onClick={ skipStep }
+							>
+								{ __( 'Skip this step', 'astra-sites' ) }
+							</a>
+						</div>
+					</div>
+				</div>
+			</Container>
+		</>
 	);
 };
 export default ClassicFeatures;

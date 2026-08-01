@@ -16,6 +16,10 @@
 use Automattic\Jetpack\Assets;
 use Automattic\Jetpack\Redirect;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Register the widget for use in Appearance -> Widgets
  */
@@ -43,7 +47,7 @@ class Jetpack_Twitter_Timeline_Widget extends WP_Widget {
 			)
 		);
 
-		if ( is_active_widget( false, false, $this->id_base ) || is_active_widget( false, false, 'monster' ) || is_customize_preview() ) {
+		if ( is_customize_preview() ) {
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		}
 
@@ -105,7 +109,9 @@ class Jetpack_Twitter_Timeline_Widget extends WP_Widget {
 
 		// Twitter deprecated `data-widget-id` on 2018-05-25,
 		// with cease support deadline on 2018-07-27.
-		if ( isset( $instance['type'] ) && 'widget-id' === $instance['type'] ) {
+		$explicit_widget_id = isset( $instance['type'] ) && 'widget-id' === $instance['type'];
+		$implicit_widget_id = empty( $instance['type'] ) && ! empty( $instance['widget-id'] ) && is_numeric( $instance['widget-id'] );
+		if ( $explicit_widget_id || $implicit_widget_id ) {
 			if ( current_user_can( 'edit_theme_options' ) ) {
 				$output .= $args['before_widget']
 				. $args['before_title'] . esc_html__( 'Twitter Timeline', 'jetpack' ) . $args['after_title']
@@ -118,11 +124,13 @@ class Jetpack_Twitter_Timeline_Widget extends WP_Widget {
 			return;
 		}
 
+		$this->enqueue_scripts();
+
 		$instance['lang'] = substr( strtoupper( get_locale() ), 0, 2 );
 
 		$output .= $args['before_widget'];
 
-		$title = isset( $instance['title'] ) ? $instance['title'] : '';
+		$title = $instance['title'] ?? '';
 
 		/** This filter is documented in core/src/wp-includes/default-widgets.php */
 		$title = apply_filters( 'widget_title', $title );
@@ -184,8 +192,8 @@ class Jetpack_Twitter_Timeline_Widget extends WP_Widget {
 		 */
 		$timeline_placeholder = apply_filters( 'jetpack_twitter_timeline_placeholder', $timeline_placeholder );
 
-		$type      = ( isset( $instance['type'] ) ? $instance['type'] : '' );
-		$widget_id = ( isset( $instance['widget-id'] ) ? $instance['widget-id'] : '' );
+		$type      = ( $instance['type'] ?? '' );
+		$widget_id = ( $instance['widget-id'] ?? '' );
 
 		if ( class_exists( 'Jetpack_AMP_Support' ) && Jetpack_AMP_Support::is_amp_request() ) {
 			$width   = ! empty( $instance['width'] ) ? $instance['width'] : 600;
@@ -249,7 +257,7 @@ class Jetpack_Twitter_Timeline_Widget extends WP_Widget {
 			$instance['width'] = 220;
 		}
 
-		$tweet_display             = sanitize_text_field( $new_instance['tweet-display'] );
+		$tweet_display             = sanitize_text_field( $new_instance['tweet-display'] ?? 'dynamic' );
 		$instance['tweet-display'] = $tweet_display;
 		/**
 		 * A timeline with a specified limit is expanded to the height of those Tweets.
@@ -353,6 +361,7 @@ class Jetpack_Twitter_Timeline_Widget extends WP_Widget {
 	 * @see WP_Widget::form()
 	 *
 	 * @param array $instance Previously saved values from database.
+	 * @return string|void
 	 */
 	public function form( $instance ) {
 		$defaults = array(

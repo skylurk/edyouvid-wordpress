@@ -5,8 +5,6 @@
  * @package automattic/jetpack
  */
 
-use Automattic\Jetpack\Current_Plan as Jetpack_Plan;
-
 /**
  * Class containing utility static methods that other SEO tools are relying on.
  */
@@ -41,7 +39,11 @@ class Jetpack_SEO_Utils {
 			return false;
 		}
 
-		return Jetpack_Plan::supports( 'advanced-seo' );
+		if ( defined( 'IS_WPCOM' ) && IS_WPCOM ) {
+			return wpcom_site_has_feature( 'advanced-seo', get_current_blog_id() );
+		}
+
+		return true;
 	}
 
 	/**
@@ -123,5 +125,24 @@ class Jetpack_SEO_Utils {
 		}
 
 		return '';
+	}
+
+	/**
+	 * Remove content within wp:query blocks.
+	 *
+	 * @uses jetpack_og_remove_query_blocks
+	 *
+	 * @since 14.9
+	 *
+	 * @param string $content Post content.
+	 *
+	 * @return string Post content stripped from wp:query blocks.
+	 */
+	public static function remove_query_blocks( $content ) {
+		if ( ! function_exists( 'jetpack_og_remove_query_blocks' ) ) {
+			return $content;
+		}
+
+		return jetpack_og_remove_query_blocks( $content );
 	}
 }

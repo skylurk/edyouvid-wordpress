@@ -3,8 +3,6 @@
  * Helper class for font settings.
  *
  * @package     Astra
- * @author      Astra
- * @copyright   Copyright (c) 2020, Astra
  * @link        https://wpastra.com/
  * @since       Astra 1.0.0
  */
@@ -18,7 +16,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Astra Fonts
  */
 final class Astra_Fonts {
-
 	/**
 	 * Get fonts to generate.
 	 *
@@ -37,7 +34,7 @@ final class Astra_Fonts {
 	 */
 	public static function add_font( $name, $variants = array() ) {
 
-		if ( 'inherit' == $name ) {
+		if ( 'inherit' === $name ) {
 			return;
 		}
 		if ( ! is_array( $variants ) ) {
@@ -55,7 +52,7 @@ final class Astra_Fonts {
 					$variants[] = 400;
 				}
 			}
-		} elseif ( 'inherit' == $variants ) {
+		} elseif ( 'inherit' === $variants ) {
 			$variants = 400;
 		}
 
@@ -118,19 +115,55 @@ final class Astra_Fonts {
 			return;
 		}
 
+		$is_self_hosted = Astra_API_Init::get_admin_settings_option( 'self_hosted_gfonts', false );
+
+		// Add preconnect resource hints for Google Fonts when not using self-hosted fonts.
+		if ( ! $is_self_hosted && ! is_admin() ) {
+			add_filter( 'wp_resource_hints', array( self::class, 'preconnect_google_fonts' ), 10, 2 );
+		}
+
 		/**
 		 * Support self hosted Google Fonts.
 		 *
 		 * @since 3.6.0
 		 */
-		if ( astra_get_option( 'load-google-fonts-locally' ) && ! is_customize_preview() && ! is_admin() ) {
-			if ( astra_get_option( 'preload-local-fonts' ) ) {
-				ast_load_preload_local_fonts( $google_font_url );
+		if ( $is_self_hosted && ! is_customize_preview() && ! is_admin() ) {
+			if ( Astra_API_Init::get_admin_settings_option( 'preload_local_fonts', false ) ) {
+				astra_load_preload_local_fonts( $google_font_url );
 			}
-			wp_enqueue_style( 'astra-google-fonts', ast_get_webfont_url( $google_font_url ), array(), ASTRA_THEME_VERSION, 'all' );
+			wp_enqueue_style( 'astra-google-fonts', astra_get_webfont_url( $google_font_url ), array(), ASTRA_THEME_VERSION, 'all' );
 		} else {
 			wp_enqueue_style( 'astra-google-fonts', $google_font_url, array(), ASTRA_THEME_VERSION, 'all' );
 		}
+	}
+
+	/**
+	 * Add preconnect resource hints for Google Fonts.
+	 *
+	 * Uses the wp_resource_hints filter (fires at wp_head priority 2) to add
+	 * preconnect hints for fonts.googleapis.com and fonts.gstatic.com when
+	 * Google Fonts are loaded remotely (not self-hosted).
+	 *
+	 * @since 4.12.6
+	 * @param array  $urls          URLs to print for resource hints.
+	 * @param string $relation_type The relation type the URLs are printed for (dns-prefetch, preconnect, etc).
+	 * @return array Modified URLs array.
+	 */
+	public static function preconnect_google_fonts( $urls, $relation_type ) {
+		if ( 'preconnect' !== $relation_type ) {
+			return $urls;
+		}
+
+		$urls[] = array(
+			'href' => 'https://fonts.googleapis.com',
+		);
+
+		$urls[] = array(
+			'href'        => 'https://fonts.gstatic.com',
+			'crossorigin' => 'anonymous',
+		);
+
+		return $urls;
 	}
 
 	/**
@@ -192,7 +225,7 @@ final class Astra_Fonts {
 
 			$font_args['display'] = astra_get_fonts_display_property();
 
-			return add_query_arg( $font_args, $base_url );
+			return esc_url_raw( add_query_arg( $font_args, $base_url ) );
 		}
 
 		return '';

@@ -16,7 +16,7 @@ export default function ($element) {
       processResults: function (data) {
         return {
           results: jQuery.map(data, function (obj) {
-            return { id: obj.id, text: obj?.title?.raw || "Untitled Video" };
+            return { id: obj.id, text: obj?.title || "Untitled Video" };
           }),
         };
       },

@@ -21,7 +21,6 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 
 			$this->is_logging_enabled = WC_Connect_Options::get_option( 'debug_logging_enabled', false );
 			$this->is_debug_enabled   = WC_Connect_Options::get_option( 'debug_display_enabled', false );
-
 		}
 
 		/**
@@ -44,7 +43,6 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 			}
 
 			return $formatted_message;
-
 		}
 
 		public function enable_logging() {
@@ -105,13 +103,14 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		/**
 		 * Logs messages to file and error_log if WP_DEBUG
 		 *
-		 * @param string $message Message to log
+		 * @param WP_Error|string $message Message to log
 		 * @param string $context Optional context (e.g. a class or function name)
 		 */
 		public function log( $message, $context = '', $force = false ) {
 			$log_message = $this->format_message( $message, $context );
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// phpcs:ignore QITStandard.PHP.DebugCode.DebugFunctionFound -- Intended debug logging when WP_DEBUG is enabled.
 				error_log( $log_message );
 			}
 
@@ -126,9 +125,7 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 			}
 
 			$this->logger->add( $log_file, $log_message );
-
 		}
-
 	}
 
 }

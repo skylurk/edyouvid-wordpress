@@ -3,8 +3,6 @@
  * Bottom Footer Options for Astra Theme.
  *
  * @package     Astra
- * @author      Astra
- * @copyright   Copyright (c) 2020, Astra
  * @link        https://wpastra.com/
  * @since       Astra 1.0.0
  */
@@ -19,7 +17,6 @@ if ( ! class_exists( 'Astra_Blog_Single_Layout_Configs' ) ) {
 	 * Register Blog Single Layout Configurations.
 	 */
 	class Astra_Blog_Single_Layout_Configs extends Astra_Customizer_Config_Base {
-
 		/**
 		 * Register Blog Single Layout Configurations.
 		 *
@@ -29,6 +26,9 @@ if ( ! class_exists( 'Astra_Blog_Single_Layout_Configs' ) ) {
 		 * @return Array Astra Customizer Configurations with updated configurations.
 		 */
 		public function register_configuration( $configurations, $wp_customize ) {
+
+			/** @psalm-suppress DocblockTypeContradiction */ // phpcs:ignore Generic.Commenting.DocComment.MissingShort
+			$tab_config = Astra_Builder_Helper::$design_tab;
 
 			$_configs = array(
 
@@ -41,7 +41,7 @@ if ( ! class_exists( 'Astra_Blog_Single_Layout_Configs' ) ) {
 					'control'    => 'ast-selector',
 					'section'    => 'section-blog-single',
 					'default'    => astra_get_option( 'blog-single-width' ),
-					'priority'   => 5,
+					'priority'   => 6,
 					'title'      => __( 'Content Width', 'astra' ),
 					'choices'    => array(
 						'default' => __( 'Default', 'astra' ),
@@ -49,6 +49,7 @@ if ( ! class_exists( 'Astra_Blog_Single_Layout_Configs' ) ) {
 					),
 					'transport'  => 'postMessage',
 					'responsive' => false,
+					'divider'    => array( 'ast_class' => 'ast-top-section-divider' ),
 					'renderAs'   => 'text',
 				),
 
@@ -70,87 +71,107 @@ if ( ! class_exists( 'Astra_Blog_Single_Layout_Configs' ) ) {
 							'value'    => 'custom',
 						),
 					),
-					'priority'    => 5,
+					'priority'    => 6,
 					'title'       => __( 'Custom Width', 'astra' ),
 					'suffix'      => 'px',
 					'input_attrs' => array(
-						'min'  => 768,
+						'min'  => 0,
 						'step' => 1,
 						'max'  => 1920,
 					),
-					'divider'     => array( 'ast_class' => 'ast-bottom-divider' ),
+					'divider'     => array( 'ast_class' => 'ast-top-divider' ),
 				),
-
 
 				/**
-				 * Option: Display Post Structure
+				 * Option: Content images shadow
 				 */
 				array(
-					'name'              => ASTRA_THEME_SETTINGS . '[blog-single-post-structure]',
-					'type'              => 'control',
-					'control'           => 'ast-sortable',
-					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_multi_choices' ),
-					'section'           => 'section-blog-single',
-					'default'           => astra_get_option( 'blog-single-post-structure' ),
-					'priority'          => 5,
-					'title'             => __( 'Structure', 'astra' ),
-					'choices'           => array(
-						'single-image'      => __( 'Featured Image', 'astra' ),
-						'single-title-meta' => __( 'Title & Blog Meta', 'astra' ),
-					),
+					'name'     => ASTRA_THEME_SETTINGS . '[single-content-images-shadow]',
+					'default'  => astra_get_option( 'single-content-images-shadow' ),
+					'type'     => 'control',
+					'section'  => 'section-blog-single',
+					'title'    => __( 'Content Images Box Shadow', 'astra' ),
+					'control'  => 'ast-toggle-control',
+					'divider'  => array( 'ast_class' => 'ast-top-section-divider' ),
+					'priority' => 9,
+					'context'  => Astra_Builder_Helper::$general_tab,
 				),
 
+				/**
+				 * Option: Divider
+				 */
+				array(
+					'name'     => ASTRA_THEME_SETTINGS . '[section-blog-single-spacing-divider]',
+					'section'  => 'section-blog-single',
+					'title'    => __( 'Post Spacing', 'astra' ),
+					'type'     => 'control',
+					'control'  => 'ast-heading',
+					'priority' => 24,
+					'context'  => $tab_config,
+				),
+
+				/**
+				 * Option: Single Post Spacing
+				 */
+				array(
+					'name'              => ASTRA_THEME_SETTINGS . '[single-post-outside-spacing]',
+					'default'           => astra_get_option( 'single-post-outside-spacing' ),
+					'type'              => 'control',
+					'control'           => 'ast-responsive-spacing',
+					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_responsive_spacing' ),
+					'section'           => 'section-blog-single',
+					'title'             => __( 'Outside', 'astra' ),
+					'linked_choices'    => true,
+					'unit_choices'      => array( 'px', 'em', '%' ),
+					'choices'           => array(
+						'top'    => __( 'Top', 'astra' ),
+						'right'  => __( 'Right', 'astra' ),
+						'bottom' => __( 'Bottom', 'astra' ),
+						'left'   => __( 'Left', 'astra' ),
+					),
+					'priority'          => 25,
+					'context'           => $tab_config,
+					'divider'           => array( 'ast_class' => 'ast-section-spacing' ),
+				),
+
+				/**
+				 * Option: Single Post Margin
+				 */
+				array(
+					'name'              => ASTRA_THEME_SETTINGS . '[single-post-inside-spacing]',
+					'default'           => astra_get_option( 'single-post-inside-spacing' ),
+					'type'              => 'control',
+					'control'           => 'ast-responsive-spacing',
+					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_responsive_spacing' ),
+					'section'           => 'section-blog-single',
+					'title'             => __( 'Inside', 'astra' ),
+					'linked_choices'    => true,
+					'transport'         => 'refresh',
+					'unit_choices'      => array( 'px', 'em', '%' ),
+					'choices'           => array(
+						'top'    => __( 'Top', 'astra' ),
+						'right'  => __( 'Right', 'astra' ),
+						'bottom' => __( 'Bottom', 'astra' ),
+						'left'   => __( 'Left', 'astra' ),
+					),
+					'priority'          => 30,
+					'divider'           => array( 'ast_class' => 'ast-top-divider' ),
+					'context'           => $tab_config,
+				),
 			);
 
-			if ( ! defined( 'ASTRA_EXT_VER' ) ) {
-				$_configs[] = array(
-					'name'              => ASTRA_THEME_SETTINGS . '[blog-single-meta]',
-					'type'              => 'control',
-					'control'           => 'ast-sortable',
-					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_multi_choices' ),
-					'default'           => astra_get_option( 'blog-single-meta' ),
-					'context'           => array(
-						Astra_Builder_Helper::$general_tab_config,
-						array(
-							'setting'  => ASTRA_THEME_SETTINGS . '[blog-single-post-structure]',
-							'operator' => 'contains',
-							'value'    => 'single-title-meta',
-						),
-					),
-					'divider'           => array( 'ast_class' => 'ast-bottom-divider' ),
-					'section'           => 'section-blog-single',
-					'priority'          => 5,
-					'title'             => __( 'Meta', 'astra' ),
-					'choices'           => array(
-						'comments' => __( 'Comments', 'astra' ),
-						'category' => __( 'Category', 'astra' ),
-						'author'   => __( 'Author', 'astra' ),
-						'date'     => __( 'Publish Date', 'astra' ),
-						'tag'      => __( 'Tag', 'astra' ),
-					),
-				);
-			}
+			$_configs[] = array(
+				'name'        => 'section-blog-single-ast-context-tabs',
+				'section'     => 'section-blog-single',
+				'type'        => 'control',
+				'control'     => 'ast-builder-header-control',
+				'priority'    => 0,
+				'description' => '',
+			);
 
-			if ( true === Astra_Builder_Helper::$is_header_footer_builder_active ) {
-
-				$_configs[] = array(
-					'name'        => 'section-blog-single-ast-context-tabs',
-					'section'     => 'section-blog-single',
-					'type'        => 'control',
-					'control'     => 'ast-builder-header-control',
-					'priority'    => 0,
-					'description' => '',
-				);
-
-			}
-
-			$configurations = array_merge( $configurations, $_configs );
-
-			return $configurations;
-
+			return array_merge( $configurations, $_configs );
 		}
 	}
 }
-
 
 new Astra_Blog_Single_Layout_Configs();

@@ -22,8 +22,7 @@
 }
 
 presto-dynamic-overlay-ui {
-  overflow: hidden;
-  /* Hide the element content, while height = 0 */
+  overflow: hidden; /* Hide the element content, while height = 0 */
   height: 0;
   opacity: 0;
   transition: height 0ms 400ms, opacity 400ms 0ms;

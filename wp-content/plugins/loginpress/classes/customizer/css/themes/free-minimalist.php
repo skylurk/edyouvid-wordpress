@@ -4,8 +4,12 @@
  *
  * @package LoginPress
  * @since 1.0.0
- * @version 3.0.6
+ * @version 6.2.0
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 // phpcs:ignoreFile
 
@@ -90,9 +94,12 @@ function free_minimalist_presets() {
 				color: #F6366A;
 			}
 			.dashicons-hidden:before {
-				color: #000000;
+				color: inherit;
 			}
 			.dashicons-hidden:hover::before {
+				color: inherit;
+			}
+			body.login .button.wp-hide-pw .dashicons.dashicons-visibility, body.login .button.wp-hide-pw .dashicons.dashicons-hidden:hover {
 				color: #F6366A;
 			}
 		</style>
@@ -117,7 +124,9 @@ function free_minimalist_presets() {
 		* Visit:       https://wordpress.org/plugins/loginpress/    *
 		*************************************************************/
 		body.login {
-			background-image: url(<?php echo esc_url( apply_filters( 'loginpress_default_bg', plugins_url( 'img/minimalist.jpg', LOGINPRESS_PLUGIN_BASENAME ) ) ); ?>);
+			--background-desktop-image: url(<?php echo esc_url( apply_filters( 'loginpress_default_bg', plugins_url( 'img/minimalist.jpg', LOGINPRESS_PLUGIN_BASENAME ) ) ); ?>);
+			background-image: var(--background-desktop-image,url(<?php echo esc_url( apply_filters( 'loginpress_default_bg', plugins_url( 'img/minimalist.jpg', LOGINPRESS_PLUGIN_BASENAME ) ) ); ?>));
+			
 			/*background-color: #ddd5c3;*/
 			background-repeat: no-repeat;
 			background-position: center;
@@ -500,7 +509,8 @@ function free_minimalist_presets() {
 		}
 		@media screen and (max-width: 767px) {
 			#login{
-				width: 300px;
+				max-width: 300px;
+				width: calc(100% - 30px);
 			}
 			.login .loginpress-show-love{
 				position: static;

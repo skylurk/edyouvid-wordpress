@@ -82,7 +82,9 @@ select[name=wt_iew_file_from]{visibility: hidden;}
 		<div style="float:right;">
 			<div style="float:right;">
 				<a target="_blank" href="#" class="button button-primary wt_iew_view_imported_items" data-log-file="" style="display:none"  type="button" style="margin-right:10px;"><?php esc_html_e( 'View Item', 'users-customers-import-export-for-wp-woocommerce' );?></a>
-				<button class="button button-primary wt_iew_view_log_btn" data-log-file="" style="display:none"  type="button" style="margin-right:10px;"><?php esc_html_e( 'View Log', 'users-customers-import-export-for-wp-woocommerce' );?></button>
+				<?php if ( 1 === (int) Wt_Import_Export_For_Woo_User_Basic_Common_Helper::get_advanced_settings( 'enable_import_log' ) ) : ?>
+					<button class="button button-primary wt_iew_view_log_btn" data-log-file="" type="button" style="display:none;margin-right:10px;"><?php esc_html_e( 'View Log', 'users-customers-import-export-for-wp-woocommerce' ); ?></button>
+				<?php endif; ?>
 				<button class="button button-primary wt_iew_popup_cancel_btn"  type="button" style="margin-right:10px;"><?php esc_html_e( 'Cancel', 'users-customers-import-export-for-wp-woocommerce' );?></button>
 				<button class="button button-primary wt_iew_popup_close_btn" style="display:none"  type="button" style="margin-right:10px;"><?php esc_html_e( 'Close', 'users-customers-import-export-for-wp-woocommerce' );?></button>
 			</div>

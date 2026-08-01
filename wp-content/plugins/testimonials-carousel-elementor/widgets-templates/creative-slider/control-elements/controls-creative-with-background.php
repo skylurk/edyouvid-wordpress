@@ -629,8 +629,8 @@ function get_arrows_style_creative_with_background($controls)
         'size' => 20,
       ],
       'selectors' => [
-        '{{WRAPPER}} .creative-with-background.creative .swiper-button-prev svg, {{WRAPPER}} .creative .swiper-button-next svg' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
-        '{{WRAPPER}} .creative-with-background.creative .swiper-button-prev i, {{WRAPPER}} .creative .swiper-button-next i'     => 'font-size: {{SIZE}}{{UNIT}};',
+        '{{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-button-prev svg, {{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-button-next svg' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+        '{{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-button-prev i, {{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-button-next i'     => 'font-size: {{SIZE}}{{UNIT}};',
       ],
       'condition' => [
         'creative_carousel_templates' => '1',
@@ -644,8 +644,8 @@ function get_arrows_style_creative_with_background($controls)
       'label'     => esc_html__('Arrows Color', 'testimonials-carousel-elementor'),
       'type'      => Controls_Manager::COLOR,
       'selectors' => [
-        '{{WRAPPER}} .creative-with-background.creative .swiper-button-prev svg path, {{WRAPPER}} .creative .swiper-button-next svg path' => 'fill: {{VALUE}};',
-        '{{WRAPPER}} .creative-with-background.creative .swiper-button-prev i, {{WRAPPER}} .creative .swiper-button-next i'               => 'color: {{VALUE}};',
+        '{{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-button-prev svg path, {{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-button-next svg path' => 'fill: {{VALUE}};',
+        '{{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-button-prev i, {{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-button-next i'               => 'color: {{VALUE}};',
       ],
       'condition' => [
         'creative_carousel_templates' => '1',
@@ -679,7 +679,7 @@ function get_arrows_style_creative_with_background($controls)
         'unit' => 'px',
       ],
       'selectors' => [
-        '{{WRAPPER}} .creative-with-background.creative .swiper-button-prev, {{WRAPPER}} .creative .swiper-button-next' => 'bottom: {{SIZE}}{{UNIT}}; top: unset;',
+        '{{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-button-prev, {{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-button-next' => 'bottom: {{SIZE}}{{UNIT}}; top: unset; left: auto; right: auto;',
       ],
       'condition' => [
         'creative_carousel_templates' => '1',
@@ -696,7 +696,7 @@ function get_arrows_style_creative_with_background($controls)
         'unit' => 'px',
       ],
       'selectors' => [
-        '{{WRAPPER}} .creative-with-background.creative .swiper-button-prev' => 'right: {{SIZE}}{{UNIT}}; left: unset;',
+        '{{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-button-prev' => 'right: auto; left: auto;',
       ],
       'condition' => [
         'creative_carousel_templates' => '1',
@@ -713,7 +713,7 @@ function get_arrows_style_creative_with_background($controls)
         'unit' => 'px',
       ],
       'selectors' => [
-        '{{WRAPPER}} .creative-with-background.creative .swiper-button-next' => 'left: {{SIZE}}{{UNIT}}; right: unset;',
+        '{{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-button-next' => 'left: auto; right: auto;',
       ],
       'condition' => [
         'creative_carousel_templates' => '1',
@@ -730,7 +730,7 @@ function get_dots_style_creative_with_background($controls)
     [
       'name'      => 'creative_with_background_dots_size',
       'label'     => esc_html__('Counter Size', 'testimonials-carousel-elementor'),
-      'selector'  => '{{WRAPPER}} .creative-with-background.creative .swiper-pagination.swiper-pagination-fraction',
+      'selector'  => '{{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-pagination.swiper-pagination-fraction',
       'condition' => [
         'creative_carousel_templates' => '1',
       ],
@@ -743,7 +743,7 @@ function get_dots_style_creative_with_background($controls)
       'label'     => esc_html__('Counter Color', 'testimonials-carousel-elementor'),
       'type'      => Controls_Manager::COLOR,
       'selectors' => [
-        '{{WRAPPER}} .creative-with-background.creative .swiper-pagination.swiper-pagination-fraction' => 'color: {{VALUE}};',
+        '{{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-pagination.swiper-pagination-fraction' => 'color: {{VALUE}};',
       ],
       'condition' => [
         'creative_carousel_templates' => '1',
@@ -757,7 +757,7 @@ function get_dots_style_creative_with_background($controls)
       'label'     => esc_html__('Position Top', 'testimonials-carousel-elementor'),
       'type'      => Controls_Manager::SLIDER,
       'selectors' => [
-        '{{WRAPPER}} .creative-with-background.creative .swiper-pagination.swiper-pagination-fraction' => 'top: {{SIZE}}{{UNIT}};',
+        '{{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-pagination.swiper-pagination-fraction' => 'top: auto; bottom: auto;',
       ],
       'condition' => [
         'creative_carousel_templates' => '1',
@@ -771,7 +771,7 @@ function get_dots_style_creative_with_background($controls)
       'label'     => esc_html__('Position Bottom', 'testimonials-carousel-elementor'),
       'type'      => Controls_Manager::SLIDER,
       'selectors' => [
-        '{{WRAPPER}} .creative-with-background.creative .swiper-pagination.swiper-pagination-fraction' => 'bottom: {{SIZE}}{{UNIT}};',
+        '{{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-pagination.swiper-pagination-fraction' => 'top: auto; bottom: auto;',
       ],
       'condition' => [
         'creative_carousel_templates' => '1',
@@ -785,7 +785,7 @@ function get_dots_style_creative_with_background($controls)
       'label'     => esc_html__('Position Right', 'testimonials-carousel-elementor'),
       'type'      => Controls_Manager::SLIDER,
       'selectors' => [
-        '{{WRAPPER}} .creative-with-background.creative .swiper-pagination.swiper-pagination-fraction' => 'right: {{SIZE}}{{UNIT}}; left: unset;',
+        '{{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-pagination.swiper-pagination-fraction' => 'right: auto; left: auto;',
       ],
       'condition' => [
         'creative_carousel_templates' => '1',
@@ -799,7 +799,7 @@ function get_dots_style_creative_with_background($controls)
       'label'     => esc_html__('Position Left', 'testimonials-carousel-elementor'),
       'type'      => Controls_Manager::SLIDER,
       'selectors' => [
-        '{{WRAPPER}} .creative-with-background.creative .swiper-pagination.swiper-pagination-fraction' => 'left: {{SIZE}}{{UNIT}}; right: unset;',
+        '{{WRAPPER}} .creative-with-background.creative .creative__navigation .swiper-pagination.swiper-pagination-fraction' => 'left: auto; right: auto;',
       ],
       'condition' => [
         'creative_carousel_templates' => '1',

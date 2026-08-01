@@ -1,4 +1,9 @@
 <?php
+/**
+ * Elementor Presto Player video widget.
+ *
+ * @package PrestoPlayer
+ */
 
 namespace PrestoPlayer\Integrations\Elementor;
 
@@ -11,29 +16,50 @@ use PrestoPlayer\Blocks\YouTubeBlock;
 use PrestoPlayer\Blocks\SelfHostedBlock;
 use Elementor\Modules\DynamicTags\Module as TagsModule;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
 /**
- * presto-player video widget.
+ * Presto Player video widget.
  *
- * presto-player widget that displays a video player.
+ * Presto Player widget that displays a video player.
  *
  * @since 1.0.0
  */
-class VideoWidget extends Widget_Base
-{
+class VideoWidget extends Widget_Base {
+
+	/**
+	 * Whether the premium version is active.
+	 *
+	 * @var bool
+	 */
 	private $is_premium = false;
+
+	/**
+	 * Plugin version string.
+	 *
+	 * @var string
+	 */
 	private $version = '';
 
-	public function setPremium($pro)
-	{
+	/**
+	 * Set whether the premium version is active.
+	 *
+	 * @param bool $pro Whether premium is active.
+	 * @return void
+	 */
+	public function setPremium( $pro ) {
 		$this->is_premium = $pro;
 	}
 
-	public function setVersion($version)
-	{
+	/**
+	 * Set the plugin version.
+	 *
+	 * @param string $version Plugin version string.
+	 * @return void
+	 */
+	public function setVersion( $version ) {
 		$this->version = $version;
 	}
 
@@ -47,8 +73,7 @@ class VideoWidget extends Widget_Base
 	 *
 	 * @return string Widget name.
 	 */
-	public function get_name()
-	{
+	public function get_name() {
 		return 'presto_video';
 	}
 
@@ -62,9 +87,8 @@ class VideoWidget extends Widget_Base
 	 *
 	 * @return string Widget title.
 	 */
-	public function get_title()
-	{
-		return __('Presto Video', 'presto-player');
+	public function get_title() {
+		return __( 'Presto Video', 'presto-player' );
 	}
 
 	/**
@@ -77,8 +101,7 @@ class VideoWidget extends Widget_Base
 	 *
 	 * @return string Widget icon.
 	 */
-	public function get_icon()
-	{
+	public function get_icon() {
 		return 'eicon-youtube';
 	}
 
@@ -94,9 +117,8 @@ class VideoWidget extends Widget_Base
 	 *
 	 * @return array Widget categories.
 	 */
-	public function get_categories()
-	{
-		return ['basic'];
+	public function get_categories() {
+		return array( 'basic' );
 	}
 
 	/**
@@ -109,17 +131,21 @@ class VideoWidget extends Widget_Base
 	 *
 	 * @return array Widget keywords.
 	 */
-	public function get_keywords()
-	{
-		return ['video', 'player', 'embed', 'youtube', 'vimeo'];
+	public function get_keywords() {
+		return array( 'video', 'player', 'embed', 'youtube', 'vimeo' );
 	}
 
-	public function fake_toggle_html($label = '')
-	{
+	/**
+	 * Build the fake (disabled) toggle control HTML for non-premium users.
+	 *
+	 * @param string $label Control label text.
+	 * @return string Toggle control HTML markup.
+	 */
+	public function fake_toggle_html( $label = '' ) {
 		return '<div class="elementor-control-muted_preview elementor-control-type-switcher elementor-label-inline elementor-control-separator-default">
 					<div class="elementor-control-content">
 						<div class="elementor-control-field">
-							<label for="elementor-control-default-c513" class="elementor-control-title">' . esc_html($label) . ' <i class="eicon-pro-icon"></i></label>
+							<label for="elementor-control-default-c513" class="elementor-control-title">' . esc_html( $label ) . ' <i class="eicon-pro-icon"></i></label>
 							<div class="elementor-control-input-wrapper">
 								<label class="elementor-switch elementor-control-unit-2">
 									<input id="elementor-control-default-c513" type="checkbox" data-setting="muted_preview" class="elementor-switch-input" value="yes" disabled>
@@ -140,222 +166,229 @@ class VideoWidget extends Widget_Base
 	 * @since 1.0.0
 	 * @access protected
 	 */
-	protected function _register_controls()
-	{
+	protected function _register_controls() {
 		$this->start_controls_section(
 			'section_video',
-			[
-				'label' => __('Video', 'presto-player'),
-			]
+			array(
+				'label' => __( 'Video', 'presto-player' ),
+			)
 		);
 
 		$this->add_control(
 			'video_type',
-			[
-				'label' => __('Source', 'presto-player'),
-				'type' => Controls_Manager::SELECT,
+			array(
+				'label'   => __( 'Source', 'presto-player' ),
+				'type'    => Controls_Manager::SELECT,
 				'default' => 'youtube',
-				'options' => [
-					'youtube' => __('YouTube', 'presto-player'),
-					'vimeo' => __('Vimeo', 'presto-player'),
-					'hosted' => __('Self Hosted', 'presto-player'),
-				],
-			]
+				'options' => array(
+					'youtube' => __( 'YouTube', 'presto-player' ),
+					'vimeo'   => __( 'Vimeo', 'presto-player' ),
+					'hosted'  => __( 'Self Hosted', 'presto-player' ),
+				),
+			)
 		);
 
 		$this->add_control(
 			'youtube_url',
-			[
-				'label' => __('Link', 'presto-player'),
-				'type' => Controls_Manager::TEXT,
-				'dynamic' => [
-					'active' => true,
-					'categories' => [
+			array(
+				'label'       => __( 'Link', 'presto-player' ),
+				'type'        => Controls_Manager::TEXT,
+				'dynamic'     => array(
+					'active'     => true,
+					'categories' => array(
 						TagsModule::POST_META_CATEGORY,
 						TagsModule::URL_CATEGORY,
-					],
-				],
-				'placeholder' => __('Enter your URL', 'presto-player') . ' (YouTube)',
-				'default' => 'https://www.youtube.com/watch?v=XHOmBV4js_E',
+					),
+				),
+				'placeholder' => __( 'Enter your URL', 'presto-player' ) . ' (YouTube)',
+				'default'     => 'https://www.youtube.com/watch?v=XHOmBV4js_E',
 				'label_block' => true,
-				'condition' => [
+				'condition'   => array(
 					'video_type' => 'youtube',
-				],
-			]
+				),
+			)
 		);
 
 		$this->add_control(
 			'vimeo_url',
-			[
-				'label' => __('Link', 'presto-player'),
-				'type' => Controls_Manager::TEXT,
-				'dynamic' => [
-					'active' => true,
-					'categories' => [
+			array(
+				'label'       => __( 'Link', 'presto-player' ),
+				'type'        => Controls_Manager::TEXT,
+				'dynamic'     => array(
+					'active'     => true,
+					'categories' => array(
 						TagsModule::POST_META_CATEGORY,
 						TagsModule::URL_CATEGORY,
-					],
-				],
-				'placeholder' => __('Enter your URL', 'presto-player') . ' (Vimeo)',
-				'default' => 'https://vimeo.com/235215203',
+					),
+				),
+				'placeholder' => __( 'Enter your URL', 'presto-player' ) . ' (Vimeo)',
+				'default'     => 'https://vimeo.com/235215203',
 				'label_block' => true,
-				'condition' => [
+				'condition'   => array(
 					'video_type' => 'vimeo',
-				],
-			]
+				),
+			)
 		);
 
 		$this->add_control(
 			'hosted_url',
-			[
-				'label' => __('Add/Select Video', 'presto-player'),
-				'type' => Controls_Manager::MEDIA,
-				'dynamic' => [
-					'active' => true,
-					'categories' => [
+			array(
+				'label'      => __( 'Add/Select Video', 'presto-player' ),
+				'type'       => Controls_Manager::MEDIA,
+				'dynamic'    => array(
+					'active'     => true,
+					'categories' => array(
 						TagsModule::MEDIA_CATEGORY,
-					],
-				],
+					),
+				),
 				'media_type' => 'video',
-				'condition' => [
+				'condition'  => array(
 					'video_type' => 'hosted',
-				],
-			]
+				),
+			)
 		);
 
 		$this->add_control(
 			'external_url',
-			[
-				'label' => __('URL', 'presto-player'),
-				'type' => Controls_Manager::URL,
+			array(
+				'label'        => __( 'URL', 'presto-player' ),
+				'type'         => Controls_Manager::URL,
 				'autocomplete' => false,
-				'options' => false,
-				'label_block' => true,
-				'show_label' => false,
-				'dynamic' => [
-					'active' => true,
-					'categories' => [
+				'options'      => false,
+				'label_block'  => true,
+				'show_label'   => false,
+				'dynamic'      => array(
+					'active'     => true,
+					'categories' => array(
 						TagsModule::POST_META_CATEGORY,
 						TagsModule::URL_CATEGORY,
-					],
-				],
-				'media_type' => 'video',
-				'placeholder' => __('Enter your URL', 'presto-player'),
-				'condition' => [
+					),
+				),
+				'media_type'   => 'video',
+				'placeholder'  => __( 'Enter your URL', 'presto-player' ),
+				'condition'    => array(
 					'video_type' => 'hosted',
 					'insert_url' => 'yes',
-				],
-			]
+				),
+			)
 		);
 
 		$this->add_control(
 			'video_options',
-			[
-				'label' => __('Video Options', 'presto-player'),
-				'type' => Controls_Manager::HEADING,
+			array(
+				'label'     => __( 'Video Options', 'presto-player' ),
+				'type'      => Controls_Manager::HEADING,
 				'separator' => 'before',
-			]
+			)
 		);
 
-		if (!$this->is_premium) {
+		if ( ! $this->is_premium ) {
 			$this->add_control(
 				'important_note',
-				[
-					'type' => \Elementor\Controls_Manager::RAW_HTML,
-					'raw' => $this->fake_toggle_html(__('Muted Preview', 'presto-player')),
-					'condition' => [
+				array(
+					'type'      => \Elementor\Controls_Manager::RAW_HTML,
+					'raw'       => $this->fake_toggle_html( __( 'Muted Preview', 'presto-player' ) ),
+					'condition' => array(
 						'autoplay' => '',
-					],
-				]
+					),
+				)
 			);
 		} else {
 			$this->add_control(
 				'muted_preview',
-				[
-					'label' => __('Muted Preview', 'presto-player'),
-					'type' => Controls_Manager::SWITCHER,
-					'condition' => [
+				array(
+					'label'     => __( 'Muted Preview', 'presto-player' ),
+					'type'      => Controls_Manager::SWITCHER,
+					'condition' => array(
 						'autoplay' => '',
-					],
-				]
+					),
+				)
 			);
 		}
 
-
 		$this->add_control(
 			'autoplay',
-			[
-				'label' => __('Autoplay', 'presto-player'),
-				'type' => Controls_Manager::SWITCHER,
-				'condition' => [
+			array(
+				'label'     => __( 'Autoplay', 'presto-player' ),
+				'type'      => Controls_Manager::SWITCHER,
+				'condition' => array(
 					'muted_preview' => '',
-				],
-			]
+				),
+			)
 		);
 
 		$this->add_control(
 			'play-inline',
-			[
-				'label' => __('Play inline', 'presto-player'),
-				'type' => Controls_Manager::SWITCHER,
-			]
+			array(
+				'label' => __( 'Play inline', 'presto-player' ),
+				'type'  => Controls_Manager::SWITCHER,
+			)
 		);
 
 		$this->add_control(
 			'poster',
-			[
-				'label' => __('Poster', 'presto-player'),
-				'type' => Controls_Manager::MEDIA,
+			array(
+				'label' => __( 'Poster', 'presto-player' ),
+				'type'  => Controls_Manager::MEDIA,
 
-			]
+			)
 		);
 
 		$this->end_controls_section();
 
 		$this->start_controls_section(
 			'section_video_style',
-			[
-				'label' => __('Video Preset', 'presto-player'),
-				'tab' => Controls_Manager::TAB_STYLE,
-			]
+			array(
+				'label' => __( 'Video Preset', 'presto-player' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
 		);
 
 		$options = $this->get_preset_options();
 
 		$this->add_control(
 			'preset',
-			[
-				'label' => __('Select A Preset', 'presto-player'),
-				'type' => Controls_Manager::SELECT,
-				'options' => $options['options'],
-				'default' => $options['default_id'],
+			array(
+				'label'              => __( 'Select A Preset', 'presto-player' ),
+				'type'               => Controls_Manager::SELECT,
+				'options'            => $options['options'],
+				'default'            => $options['default_id'],
 				'frontend_available' => true,
-			]
+			)
 		);
 
 		$this->end_controls_section();
 	}
 
-	protected function get_preset_options()
-	{
+	/**
+	 * Get the available preset options for the preset select control.
+	 *
+	 * @return array {
+	 *     Preset options data.
+	 *
+	 *     @type array $options    Map of preset ID to preset name.
+	 *     @type int   $default_id The default preset ID.
+	 * }
+	 */
+	protected function get_preset_options() {
 		$presets = new Preset();
 		$presets = $presets->all();
 
-		$preset_options = [];
-		$default_id = 0;
-		if (!empty($presets)) {
-			foreach ($presets as $preset) {
-				if ($preset->slug === 'default') {
+		$preset_options = array();
+		$default_id     = 0;
+		if ( ! empty( $presets ) ) {
+			foreach ( $presets as $preset ) {
+				if ( 'default' === $preset->slug ) {
 					$default_id = $preset->id;
 				}
-				$preset_options[$preset->id] = $preset->name;
+				$preset_options[ $preset->id ] = $preset->name;
 			}
 		}
 
-		return [
-			'options' => $preset_options,
-			'default_id' => $default_id
-		];
+		return array(
+			'options'    => $preset_options,
+			'default_id' => $default_id,
+		);
 	}
 
 	/**
@@ -366,80 +399,95 @@ class VideoWidget extends Widget_Base
 	 * @since 1.0.0
 	 * @access protected
 	 */
-	protected function render()
-	{
+	protected function render() {
 		$settings = $this->get_settings_for_display();
 
-		switch ($settings['video_type']) {
+		switch ( $settings['video_type'] ) {
 			case 'hosted':
-				$hosted = new SelfHostedBlock($this->is_premium, $this->version);
-				echo $hosted->html([
-					'id' => $settings['hosted_url']['id'],
-					'src' => $settings['hosted_url']['url'],
-					'preset' => $settings['preset'],
-					'autoplay' => $settings['autoplay'],
-					'playsInline' => $settings['play-inline'],
-					'poster' => !empty($settings['poster']['url']) ? $settings['poster']['url'] : '',
-					'chapters' => []
-				], '');
+				$hosted = new SelfHostedBlock( $this->is_premium, $this->version );
+				// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Block html() escapes all values internally; player markup must not be re-escaped.
+				echo $hosted->html(
+					array(
+						'id'          => $settings['hosted_url']['id'],
+						'src'         => $settings['hosted_url']['url'],
+						'preset'      => $settings['preset'],
+						'autoplay'    => $settings['autoplay'],
+						'playsInline' => $settings['play-inline'],
+						'poster'      => ! empty( $settings['poster']['url'] ) ? $settings['poster']['url'] : '',
+						'chapters'    => array(),
+					),
+					''
+				);
+				// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'youtube':
-				$youtube = new YouTubeBlock($this->is_premium, $this->version);
-				echo $youtube->html([
-					'src' => $settings['youtube_url'],
-					'preset' => $settings['preset'],
-					'autoplay' => $settings['autoplay'],
-					'playsInline' => $settings['play-inline'],
-					'poster' => !empty($settings['poster']['url']) ? $settings['poster']['url'] : '',
-					'chapters' => []
-				], '');
+				$youtube = new YouTubeBlock( $this->is_premium, $this->version );
+				// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Block html() escapes all values internally; player markup must not be re-escaped.
+				echo $youtube->html(
+					array(
+						'src'         => $settings['youtube_url'],
+						'preset'      => $settings['preset'],
+						'autoplay'    => $settings['autoplay'],
+						'playsInline' => $settings['play-inline'],
+						'poster'      => ! empty( $settings['poster']['url'] ) ? $settings['poster']['url'] : '',
+						'chapters'    => array(),
+					),
+					''
+				);
+				// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'vimeo':
-				$vimeo = new VimeoBlock($this->is_premium, $this->version);
-				echo $vimeo->html([
-					'src' => $settings['vimeo_url'],
-					'preset' => $settings['preset'],
-					'autoplay' => $settings['autoplay'],
-					'playsInline' => $settings['play-inline'],
-					'poster' => !empty($settings['poster']['url']) ? $settings['poster']['url'] : '',
-					'chapters' => []
-				], '');
+				$vimeo = new VimeoBlock( $this->is_premium, $this->version );
+				// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Block html() escapes all values internally; player markup must not be re-escaped.
+				echo $vimeo->html(
+					array(
+						'src'         => $settings['vimeo_url'],
+						'preset'      => $settings['preset'],
+						'autoplay'    => $settings['autoplay'],
+						'playsInline' => $settings['play-inline'],
+						'poster'      => ! empty( $settings['poster']['url'] ) ? $settings['poster']['url'] : '',
+						'chapters'    => array(),
+					),
+					''
+				);
+				// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 		}
-
-		// print_r($settings);
 	}
 
 
 	/**
+	 * Build the HTML attribute parameters for a self-hosted video element.
+	 *
 	 * @since 2.1.0
 	 * @access private
+	 *
+	 * @return array Map of attribute name to attribute value.
 	 */
-	private function get_hosted_params()
-	{
+	private function get_hosted_params() {
 		$settings = $this->get_settings_for_display();
 
-		$video_params = [];
+		$video_params = array();
 
-		foreach (['autoplay', 'loop', 'controls'] as $option_name) {
-			if ($settings[$option_name]) {
-				$video_params[$option_name] = '';
+		foreach ( array( 'autoplay', 'loop', 'controls' ) as $option_name ) {
+			if ( $settings[ $option_name ] ) {
+				$video_params[ $option_name ] = '';
 			}
 		}
 
-		if ($settings['mute']) {
+		if ( $settings['mute'] ) {
 			$video_params['muted'] = 'muted';
 		}
 
-		if ($settings['play_on_mobile']) {
+		if ( $settings['play_on_mobile'] ) {
 			$video_params['playsinline'] = '';
 		}
 
-		if (!$settings['download_button']) {
+		if ( ! $settings['download_button'] ) {
 			$video_params['controlsList'] = 'nodownload';
 		}
 
-		if ($settings['poster']['url']) {
+		if ( $settings['poster']['url'] ) {
 			$video_params['poster'] = $settings['poster']['url'];
 		}
 
@@ -447,35 +495,35 @@ class VideoWidget extends Widget_Base
 	}
 
 	/**
-	 * @param bool $from_media
+	 * Get the resolved self-hosted video URL, including time fragments.
 	 *
-	 * @return string
 	 * @since 2.1.0
 	 * @access private
+	 *
+	 * @return string Video URL, or empty string when none is set.
 	 */
-	private function get_hosted_video_url()
-	{
+	private function get_hosted_video_url() {
 		$settings = $this->get_settings_for_display();
 
-		if (!empty($settings['insert_url'])) {
+		if ( ! empty( $settings['insert_url'] ) ) {
 			$video_url = $settings['external_url']['url'];
 		} else {
 			$video_url = $settings['hosted_url']['url'];
 		}
 
-		if (empty($video_url)) {
+		if ( empty( $video_url ) ) {
 			return '';
 		}
 
-		if ($settings['start'] || $settings['end']) {
+		if ( $settings['start'] || $settings['end'] ) {
 			$video_url .= '#t=';
 		}
 
-		if ($settings['start']) {
+		if ( $settings['start'] ) {
 			$video_url .= $settings['start'];
 		}
 
-		if ($settings['end']) {
+		if ( $settings['end'] ) {
 			$video_url .= ',' . $settings['end'];
 		}
 
@@ -483,20 +531,22 @@ class VideoWidget extends Widget_Base
 	}
 
 	/**
+	 * Render the self-hosted video element markup.
 	 *
 	 * @since 2.1.0
 	 * @access private
+	 *
+	 * @return void
 	 */
-	private function render_hosted_video()
-	{
+	private function render_hosted_video() {
 		$video_url = $this->get_hosted_video_url();
-		if (empty($video_url)) {
+		if ( empty( $video_url ) ) {
 			return;
 		}
 
 		$video_params = $this->get_hosted_params();
-?>
-		<video class="presto-player-video" src="<?php echo esc_url($video_url); ?>" <?php echo Utils::render_html_attributes($video_params); ?>></video>
-<?php
+		?>
+		<video class="presto-player-video" src="<?php echo esc_url( $video_url ); ?>" <?php echo Utils::render_html_attributes( $video_params ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor\Utils::render_html_attributes() escapes each attribute value. ?>></video>
+		<?php
 	}
 }

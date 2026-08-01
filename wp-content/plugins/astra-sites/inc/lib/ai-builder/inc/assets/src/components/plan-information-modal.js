@@ -8,7 +8,6 @@ import { ChartColorfulIcon } from '../ui/icons';
 import Divider from './divider';
 import Button from './button';
 import { useMemo } from 'react';
-// import { handleClickBillingSite } from '../utils/helpers';
 
 const PlanInformationModal = ( { onOpenChange } ) => {
 	const { setPlanInformationModal } = useDispatch( STORE_KEY );
@@ -20,11 +19,8 @@ const PlanInformationModal = ( { onOpenChange } ) => {
 		};
 	} );
 
-	const { active_plan, plan_data } = aiBuilderVars?.zip_plans;
-
-	if ( typeof plan_data !== 'object' ) {
-		return null;
-	}
+	const { active_plan, plan_data } = aiBuilderVars?.zip_plans ?? {};
+	const isValidPlanData = typeof plan_data === 'object' && plan_data !== null;
 
 	const {
 		limit: {
@@ -33,33 +29,17 @@ const PlanInformationModal = ( { onOpenChange } ) => {
 			blueprint_sites_count,
 			disk_space_size,
 			team_members_count,
-		},
+		} = {},
 		usage: {
 			all_sites_count: all_sites_count_used,
 			ai_sites_count: ai_sites_count_used,
 			blueprint_sites_count: blueprint_sites_count_used,
 			disk_space_size: disk_space_size_used,
 			team_members_count: team_members_count_used,
-		},
-		features: { can_ai_credits_reset, can_ai_site_reset },
-	} = plan_data;
+		} = {},
+		features: { can_ai_credits_reset, can_ai_site_reset } = {},
+	} = isValidPlanData ? plan_data : { limit: {}, usage: {}, features: {} };
 
-	const handleManageUpgrade = () => {
-		if ( active_plan.name === 'Free' ) {
-			window.open(
-				`https://app.zipwp.com/pricing?source=${ wpApiSettings?.zipwp_auth?.source }`,
-				'_blank'
-			);
-		} else {
-			window.open(
-				`https://billing.zipwp.com/customer-dashboard/?source=${ wpApiSettings?.zipwp_auth?.source }`,
-				'_blank'
-			);
-			// TODO: add api call later when available
-			// handleClickBillingSite( 'dashboard' );
-		}
-	};
-	// eslint-disable-next-line
 	const usageTooltipText = useMemo( () => {
 		const getTooltipText = ( resetType ) => {
 			switch ( resetType ) {
@@ -91,6 +71,66 @@ const PlanInformationModal = ( { onOpenChange } ) => {
 	}, [ can_ai_credits_reset, can_ai_site_reset ] );
 
 	const { aiSiteTooltipText } = usageTooltipText;
+
+	// Early return AFTER all hooks to avoid React hooks rule violation.
+	if ( ! isValidPlanData ) {
+		return null;
+	}
+
+	const handleManageUpgrade = () => {
+		if ( active_plan.name === 'Free' ) {
+			window.open(
+				`https://app.zipwp.com/st-pricing?source=${ wpApiSettings?.zipwp_auth?.source }`,
+				'_blank'
+			);
+		} else {
+			window.open(
+				`https://billing.zipwp.com/customer-dashboard/?source=${ wpApiSettings?.zipwp_auth?.source }`,
+				'_blank'
+			);
+		}
+	};
+
+	const handleSwitchTeam = () => {
+		const { zipwp_auth } = wpApiSettings || {};
+		const { screen_url, source, utmSource, partner_id } = zipwp_auth || {};
+
+		const redirectUrl = new URL( window.location.href );
+
+		// add should_resume=1 and security nonce to the URL.
+		redirectUrl.searchParams.set( 'should_resume', 1 );
+		redirectUrl.searchParams.set(
+			'security',
+			aiBuilderVars.zipwp_auth_nonce
+		);
+
+		const encodedRedirectUrl = encodeURIComponent( redirectUrl.toString() );
+
+		const url = `${ screen_url }?type=token&redirect_url=${ encodedRedirectUrl }&ask=/login&source=${ source }${
+			partner_id ? `&aff=${ partner_id }` : ''
+		}&utm_source=${ utmSource }&utm_medium=plugin&utm_campaign=build-with-ai&utm_content=switch-team`;
+
+		window.location.href = url;
+		setPlanInformationModal( { ...planInformationModal, open: false } );
+	};
+
+	const handleDisconnect = () => {
+		// Add revoke_redirect_url to redirect back to the current page after disconnect.
+		const authRevokeUrl = new URL( aiBuilderVars.zip_auth_revoke_url );
+
+		const redirectUrl = new URL( window.location.href );
+
+		// add should_resume=1 and security nonce to the URL.
+		redirectUrl.searchParams.set( 'should_resume', 1 );
+
+		authRevokeUrl.searchParams.set(
+			'revoke_redirect_url',
+			encodeURIComponent( redirectUrl.toString() )
+		);
+
+		window.location.href = authRevokeUrl.toString();
+		setPlanInformationModal( { ...planInformationModal, open: false } );
+	};
 
 	return (
 		<Modal
@@ -191,6 +231,25 @@ const PlanInformationModal = ( { onOpenChange } ) => {
 				>
 					{ __( 'Upgrade Now', 'ai-builder' ) }
 				</Button>
+				<div className="!mt-2 flex items-center justify-center gap-1">
+					<Button
+						className="p-0 h-auto text-sm text-accent-st hover:text-accent-hover-st"
+						variant="link"
+						onClick={ handleSwitchTeam }
+					>
+						{ __( 'Switch Team', 'ai-builder' ) }
+					</Button>
+
+					<span className="text-border-primary">|</span>
+
+					<Button
+						className="p-0 h-auto text-sm text-alert-error-text"
+						variant="link"
+						onClick={ handleDisconnect }
+					>
+						{ __( 'Disconnect', 'ai-builder' ) }
+					</Button>
+				</div>
 			</div>
 		</Modal>
 	);

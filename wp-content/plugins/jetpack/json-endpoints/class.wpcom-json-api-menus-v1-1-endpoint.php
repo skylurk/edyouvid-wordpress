@@ -2,6 +2,10 @@
 
 // phpcs:disable Generic.Files.OneObjectStructurePerFile.MultipleFound
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Menus abstract endpoint class.
  */
@@ -100,6 +104,20 @@ abstract class WPCOM_JSON_API_Menus_Translator {
 	 * @var array
 	 */
 	protected $filters = array();
+
+	/**
+	 * False if $menus was an array on construct, true otherwise.
+	 *
+	 * @var bool
+	 */
+	public $is_single_menu;
+
+	/**
+	 * A menu or array of menus.
+	 *
+	 * @var mixed
+	 */
+	public $menus;
 
 	/**
 	 * Class constructor.
@@ -796,6 +814,8 @@ new WPCOM_JSON_API_Menus_New_Menu_Endpoint(
 
 /**
  * New menu endpoint class.
+ *
+ * @phan-constructor-used-for-side-effects
  */
 class WPCOM_JSON_API_Menus_New_Menu_Endpoint extends WPCOM_JSON_API_Menus_Abstract_Endpoint {
 
@@ -860,6 +880,8 @@ new WPCOM_JSON_API_Menus_Update_Menu_Endpoint(
 
 /**
  * Update menu endpoint class.
+ *
+ * @phan-constructor-used-for-side-effects
  */
 class WPCOM_JSON_API_Menus_Update_Menu_Endpoint extends WPCOM_JSON_API_Menus_Abstract_Endpoint {
 
@@ -892,7 +914,7 @@ class WPCOM_JSON_API_Menus_Update_Menu_Endpoint extends WPCOM_JSON_API_Menus_Abs
 		$data = $data[0];
 
 		// Avoid special-case handling of an unset 'items' field in empty menus
-		$data['items'] = isset( $data['items'] ) ? $data['items'] : array();
+		$data['items'] = $data['items'] ?? array();
 
 		$data = $this->create_new_items( $data, $menu_id );
 
@@ -908,7 +930,7 @@ class WPCOM_JSON_API_Menus_Update_Menu_Endpoint extends WPCOM_JSON_API_Menus_Abs
 		}
 
 		foreach ( $data['items'] as $item ) {
-			$item_id = isset( $item['menu-item-db-id'] ) ? $item['menu-item-db-id'] : 0;
+			$item_id = $item['menu-item-db-id'] ?? 0;
 			$result  = wp_update_nav_menu_item( $menu_id, $item_id, $item );
 			if ( is_wp_error( $result ) ) {
 				return $result;
@@ -1023,6 +1045,8 @@ new WPCOM_JSON_API_Menus_List_Menus_Endpoint(
 
 /**
  * List menus endpoint class.
+ *
+ * @phan-constructor-used-for-side-effects
  */
 class WPCOM_JSON_API_Menus_List_Menus_Endpoint extends WPCOM_JSON_API_Menus_Abstract_Endpoint {
 
@@ -1097,6 +1121,8 @@ new WPCOM_JSON_API_Menus_Get_Menu_Endpoint(
 
 /**
  * Get menu endpoint class.
+ *
+ * @phan-constructor-used-for-side-effects
  */
 class WPCOM_JSON_API_Menus_Get_Menu_Endpoint extends WPCOM_JSON_API_Menus_Abstract_Endpoint {
 
@@ -1124,6 +1150,10 @@ class WPCOM_JSON_API_Menus_Get_Menu_Endpoint extends WPCOM_JSON_API_Menus_Abstra
 
 		if ( is_wp_error( $menu ) ) {
 			return $menu;
+		}
+
+		if ( ! $menu instanceof WP_Term ) {
+			return new WP_Error( 'menu-not-found', 'Menu not found.', 404 );
 		}
 
 		$items = wp_get_nav_menu_items( $menu_id, array( 'update_post_term_cache' => false ) );
@@ -1161,6 +1191,8 @@ new WPCOM_JSON_API_Menus_Delete_Menu_Endpoint(
 
 /**
  * Delete menu endpoint class.
+ *
+ * @phan-constructor-used-for-side-effects
  */
 class WPCOM_JSON_API_Menus_Delete_Menu_Endpoint extends WPCOM_JSON_API_Menus_Abstract_Endpoint {
 

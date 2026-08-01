@@ -8,9 +8,14 @@
 namespace Automattic\Jetpack\Extensions\Publicize;
 
 use Automattic\Jetpack\Connection\Manager as Connection_Manager;
+use Automattic\Jetpack\Modules;
 use Automattic\Jetpack\Status;
 use Automattic\Jetpack\Status\Host;
 use Jetpack_Gutenberg;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 /**
  * Register both Publicize and Republicize plugins.
@@ -25,7 +30,16 @@ function register_plugins() {
 	if (
 		! current_user_can( $capability )
 	) {
-		Jetpack_Gutenberg::set_extension_unavailable( 'jetpack/publicize', 'unauthorized' );
+		Jetpack_Gutenberg::set_extension_unavailable( 'publicize', 'unauthorized' );
+		return;
+	}
+
+	/*
+	 * The extension is available even when the module is not active,
+	 * so we can display a nudge to activate the module instead of the block.
+	 * However, since non-admins cannot activate modules, we do not display the empty block for them.
+	 */
+	if ( ! ( new Modules() )->is_active( 'publicize' ) && ! current_user_can( 'jetpack_activate_modules' ) ) {
 		return;
 	}
 
@@ -35,7 +49,7 @@ function register_plugins() {
 		|| ( ( new Connection_Manager( 'jetpack' ) )->has_connected_owner() && ! ( new Status() )->is_offline_mode() )
 	) {
 		// Register Publicize.
-		Jetpack_Gutenberg::set_extension_available( 'jetpack/publicize' );
+		Jetpack_Gutenberg::set_extension_available( 'publicize' );
 
 		// Set the republicize availability, depending on the site plan.
 		Jetpack_Gutenberg::set_availability_for_plan( 'republicize' );
@@ -48,7 +62,7 @@ add_filter(
 	'jetpack_set_available_extensions',
 	function ( $extensions ) {
 		return array_merge(
-			$extensions,
+			(array) $extensions,
 			array(
 				'republicize',
 			)
@@ -64,7 +78,7 @@ add_filter(
 add_action(
 	'init',
 	function () {
-		if ( ! \Jetpack::is_module_active( 'publicize' ) ) {
+		if ( ! ( new Modules() )->is_active( 'publicize' ) ) {
 			add_post_type_support( 'post', 'publicize' );
 		}
 	}

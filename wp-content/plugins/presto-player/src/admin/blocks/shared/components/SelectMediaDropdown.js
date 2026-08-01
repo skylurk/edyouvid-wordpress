@@ -9,7 +9,7 @@ import debounce from "debounce-promise";
 import EntitySearchDropdown from "./EntitySearchDropdown";
 import VideoIcon from "./VideoIcon";
 import { Button, MenuItem } from "@wordpress/components";
-import { capitalize } from "../../util";
+import { css, jsx } from "@emotion/core";
 
 const SelectMediaDropdown = ({ onSelect, value, ...props }) => {
   const [search, setSearch] = useState("");
@@ -19,6 +19,7 @@ const SelectMediaDropdown = ({ onSelect, value, ...props }) => {
   const [totalPages, setTotalPages] = useState(0);
   const { createErrorNotice } = useDispatch(noticesStore);
   const { receiveEntityRecords } = useDispatch(coreStore);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const handleSelection = (video) => {
     if (!video) return;
@@ -30,7 +31,7 @@ const SelectMediaDropdown = ({ onSelect, value, ...props }) => {
     () => {
       setPage(1); // reset the page.
       setVideoList(null); // clear the videos.
-      doFetch(); // fetch the videos.
+      doFetch() // fetch the videos.
     },
     500,
     {
@@ -40,13 +41,15 @@ const SelectMediaDropdown = ({ onSelect, value, ...props }) => {
 
   // when the search term changes, do a debounce search.
   useEffect(() => {
+    if (!dropdownOpen) return;
     debounceSearch(search);
-  }, [search]);
+  }, [search, dropdownOpen]);
 
   // when the page changes, fetch the videos.
   useEffect(() => {
+    if (!dropdownOpen) return;
     doFetch();
-  }, [page]);
+  }, [page, dropdownOpen]);
 
   // check if there are more pages.
   const hasMore = page < totalPages;
@@ -72,7 +75,7 @@ const SelectMediaDropdown = ({ onSelect, value, ...props }) => {
         path: addQueryArgs(baseURL, {
           search,
           page,
-          per_page: 10,
+          per_page: 5,
           _embed: 1,
         }),
         parse: false,
@@ -100,10 +103,8 @@ const SelectMediaDropdown = ({ onSelect, value, ...props }) => {
 
   // convert single value to array.
   const disabledItems = !Array.isArray(value) ? [value] : value;
-
   return (
     <EntitySearchDropdown
-      popoverProps={{ placement: "bottom-end" }}
       isLoading={isLoading}
       options={videoList || []}
       search={search}
@@ -111,6 +112,7 @@ const SelectMediaDropdown = ({ onSelect, value, ...props }) => {
       onSelect={handleSelection}
       hasMore={hasMore && !search}
       onNextPage={nextPage}
+      onOpen={setDropdownOpen}
       renderToggle={({ isOpen, onToggle }) => (
         <Button variant="primary" onClick={onToggle} aria-expanded={isOpen}>
           {__("Create or select media", "presto-player")}
@@ -118,21 +120,28 @@ const SelectMediaDropdown = ({ onSelect, value, ...props }) => {
       )}
       renderItem={({ item, onSelect }) => {
         const { id, title, details } = item;
-        const { type } = details || {};
+        const { type, name } = details || {};
         const thumbnail =
           item?._embedded?.["wp:featuredmedia"]?.[0]?.source_url || "";
         return (
           <MenuItem
             icon={<VideoIcon thumbnail={thumbnail} type={type} />}
             iconPosition="left"
-            suffix={
-              type ? capitalize(type) : __("Choose media", "presto-player")
-            }
+            suffix={type ? name : __("Choose media", "presto-player")}
             onClick={() => onSelect(item)}
             disabled={(disabledItems || []).includes(id)}
             key={id}
+            css={css`
+              .components-menu-item__item {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: inline-block;
+                text-align: left;
+              }
+            `}
           >
-            {title?.raw || __("Untitled", "presto-player")}
+            {title || __("Untitled", "presto-player")}
           </MenuItem>
         );
       }}

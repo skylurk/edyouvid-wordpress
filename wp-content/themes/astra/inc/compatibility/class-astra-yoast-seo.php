@@ -11,7 +11,6 @@
  * @since 2.1.2
  */
 class Astra_Yoast_SEO {
-
 	/**
 	 * Constructor
 	 */
@@ -27,9 +26,7 @@ class Astra_Yoast_SEO {
 	 * @since 2.1.2
 	 */
 	public function sitemap_exclude_post_type( $value, $post_type ) {
-		if ( 'astra-advanced-hook' === $post_type ) {
-			return true;
-		}
+		return 'astra-advanced-hook' === $post_type;
 	}
 
 }

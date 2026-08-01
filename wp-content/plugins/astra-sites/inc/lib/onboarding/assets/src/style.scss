@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+.final-step-wrapper {
+	border: 1ps solid red !important;
+}
+
 #starter-templates-ai-root {
 	font-size: 16px;
 	background: var( --st-background-primary );
@@ -99,10 +103,15 @@ a {
 }
 
 .step-row {
-	background: var( --st-background-primary );
+	background: var( --st-background-secondary );
 	display: flex;
-	overflow: hidden;
-	height: calc( 100vh - 60px );
+	height: calc( 100vh - 20px );
+	position: relative;
+
+	@media ( max-width: 640px ) {
+		display: block;
+		overflow: scroll;
+	}
 }
 
 .hide-sidebar .step-col-right {
@@ -220,6 +229,11 @@ a {
 .ist-logo {
 	--stc-logo-height: 44px;
 	--stc-logo-width: 44px;
+	@media ( max-width: 768px ) {
+		--stc-logo-height: 24px;
+		--stc-logo-width: 24px;
+	}
+
 	cursor: pointer;
 }
 
@@ -313,6 +327,10 @@ body.step-import-site-done {
 	> .right-col {
 		pointer-events: auto;
 	}
+
+	@media screen and ( max-width: 768px ) {
+		height: 56px;
+	}
 	.branding-wrap {
 		display: flex;
 		align-items: center;
@@ -321,10 +339,18 @@ body.step-import-site-done {
 		grid-gap: 20px;
 		padding: 16px 24px;
 		border-right: 1px solid var( --st-border-color );
+		@media only screen and ( max-width: 768px ) {
+			padding: 16px;
+			height: 56px;
+		}
 	}
+
 	.exit-link {
 		padding: 26px 30px;
 		border-left: 1px solid var( --st-border-color );
+		@media only screen and ( max-width: 768px ) {
+			padding: 16px 24px;
+		}
 	}
 	.right-col {
 		display: flex;
@@ -539,11 +565,6 @@ body.step-import-site-done {
 }
 
 .middle-content {
-	margin: 0;
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate( -50%, -50% );
 	&.middle-content-import {
 		background: var( --st-background-primary );
 		padding: 30px;
@@ -654,6 +675,7 @@ body.step-import-site-done {
 	.screen-description {
 		margin: 20px auto 40px;
 		max-width: 700px;
+		color: #9ca3af;
 	}
 
 	.ist-customizer-heading {
@@ -924,6 +946,11 @@ body.step-import-site-done {
 	animation: congrats-screen-fadeIn 500ms;
 }
 
+.content-wrapper:has( div.middle-content-import ) {
+	display: flex;
+	justify-content: center;
+}
+
 @keyframes congrats-screen-fadeIn {
 	0% {
 		opacity: 0.3;
@@ -1000,6 +1027,12 @@ body.step-import-site-done {
 			}
 		}
 	}
+	@media screen and ( max-width: 768px ) {
+		height: 56px;
+		.stc-logo-text {
+			display: none;
+		}
+	}
 }
 .zw-tooltip {
 	text-align: left;
@@ -1016,5 +1049,43 @@ body.step-import-site-done {
 	line-height: 1.25rem;
 	a {
 		color: #fff;
+	}
+}
+.features-container {
+	padding-bottom: 60px;
+
+	.plugin-list {
+		overflow-x: auto;
+
+		&::-webkit-scrollbar {
+			height: 6px;
+		}
+
+		&::-webkit-scrollbar-track {
+			border-radius: 10px;
+		}
+
+		&::-webkit-scrollbar-thumb {
+			background: transparent;
+			border-radius: 10px;
+			transition: background 0.3s ease;
+		}
+
+		&:hover::-webkit-scrollbar-thumb {
+			background: #d5d6d7;
+		}
+
+		scrollbar-color: transparent transparent;
+		scrollbar-width: thin;
+
+		&:hover {
+			scrollbar-color: #d5d6d7 transparent;
+		}
+	}
+}
+
+.stc-grid-item-badge {
+	svg {
+		vertical-align: middle;
 	}
 }

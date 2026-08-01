@@ -2,140 +2,134 @@
 
 namespace PrestoPlayer\Models;
 
-class Post
-{
-    protected $post;
+class Post {
 
-    public function __construct(\WP_Post $post)
-    {
-        $this->post = $post;
-    }
+	protected $post;
 
-    /**
-     * Find video id in post using multiple methods
-     *
-     * @return int|false
-     */
-    public function findVideoId()
-    {
-        // first check for id in block
-        $id = $this->getVideoIdFromBlock();
-        if ($id) {
-            return (int) $id;
-        }
+	public function __construct( \WP_Post $post ) {
+		$this->post = $post;
+	}
 
-        $id = $this->getVideoIdFromShortcode();
-        if ($id) {
-            return (int) $id;
-        }
+	/**
+	 * Find video id in post using multiple methods
+	 *
+	 * @return int|false
+	 */
+	public function findVideoId() {
+		// first check for id in block
+		$id = $this->getVideoIdFromBlock();
+		if ( $id ) {
+			return (int) $id;
+		}
 
-        $id = $this->getVideoIdFromContent();
-        if ($id) {
-            return (int) $id;
-        }
+		$id = $this->getVideoIdFromShortcode();
+		if ( $id ) {
+			return (int) $id;
+		}
 
-        return false;
-    }
+		$id = $this->getVideoIdFromContent();
+		if ( $id ) {
+			return (int) $id;
+		}
 
-    /**
-     * Find the video id from the shortcode
-     *
-     * @return int|false
-     */
-    public function getVideoIdFromShortcode()
-    {
-        $pattern = get_shortcode_regex();
-        $content = $this->post->post_content;
-        preg_match_all("/$pattern/", $content, $matches);
+		return false;
+	}
 
-        $shortcode = array_keys($matches[2], 'presto_player');
-        if (!$shortcode) {
-            return false;
-        }
-        if (empty($matches[3][0])) {
-            return false;
-        }
+	/**
+	 * Find the video id from the shortcode
+	 *
+	 * @return int|false
+	 */
+	public function getVideoIdFromShortcode() {
+		$pattern = get_shortcode_regex();
+		$content = $this->post->post_content;
+		preg_match_all( "/$pattern/", $content, $matches );
 
-        // get media hub id
-        $atts = shortcode_parse_atts($matches[3][0]);
-        if (!empty($atts['id'])) {
-            $this->post = get_post($atts['id']);
-            return $this->findVideoId();
-        }
-    }
+		$shortcode = array_keys( $matches[2], 'presto_player' );
+		if ( ! $shortcode ) {
+			return false;
+		}
+		if ( empty( $matches[3][0] ) ) {
+			return false;
+		}
 
-    /**
-     * Get the video id from the block
-     */
-    public function getVideoIdFromBlock()
-    {
-        $blocks = parse_blocks($this->post->post_content);
-        foreach ($blocks as $block) {
-            // inside wrapper block
-            if ('presto-player/reusable-edit' === $block['blockName'] && !empty($block['innerBlocks'])) {
-                $block = $block['innerBlocks'][0];
-            }
+		// get media hub id
+		$atts = shortcode_parse_atts( $matches[3][0] );
+		if ( ! empty( $atts['id'] ) ) {
+			$this->post = get_post( $atts['id'] );
+			return $this->findVideoId();
+		}
+	}
 
-            // we have a reusable display block
-            if ('presto-player/reusable-display' === $block['blockName']) {
-                // find the media hub post
-                if (!empty($block['attrs']['id'])) {
-                    $block = $this->getMediaHubBlockFromPost($block['attrs']['id']);
-                }
-            }
+	/**
+	 * Get the video id from the block
+	 */
+	public function getVideoIdFromBlock() {
+		$blocks = parse_blocks( $this->post->post_content );
+		foreach ( $blocks as $block ) {
+			// inside wrapper block
+			if ( 'presto-player/reusable-edit' === $block['blockName'] && ! empty( $block['innerBlocks'] ) ) {
+				$block = $block['innerBlocks'][0];
+			}
 
-            // in case block needs to be filtered
-            $block = apply_filters('presto_player_get_block_from_content', $block);
+			// we have a reusable display block
+			if ( 'presto-player/reusable-display' === $block['blockName'] ) {
+				// find the media hub post
+				if ( ! empty( $block['attrs']['id'] ) ) {
+					$block = $this->getMediaHubBlockFromPost( $block['attrs']['id'] );
+				}
+			}
 
-            // find the id attribute
-            if (!empty($block) && in_array($block['blockName'], Block::getBlockTypes())) {
-                if (!empty($block['attrs']['id'])) {
-                    return $block['attrs']['id'];
-                }
-            }
-        }
+			// in case block needs to be filtered
+			$block = apply_filters( 'presto_player_get_block_from_content', $block );
 
-        return false;
-    }
+			// find the id attribute
+			if ( ! empty( $block ) && in_array( $block['blockName'], Block::getBlockTypes() ) ) {
+				if ( ! empty( $block['attrs']['id'] ) ) {
+					return $block['attrs']['id'];
+				}
+			}
+		}
 
-    /**
-     * Fallback - get video id from comment in content
-     */
-    public function getVideoIdFromContent()
-    {
-        $content = $this->post->post_content;
+		return false;
+	}
 
-        preg_match_all("/(?<=<!--presto-player:video_id=)(.*)(?=-->)/", $content, $matches);
-        if (!empty($matches[0][0])) {
-            return (int) $matches[0][0];
-        }
+	/**
+	 * Fallback - get video id from comment in content
+	 */
+	public function getVideoIdFromContent() {
+		$content = $this->post->post_content;
 
-        return false;
-    }
+		preg_match_all( '/(?<=<!--presto-player:video_id=)(.*)(?=-->)/', $content, $matches );
+		if ( ! empty( $matches[0][0] ) ) {
+			return (int) $matches[0][0];
+		}
 
-    /**
-     * Retrieve the inner block from media hub post.
-     *
-     * @param  int $id id of the post.
-     * @return array|false
-     */
-    public function getMediaHubBlockFromPost($id)
-    {
-        if (!$id) {
-            return false;
-        }
+		return false;
+	}
 
-        // get the media hub post.
-        $block_post = get_post($id);
+	/**
+	 * Retrieve the inner block from media hub post.
+	 *
+	 * @param  int $id id of the post.
+	 * @return array|false
+	 */
+	public function getMediaHubBlockFromPost( $id ) {
+		if ( ! $id ) {
+			return false;
+		}
 
-        // if it has content, get the first block.
-        if (!empty($block_post->post_content)) {
-            $inner_blocks = parse_blocks($block_post->post_content);
-            if (!empty($inner_blocks[0]['innerBlocks'][0])) {
-                return $inner_blocks[0]['innerBlocks'][0] ?? false;
-            }
-        }
+		// get the media hub post.
+		$block_post = get_post( $id );
 
-        return false;
-    }
+		// if it has content, get the first block.
+		if ( ! empty( $block_post->post_content ) ) {
+			$inner_blocks = parse_blocks( $block_post->post_content );
+			if ( ! empty( $inner_blocks[0]['innerBlocks'][0] ) ) {
+				return $inner_blocks[0]['innerBlocks'][0] ?? false;
+			}
+		}
+
+		return false;
+	}
 }

@@ -3,8 +3,6 @@
  * Primary Footer component.
  *
  * @package     Astra Builder
- * @author      Brainstorm Force
- * @copyright   Copyright (c) 2020, Brainstorm Force
  * @link        https://www.brainstormforce.com
  * @since       Astra 3.0.0
  */
@@ -24,18 +22,14 @@ if ( ! class_exists( 'Astra_Primary_Footer' ) ) {
 	 * @since 3.0.0
 	 */
 	class Astra_Primary_Footer {
-
 		/**
 		 * Constructor function that initializes required actions and hooks
 		 */
 		public function __construct() {
 
 			// @codingStandardsIgnoreStart WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound
-			require_once ASTRA_BUILDER_FOOTER_PRIMARY_FOOTER_DIR . '/class-astra-primary-footer-component-loader.php';
-
 			// Include front end files.
-			if ( ! is_admin() ) {
-
+			if ( ! is_admin() || Astra_Builder_Customizer::astra_collect_customizer_builder_data() ) {
 				require_once ASTRA_BUILDER_FOOTER_PRIMARY_FOOTER_DIR . '/dynamic-css/dynamic.css.php';
 			}
 			// @codingStandardsIgnoreEnd WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound

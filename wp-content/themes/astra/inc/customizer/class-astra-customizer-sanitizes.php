@@ -3,8 +3,6 @@
  * Astra Theme Customizer Sanitize.
  *
  * @package     Astra
- * @author      Astra
- * @copyright   Copyright (c) 2020, Astra
  * @link        https://wpastra.com/
  * @since       Astra 1.0.0
  */
@@ -25,11 +23,9 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 	 * Customizer Sanitizes Initial setup
 	 */
 	class Astra_Customizer_Sanitizes {
-
 		/**
 		 * Instance
 		 *
-		 * @access private
 		 * @var object
 		 */
 		private static $instance;
@@ -47,7 +43,227 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 		/**
 		 * Constructor
 		 */
-		public function __construct() { }
+		public function __construct() {
+		}
+
+		/**
+		 * Sanitize Logo SVG Icon.
+		 *
+		 * @param array $input Logo SVG Icon value.
+		 * @return array Sanitized Logo SVG Icon value.
+		 * @since 4.7.0
+		 */
+		public static function sanitize_logo_svg_icon( $input ) {
+			if ( empty( $input['type'] ) ) {
+				return array(
+					'type'  => '',
+					'value' => '',
+				);
+			}
+
+			if ( 'icon-library' === $input['type'] ) {
+
+				$svg_icons = function_exists( 'astra_get_logo_svg_icons_array' ) ? astra_get_logo_svg_icons_array() : array();
+
+				return array(
+					'type'  => 'icon-library',
+					'value' => isset( $input['value'] ) && isset( $svg_icons[ $input['value'] ] ) ? $input['value'] : '',
+				);
+			}
+			/* Strip code starts */
+			return array(
+				'type'  => 'custom',
+				'value' => isset( $input['value'] ) ? self::sanitize_svg_code( $input['value'] ) : '',
+			);
+			/* Strip code ends */
+		}
+
+		/* Strip code starts */
+		/**
+		 * Sanitizes SVG Code string.
+		 *
+		 * @param string $original_content SVG code to sanitize.
+		 * @return string
+		 * @since 4.7.0
+		 */
+		public static function sanitize_svg_code( $original_content ) {
+
+			if ( ! $original_content ) {
+				return '';
+			}
+
+			// Define allowed tags and attributes.
+			$allowed_tags = apply_filters( 'astra_custom_svg_allowed_tags', array( 'a', 'circle', 'clippath', 'defs', 'style', 'desc', 'ellipse', 'fegaussianblur', 'filter', 'foreignobject', 'g', 'image', 'line', 'lineargradient', 'marker', 'mask', 'metadata', 'path', 'pattern', 'polygon', 'polyline', 'radialgradient', 'rect', 'stop', 'svg', 'switch', 'symbol', 'text', 'textpath', 'title', 'tspan', 'use' ) );
+
+			$allowed_attributes = apply_filters( 'astra_custom_svg_allowed_attributes', array( 'width', 'height', 'fill', 'class', 'clip-path', 'clip-rule', 'fill-opacity', 'fill-rule', 'filter', 'id', 'mask', 'opacity', 'stroke', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'style', 'systemlanguage', 'transform', 'href', 'xlink:href', 'xlink:title', 'cx', 'cy', 'r', 'requiredfeatures', 'clippathunits', 'type', 'rx', 'ry', 'color-interpolation-filters', 'stddeviation', 'filterres', 'filterunits', 'primitiveunits', 'x', 'y', 'font-size', 'display', 'font-family', 'font-style', 'font-weight', 'text-anchor', 'marker-end', 'marker-mid', 'marker-start', 'x1', 'x2', 'y1', 'y2', 'gradienttransform', 'gradientunits', 'spreadmethod', 'markerheight', 'markerunits', 'markerwidth', 'orient', 'preserveaspectratio', 'refx', 'refy', 'maskcontentunits', 'maskunits', 'd', 'patterncontentunits', 'patterntransform', 'patternunits', 'points', 'fx', 'fy', 'offset', 'stop-color', 'stop-opacity', 'xmlns', 'xmlns:se', 'xmlns:xlink', 'xml:space', 'method', 'spacing', 'startoffset', 'dx', 'dy', 'rotate', 'textlength', 'viewbox' ) );
+
+			$is_encoded = false;
+
+			$needle = "\x1f\x8b\x08";
+			if ( function_exists( 'mb_strpos' ) ) {
+				$is_encoded = 0 === mb_strpos( $original_content, $needle );
+			} else {
+				$is_encoded = 0 === strpos( $original_content, $needle );
+			}
+
+			if ( $is_encoded ) {
+				$original_content = gzdecode( $original_content );
+				if ( $original_content === false ) {
+					return '';
+				}
+			}
+
+			// Strip php tags.
+			 // phpcs:ignore Generic.PHP.ForbiddenFunctions.FoundWithAlternative -- Safe usage: no /e modifier, sanitizes SVG by removing PHP tags
+			$content = preg_replace( '/<\?(=|php)(.+?)\?>/i', '', $original_content );
+			 // phpcs:ignore Generic.PHP.ForbiddenFunctions.FoundWithAlternative -- Safe usage: no /e modifier, sanitizes SVG by removing PHP tags
+			$content = preg_replace( '/<\?(.*)\?>/Us', '', $content );
+			 // phpcs:ignore Generic.PHP.ForbiddenFunctions.FoundWithAlternative -- Safe usage: no /e modifier, sanitizes SVG by removing PHP tags
+			$content = preg_replace( '/<\%(.*)\%>/Us', '', $content );
+
+			if ( false !== strpos( $content, '<?php' ) || ( false !== strpos( $content, '<%' ) ) ) {
+				return '';
+			}
+
+			// Strip comments.
+			 // phpcs:ignore Generic.PHP.ForbiddenFunctions.FoundWithAlternative -- Safe usage: no /e modifier, sanitizes SVG by removing PHP tags
+			$content = preg_replace( '/<!--(.*)-->/Us', '', $content );
+			 // phpcs:ignore Generic.PHP.ForbiddenFunctions.FoundWithAlternative -- Safe usage: no /e modifier, sanitizes SVG by removing PHP tags
+			$content = preg_replace( '/\/\*(.*)\*\//Us', '', $content );
+
+			if ( false !== strpos( $content, '<!--' ) || ( false !== strpos( $content, '/*' ) ) ) {
+				return '';
+			}
+
+			// Strip line breaks.
+			// phpcs:ignore Generic.PHP.ForbiddenFunctions.FoundWithAlternative -- Safe usage: no /e modifier, sanitizes SVG by removing PHP tags
+			$content = preg_replace( '/\r|\n/', '', $content );
+
+			// Find the start and end tags so we can cut out miscellaneous garbage.
+			$start = strpos( $content, '<svg' );
+			$end   = strrpos( $content, '</svg>' );
+			if ( false === $start || false === $end ) {
+				return '';
+			}
+
+			$content = substr( $content, $start, ( $end - $start + 6 ) );
+
+			// Suppress the errors.
+			libxml_use_internal_errors( true );
+
+			// Load the SVG content using SimpleXML.
+			$xml = simplexml_load_string( $content, 'SimpleXMLElement', LIBXML_NOENT );
+			if ( $xml === false ) {
+				return '';
+			}
+
+			// Sanitize elements.
+			/** @psalm-suppress PossiblyNullPropertyFetch */
+			$dom = dom_import_simplexml( $xml )->ownerDocument;
+			/** @psalm-suppress PossiblyNullPropertyAssignment */
+			$dom->formatOutput = false;
+			/** @psalm-suppress PossiblyNullPropertyAssignment */
+			$dom->preserveWhiteSpace = false;
+			/** @psalm-suppress PossiblyNullPropertyAssignment */
+			$dom->strictErrorChecking = false;
+
+			/** @psalm-suppress PossiblyNullReference */
+			$elements = $dom->getElementsByTagName( '*' );
+			for ( $index = $elements->length - 1; $index >= 0; $index-- ) {
+				$current_element = $elements->item( $index );
+				if ( ! in_array( strtolower( $current_element->tagName ), $allowed_tags ) ) {
+					$current_element->parentNode->removeChild( $current_element );
+					continue;
+				}
+
+				// Validate allowed attributes.
+				for ( $i = $current_element->attributes->length - 1; $i >= 0; $i-- ) {
+					$attr_name           = $current_element->attributes->item( $i )->name;
+					$attr_name_lowercase = strtolower( $attr_name );
+					if ( ! in_array( $attr_name_lowercase, $allowed_attributes ) &&
+						! preg_match( '/^aria-/', $attr_name_lowercase ) &&
+						! preg_match( '/^data-/', $attr_name_lowercase ) ) {
+						$current_element->removeAttribute( $attr_name );
+						continue;
+					}
+
+					$attr_value = $current_element->attributes->item( $i )->value;
+					if ( ! empty( $attr_value ) &&
+						( preg_match( '/^((https?|ftp|file):)?\/\//i', $attr_value ) ||
+						preg_match( '/base64|data|(?:java)?script|alert\(|window\.|document/i', $attr_value ) ) ) {
+						$current_element->removeAttribute( $attr_name );
+						continue;
+					}
+				}
+
+				// Strip xlink:href.
+				$xlink_href = $current_element->getAttributeNS( 'http://www.w3.org/1999/xlink', 'href' );
+				if ( $xlink_href && strpos( $xlink_href, '#' ) !== 0 ) {
+					$current_element->removeAttributeNS( 'http://www.w3.org/1999/xlink', 'href' );
+				}
+
+				// Strip use tag with external references.
+				if ( strtolower( $current_element->tagName ) === 'use' ) {
+					$xlink_href = $current_element->getAttributeNS( 'http://www.w3.org/1999/xlink', 'href' );
+					if ( $current_element->parentNode && $xlink_href && strpos( $xlink_href, '#' ) !== 0 ) {
+						$current_element->parentNode->removeChild( $current_element );
+					}
+				}
+			}
+
+			// Export sanitized SVG to string.
+			$sanitized = $dom->saveXML( $dom->documentElement, LIBXML_NOEMPTYTAG );
+
+			// Restore defaults.
+			libxml_use_internal_errors( false );
+
+			return $sanitized;
+		}
+		/* Strip code ends */
+
+		/**
+		 * Sanitize Social Icons using existing logo SVG sanitization.
+		 * This function processes the social icons array and uses sanitize_logo_svg_icon() for each item.
+		 *
+		 * @param array $input Social icons array.
+		 * @return array Sanitized social icons array.
+		 * @since 4.11.8
+		 */
+		public static function sanitize_social_icons( $input ) {
+			if ( ! isset( $input['items'] ) || ! is_array( $input['items'] ) ) {
+				return $input;
+			}
+
+			// Process each social icon item
+			foreach ( $input['items'] as $key => $item ) {
+				if ( ! is_array( $item ) ) {
+					continue;
+				}
+
+				// If this item has icon data (either icon-library or custom), sanitize it
+				if ( isset( $item['icon_type'] ) && ( isset( $item['icon'] ) || isset( $item['custom_svg'] ) ) ) {
+					if ( 'custom' === $item['icon_type'] ) {
+						$input['items'][ $key ]['custom_svg'] = isset( $item['custom_svg'] ) ? self::sanitize_svg_code( $item['custom_svg'] ) : '';
+						if ( ! isset( $input['items'][ $key ]['icon'] ) && isset( $item['id'] ) ) {
+							$input['items'][ $key ]['icon'] = $item['id'];
+						}
+					} else {
+						$input['items'][ $key ]['icon'] = isset( $item['icon'] ) && is_string( $item['icon'] ) ? sanitize_text_field( $item['icon'] ) : ( isset( $item['id'] ) ? sanitize_text_field( $item['id'] ) : '' );
+						// Remove custom_svg if switching to icon-library
+						if ( isset( $input['items'][ $key ]['custom_svg'] ) ) {
+							unset( $input['items'][ $key ]['custom_svg'] );
+						}
+					}
+					$input['items'][ $key ]['icon_type'] = in_array( $item['icon_type'], array( 'icon-library', 'custom' ), true ) ? $item['icon_type'] : 'icon-library';
+				} elseif ( isset( $item['id'] ) && ! isset( $item['icon'] ) && ! isset( $item['custom_svg'] ) ) {
+					// Fallback for items without icon_type - assume icon-library
+					$input['items'][ $key ]['icon']      = sanitize_text_field( $item['id'] );
+					$input['items'][ $key ]['icon_type'] = 'icon-library';
+				}
+			}
+
+			return $input;
+		}
 
 		/**
 		 * Sanitize Integer
@@ -85,7 +301,9 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 					$val = $input_attrs['min'];
 				}
 
+				/** @psalm-suppress InvalidCast */ // phpcs:ignore Generic.Commenting.DocComment.MissingShort
 				$dv = (float) $val / $input_attrs['step'];
+				/** @psalm-suppress InvalidCast */ // phpcs:ignore Generic.Commenting.DocComment.MissingShort
 
 				$dv = round( $dv );
 
@@ -120,7 +338,7 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 		public static function sanitize_spacing( $val ) {
 
 			foreach ( $val as $key => $value ) {
-				$val[ $key ] = ( is_numeric( $val[ $key ] ) && $val[ $key ] >= 0 ) ? $val[ $key ] : '';
+				$val[ $key ] = is_numeric( $val[ $key ] ) && $val[ $key ] >= 0 ? $val[ $key ] : '';
 			}
 
 			return $val;
@@ -178,33 +396,41 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 			);
 
 			if ( isset( $val['desktop'] ) ) {
-				$spacing['desktop'] = array_map( 'self::check_numberic_values', $val['desktop'] );
+				$spacing['desktop'] = array_map( array( self::class, 'check_numberic_values' ), $val['desktop'] );
 
-				$spacing['tablet'] = array_map( 'self::check_numberic_values', $val['tablet'] );
+				$spacing['tablet'] = array_map( array( self::class, 'check_numberic_values' ), $val['tablet'] );
 
-				$spacing['mobile'] = array_map( 'self::check_numberic_values', $val['mobile'] );
+				$spacing['mobile'] = array_map( array( self::class, 'check_numberic_values' ), $val['mobile'] );
+
+				$allowed_units = array( '', 'px', 'em', 'rem', '%' );
 
 				if ( isset( $val['desktop-unit'] ) ) {
-					$spacing['desktop-unit'] = $val['desktop-unit'];
+					$desktop_unit            = sanitize_text_field( $val['desktop-unit'] );
+					$spacing['desktop-unit'] = in_array( $desktop_unit, $allowed_units, true ) ? $desktop_unit : 'px';
 				}
 
 				if ( isset( $val['tablet-unit'] ) ) {
-					$spacing['tablet-unit'] = $val['tablet-unit'];
+					$tablet_unit            = sanitize_text_field( $val['tablet-unit'] );
+					$spacing['tablet-unit'] = in_array( $tablet_unit, $allowed_units, true ) ? $tablet_unit : 'px';
 				}
 
 				if ( isset( $val['mobile-unit'] ) ) {
-					$spacing['mobile-unit'] = $val['mobile-unit'];
+					$mobile_unit            = sanitize_text_field( $val['mobile-unit'] );
+					$spacing['mobile-unit'] = in_array( $mobile_unit, $allowed_units, true ) ? $mobile_unit : 'px';
 				}
 
 				return $spacing;
 
-			} else {
+			}
+
+			/** @psalm-suppress DocblockTypeContradiction */
+			if ( is_array( $val ) ) {
 				foreach ( $val as $key => $value ) {
 					$val[ $key ] = is_numeric( $val[ $key ] ) ? $val[ $key ] : '';
 				}
-				return $val;
 			}
-
+			/** @psalm-suppress InvalidReturnStatement */
+			return $val;
 		}
 
 		/**
@@ -216,7 +442,7 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 		 * @since 2.5.4
 		 */
 		public static function check_numberic_values( $value ) {
-			return ( is_numeric( $value ) ) ? $value : '';
+			return is_numeric( $value ) ? $value : '';
 		}
 
 		/**
@@ -272,12 +498,12 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 				'mobile-unit'  => '',
 			);
 			if ( is_array( $val ) ) {
-				$responsive['desktop']      = ( isset( $val['desktop'] ) && is_numeric( $val['desktop'] ) ) ? $val['desktop'] : '';
-				$responsive['tablet']       = ( isset( $val['tablet'] ) && is_numeric( $val['tablet'] ) ) ? $val['tablet'] : '';
-				$responsive['mobile']       = ( isset( $val['mobile'] ) && is_numeric( $val['mobile'] ) ) ? $val['mobile'] : '';
-				$responsive['desktop-unit'] = ( isset( $val['desktop-unit'] ) && in_array( $val['desktop-unit'], array( '', 'px', 'em', 'rem', '%' ) ) ) ? $val['desktop-unit'] : 'px';
-				$responsive['tablet-unit']  = ( isset( $val['tablet-unit'] ) && in_array( $val['tablet-unit'], array( '', 'px', 'em', 'rem', '%' ) ) ) ? $val['tablet-unit'] : 'px';
-				$responsive['mobile-unit']  = ( isset( $val['mobile-unit'] ) && in_array( $val['mobile-unit'], array( '', 'px', 'em', 'rem', '%' ) ) ) ? $val['mobile-unit'] : 'px';
+				$responsive['desktop']      = isset( $val['desktop'] ) && is_numeric( $val['desktop'] ) ? $val['desktop'] : '';
+				$responsive['tablet']       = isset( $val['tablet'] ) && is_numeric( $val['tablet'] ) ? $val['tablet'] : '';
+				$responsive['mobile']       = isset( $val['mobile'] ) && is_numeric( $val['mobile'] ) ? $val['mobile'] : '';
+				$responsive['desktop-unit'] = isset( $val['desktop-unit'] ) && in_array( $val['desktop-unit'], array( '', 'px', 'em', 'rem', '%' ) ) ? $val['desktop-unit'] : 'px';
+				$responsive['tablet-unit']  = isset( $val['tablet-unit'] ) && in_array( $val['tablet-unit'], array( '', 'px', 'em', 'rem', '%' ) ) ? $val['tablet-unit'] : 'px';
+				$responsive['mobile-unit']  = isset( $val['mobile-unit'] ) && in_array( $val['mobile-unit'], array( '', 'px', 'em', 'rem', '%' ) ) ? $val['mobile-unit'] : 'px';
 			} else {
 				$responsive['desktop'] = is_numeric( $val ) ? $val : '';
 			}
@@ -365,7 +591,7 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 		/**
 		 * Sanitize checkbox
 		 *
-		 * @param  number $input setting input.
+		 * @param  mixed $input setting input.
 		 * @return number        setting input value.
 		 */
 		public static function sanitize_checkbox( $input ) {
@@ -411,6 +637,7 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 
 			// CSS variable value sanitize.
 			if ( 0 === strpos( $color, 'var(--' ) ) {
+				 // phpcs:ignore Generic.PHP.ForbiddenFunctions.FoundWithAlternative -- Safe usage: no /e modifier, sanitizes SVG by removing PHP tags
 				return preg_replace( '/[^A-Za-z0-9_)(\-,.]/', '', $color );
 			}
 
@@ -446,7 +673,8 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 
 			// Get list of choices from the control
 			// associated with the setting.
-			$choices    = $setting->manager->get_control( $setting->id )->choices;
+			$choices = $setting->manager->get_control( $setting->id )->choices;
+
 			$input_keys = $input;
 
 			foreach ( $input_keys as $key => $value ) {
@@ -457,7 +685,7 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 
 			// If the input is a valid key, return it;
 			// otherwise, return the default.
-			return ( is_array( $input ) ? $input : $setting->default );
+			return is_array( $input ) ? $input : $setting->default;
 		}
 
 		/**
@@ -478,7 +706,7 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 
 			// If the input is a valid key, return it;
 			// otherwise, return the default.
-			return ( array_key_exists( $input, $choices ) ? $input : $setting->default );
+			return array_key_exists( $input, $choices ) ? $input : $setting->default;
 		}
 
 		/**
@@ -490,6 +718,7 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 		public static function sanitize_font_weight( $input ) {
 
 			$valid = array(
+				'inherit',
 				'normal',
 				'bold',
 				'100',
@@ -505,9 +734,9 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 
 			if ( in_array( $input, $valid ) ) {
 				return $input;
-			} else {
-				return 'normal';
 			}
+
+			return 'normal';
 		}
 
 		/**
@@ -525,6 +754,26 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 		}
 
 		/**
+		 * Sanitize a CSS property value for safe inline style output.
+		 *
+		 * Strips HTML tags, extra whitespace, and CSS structure characters
+		 * ({, }, ;) that could allow property breakout in a <style> block.
+		 *
+		 * @since 4.12.5
+		 * @param  string $value Raw CSS property value.
+		 * @return string        Sanitized value safe for inline CSS context.
+		 */
+		public static function sanitize_css_value( $value ) {
+			return preg_replace_callback(
+				'/[{};]/',
+				static function () {
+					return '';
+				},
+				sanitize_text_field( $value )
+			);
+		}
+
+		/**
 		 * Sanitize Background Obj
 		 *
 		 * @param  mixed $bg_obj setting input.
@@ -539,6 +788,10 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 				'background-position'   => 'center center',
 				'background-size'       => 'auto',
 				'background-attachment' => 'scroll',
+				'overlay-type'          => '',
+				'overlay-color'         => '',
+				'overlay-opacity'       => '',
+				'overlay-gradient'      => '',
 				'background-media'      => '',
 				'background-type'       => '',
 			);
@@ -551,7 +804,10 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 
 						if ( 'background-image' === $key ) {
 							$out_bg_obj[ $key ] = esc_url_raw( $bg_obj[ $key ] );
+						} elseif ( 'overlay-gradient' === $key ) {
+							$out_bg_obj[ $key ] = self::sanitize_css_value( $bg_obj[ $key ] );
 						} else {
+							/** @psalm-suppress PossiblyUndefinedStringArrayOffset -- Key existence confirmed by isset check above. */
 							$out_bg_obj[ $key ] = esc_attr( $bg_obj[ $key ] );
 						}
 					}
@@ -576,6 +832,7 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 				'bottom' => '',
 				'left'   => '',
 			);
+			/** @psalm-suppress DocblockTypeContradiction */ // phpcs:ignore Generic.Commenting.DocComment.MissingShort
 			if ( is_array( $val ) ) {
 				$border['top']    = is_numeric( $val['top'] ) ? $val['top'] : '';
 				$border['right']  = is_numeric( $val['right'] ) ? $val['right'] : '';
@@ -622,6 +879,10 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 					'background-position'   => 'center center',
 					'background-size'       => 'auto',
 					'background-attachment' => 'scroll',
+					'overlay-type'          => '',
+					'overlay-color'         => '',
+					'overlay-opacity'       => '',
+					'overlay-gradient'      => '',
 					'background-media'      => '',
 					'background-type'       => '',
 				),
@@ -632,6 +893,10 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 					'background-position'   => 'center center',
 					'background-size'       => 'auto',
 					'background-attachment' => 'scroll',
+					'overlay-type'          => '',
+					'overlay-color'         => '',
+					'overlay-opacity'       => '',
+					'overlay-gradient'      => '',
 					'background-media'      => '',
 					'background-type'       => '',
 				),
@@ -642,6 +907,10 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 					'background-position'   => 'center center',
 					'background-size'       => 'auto',
 					'background-attachment' => 'scroll',
+					'overlay-type'          => '',
+					'overlay-color'         => '',
+					'overlay-opacity'       => '',
+					'overlay-gradient'      => '',
 					'background-media'      => '',
 					'background-type'       => '',
 				),
@@ -654,8 +923,9 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 				foreach ( $bg as $key => $value ) {
 					if ( 'background-image' === $key ) {
 						$out_bg_obj[ $device ] [ $key ] = esc_url_raw( $value );
-					}
-					if ( 'background-media' === $key ) {
+					} elseif ( 'overlay-gradient' === $key ) {
+						$out_bg_obj[ $device ] [ $key ] = self::sanitize_css_value( $value );
+					} elseif ( 'background-media' === $key ) {
 						$out_bg_obj[ $device ] [ $key ] = floatval( $value );
 					} else {
 						$out_bg_obj[ $device ] [ $key ] = esc_attr( $value );
@@ -676,7 +946,62 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 		 */
 		public static function sanitize_toggle_control( $val ) {
 			// returns true if checkbox is checked.
-			return ( isset( $val ) && is_bool( $val ) ? $val : '' );
+			return isset( $val ) && is_bool( $val ) ? $val : '';
+		}
+
+		/**
+		 * Sanitize Font Extras composite value.
+		 *
+		 * Whitelists unit fields and sanitizes numeric values for line-height
+		 * and letter-spacing. Preserves '' (unitless ratio) as a valid unit for
+		 * line-height. Non-array input is discarded and an empty array is returned.
+		 *
+		 * @since 4.13.2
+		 * @param  mixed $input Raw value from the customizer setting.
+		 * @return array        Sanitized font-extras array.
+		 */
+		public static function sanitize_font_extras( $input ) {
+			if ( ! is_array( $input ) ) {
+				return array();
+			}
+
+			$valid_lh_units    = array( '', 'px', 'em', 'rem' );
+			$valid_ls_units    = array( 'px', 'em', 'rem' );
+			$valid_decorations = array( 'initial', 'underline', 'line-through', '' );
+			$valid_transforms  = array( 'lowercase', 'capitalize', 'uppercase', '' );
+
+			$out = array();
+
+			if ( isset( $input['line-height'] ) ) {
+				if ( '' === $input['line-height'] ) {
+					$out['line-height'] = '';
+				} else {
+					$lh                 = floatval( $input['line-height'] );
+					$out['line-height'] = is_numeric( $input['line-height'] ) && is_finite( $lh ) ? (string) $lh : '';
+				}
+			}
+			if ( isset( $input['line-height-unit'] ) ) {
+				$out['line-height-unit'] = in_array( $input['line-height-unit'], $valid_lh_units, true ) ? $input['line-height-unit'] : '';
+			}
+			if ( isset( $input['letter-spacing'] ) ) {
+				if ( '' === $input['letter-spacing'] ) {
+					$out['letter-spacing'] = '';
+				} else {
+					$ls                    = floatval( $input['letter-spacing'] );
+					$out['letter-spacing'] = is_numeric( $input['letter-spacing'] ) && is_finite( $ls ) ? (string) $ls : '';
+				}
+			}
+			if ( isset( $input['letter-spacing-unit'] ) ) {
+				$out['letter-spacing-unit'] = in_array( $input['letter-spacing-unit'], $valid_ls_units, true ) ? $input['letter-spacing-unit'] : '';
+			}
+			if ( isset( $input['text-decoration'] ) ) {
+				$out['text-decoration'] = in_array( $input['text-decoration'], $valid_decorations, true ) ? $input['text-decoration'] : 'initial';
+			}
+			if ( isset( $input['text-transform'] ) ) {
+				$out['text-transform'] = in_array( $input['text-transform'], $valid_transforms, true ) ? $input['text-transform'] : '';
+			}
+
+			return $out;
 		}
 	}
 }

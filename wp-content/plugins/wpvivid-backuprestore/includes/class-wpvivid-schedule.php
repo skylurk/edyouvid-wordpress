@@ -184,12 +184,14 @@ class WPvivid_Schedule
             "Fortnightly"   =>  $weekly_start_time,
             "Monthly"       =>  $monthly_start_time
         );
+
+        $random_window = 30 * 60; // 0-30 minutes
         foreach ($schedule_type_ex as $key => $value){
             if($key == $time['type']){
                 foreach ($display_array as $display_key => $display_value){
                     if($value == $display_key){
                         $base_ts = strtotime($display_value);
-                        $jitter = function_exists('wp_rand') ? wp_rand(0, 15 * 60) : rand(0, 15 * 60);
+                        $jitter = function_exists('wp_rand') ? wp_rand(0, $random_window) : rand(0, $random_window);
                         return $base_ts + $jitter;
                     }
                 }

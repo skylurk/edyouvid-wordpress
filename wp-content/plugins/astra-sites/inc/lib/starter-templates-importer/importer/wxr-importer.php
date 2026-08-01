@@ -11,6 +11,9 @@
  * https://github.com/humanmade/WordPress-Importer/blob/master/LICENSE
  */
 
+use STImporter\Importer\ST_Importer_File_System;
+use STImporter\Importer\ST_Importer_Helper;
+
 /**
  * All the PHPCS errors are ignored in this file as it is a third party file.
  * Forked from WP importer v2 - https://github.com/humanmade/WordPress-Importer
@@ -229,10 +232,8 @@ if ( ! class_exists( 'WXR_Importer' ) && class_exists( 'WP_Importer' ) ) :
 		 */
 		protected function get_reader( $file ) {
 			// Avoid loading external entities for security.
-			$old_value = null;
-
 			$reader = new XMLReader();
-			$status = $reader->open( $file );
+			$status = $reader->open( $file, null, LIBXML_NONET );
 
 			if ( ! $status ) {
 				return new WP_Error( 'wxr_importer.cannot_parse', __( 'Could not open the file for parsing', 'astra-sites' ) );
@@ -591,6 +592,8 @@ if ( ! class_exists( 'WXR_Importer' ) && class_exists( 'WP_Importer' ) ) :
 			if ( $this->options['aggressive_url_search'] ) {
 				$this->replace_attachment_urls_in_content();
 			}
+
+			$this->replace_demo_site_urls_in_content();
 			// phpcs:disable
 			// $this->remap_featured_images();
 			// phpcs:enable
@@ -1006,6 +1009,9 @@ if ( ! class_exists( 'WXR_Importer' ) && class_exists( 'WP_Importer' ) ) :
 				$remote_url = ! empty( $data['attachment_url'] ) ? $data['attachment_url'] : $data['guid'];
 				$post_id    = $this->process_attachment( $postdata, $meta, $remote_url );
 			} else {
+				// Preserve \uXXXX JSON unicode escapes so they survive stripslashes() inside wp_insert_post().
+				$postdata['post_content'] = ST_Importer_Helper::preserve_block_unicode_escapes( $postdata['post_content'] ?? '' );
+
 				$post_id = wp_insert_post( $postdata, true );
 				do_action( 'wp_import_insert_post', $post_id, $original_id, $postdata, $data );
 			}
@@ -1151,6 +1157,19 @@ if ( ! class_exists( 'WXR_Importer' ) && class_exists( 'WP_Importer' ) ) :
 				case 'custom':
 					// Custom refers to itself, wonderfully easy.
 					$object_id = $post_id;
+
+					// Replace websitedemos.net URL with current site URL.
+					$menu_item_url = get_post_meta( $post_id, '_menu_item_url', true );
+					if ( ! empty( $menu_item_url ) && strpos( $menu_item_url, 'websitedemos.net' ) !== false ) {
+						// Attempt to get the original demo site URL from the demo data, and replace it with the current site URL.
+						$demo_data = ST_Importer_File_System::get_instance()->get_demo_content();
+						if ( isset( $demo_data['astra-site-url'] ) ) {
+							$current_site_url = get_site_url();
+							$updated_url      = str_replace( 'https:' . $demo_data['astra-site-url'], $current_site_url, $menu_item_url );
+							update_post_meta( $post_id, '_menu_item_url', $updated_url );
+							$this->logger->debug( sprintf( 'Updated menu item URL from %s to %s', $menu_item_url, $updated_url ) );
+						}
+					}
 					break;
 
 				default:
@@ -1212,6 +1231,12 @@ if ( ! class_exists( 'WXR_Importer' ) && class_exists( 'WP_Importer' ) ) :
 			}
 
 			$post['post_mime_type'] = $info['type'];
+
+			// Check if the uploaded file is an image and has extremely large dimensions or file size.
+			if ( $this->has_extremely_large_dimensions( $upload['file'] ) || $this->is_large_image_file( $upload['file'] ) ) {
+				// Return an error.
+				return new WP_Error( 'large_image_processing_error', __( 'The image file is too large to process with the current server memory settings.', 'astra-sites' ) );
+			}
 
 			// WP really likes using the GUID for display. Allow updating it.
 			// See https://core.trac.wordpress.org/ticket/33386.
@@ -1813,6 +1838,11 @@ if ( ! class_exists( 'WXR_Importer' ) && class_exists( 'WP_Importer' ) ) :
 				$key = array_search( $child->tagName, $tag_name ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase, WordPress.PHP.StrictInArray.MissingTrueStrict -- 3rd party library.
 				if ( $key ) {
 					$data[ $key ] = $child->textContent; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- 3rd party library.
+				} elseif ( 'wp:termmeta' === $child->tagName ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- 3rd party library.
+					$meta_item = $this->parse_meta_node( $child );
+					if ( ! empty( $meta_item ) ) {
+						$meta[] = $meta_item;
+					}
 				}
 			}
 
@@ -1950,6 +1980,7 @@ if ( ! class_exists( 'WXR_Importer' ) && class_exists( 'WP_Importer' ) ) :
 				)
 			);
 
+			$this->process_term_meta( $meta, $term_id, $data );
 			do_action( 'wp_import_insert_term', $term_id, $data );
 
 			/**
@@ -1959,6 +1990,51 @@ if ( ! class_exists( 'WXR_Importer' ) && class_exists( 'WP_Importer' ) ) :
 			 * @param array $data Raw data imported for the term.
 			 */
 			do_action( 'wxr_importer.processed.term', $term_id, $data ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- 3rd party library.
+		}
+
+		/**
+		 * Process and import term meta items.
+		 *
+		 * @param array $meta List of meta data arrays.
+		 * @param int   $term_id Term ID to associate with.
+		 * @param array $term Term data.
+		 * @return int|bool Number of meta items imported on success, false otherwise.
+		 */
+		protected function process_term_meta( $meta, $term_id, $term ) {
+			if ( ! is_array( $meta ) || empty( $meta ) ) {
+				return true;
+			}
+
+			foreach ( $meta as $meta_item ) {
+				/**
+				 * Pre-process term meta data.
+				 *
+				 * @param array $meta_item Meta data. (Return empty to skip.)
+				 * @param int $term_id Term the meta is attached to.
+				 */
+				$meta_item = apply_filters( 'wxr_importer.pre_process.term_meta', $meta_item, $term_id ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- 3rd party library.
+				if ( empty( $meta_item ) ) {
+					continue;
+				}
+
+				if ( ! isset( $meta_item['key'] ) || ! isset( $meta_item['value'] ) ) {
+					continue;
+				}
+
+				$key = apply_filters( 'import_term_meta_key', $meta_item['key'], $term_id, $term );
+
+				if ( ! $key ) {
+					continue;
+				}
+
+				// export gets meta straight from the DB so could have a serialized string.
+				$value = maybe_unserialize( $meta_item['value'] );
+
+				add_term_meta( $term_id, $key, $value );
+				do_action( 'import_term_meta', $term_id, $key, $value );
+			}
+
+			return true;
 		}
 
 		/**
@@ -2332,6 +2408,123 @@ if ( ! class_exists( 'WXR_Importer' ) && class_exists( 'WP_Importer' ) ) :
 		}
 
 		/**
+		 * Replace residual demo-site URLs in specific block attribute fields.
+		 *
+		 * Block editors such as Spectra (`uagb/container`) store the full WP media
+		 * attachment object in block attributes, which includes `link`, `editLink`
+		 * and `authorLink` fields pointing at the source demo site. The attachment
+		 * URL remap only substitutes file URLs, so those permalink/admin fields
+		 * survive the import. This method targets only those specific JSON keys —
+		 * a blanket domain replace would also strip image file URLs before the
+		 * batch image importer can download them.
+		 *
+		 * @since 1.1.33
+		 *
+		 * @return void
+		 */
+		protected function replace_demo_site_urls_in_content() {
+			$post_ids = array_values( array_filter( array_map( 'intval', (array) ( $this->mapping['post'] ?? array() ) ) ) );
+			if ( empty( $post_ids ) ) {
+				return;
+			}
+
+			$demo_bases = $this->collect_demo_site_bases();
+			if ( empty( $demo_bases ) ) {
+				return;
+			}
+
+			$site_url = trailingslashit( get_site_url() );
+
+			// Only target editor-only metadata fields — never raw URLs that may
+			// resolve to image files the batch importer still needs to fetch.
+			$json_fields = array( 'link', 'editLink', 'authorLink' );
+
+			global $wpdb;
+			$placeholders = implode( ',', array_fill( 0, count( $post_ids ), '%d' ) );
+
+			foreach ( $demo_bases as $demo_base ) {
+				if ( $demo_base === $site_url ) {
+					continue;
+				}
+
+				$demo_base_json = str_replace( '/', '\\/', $demo_base );
+				$site_url_json  = str_replace( '/', '\\/', $site_url );
+
+				foreach ( $json_fields as $field ) {
+					// Plain JSON — `"link":"https://websitedemos.net/slug/..."`.
+					$old_plain = '"' . $field . '":"' . $demo_base;
+					$new_plain = '"' . $field . '":"' . $site_url;
+
+					// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- ID placeholders built dynamically from a safe post-ID list; replacement count matches.
+					$query = $wpdb->prepare(
+						"UPDATE {$wpdb->posts} SET post_content = REPLACE(post_content, %s, %s) WHERE ID IN ({$placeholders})",
+						array_merge( array( $old_plain, $new_plain ), $post_ids )
+					);
+					// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+					$wpdb->query( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Bulk maintenance UPDATE for imported posts.
+
+					// JSON-escaped slashes — `\"link\":\"https:\/\/...\/slug\/...\"`.
+					$old_escaped = '\\"' . $field . '\\":\\"' . $demo_base_json;
+					$new_escaped = '\\"' . $field . '\\":\\"' . $site_url_json;
+
+					// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- ID placeholders built dynamically from a safe post-ID list; replacement count matches.
+					$query = $wpdb->prepare(
+						"UPDATE {$wpdb->posts} SET post_content = REPLACE(post_content, %s, %s) WHERE ID IN ({$placeholders})",
+						array_merge( array( $old_escaped, $new_escaped ), $post_ids )
+					);
+					// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+					$wpdb->query( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Bulk maintenance UPDATE for imported posts.
+				}
+			}
+		}
+
+		/**
+		 * Collect demo-site base URLs from both the WXR XML and the import metadata.
+		 *
+		 * Templates can ship with a mismatch between the WXR `<wp:base_site_url>`
+		 * (the slug the content references, e.g. `brandstore-08`) and the
+		 * `astra-site-url` in the template metadata (e.g. `branding-store-08`),
+		 * because the WXR export was generated from a different source site than
+		 * the template listing. Replacing against only one of them leaves residual
+		 * links. This method returns every candidate base, each with a trailing
+		 * slash, so the caller can run REPLACE for all of them.
+		 *
+		 * @since 1.1.33
+		 *
+		 * @return array<int, string> List of demo-site base URLs (with trailing slash).
+		 */
+		protected function collect_demo_site_bases() {
+			$bases = array();
+
+			if ( ! empty( $this->base_url ) ) {
+				$bases[] = trailingslashit( (string) $this->base_url );
+			}
+
+			if ( class_exists( 'STImporter\Importer\ST_Importer_File_System' ) ) {
+				$demo_data = ST_Importer_File_System::get_instance()->get_demo_content();
+				if ( is_array( $demo_data ) && ! empty( $demo_data['astra-site-url'] ) ) {
+					$raw = (string) $demo_data['astra-site-url'];
+
+					// `astra-site-url` has historically shipped as either
+					// protocol-relative (`//websitedemos.net/slug/`), fully
+					// qualified, or bare (`websitedemos.net/slug/`). Normalize
+					// all three to a fully qualified URL before use.
+					if ( 0 === stripos( $raw, 'http://' ) || 0 === stripos( $raw, 'https://' ) ) {
+						$base = $raw;
+					} elseif ( 0 === strpos( $raw, '//' ) ) {
+						$base = 'https:' . $raw;
+					} else {
+						$base = 'https://' . ltrim( $raw, '/' );
+					}
+
+					$bases[] = trailingslashit( $base );
+				}
+			}
+
+			return array_values( array_unique( array_filter( $bases ) ) );
+		}
+
+		/**
 		 * Update _thumbnail_id meta to new, imported attachment IDs
 		 */
 		public function remap_featured_images() {
@@ -2357,8 +2550,31 @@ if ( ! class_exists( 'WXR_Importer' ) && class_exists( 'WP_Importer' ) ) :
 		public function is_valid_meta_key( $key ) {
 			// skip attachment metadata since we'll regenerate it from scratch
 			// skip _edit_lock as not relevant for import.
-			if ( in_array( $key, array( '_wp_attached_file', '_wp_attachment_metadata', '_edit_lock' ) ) ) { // phpcs:ignore WordPress.PHP.StrictInArray.MissingTrueStrict -- 3rd party library.
+			// skip main page id as not relevant for import.
+			$skip_keys = array(
+				'_wp_attached_file',
+				'_wp_attachment_metadata',
+				'_edit_lock',
+				'astra-main-page-id',
+				'_astra_sites_imported_post',
+				'_wxr_import_user_slug',
+				'_astra_sites_enable_for_batch',
+				'_wxr_import_user_slug',
+			);
+
+			if ( in_array( $key, $skip_keys ) ) { // phpcs:ignore WordPress.PHP.StrictInArray.MissingTrueStrict -- 3rd party library.
 				return false;
+			}
+
+			// Skip keys matching these regex patterns (site-specific keys in multisite).
+			$skip_patterns = array(
+				'/^ast_self_id_\d+$/', // To skip `ast_self_id_%d` keys.
+			);
+
+			foreach ( $skip_patterns as $pattern ) {
+				if ( preg_match( $pattern, $key ) ) {
+					return false;
+				}
 			}
 
 			return $key;
@@ -2424,8 +2640,9 @@ if ( ! class_exists( 'WXR_Importer' ) && class_exists( 'WP_Importer' ) ) :
 		 * @return int|bool Existing post ID if it exists, false otherwise.
 		 */
 		protected function post_exists( $data ) {
-			// Constant-time lookup if we prefilled.
-			$exists_key = $data['guid'];
+			// Use deterministic hash matching pre_post_data() for reliable duplicate detection on retry imports.
+			$hash       = md5( $data['post_title'] . '::' . $data['post_type'] . '::' . $data['post_name'] );
+			$exists_key = site_url( '/?st-import=' . $hash );
 
 			if ( $this->options['prefill_existing_posts'] ) {
 				return isset( $this->exists['post'][ $exists_key ] ) ? $this->exists['post'][ $exists_key ] : false;
@@ -2562,6 +2779,60 @@ if ( ! class_exists( 'WXR_Importer' ) && class_exists( 'WP_Importer' ) ) :
 		protected function mark_term_exists( $data, $term_id ) {
 			$exists_key                          = sha1( $data['taxonomy'] . ':' . $data['slug'] );
 			$this->exists['term'][ $exists_key ] = $term_id;
+		}
+
+		/**
+		 * Check if an image file is considered large and might cause memory issues
+		 *
+		 * @since 1.1.24
+		 *
+		 * @param string $file_path Path to the image file.
+		 * @return bool True if the file is large, false otherwise.
+		 */
+		protected function is_large_image_file( $file_path ) {
+			if ( ! file_exists( $file_path ) ) {
+				return false;
+			}
+
+			// Get file size in bytes.
+			$file_size = filesize( $file_path );
+
+			// Consider files larger than 5MB as large images.
+			// This threshold can be adjusted based on server capabilities.
+			$large_file_threshold = 8 * 1024 * 1024; // 8MB.
+
+			return $file_size > $large_file_threshold;
+		}
+
+		/**
+		 * Check if an image has extremely large dimensions that could cause memory issues
+		 *
+		 * @since 1.1.24
+		 *
+		 * @param string $file_path Path to the image file.
+		 * @return bool True if dimensions are extremely large, false otherwise.
+		 */
+		protected function has_extremely_large_dimensions( $file_path ) {
+			// Check if this is an image file by extension first.
+			$info = wp_check_filetype( $file_path );
+			if ( ! $info || ! in_array( $info['ext'], array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tif', 'tiff', 'ico' ), true ) ) {
+				return false;
+			}
+
+			// Get image dimensions.
+			$imagesize = getimagesize( $file_path );
+			if ( ! $imagesize ) {
+				return false;
+			}
+
+			$width  = $imagesize[0];
+			$height = $imagesize[1];
+
+			// Define thresholds for extremely large dimensions.
+			$max_dimension = 5000;
+
+			// Check if either dimension exceeds the threshold.
+			return ( $width > $max_dimension || $height > $max_dimension );
 		}
 	}
 endif;

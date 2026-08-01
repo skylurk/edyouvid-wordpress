@@ -340,7 +340,7 @@ class Jetpack_Password_Checker {
 	}
 
 	/**
-	 * Returns the widely known user data that can not be used in the password to avoid
+	 * Returns the widely known user data that cannot be used in the password to avoid
 	 * predictable strings.
 	 *
 	 * @return array user data.
@@ -410,7 +410,7 @@ class Jetpack_Password_Checker {
 	 *
 	 * @param Mixed $needle the needle.
 	 * @param array $haystack the haystack.
-	 * @return is the needle not in the haystack?
+	 * @return bool is the needle not in the haystack?
 	 */
 	protected function negative_in_array( $needle, $haystack ) {
 		if ( in_array( $needle, $haystack, true ) ) {

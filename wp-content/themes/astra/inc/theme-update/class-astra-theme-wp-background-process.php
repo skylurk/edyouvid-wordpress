@@ -6,7 +6,7 @@
  * @since 2.1.3
  */
 
-if ( class_exists( 'Astra_WP_Background_Process' ) ) :
+if ( class_exists( 'Astra_WP_Background_Process' ) ) {
 
 	/**
 	 * Database Background Process
@@ -14,7 +14,6 @@ if ( class_exists( 'Astra_WP_Background_Process' ) ) :
 	 * @since 2.1.3
 	 */
 	class Astra_Theme_WP_Background_Process extends Astra_WP_Background_Process {
-
 		/**
 		 * Database Process
 		 *
@@ -32,10 +31,27 @@ if ( class_exists( 'Astra_WP_Background_Process' ) ) :
 		 *
 		 * @since 2.1.3
 		 *
-		 * @param object $process Queue item object.
+		 * @param mixed $process Queue item to process.
 		 * @return mixed
 		 */
 		protected function task( $process ) {
+
+			if ( ! is_string( $process ) ) {
+				return false;
+			}
+
+			// Only allow known update callback functions — prevents arbitrary function execution
+			// if wp_options is ever written by a compromised source.
+			$allowed_callbacks = array( 'update_db_version' );
+			if ( class_exists( 'Astra_Theme_Background_Updater' ) ) {
+				$db_updates        = Astra_Theme_Background_Updater::get_db_update_callbacks();
+				$allowed_callbacks = array_merge( $allowed_callbacks, array_merge( ...array_values( $db_updates ) ) );
+			}
+
+			if ( ! in_array( $process, $allowed_callbacks, true ) ) {
+				error_log( sprintf( 'Astra: Blocked disallowed background process callback: %s', sanitize_text_field( $process ) ) );
+				return false;
+			}
 
 			do_action( 'astra_batch_process_task_' . $process, $process );
 
@@ -65,4 +81,4 @@ if ( class_exists( 'Astra_WP_Background_Process' ) ) :
 
 	}
 
-endif;
+}

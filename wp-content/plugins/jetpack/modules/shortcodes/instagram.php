@@ -17,6 +17,10 @@ use Automattic\Jetpack\Connection\Client;
 use Automattic\Jetpack\Constants;
 use Automattic\Jetpack\Status;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 if ( defined( 'IS_WPCOM' ) && IS_WPCOM ) {
 	add_action( 'init', 'jetpack_instagram_enable_embeds' );
 } else {
@@ -58,7 +62,9 @@ function jetpack_instagram_enable_embeds() {
 	/**
 	 * Embed reversal: Convert an embed code from Instagram.com to an oEmbeddable URL.
 	 */
-	add_filter( 'pre_kses', 'jetpack_instagram_embed_reversal' );
+	if ( jetpack_shortcodes_should_hook_pre_kses() ) {
+		add_filter( 'pre_kses', 'jetpack_instagram_embed_reversal' );
+	}
 
 	/**
 	 * Add the shortcode.
@@ -309,7 +315,7 @@ function jetpack_shortcode_instagram( $atts ) {
 	}
 
 	if ( class_exists( 'Jetpack_AMP_Support' ) && Jetpack_AMP_Support::is_amp_request() ) {
-		$url_pattern = '#http(s?)://(www\.)?instagr(\.am|am\.com)/p/([^/?]+)#i';
+		$url_pattern = '#http(s?)://(www\.)?instagr(\.am|am\.com)/(p|tv|reel)/([^/?]+)#i';
 		preg_match( $url_pattern, $atts['url'], $matches );
 		if ( ! $matches ) {
 			return sprintf(

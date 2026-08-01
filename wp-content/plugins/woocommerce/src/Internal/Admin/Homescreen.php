@@ -3,6 +3,8 @@
  * WooCommerce Homescreen.
  */
 
+declare( strict_types=1 );
+
 namespace Automattic\WooCommerce\Internal\Admin;
 
 use Automattic\WooCommerce\Admin\Features\Features;
@@ -63,7 +65,7 @@ class Homescreen {
 
 	/**
 	 * Set free shipping in the same country as the store default
-	 * Flag rate in all other countries when any of the following conditions are ture
+	 * Flag rate in all other countries when any of the following conditions are true
 	 *
 	 * - The store sells physical products, has JP and WCS installed and connected, and is located in the US.
 	 * - The store sells physical products, and is not located in US/Canada/Australia/UK (irrelevant if JP is installed or not).
@@ -86,7 +88,7 @@ class Homescreen {
 
 		// Abort if we already created the shipping options.
 		$already_created = get_option( 'woocommerce_admin_created_default_shipping_zones' );
-		if ( $already_created === 'yes' ) {
+		if ( 'yes' === $already_created ) {
 			return $settings;
 		}
 
@@ -126,14 +128,26 @@ class Homescreen {
 		if (
 			( 'US' === $country_code && $is_jetpack_installed )
 			||
-			( ! in_array( $country_code, array( 'CA', 'AU', 'GB', 'ES', 'IT', 'DE', 'FR', 'MX', 'CO', 'CL', 'AR', 'PE', 'BR', 'UY', 'GT', 'NL', 'AT', 'BE' ), true ) )
+			( ! in_array( $country_code, array( 'US', 'CA', 'AU', 'NZ', 'SG', 'HK', 'GB', 'ES', 'IT', 'DE', 'FR', 'MX', 'CO', 'CL', 'AR', 'PE', 'BR', 'UY', 'GT', 'NL', 'AT', 'BE' ), true ) )
 			||
 			( 'US' === $country_code && false === $is_jetpack_installed && false === $is_wcs_installed )
 		) {
 			$zone = new \WC_Shipping_Zone();
 			$zone->set_zone_name( $country_name );
 			$zone->add_location( $country_code, 'country' );
-			$zone->add_shipping_method( 'free_shipping' );
+
+			// Method creation has no default title, use the REST API to add a title.
+			$instance_id = $zone->add_shipping_method( 'free_shipping' );
+			$request     = new \WP_REST_Request( 'POST', '/wc/v2/shipping/zones/' . $zone->get_id() . '/methods/' . $instance_id );
+			$request->set_body_params(
+				array(
+					'settings' => array(
+						'title' => 'Free shipping',
+					),
+				)
+			);
+			rest_do_request( $request );
+
 			update_option( 'woocommerce_admin_created_default_shipping_zones', 'yes' );
 			Shipping::delete_zone_count_transient();
 		}
@@ -154,7 +168,6 @@ class Homescreen {
 				'homepage_layout',
 				'homepage_stats',
 				'task_list_tracked_started_tasks',
-				'help_panel_highlight_shown',
 			)
 		);
 	}
@@ -230,7 +243,7 @@ class Homescreen {
 	 */
 	public function update_link_structure() {
 		global $submenu;
-		// User does not have capabilites to see the submenu.
+		// User does not have capabilities to see the submenu.
 		if ( ! current_user_can( 'manage_woocommerce' ) || empty( $submenu['woocommerce'] ) ) {
 			return;
 		}

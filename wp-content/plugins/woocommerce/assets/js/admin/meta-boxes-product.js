@@ -126,34 +126,6 @@ jQuery( function ( $ ) {
 			return false;
 		} );
 
-	function disable_or_enable_fields() {
-		var product_type = $( 'select#product-type' ).val();
-		$( `.enable_if_simple` ).each( function () {
-			$( this ).addClass( 'disabled' );
-			if ( $( this ).is( 'input' ) ) {
-				$( this ).prop( 'disabled', true );
-			}
-		} );
-		$( `.enable_if_external` ).each( function () {
-			$( this ).addClass( 'disabled' );
-			if ( $( this ).is( 'input' ) ) {
-				$( this ).prop( 'disabled', true );
-			}
-		} );
-		$( `.enable_if_variable` ).each( function () {
-			$( this ).addClass( 'disabled' );
-			if ( $( this ).is( 'input' ) ) {
-				$( this ).prop( 'disabled', true );
-			}
-		} );
-		$( `.enable_if_${ product_type }` ).each( function () {
-			$( this ).removeClass( 'disabled' );
-			if ( $( this ).is( 'input' ) ) {
-				$( this ).prop( 'disabled', false );
-			}
-		} );
-	}
-
 	// Product type specific options.
 	$( 'select#product-type' )
 		.on( 'change', function () {
@@ -172,8 +144,23 @@ jQuery( function ( $ ) {
 				$( 'input#_virtual' ).prop( 'checked', false );
 			}
 
+			const cogs_field_tip = $( '._cogs_value_field' ).find(
+				'.woocommerce-help-tip'
+			);
+			const cogs_field_tip_text =
+				'variable' === select_val
+					? woocommerce_admin_meta_boxes.cogs_value_tooltip_variable_products
+					: woocommerce_admin_meta_boxes.cogs_value_tooltip_simple_products;
+			$( cogs_field_tip ).attr( 'aria-label', cogs_field_tip_text );
+			$( cogs_field_tip ).tipTip( {
+				attribute: 'aria-label',
+				fadeIn: 50,
+				fadeOut: 50,
+				delay: 200,
+				keepAlive: true,
+			} );
+
 			show_and_hide_panels();
-			disable_or_enable_fields();
 			change_product_type_tip( get_product_tip_content( select_val ) );
 
 			$( 'ul.wc-tabs li:visible' ).eq( 0 ).find( 'a' ).trigger( 'click' );
@@ -194,7 +181,10 @@ jQuery( function ( $ ) {
 		show_and_hide_panels();
 
 		// If user enables virtual while on shipping tab, switch to general tab.
-		if ( $( this ).is( ':checked' ) && $( '.shipping_options.shipping_tab' ).hasClass( 'active' ) ) {
+		if (
+			$( this ).is( ':checked' ) &&
+			$( '.shipping_options.shipping_tab' ).hasClass( 'active' )
+		) {
 			$( '.general_options.general_tab > a' ).trigger( 'click' );
 		}
 	} );
@@ -202,14 +192,17 @@ jQuery( function ( $ ) {
 	function change_product_type_tip( content ) {
 		$( '#tiptip_holder' ).removeAttr( 'style' );
 		$( '#tiptip_arrow' ).removeAttr( 'style' );
-		$( '.woocommerce-product-type-tip' ).tipTip( {
-			attribute: 'data-tip',
-			content: content,
-			fadeIn: 50,
-			fadeOut: 50,
-			delay: 200,
-			keepAlive: true,
-		} );
+		$( '.woocommerce-product-type-tip' )
+			.attr( 'tabindex', '0' )
+			.attr( 'aria-label', $( '<div />' ).html( content ).text() ) // Remove HTML tags.
+			.tipTip( {
+				attribute: 'data-tip',
+				content: content,
+				fadeIn: 50,
+				fadeOut: 50,
+				delay: 200,
+				keepAlive: true,
+			} );
 	}
 
 	function get_product_tip_content( product_type ) {
@@ -236,13 +229,13 @@ jQuery( function ( $ ) {
 		var hide_classes = '.hide_if_downloadable, .hide_if_virtual';
 		var show_classes = '.show_if_downloadable, .show_if_virtual';
 
-		$.each( woocommerce_admin_meta_boxes.product_types, function (
-			index,
-			value
-		) {
-			hide_classes = hide_classes + ', .hide_if_' + value;
-			show_classes = show_classes + ', .show_if_' + value;
-		} );
+		$.each(
+			woocommerce_admin_meta_boxes.product_types,
+			function ( index, value ) {
+				hide_classes = hide_classes + ', .hide_if_' + value;
+				show_classes = show_classes + ', .show_if_' + value;
+			}
+		);
 
 		$( hide_classes, context ).show();
 		$( show_classes, context ).hide();
@@ -266,6 +259,18 @@ jQuery( function ( $ ) {
 		}
 
 		$( '.hide_if_' + product_type, context ).hide();
+
+		// POS visibility - requires combination of type AND downloadable status.
+		var is_pos_supported =
+			( product_type === 'simple' || product_type === 'variable' ) &&
+			! is_downloadable;
+		if ( is_pos_supported ) {
+			$( '#pos_visibility_supported', context ).show();
+			$( '#pos_visibility_unsupported', context ).hide();
+		} else {
+			$( '#pos_visibility_supported', context ).hide();
+			$( '#pos_visibility_unsupported', context ).show();
+		}
 	}
 
 	function show_and_hide_panels() {
@@ -433,12 +438,23 @@ jQuery( function ( $ ) {
 	// Set up attributes, if current page has the attributes list.
 	const $product_attributes = $( '.product_attributes' );
 	if ( $product_attributes.length === 1 ) {
-		var woocommerce_attribute_items = $product_attributes.find( '.woocommerce_attribute' ).get();
+		// When the attributes tab is shown, add an empty attribute to be filled out by the user.
+		$( '#product_attributes' ).on( 'woocommerce_tab_shown', function () {
+			remove_blank_custom_attribute_if_no_other_attributes();
 
-		// If the product has no attributes, add an empty attribute to be filled out by the user.
-		if ( woocommerce_attribute_items.length === 0  ) {
-			add_custom_attribute_to_list();
-		}
+			const woocommerce_attribute_items = $product_attributes
+				.find( '.woocommerce_attribute' )
+				.get();
+
+			// If the product has no attributes, add an empty attribute to be filled out by the user.
+			if ( woocommerce_attribute_items.length === 0 ) {
+				add_custom_attribute_to_list();
+			}
+		} );
+
+		const woocommerce_attribute_items = $product_attributes
+			.find( '.woocommerce_attribute' )
+			.get();
 
 		// Sort the attributes by their position.
 		woocommerce_attribute_items.sort( function ( a, b ) {
@@ -469,6 +485,7 @@ jQuery( function ( $ ) {
 	}
 
 	var selectedAttributes = [];
+	var currentAttributeTermCreationContext = null;
 	$( '.product_attributes .woocommerce_attribute' ).each( function (
 		index,
 		el
@@ -482,19 +499,37 @@ jQuery( function ( $ ) {
 				.find( 'option[value="' + $( el ).data( 'taxonomy' ) + '"]' )
 				.attr( 'disabled', 'disabled' );
 		}
+
+		if (
+			'undefined' === $( el ).attr( 'data-taxonomy' ) ||
+			false === $( el ).attr( 'data-taxonomy' ) ||
+			'' === $( el ).attr( 'data-taxonomy' )
+		) {
+			add_placeholder_to_attribute_values_field( $( el ) );
+
+			$(
+				'.woocommerce_attribute input.woocommerce_attribute_used_for_variations'
+			).on( 'change', function () {
+				add_placeholder_to_attribute_values_field( $( el ) );
+			} );
+		}
 	} );
 	$( 'select.wc-attribute-search' ).data(
 		'disabled-items',
 		selectedAttributes
 	);
 
-	function get_new_attribute_list_item_html( indexInList, globalAttributeId ) {
+	function get_new_attribute_list_item_html(
+		indexInList,
+		globalAttributeId
+	) {
 		return new Promise( function ( resolve, reject ) {
 			$.post( {
 				url: woocommerce_admin_meta_boxes.ajax_url,
 				data: {
 					action: 'woocommerce_add_attribute',
-					taxonomy: globalAttributeId ?? '',
+					product_type: $( '#product-type' ).val(),
+					taxonomy: globalAttributeId ? globalAttributeId : '',
 					i: indexInList,
 					security: woocommerce_admin_meta_boxes.add_attribute_nonce,
 				},
@@ -503,7 +538,7 @@ jQuery( function ( $ ) {
 				},
 				error: function ( jqXHR, textStatus, errorThrown ) {
 					reject( { jqXHR, textStatus, errorThrown } );
-				}
+				},
 			} );
 		} );
 	}
@@ -529,6 +564,31 @@ jQuery( function ( $ ) {
 		$attributeListItem.find( 'h3' ).trigger( 'click' );
 	}
 
+	function add_placeholder_to_attribute_values_field( $attributeListItem ) {
+		var $used_for_variations_checkbox = $attributeListItem.find(
+			'input.woocommerce_attribute_used_for_variations'
+		);
+
+		if (
+			$used_for_variations_checkbox.length &&
+			$used_for_variations_checkbox.is( ':checked' )
+		) {
+			$attributeListItem
+				.find( 'textarea' )
+				.attr(
+					'placeholder',
+					woocommerce_admin_meta_boxes.i18n_attributes_used_for_variations_placeholder
+				);
+		} else {
+			$attributeListItem
+				.find( 'textarea' )
+				.attr(
+					'placeholder',
+					woocommerce_admin_meta_boxes.i18n_attributes_default_placeholder
+				);
+		}
+	}
+
 	function init_select_controls() {
 		$( document.body ).trigger( 'wc-enhanced-select-init' );
 	}
@@ -537,12 +597,22 @@ jQuery( function ( $ ) {
 		try {
 			block_attributes_tab_container();
 
-			const numberOfAttributesInList = $( '.product_attributes .woocommerce_attribute' ).length;
-			const newAttributeListItemHtml = await get_new_attribute_list_item_html( numberOfAttributesInList, globalAttributeId );
+			const numberOfAttributesInList = $(
+				'.product_attributes .woocommerce_attribute'
+			).length;
+			const newAttributeListItemHtml =
+				await get_new_attribute_list_item_html(
+					numberOfAttributesInList,
+					globalAttributeId
+				);
 
-			const $attributesListContainer = $( '#product_attributes .product_attributes' );
+			const $attributesListContainer = $(
+				'#product_attributes .product_attributes'
+			);
 
-			const $attributeListItem = $( newAttributeListItemHtml ).appendTo( $attributesListContainer );
+			const $attributeListItem = $( newAttributeListItemHtml ).appendTo(
+				$attributesListContainer
+			);
 
 			show_and_hide_controls( $attributeListItem );
 
@@ -552,7 +622,20 @@ jQuery( function ( $ ) {
 
 			toggle_expansion_of_attribute_list_item( $attributeListItem );
 
-			disable_or_enable_fields();
+			// Conditionally change the placeholder of product-level Attributes depending on the value of the "Use for variations" checkbox.
+			if ( 'undefined' === typeof globalAttributeId ) {
+				add_placeholder_to_attribute_values_field( $attributeListItem );
+
+				$(
+					'.woocommerce_attribute input.woocommerce_attribute_used_for_variations'
+				).on( 'change', function () {
+					add_placeholder_to_attribute_values_field(
+						$( this ).closest( '.woocommerce_attribute' )
+					);
+				} );
+			}
+
+			$( document.body ).trigger( 'woocommerce_added_attribute' );
 
 			jQuery.maybe_disable_save_button();
 		} catch ( error ) {
@@ -562,7 +645,9 @@ jQuery( function ( $ ) {
 				return;
 			}
 
-			alert( woocommerce_admin_meta_boxes.i18n_add_attribute_error_notice );
+			alert(
+				woocommerce_admin_meta_boxes.i18n_add_attribute_error_notice
+			);
 			throw error;
 		} finally {
 			unblock_attributes_tab_container();
@@ -582,7 +667,10 @@ jQuery( function ( $ ) {
 	}
 
 	function disable_in_attribute_search( selectedAttributes ) {
-		$( 'select.wc-attribute-search' ).data( 'disabled-items', selectedAttributes );
+		$( 'select.wc-attribute-search' ).data(
+			'disabled-items',
+			selectedAttributes
+		);
 	}
 
 	function remove_blank_custom_attribute_if_no_other_attributes() {
@@ -591,8 +679,12 @@ jQuery( function ( $ ) {
 		if ( $attributes.length === 1 ) {
 			const $attribute = $attributes.first();
 
-			const $attributeName = $attribute.find( 'input[name="attribute_names[0]"]' );
-			const $attributeValue = $attribute.find( 'input[name="attribute_values[0]"]' );
+			const $attributeName = $attribute.find(
+				'input[name="attribute_names[0]"]'
+			);
+			const $attributeValue = $attribute.find(
+				'input[name="attribute_values[0]"]'
+			);
 
 			if ( ! $attributeName.val() && ! $attributeValue.val() ) {
 				$attribute.remove();
@@ -600,15 +692,32 @@ jQuery( function ( $ ) {
 		}
 	}
 
+	// Handle the Attributes onboarding dismissible notice.
+	// If users dismiss the notice, never show it again.
+	if ( localStorage.getItem( 'attributes-notice-dismissed' ) ) {
+		$( '#product_attributes .notice' ).hide();
+	}
+
+	$( '#product_attributes .notice.woocommerce-message button' ).on(
+		'click',
+		function ( e ) {
+			$( '#product_attributes .notice' ).hide();
+			localStorage.setItem( 'attributes-notice-dismissed', 'true' );
+		}
+	);
+
 	$( 'select.wc-attribute-search' ).on( 'select2:select', function ( e ) {
-		const attributeId = e?.params?.data?.id;
+		const attributeId = e && e.params && e.params.data && e.params.data.id;
 
 		if ( attributeId ) {
 			remove_blank_custom_attribute_if_no_other_attributes();
 
 			add_global_attribute_to_list( attributeId );
 
-			selectedAttributes = add_if_not_exists( selectedAttributes, attributeId );
+			selectedAttributes = add_if_not_exists(
+				selectedAttributes,
+				attributeId
+			);
 			disable_in_attribute_search( selectedAttributes );
 		}
 
@@ -664,41 +773,43 @@ jQuery( function ( $ ) {
 				security: wc_enhanced_select_params.search_taxonomy_terms_nonce,
 			};
 
-			$.get( woocommerce_admin_meta_boxes.ajax_url, data, function (
-				response
-			) {
-				if ( response.errors ) {
-					// Error.
-					window.alert( response.errors );
-				} else if ( response && response.length > 0 ) {
-					// Success.
-					response.forEach( function ( term ) {
-						const currentItem = $wrapper.find(
-							'select.attribute_values option[value="' +
-								term.term_id +
-								'"]'
-						);
-						if ( currentItem && currentItem.length > 0 ) {
-							currentItem.prop( 'selected', 'selected' );
-						} else {
-							$wrapper
-								.find( 'select.attribute_values' )
-								.append(
-									'<option value="' +
-										term.term_id +
-										'" selected="selected">' +
-										term.name +
-										'</option>'
-								);
-						}
-					} );
-					$wrapper
-						.find( 'select.attribute_values' )
-						.trigger( 'change' );
-				}
+			$.get(
+				woocommerce_admin_meta_boxes.ajax_url,
+				data,
+				function ( response ) {
+					if ( response.errors ) {
+						// Error.
+						window.alert( response.errors );
+					} else if ( response && response.length > 0 ) {
+						// Success.
+						response.forEach( function ( term ) {
+							const currentItem = $wrapper.find(
+								'select.attribute_values option[value="' +
+									term.term_id +
+									'"]'
+							);
+							if ( currentItem && currentItem.length > 0 ) {
+								currentItem.prop( 'selected', 'selected' );
+							} else {
+								$wrapper
+									.find( 'select.attribute_values' )
+									.append(
+										'<option value="' +
+											term.term_id +
+											'" selected="selected">' +
+											term.name +
+											'</option>'
+									);
+							}
+						} );
+						$wrapper
+							.find( 'select.attribute_values' )
+							.trigger( 'change' );
+					}
 
-				$( '.product_attributes' ).unblock();
-			} );
+					$( '.product_attributes' ).unblock();
+				}
+			);
 			return false;
 		}
 	);
@@ -722,11 +833,15 @@ jQuery( function ( $ ) {
 		function () {
 			var $parent = $( this ).parent().parent();
 			var isUsedForVariations = $parent
-			.find( 'input[name^="attribute_variation"]' )
-			.is( ':visible:checked' )
+				.find( 'input[name^="attribute_variation"]' )
+				.is( ':visible:checked' );
 
-			if ( ! isUsedForVariations
-					|| window.confirm( woocommerce_admin_meta_boxes.i18n_remove_used_attribute_confirmation_message ) ) {
+			if (
+				! isUsedForVariations ||
+				window.confirm(
+					woocommerce_admin_meta_boxes.i18n_remove_used_attribute_confirmation_message
+				)
+			) {
 				if ( $parent.is( '.taxonomy' ) ) {
 					$parent.find( 'select, input[type=text]' ).val( '' );
 					$parent.hide();
@@ -780,12 +895,143 @@ jQuery( function ( $ ) {
 		},
 	} );
 
+	$( document.body ).on(
+		'wc_backbone_modal_loaded',
+		function ( event, target ) {
+			if ( 'wc-modal-add-attribute-term' !== target ) {
+				return;
+			}
+
+			const modal = document.querySelector(
+				'.wc-backbone-modal-add-attribute-term'
+			);
+
+			if ( ! modal ) {
+				return;
+			}
+
+			const termInput = modal.querySelector(
+				'#wc-modal-add-attribute-term-input'
+			);
+			if ( termInput ) {
+				termInput.focus();
+			}
+
+			const form = modal.querySelector( '.wc-add-attribute-term-fields' );
+			if ( form ) {
+				form.addEventListener( 'submit', ( submitEvent ) => {
+					submitEvent.preventDefault();
+
+					const submitButton = modal.querySelector( '#btn-ok' );
+					if ( submitButton && ! submitButton.disabled ) {
+						submitButton.click();
+					}
+				} );
+			}
+		}
+	);
+
+	$( document.body ).on(
+		'wc_backbone_modal_validation',
+		function ( event, target, postedData ) {
+			if ( 'wc-modal-add-attribute-term' !== target ) {
+				return;
+			}
+
+			const modal = document.querySelector(
+				'.wc-backbone-modal-add-attribute-term'
+			);
+
+			if ( ! modal ) {
+				return;
+			}
+
+			const submitButton = modal.querySelector( '#btn-ok' );
+
+			if ( ! submitButton ) {
+				return;
+			}
+
+			const termName =
+				postedData && postedData.term ? postedData.term.trim() : '';
+			const hasValue = termName.length > 0;
+
+			submitButton.disabled = ! hasValue;
+		}
+	);
+
+	$( document.body ).on(
+		'wc_backbone_modal_response',
+		function ( event, target, postedData ) {
+			if ( 'wc-modal-add-attribute-term' !== target ) {
+				return;
+			}
+
+			if (
+				! currentAttributeTermCreationContext ||
+				! currentAttributeTermCreationContext.wrapper ||
+				! currentAttributeTermCreationContext.attribute
+			) {
+				$( '.product_attributes' ).unblock();
+				return;
+			}
+
+			const termName =
+				postedData && postedData.term ? postedData.term.trim() : '';
+
+			if ( ! termName ) {
+				$( '.product_attributes' ).unblock();
+				return;
+			}
+
+			const wrapper = currentAttributeTermCreationContext.wrapper;
+			const data = {
+				action: 'woocommerce_add_new_attribute',
+				taxonomy: currentAttributeTermCreationContext.attribute,
+				term: termName,
+				security: woocommerce_admin_meta_boxes.add_attribute_nonce,
+			};
+
+			$.post(
+				woocommerce_admin_meta_boxes.ajax_url,
+				data,
+				function ( response ) {
+					if ( response.error ) {
+						// Error.
+						window.alert( response.error );
+					} else if ( response.slug ) {
+						// Success.
+						const select = wrapper.querySelector(
+							'select.attribute_values'
+						);
+						if ( select ) {
+							const option = document.createElement( 'option' );
+							option.value = String( response.term_id );
+							option.selected = true;
+							option.textContent = response.name;
+							select.appendChild( option );
+
+							// Trigger change event natively.
+							const changeEvent = new Event( 'change', {
+								bubbles: true,
+							} );
+							select.dispatchEvent( changeEvent );
+						}
+					}
+
+					$( '.product_attributes' ).unblock();
+					currentAttributeTermCreationContext = null;
+				}
+			);
+		}
+	);
+
 	// Add a new attribute (via ajax).
 	$( '.product_attributes' ).on(
 		'click',
 		'button.add_new_attribute',
 		function ( event ) {
-			// prevent form submission but allow event propagation
+			// Prevent form submission but allow event propagation.
 			event.preventDefault();
 
 			$( '.product_attributes' ).block( {
@@ -796,47 +1042,33 @@ jQuery( function ( $ ) {
 				},
 			} );
 
-			var $wrapper = $( this ).closest( '.woocommerce_attribute' );
-			var attribute = $wrapper.data( 'taxonomy' );
-			var new_attribute_name = window.prompt(
-				woocommerce_admin_meta_boxes.new_attribute_prompt
-			);
+			const wrapper = this.closest( '.woocommerce_attribute' );
+			const attribute = wrapper ? wrapper.dataset.taxonomy : '';
 
-			if ( new_attribute_name ) {
-				var data = {
-					action: 'woocommerce_add_new_attribute',
-					taxonomy: attribute,
-					term: new_attribute_name,
-					security: woocommerce_admin_meta_boxes.add_attribute_nonce,
-				};
+			currentAttributeTermCreationContext = {
+				wrapper,
+				attribute,
+			};
 
-				$.post( woocommerce_admin_meta_boxes.ajax_url, data, function (
-					response
-				) {
-					if ( response.error ) {
-						// Error.
-						window.alert( response.error );
-					} else if ( response.slug ) {
-						// Success.
-						$wrapper
-							.find( 'select.attribute_values' )
-							.append(
-								'<option value="' +
-									response.term_id +
-									'" selected="selected">' +
-									response.name +
-									'</option>'
-							);
-						$wrapper
-							.find( 'select.attribute_values' )
-							.trigger( 'change' );
-					}
+			$( this ).WCBackboneModal( {
+				template: 'wc-modal-add-attribute-term',
+			} );
+		}
+	);
 
-					$( '.product_attributes' ).unblock();
-				} );
-			} else {
-				$( '.product_attributes' ).unblock();
+	$( document.body ).on(
+		'wc_backbone_modal_before_remove',
+		function ( event, target, postedData, submitButtonCalled ) {
+			if ( 'wc-modal-add-attribute-term' !== target ) {
+				return;
 			}
+
+			if ( submitButtonCalled ) {
+				return;
+			}
+
+			$( '.product_attributes' ).unblock();
+			currentAttributeTermCreationContext = null;
 		}
 	);
 
@@ -865,72 +1097,76 @@ jQuery( function ( $ ) {
 			security: woocommerce_admin_meta_boxes.save_attributes_nonce,
 		};
 
-		$.post( woocommerce_admin_meta_boxes.ajax_url, data, function (
-			response
-		) {
-			if ( response.error ) {
-				// Error.
-				window.alert( response.error );
-			} else if ( response.data ) {
-				// Success.
-				$( '.product_attributes' ).html( response.data.html );
-				$( '.product_attributes' ).unblock();
+		$.post(
+			woocommerce_admin_meta_boxes.ajax_url,
+			data,
+			function ( response ) {
+				if ( response.error ) {
+					// Error.
+					window.alert( response.error );
+				} else if ( response.data ) {
+					// Success.
+					$( '.product_attributes' ).html( response.data.html );
+					$( '.product_attributes' ).unblock();
 
-				// Hide the 'Used for variations' checkbox if not viewing a variable product
-				show_and_hide_panels();
+					// Hide the 'Used for variations' checkbox if not viewing a variable product
+					show_and_hide_panels();
 
-				disable_or_enable_fields();
+					// Make sure the dropdown is not disabled for empty value attributes.
+					$( 'select.attribute_taxonomy' )
+						.find( 'option' )
+						.prop( 'disabled', false );
 
-				// Make sure the dropdown is not disabled for empty value attributes.
-				$( 'select.attribute_taxonomy' )
-					.find( 'option' )
-					.prop( 'disabled', false );
-
-				var newSelectedAttributes = [];
-				$( '.product_attributes .woocommerce_attribute' ).each(
-					function ( index, el ) {
-						if (
-							$( el ).css( 'display' ) !== 'none' &&
-							$( el ).is( '.taxonomy' )
-						) {
-							newSelectedAttributes.push(
-								$( el ).data( 'taxonomy' )
-							);
-							$( 'select.attribute_taxonomy' )
-								.find(
-									'option[value="' +
-										$( el ).data( 'taxonomy' ) +
-										'"]'
-								)
-								.prop( 'disabled', true );
+					var newSelectedAttributes = [];
+					$( '.product_attributes .woocommerce_attribute' ).each(
+						function ( index, el ) {
+							if (
+								$( el ).css( 'display' ) !== 'none' &&
+								$( el ).is( '.taxonomy' )
+							) {
+								newSelectedAttributes.push(
+									$( el ).data( 'taxonomy' )
+								);
+								$( 'select.attribute_taxonomy' )
+									.find(
+										'option[value="' +
+											$( el ).data( 'taxonomy' ) +
+											'"]'
+									)
+									.prop( 'disabled', true );
+							}
 						}
-					}
-				);
-				selectedAttributes = newSelectedAttributes;
-				$( 'select.wc-attribute-search' ).data(
-					'disabled-items',
-					newSelectedAttributes
-				);
+					);
+					selectedAttributes = newSelectedAttributes;
+					$( 'select.wc-attribute-search' ).data(
+						'disabled-items',
+						newSelectedAttributes
+					);
 
-				// Reload variations panel.
-				var this_page = window.location.toString();
-				this_page = this_page.replace(
-					'post-new.php?',
-					'post.php?post=' +
-						woocommerce_admin_meta_boxes.post_id +
-						'&action=edit&'
-				);
+					// Reload variations panel.
+					var this_page = window.location.toString();
+					this_page = this_page.replace(
+						'post-new.php?',
+						'post.php?post=' +
+							woocommerce_admin_meta_boxes.post_id +
+							'&action=edit&'
+					);
 
-				$( '#variable_product_options' ).load(
-					this_page + ' #variable_product_options_inner',
-					function () {
-						$( '#variable_product_options' ).trigger( 'reload' );
-					}
-				);
+					$( '#variable_product_options' ).load(
+						this_page + ' #variable_product_options_inner',
+						function () {
+							$( '#variable_product_options' ).trigger(
+								'reload'
+							);
+						}
+					);
 
-				$( document.body ).trigger( 'woocommerce_attributes_saved' );
+					$( document.body ).trigger(
+						'woocommerce_attributes_saved'
+					);
+				}
 			}
-		} );
+		);
 	} );
 
 	// Go to attributes tab when clicking on link in variations message
@@ -1193,7 +1429,9 @@ jQuery( function ( $ ) {
 
 	// add a tooltip to the right of the product image meta box "Set product image" and "Add product gallery images"
 	const setProductImageLink = $( '#set-post-thumbnail' );
-	const tooltipMarkup = `<span class="woocommerce-help-tip" tabindex="0" aria-label="${ woocommerce_admin_meta_boxes.i18n_product_image_tip }"></span>`;
+	const tooltipMarkup = `<span class="woocommerce-help-tip" tabindex="0" aria-label="${
+		woocommerce_admin_meta_boxes.i18n_product_image_tip
+	}"></span>`;
 	const tooltipData = {
 		attribute: 'data-tip',
 		content: woocommerce_admin_meta_boxes.i18n_product_image_tip,

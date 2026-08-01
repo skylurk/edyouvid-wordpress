@@ -1,457 +1,474 @@
 <?php
+/**
+ * Scripts Service for Presto Player.
+ *
+ * This file contains the Scripts class which handles registration and enqueuing of scripts and styles.
+ *
+ * @package PrestoPlayer
+ * @subpackage Services
+ */
 
 namespace PrestoPlayer\Services;
 
-use Error;
 use PrestoPlayer\Plugin;
 use PrestoPlayer\Models\Block;
 use PrestoPlayer\Models\Setting;
-use PrestoPlayer\WPackio\Enqueue;
+use PrestoPlayer\Pro\Services\API\RestBunnyTranscriptionController;
+use PrestoPlayer\Services\License\License;
 
+/**
+ * Scripts class for handling script and style registration and enqueuing.
+ */
+class Scripts {
 
-class Scripts
-{
-    /**
-     * Register scripts used throughout the plugin
-     *
-     * @return void
-     */
-    public function register()
-    {
-        add_action('enqueue_block_assets', [$this, 'registerPrestoComponents']);
-        add_action('init', [$this, 'registerPrestoComponents']);
-        add_filter('script_loader_tag', [$this, 'prestoComponentsTag'], 10, 3);
+	/**
+	 * Register scripts used throughout the plugin.
+	 *
+	 * @return void
+	 */
+	public function register() {
+		add_action( 'enqueue_block_assets', array( $this, 'registerPrestoComponents' ) );
+		add_action( 'init', array( $this, 'registerPrestoComponents' ) );
+		add_filter( 'script_loader_tag', array( $this, 'prestoComponentsTag' ), 10, 3 );
 
-        // block assets.
-        add_action('enqueue_block_editor_assets', [$this, 'blockEditorAssets']);
-        add_action('enqueue_block_assets', [$this, 'blockAssets']);
+		// block assets.
+		add_action( 'enqueue_block_editor_assets', array( $this, 'blockEditorAssets' ) );
+		add_action( 'enqueue_block_assets', array( $this, 'blockAssets' ) );
 
-        // learndash.
-        add_action('admin_enqueue_scripts', [$this, 'learndashAdminScripts']);
+		// learndash.
+		add_action( 'admin_enqueue_scripts', array( $this, 'learndashAdminScripts' ) );
 
-        // elementor editor scripts
-        add_action('elementor/frontend/before_enqueue_scripts', [$this, 'elementorPreviewScripts']);
-        add_action('elementor/frontend/before_enqueue_scripts', [$this, 'blockAssets']);
+		// elementor editor scripts.
+		add_action( 'elementor/frontend/before_enqueue_scripts', array( $this, 'elementorPreviewScripts' ) );
+		add_action( 'elementor/frontend/before_enqueue_scripts', array( $this, 'blockAssets' ) );
 
-        // admin pages
-        add_action("admin_print_scripts-presto-player_page_presto_license", [$this, 'licenseScripts']);
-        add_action("presto_player_pro_register_license_page", [$this, 'licenseScripts']);
+		add_action( 'after_setup_theme', array( $this, 'addAppearanceToolsSupport' ), 99999 );
 
-        add_action('after_setup_theme', [$this, 'addAppearanceToolsSupport'], 99999);
-    }
+		// custom template styles.
+		add_action( 'wp_enqueue_scripts', array( $this, 'presto_player_custom_template_styles' ) );
 
-    /**
-     * Add support for Appearance Tools.
-     *
-     * @return void
-     */
-    public function addAppearanceToolsSupport()
-    {
-        add_theme_support('appearance-tools');
-        add_theme_support('border');
-    }
+		add_action( 'wp_enqueue_scripts', array( $this, 'registerPopupScript' ) );
+	}
 
-    public function learndashAdminScripts($hook_suffix)
-    {
-        global $post_type;
+	/**
+	 * Add support for Appearance Tools.
+	 *
+	 * @return void
+	 */
+	public function addAppearanceToolsSupport() {
+		add_theme_support( 'appearance-tools' );
+		add_theme_support( 'border' );
+	}
 
-        // must be on learndash page
-        if (!in_array($post_type, ['sfwd-lessons', 'sfwd-topic'])) {
-            return;
-        }
+	/**
+	 * Enqueue LearnDash admin scripts.
+	 *
+	 * @param string $hook_suffix The current admin page.
+	 * @return void
+	 */
+	public function learndashAdminScripts( $hook_suffix ) {
+		global $post_type;
 
-        // must be on new post page
-        if (!in_array($hook_suffix, array('post.php', 'post-new.php'))) {
-            return;
-        }
+		// must be on learndash page.
+		if ( ! in_array( $post_type, array( 'sfwd-lessons', 'sfwd-topic' ), true ) ) {
+			return;
+		}
 
-        $assets = include trailingslashit(PRESTO_PLAYER_PLUGIN_DIR) . 'dist/learndash.asset.php';
-        wp_enqueue_script(
-            'surecart/learndash/admin',
-            trailingslashit(PRESTO_PLAYER_PLUGIN_URL) . 'dist/learndash.js',
-            array_merge(['jquery'], $assets['dependencies']),
-            $assets['version'],
-            true
-        );
-    }
+		// must be on new post page.
+		if ( ! in_array( $hook_suffix, array( 'post.php', 'post-new.php' ), true ) ) {
+			return;
+		}
 
-    /**
-     * Preload components to increase performance
-     */
-    public function preloadComponents()
-    {
-        /**
-         * Get base file needed for components
-         */
-        $file_contents = file_get_contents(PRESTO_PLAYER_PLUGIN_DIR . "dist/components/web-components/web-components.esm.js");
-        preg_match('/\.\\/p\-(.*)\.js/', $file_contents, $matches);
+		$assets = include trailingslashit( PRESTO_PLAYER_PLUGIN_DIR ) . 'dist/learndash.asset.php';
+		wp_enqueue_script(
+			'surecart/learndash/admin',
+			trailingslashit( PRESTO_PLAYER_PLUGIN_URL ) . 'dist/learndash.js',
+			array_merge( array( 'jquery' ), $assets['dependencies'] ),
+			$assets['version'],
+			true
+		);
+	}
 
-        // get entry file
-        if (!empty($matches[0])) {
-            $file = str_replace('./', '', $matches[0]);
-            echo "<link rel='modulepreload' href='" . esc_url_raw(PRESTO_PLAYER_PLUGIN_URL . "dist/components/web-components/" . $file) . "' as='script' />\n"; // base
-        }
+	/**
+	 * Add a type="module" to our components tag to lazy load them.
+	 *
+	 * @param string $tag    The <script> tag for the enqueued script.
+	 * @param string $handle The script's registered handle.
+	 * @param string $source The script's source URL.
+	 * @return string The modified script tag.
+	 */
+	public function prestoComponentsTag( $tag, $handle, $source ) {
+		if ( 'presto-components' === $handle ) {
+            // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
+			$tag = '<script src="' . $source . '" type="module" defer></script>';
+		}
 
-        /**
-         * Get entry files
-         */
-        $files = scandir(PRESTO_PLAYER_PLUGIN_DIR . "dist/components/web-components/");
-        foreach ($files as $file) {
-            if (strpos($file, '.entry.js') !== false) {
-                echo "<link rel='modulepreload' href='" .  esc_url_raw(PRESTO_PLAYER_PLUGIN_URL . "dist/components/web-components/" . $file) . "' as='script' />\n"; // list
-            }
-        }
+		return $tag;
+	}
 
-        /**
-         * Web components loader
-         */
-        echo "<link rel='modulepreload' href='" .  esc_url_raw(PRESTO_PLAYER_PLUGIN_URL . "dist/components/web-components/web-components.esm.js") . "?ver=" . filemtime(PRESTO_PLAYER_PLUGIN_DIR . "dist/components/web-components/web-components.esm.js") . "' as='script' />";
-    }
+	/**
+	 * Register our components.
+	 *
+	 * @return void
+	 */
+	public function registerPrestoComponents() {
 
-    /**
-     * Add a type="module" to our components tag to lazy load them
-     */
-    public function prestoComponentsTag($tag, $handle, $source)
-    {
-        if ('presto-components' === $handle) {
-            $tag = '<script src="' . $source . '" type="module" defer></script>';
-        }
+		$file = is_admin() || ! Setting::get( 'performance', 'module_enabled' ) ? 'src/player/player-static.js' : 'dist/components/web-components/web-components.esm.js';
 
-        return $tag;
-    }
+		wp_register_script(
+			'hls.js',
+			PRESTO_PLAYER_PLUGIN_URL . 'src/libraries/hls.min.js',
+			array(),
+			'1.4.8',
+			true
+		);
 
-    /**
-     * Register our components
-     */
-    public function registerPrestoComponents()
-    {
+		$deps = array(
+			'jquery',
+			'wp-hooks',
+			'wp-i18n',
+		);
 
-        $file = is_admin() || !Setting::get('performance', 'module_enabled') ? "src/player/player-static.js" : "dist/components/web-components/web-components.esm.js";
+		if ( is_admin() ) {
+			$deps[] = 'hls.js';
+		}
 
-        wp_register_script(
-            'hls.js',
-            PRESTO_PLAYER_PLUGIN_URL . 'src/libraries/hls.min.js',
-            [],
-            '1.4.8',
-            true
-        );
+		wp_register_script(
+			'presto-components',
+			PRESTO_PLAYER_PLUGIN_URL . $file,
+			$deps,
+			filemtime( PRESTO_PLAYER_PLUGIN_DIR . $file ),
+			true
+		);
 
-        $deps = [
-            'jquery',
-            'wp-hooks',
-            'wp-i18n',
-        ];
+		wp_localize_script(
+			'presto-components',
+			'prestoComponents',
+			array(
+				'url' => PRESTO_PLAYER_PLUGIN_URL . 'dist/components/web-components/web-components.esm.js?ver=' . filemtime( PRESTO_PLAYER_PLUGIN_DIR . 'dist/components/web-components/web-components.esm.js' ),
+			)
+		);
 
-        if (is_admin()) {
-            $deps[] = 'hls.js';
-        }
+		if ( function_exists( 'wp_set_script_translations' ) ) {
+			wp_set_script_translations( 'presto-components', 'presto-player' );
+		}
 
-        wp_register_script(
-            'presto-components',
-            PRESTO_PLAYER_PLUGIN_URL . $file,
-            $deps,
-            filemtime(PRESTO_PLAYER_PLUGIN_DIR . $file),
-            true
-        );
+		wp_localize_script(
+			'presto-components',
+			'prestoPlayer',
+			apply_filters(
+				'presto-settings-block-js-options',
+				array(
+					'plugin_url'          => esc_url_raw( trailingslashit( PRESTO_PLAYER_PLUGIN_URL ) ),
+					'logged_in'           => is_user_logged_in(),
+					'root'                => esc_url_raw( get_rest_url() ),
+					'nonce'               => wp_create_nonce( 'wp_rest' ),
+					'ajaxurl'             => admin_url( 'admin-ajax.php' ),
+					'isAdmin'             => is_admin(),
+					'isSetup'             => array(
+						'bunny' => false,
+					),
+					'proVersion'          => Plugin::proVersion(),
+					'isPremium'           => Plugin::isPro(),
+					'isProPluginActive'   => class_exists( '\PrestoPlayer\Pro\Plugin' ),
+					'hasLicenseKey'       => License::hasKey(),
+					'dashboardUrl'        => admin_url( 'admin.php?page=presto-dashboard' ),
+					'wpVersionString'     => 'wp/v2/',
+					'prestoVersionString' => 'presto-player/v1/',
+					'debug'               => defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG,
+					'debug_navigator'     => defined( 'PRESTO_DEBUG_NAVIGATOR' ) && PRESTO_DEBUG_NAVIGATOR,
+					'i18n'                => Translation::geti18n(),
+					'trackViews'          => apply_filters( 'presto_player_daily_views_enabled', true ),
+				)
+			)
+		);
+	}
 
-        wp_localize_script('presto-components', 'prestoComponents', [
-            'url' => PRESTO_PLAYER_PLUGIN_URL . "dist/components/web-components/web-components.esm.js?ver=" . filemtime(PRESTO_PLAYER_PLUGIN_DIR . "dist/components/web-components/web-components.esm.js")
-        ]);
+	/**
+	 * Elementor scripts (needed speifically on preview pages).
+	 *
+	 * @return void
+	 */
+	public function elementorPreviewScripts() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only preview-context detection; no state change.
+		if ( ! isset( $_GET['elementor-preview'] ) ) {
+			return;
+		}
 
-        if (function_exists('wp_set_script_translations')) {
-            wp_set_script_translations('presto-components', 'presto-player');
-        }
+		$assets = include trailingslashit( PRESTO_PLAYER_PLUGIN_DIR ) . 'dist/elementor.asset.php';
+		wp_enqueue_script(
+			'surecart/elementor',
+			trailingslashit( PRESTO_PLAYER_PLUGIN_URL ) . 'dist/elementor.js',
+			array_merge( array( 'jquery', 'hls.js' ), $assets['dependencies'] ),
+			$assets['version'],
+			true
+		);
 
-        wp_localize_script(
-            'presto-components',
-            'prestoPlayer',
-            apply_filters('presto-settings-block-js-options', [
-                'plugin_url' => esc_url_raw(trailingslashit(PRESTO_PLAYER_PLUGIN_URL)),
-                'logged_in' => is_user_logged_in(),
-                'root' => esc_url_raw(get_rest_url()),
-                'nonce' => wp_create_nonce('wp_rest'),
-                'ajaxurl' => admin_url('admin-ajax.php'),
-                'isAdmin' => is_admin(),
-                'isSetup' => [
-                    'bunny' => false
-                ],
-                'proVersion' => Plugin::proVersion(),
-                'isPremium' => Plugin::isPro(),
-                'wpVersionString' => 'wp/v2/',
-                'prestoVersionString' => 'presto-player/v1/',
-                'debug' => defined('SCRIPT_DEBUG') && SCRIPT_DEBUG,
-                'debug_navigator' => defined('PRESTO_DEBUG_NAVIGATOR') && PRESTO_DEBUG_NAVIGATOR,
-                'i18n' => Translation::geti18n(),
-            ])
-        );
-    }
+		wp_localize_script(
+			'surecart/elementor',
+			'prestoEditorData',
+			array(
+				'proVersion'      => Plugin::proVersion(),
+				'isPremium'       => Plugin::isPro(),
+				'root'            => esc_url_raw( get_rest_url() ),
+				'nonce'           => wp_create_nonce( 'wp_rest' ),
+				'wpVersionString' => 'wp/v2/',
+				'siteURL'         => esc_url_raw( untrailingslashit( get_site_url( get_current_blog_id() ) ) ),
+			)
+		);
+	}
 
-    /**
-     * Elementor scripts (needed speifically on preview pages)
-     */
-    public function elementorPreviewScripts()
-    {
-        if (!isset($_GET['elementor-preview'])) {
-            return;
-        }
+	/**
+	 * Block Editor Assets.
+	 *
+	 * @return void
+	 */
+	public function blockEditorAssets() {
+		if ( ! is_admin() ) {
+			return;
+		}
 
-        $assets = include trailingslashit(PRESTO_PLAYER_PLUGIN_DIR) . 'dist/elementor.asset.php';
-        wp_enqueue_script(
-            'surecart/elementor',
-            trailingslashit(PRESTO_PLAYER_PLUGIN_URL) . 'dist/elementor.js',
-            array_merge(['jquery', 'hls.js'], $assets['dependencies']),
-            $assets['version'],
-            true
-        );
+		$assets = include trailingslashit( PRESTO_PLAYER_PLUGIN_DIR ) . 'dist/blocks.asset.php';
+		wp_enqueue_script(
+			'surecart/blocks/admin',
+			trailingslashit( PRESTO_PLAYER_PLUGIN_URL ) . 'dist/blocks.js',
+			array_merge( array( 'presto-components', 'hls.js', 'regenerator-runtime' ), $assets['dependencies'] ),
+			$assets['version'],
+			true
+		);
+		wp_enqueue_style( 'surecart/blocks/admin', trailingslashit( PRESTO_PLAYER_PLUGIN_URL ) . 'dist/blocks.css', array(), $assets['version'] );
 
-        wp_localize_script(
-            'surecart/elementor',
-            'prestoEditorData',
-            [
-                'proVersion' => Plugin::proVersion(),
-                'isPremium' => Plugin::isPro(),
-                'root' => esc_url_raw(get_rest_url()),
-                'nonce' => wp_create_nonce('wp_rest'),
-                'wpVersionString' => 'wp/v2/',
-                'siteURL' => esc_url_raw(untrailingslashit(get_site_url(get_current_blog_id()))),
-            ]
-        );
-    }
+		wp_localize_script(
+			'surecart/blocks/admin',
+			'prestoPlayer',
+			apply_filters(
+				'presto_player_admin_script_options',
+				array(
+					'plugin_url'            => esc_url_raw( trailingslashit( PRESTO_PLAYER_PLUGIN_URL ) ),
+					'root'                  => esc_url_raw( get_rest_url() ),
+					'nonce'                 => wp_create_nonce( 'wp_rest' ),
+					'ajaxurl'               => admin_url( 'admin-ajax.php' ),
+					'isAdmin'               => is_admin(),
+					'proVersion'            => Plugin::proVersion(),
+					'isPremium'             => Plugin::isPro(),
+					'isProPluginActive'     => class_exists( '\PrestoPlayer\Pro\Plugin' ),
+					'hasLicenseKey'         => License::hasKey(),
+					'dashboardUrl'          => admin_url( 'admin.php?page=presto-dashboard' ),
+					'hasRequiredProVersion' => array(
+						'popups' => Plugin::hasRequiredProVersion( 'popups' ),
+					),
+					'isSetup'               => array(
+						'bunny' => false,
+					),
+					'wpVersionString'       => 'wp/v2/',
+					'prestoVersionString'   => 'presto-player/v1/',
+					'defaults'              => array(
+						'color' => Setting::getDefaultColor(),
+					),
+					'i18n'                  => Translation::geti18n(),
+				)
+			)
+		);
 
-    /**
-     * Block Editor Assets
-     *
-     * @return void
-     */
-    public function blockEditorAssets()
-    {
-        if (!is_admin()) {
-            return;
-        }
+		if ( function_exists( 'wp_set_script_translations' ) ) {
+			wp_set_script_translations( 'surecart/blocks/admin', 'presto-player' );
+		}
 
-        $assets = include trailingslashit(PRESTO_PLAYER_PLUGIN_DIR) . 'dist/blocks.asset.php';
-        wp_enqueue_script(
-            'surecart/blocks/admin',
-            trailingslashit(PRESTO_PLAYER_PLUGIN_URL) . 'dist/blocks.js',
-            array_merge(['presto-components', 'hls.js'], $assets['dependencies']),
-            $assets['version'],
-            true
-        );
-        wp_enqueue_style('surecart/blocks/admin', trailingslashit(PRESTO_PLAYER_PLUGIN_URL) . 'dist/blocks.css', [], $assets['version']);
+		wp_localize_script( 'surecart/blocks/admin', 'scIcons', array( 'path' => esc_url_raw( plugin_dir_url( PRESTO_PLAYER_PLUGIN_FILE ) . 'dist/icon-assets' ) ) );
 
-        wp_localize_script(
-            'surecart/blocks/admin',
-            'prestoPlayer',
-            apply_filters(
-                'presto_player_admin_script_options',
-                [
-                    'plugin_url' => esc_url_raw(trailingslashit(PRESTO_PLAYER_PLUGIN_URL)),
-                    'root' => esc_url_raw(get_rest_url()),
-                    'nonce' => wp_create_nonce('wp_rest'),
-                    'ajaxurl' => admin_url('admin-ajax.php'),
-                    'isAdmin' => is_admin(),
-                    'proVersion' => Plugin::proVersion(),
-                    'isPremium' => Plugin::isPro(),
-                    'isSetup' => [
-                        'bunny' => false
-                    ],
-                    'wpVersionString' => 'wp/v2/',
-                    'prestoVersionString' => 'presto-player/v1/',
-                    'defaults' => [
-                        'color' => Setting::getDefaultColor()
-                    ],
-                    'i18n' => Translation::geti18n()
-                ]
-            )
-        );
+		// Get transcription endpoints if available (Pro feature).
+		$transcription_endpoints = array();
+		if ( class_exists( RestBunnyTranscriptionController::class ) ) {
+			$transcription_endpoints = array(
+				'captions'      => RestBunnyTranscriptionController::get_captions_path(),
+				'transcribe'    => RestBunnyTranscriptionController::get_transcribe_path(),
+				'deleteCaption' => RestBunnyTranscriptionController::get_delete_caption_path(),
+				'clearCache'    => RestBunnyTranscriptionController::get_clear_cache_path(),
+			);
+		}
 
-        if (function_exists('wp_set_script_translations')) {
-            wp_set_script_translations('surecart/blocks/admin', 'presto-player');
-        }
+		wp_localize_script(
+			'surecart/blocks/admin',
+			'prestoPlayerAdmin',
+			apply_filters(
+				'presto_player_admin_block_script_options',
+				array(
+					'root'                   => esc_url_raw( get_rest_url() ),
+					'nonce'                  => wp_create_nonce( 'wp_rest' ),
+					'logged_in'              => is_user_logged_in(),
+					'ajaxurl'                => admin_url( 'admin-ajax.php' ),
+					'wp_max_upload_size'     => wp_max_upload_size(),
+					'isAdmin'                => is_admin(),
+					'proVersion'             => Plugin::proVersion(),
+					'isPremium'              => Plugin::isPro(),
+					'isSetup'                => array(
+						'bunny' => false,
+					),
+					'wpVersionString'        => 'wp/v2/',
+					'prestoVersionString'    => 'presto-player/v1/',
+					'defaults'               => array(
+						'color' => Setting::getDefaultColor(),
+					),
+					'transcriptionEndpoints' => $transcription_endpoints,
+				)
+			)
+		);
+	}
 
-        wp_localize_script('surecart/blocks/admin', 'scIcons', ['path' => esc_url_raw(plugin_dir_url(PRESTO_PLAYER_PLUGIN_FILE) . 'dist/icon-assets')]);
+	/**
+	 * Checks if the current page contains a Presto Player.
+	 *
+	 * Examines various conditions including global variables, block presence,
+	 * shortcodes, and page builder environments to determine if a player exists.
+	 *
+	 * @return bool True if a player is detected, false otherwise.
+	 */
+	public function hasPlayer() {
+		// global is the most reliable between page builders.
+		global $load_presto_js;
+		if ( $load_presto_js ) {
+			return true;
+		}
 
+		// must be a singular page.
+		if ( ! is_singular() ) {
+			return false;
+		}
 
-        wp_localize_script(
-            'surecart/blocks/admin',
-            'prestoPlayerAdmin',
-            apply_filters(
-                'presto_player_admin_block_script_options',
-                [
-                    'root' => esc_url_raw(get_rest_url()),
-                    'nonce' => wp_create_nonce('wp_rest'),
-                    'logged_in' => is_user_logged_in(),
-                    'ajaxurl' => admin_url('admin-ajax.php'),
-                    'wp_max_upload_size' => wp_max_upload_size(),
-                    'isAdmin' => is_admin(),
-                    'proVersion' => Plugin::proVersion(),
-                    'isPremium' => Plugin::isPro(),
-                    'isSetup' => [
-                        'bunny' => false
-                    ],
-                    'wpVersionString' => 'wp/v2/',
-                    'prestoVersionString' => 'presto-player/v1/',
-                    'defaults' => [
-                        'color' => Setting::getDefaultColor()
-                    ]
-                ]
-            )
-        );
-    }
+		$id            = get_the_ID();
+		$widget_blocks = get_option( 'widget_block' );
 
-    /**
-     * Does the page have a player?
-     */
-    public function hasPlayer()
-    {
-        // global is the most reliable between page builders
-        global $load_presto_js;
-        if ($load_presto_js) {
-            return true;
-        }
+		// change to see if we have one of our blocks.
+		$types = Block::getBlockTypes();
+		foreach ( $types as $type ) {
+			if ( has_block( $type, $id ) ) {
+				return true;
+			}
 
-        // must be a singular page
-        if (!is_singular()) {
-            return false;
-        }
+			if ( ! empty( $widget_blocks ) ) {
+				foreach ( $widget_blocks as $block ) {
+					$content = isset( $block['content'] ) ? $block['content'] : '';
+					if ( ! empty( $content ) && has_block( $type, $content ) ) {
+						return true;
+					}
+				}
+			}
+		}
 
-        $id = get_the_ID();
-        $widget_blocks = get_option('widget_block');
+		// check for data-presto-config (player rendered).
+		$wp_post      = get_post( $id );
+		$post_content = '';
+		if ( $wp_post instanceof \WP_Post ) {
+			$post_content = $wp_post->post_content;
+		}
+		$has_player = false !== strpos( $post_content, 'data-presto-config' );
+		if ( $has_player ) {
+			return true;
+		}
 
-        // change to see if we have one of our blocks
-        $types = Block::getBlockTypes();
-        foreach ($types as $type) {
-            if (has_block($type, $id)) {
-                return true;
-            }
+		// check that we have a shortcode.
+		if ( has_shortcode( $post_content, 'presto_player' ) ) {
+			return true;
+		}
 
-            if (!empty($widget_blocks)) {
-                foreach ($widget_blocks as $block) {
-                    $content = isset($block['content']) ? $block['content'] : '';
-                    if (!empty($content) && has_block($type, $content)) {
-                        return true;
-                    }
-                }
-            }
-        }
+		// Read-only request-context detection for page builders; no state change, so nonce verification does not apply.
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		// enable on Elementor.
+		if ( ! empty( $_GET['action'] ) && 'elementor' === $_GET['action'] ) {
+			return true;
+		}
+		if ( isset( $_GET['elementor-preview'] ) ) {
+			return true;
+		}
 
-        // check for data-presto-config (player rendered)
-        $wp_post = get_post($id);
-        if ($wp_post instanceof \WP_Post) {
-            $post = $wp_post->post_content;
-        }
-        $has_player = false !== strpos($post, 'data-presto-config');
-        if ($has_player) {
-            return true;
-        }
+		// load for beaver builder.
+		if ( isset( $_GET['fl_builder'] ) ) {
+			return true;
+		}
 
-        // check that we have a shortcode
-        if (has_shortcode($post, 'presto_player')) {
-            return true;
-        }
+		// tutor LMS.
+		global $post;
+		if ( ! empty( $post->post_type ) && $post->post_type ) {
+			if ( defined( 'TUTOR_VERSION' ) && 'lesson' === $post->post_type ) {
+				return true;
+			}
+		}
 
-        // enable on Elementor
-        if (!empty($_GET['action']) && 'elementor' === $_GET['action']) {
-            return true;
-        }
-        if (isset($_GET['elementor-preview'])) {
-            return true;
-        }
+		// load for Divi builder.
+		if ( isset( $_GET['et_fb'] ) ) {
+			return true;
+		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-        // load for beaver builder
-        if (isset($_GET['fl_builder'])) {
-            return true;
-        }
+		// do we have the player.
+		return $has_player;
+	}
 
-        // tutor LMS
-        global $post;
-        if (!empty($post->post_type) && $post->post_type) {
-            if (defined('TUTOR_VERSION') && 'lesson' === $post->post_type) {
-                return true;
-            }
-        }
+	/**
+	 * Add global player styles inline.
+	 *
+	 * @return void
+	 */
+	public function globalStyles() {
+		?>
+		<style>
+			<?php readfile( PRESTO_PLAYER_PLUGIN_DIR . 'src/player/global.css' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- Inlining a static plugin-bundled CSS file from a trusted constant path. ?>
+		</style>
+		<?php
+	}
 
-        // load for Divi builder
-        if (isset($_GET['et_fb'])) {
-            return true;
-        }
+	/**
+	 * Load JavaScript for the plugin.
+	 *
+	 * @return void
+	 */
+	public function loadJavascript() {
+		// global styles.
+		if ( ! wp_doing_ajax() && ! defined( 'REST_REQUEST' ) && ! defined( 'PRESTO_TESTSUITE' ) ) {
+			$this->globalStyles();
+		}
+		wp_enqueue_script( 'presto-components' );
+	}
 
-        // do we have the player
-        return $has_player;
-    }
+	/**
+	 * Block frontend assets.
+	 *
+	 * @return void
+	 */
+	public function blockAssets() {
+		// don't output if it doesn't have our block.
+		if ( ! apply_filters( 'presto_player_load_js', $this->hasPlayer() ) ) {
+			return;
+		}
 
-    /**
-     * Add global player styles inline.
-     *
-     * @return void
-     */
-    public function globalStyles()
-    { ?>
-        <style>
-            <?php readfile(PRESTO_PLAYER_PLUGIN_DIR . 'src/player/global.css'); ?>
-        </style>
-<?php }
+		$this->loadJavascript();
 
-    public function loadJavascript()
-    {
-        // global styles
-        if (!wp_doing_ajax() && !defined('REST_REQUEST') && !defined('PRESTO_TESTSUITE')) {
-            $this->globalStyles();
-        }
+		// fallback styles and script to load iframes.
+		add_action(
+			'wp_footer',
+			function () {
+				if ( is_admin() ) {
+					return;
+				}
+				if ( ! apply_filters( 'presto_player/scripts/load_iframe_fallback', false ) ) {
+					return;
+				}
+				$this->printFallbackScriptsAndStyles();
+			}
+		);
+	}
 
-        // direct load
-        if (Setting::get('performance', 'module_enabled') || !is_admin()) {
-            // preload components
-            add_action('wp_head', [$this, 'preloadComponents']);
-        }
-
-        wp_enqueue_script('presto-components');
-    }
-
-    /**
-     * Block frontend assets
-     *
-     * @return void
-     */
-    public function blockAssets()
-    {
-        // don't output if it doesn't have our block
-        if (!apply_filters('presto_player_load_js', $this->hasPlayer())) {
-            return;
-        }
-
-        $this->loadJavascript();
-
-        // fallback styles and script to load iframes
-        add_action('wp_footer', function () {
-            if (is_admin()) return;
-            if (!apply_filters('presto_player/scripts/load_iframe_fallback', false)) return;
-            $this->printFallbackScriptsAndStyles();
-        });
-    }
-
-    public function licenseScripts($hook)
-    {
-        add_action("admin_print_scripts-{$hook}", function () {
-            $assets = include trailingslashit(PRESTO_PLAYER_PLUGIN_DIR) . 'dist/license.asset.php';
-            wp_enqueue_script(
-                'surecart/license/admin',
-                trailingslashit(PRESTO_PLAYER_PLUGIN_URL) . 'dist/license.js',
-                array_merge($assets['dependencies']),
-                $assets['version'],
-                true
-            );
-            wp_enqueue_style('surecart/license/admin', trailingslashit(PRESTO_PLAYER_PLUGIN_URL) . 'dist/license.css', [], $assets['version']);
-        });
-    }
-
-    public function printFallbackScriptsAndStyles()
-    {
-        /*
-        * This CSS is duplicated in 'packages/components/src/components/core/player/presto-player/presto-player.scss'
-        */
-        echo '<style>.presto-iframe-fallback-container{position:relative;padding-bottom:56.25%;padding-top:30px;height:0;overflow:hidden}.presto-iframe-fallback-container embed,.presto-iframe-fallback-container iframe,.presto-iframe-fallback-container object{position:absolute;top:0;left:0;width:100%;height:100%}</style>';
-        echo '<script defer>
+	/**
+	 * Print fallback scripts and styles.
+	 *
+	 * @return void
+	 */
+	public function printFallbackScriptsAndStyles() {
+		/*
+		* This CSS is duplicated in 'packages/components/src/components/core/player/presto-player/presto-player.scss'.
+		*/
+		echo '<style>.presto-iframe-fallback-container{position:relative;padding-bottom:56.25%;padding-top:30px;height:0;overflow:hidden}.presto-iframe-fallback-container embed,.presto-iframe-fallback-container iframe,.presto-iframe-fallback-container object{position:absolute;top:0;left:0;width:100%;height:100%}</style>';
+		echo '<script defer>
                 window.addEventListener("load", function(event) {
                     setTimeout(function() {
                         var deferVideo = document.getElementsByClassName("presto-fallback-iframe");
@@ -462,5 +479,38 @@ class Scripts
                     }, 2000);
                 }, false);
             </script>';
-    }
+	}
+
+	/**
+	 * Enqueue custom template styles for single video pages.
+	 *
+	 * @return void
+	 */
+	public function presto_player_custom_template_styles() {
+		if ( is_singular( 'pp_video_block' ) ) {
+			$assets = include trailingslashit( PRESTO_PLAYER_PLUGIN_DIR ) . 'dist/media-page.asset.php';
+			wp_enqueue_style(
+				'presto-player/media-page',
+				trailingslashit( PRESTO_PLAYER_PLUGIN_URL ) . 'dist/media-page.css',
+				array(),
+				$assets['version']
+			);
+		}
+	}
+
+	/**
+	 * Enqueue the popup block script.
+	 *
+	 * @return void
+	 */
+	public function registerPopupScript() {
+		$assets = include trailingslashit( PRESTO_PLAYER_PLUGIN_DIR ) . 'dist/presto-player-popup.asset.php';
+		wp_register_script_module(
+			'presto-player-popup',
+			trailingslashit( PRESTO_PLAYER_PLUGIN_URL ) . 'dist/presto-player-popup.js',
+			$assets['dependencies'],
+			$assets['version'],
+			array( 'in_footer' => true )
+		);
+	}
 }

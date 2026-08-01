@@ -14,6 +14,10 @@ use Gutenberg_Templates\Inc\Importer\Plugin;
 use Gutenberg_Templates\Inc\Traits\Helper;
 use Gutenberg_Templates\Inc\Importer\Images;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Sync Library
  *
@@ -107,9 +111,9 @@ class Ai_Content {
 			'business_category' => isset( $details['business_category'] ) ? sanitize_text_field( $details['business_category'] ) : '',
 			'category' => isset( $_POST['category'] ) ? intval( $_POST['category'] ) : '',
 			'token' => isset( $details['token'] ) ? $details['token'] : '',
-			'regenerate' => isset( $_POST['regenerate'] ) ? filter_var( $_POST['regenerate'], FILTER_VALIDATE_BOOLEAN ) : false,
-			'block_type' => isset( $_POST['block_type'] ) ? sanitize_text_field( $_POST['block_type'] ) : 'block',
-			'is_last_category' => isset( $_POST['is_last_category'] ) ? filter_var( $_POST['is_last_category'], FILTER_VALIDATE_BOOLEAN ) : false,
+			'regenerate' => isset( $_POST['regenerate'] ) ? filter_var( wp_unslash( $_POST['regenerate'] ), FILTER_VALIDATE_BOOLEAN ) : false,
+			'block_type' => isset( $_POST['block_type'] ) ? sanitize_text_field( wp_unslash( $_POST['block_type'] ) ) : 'block',
+			'is_last_category' => isset( $_POST['is_last_category'] ) ? filter_var( wp_unslash( $_POST['is_last_category'] ), FILTER_VALIDATE_BOOLEAN ) : false,
 			'language_slug' => $language,
 			'language_name' => isset( $details['language']['name'] ) ? sanitize_text_field( $details['language']['name'] ) : '',
 		);
@@ -137,8 +141,8 @@ class Ai_Content {
 	 * Get Club of Category
 	 *
 	 * @since 2.0.0
-	 * @param array $categories Categories.
-	 * @param array $post_data Post Data.
+	 * @param array<int, array<string, mixed>> $categories Categories.
+	 * @param array<string, mixed>             $post_data Post Data.
 	 *
 	 * @return string
 	 */
@@ -159,10 +163,10 @@ class Ai_Content {
 	 * Get Matching Categories
 	 *
 	 * @since 2.0.0
-	 * @param array  $categories Categories.
-	 * @param string $club_categories Club Categories.
+	 * @param array<int, array<string, mixed>> $categories Categories.
+	 * @param string                           $club_categories Club Categories.
 	 *
-	 * @return array
+	 * @return array<int, array<string, mixed>>
 	 */
 	public function get_matching_categories( $categories, $club_categories ) {
 
@@ -184,8 +188,8 @@ class Ai_Content {
 	 * Get AI Content
 	 *
 	 * @since 2.0.0
-	 * @param array  $post_data Post Data.
-	 * @param string $category_content Categories content.
+	 * @param array<string, mixed> $post_data Post Data.
+	 * @param string               $category_content Categories content.
 	 *
 	 * @return void
 	 */
@@ -193,8 +197,9 @@ class Ai_Content {
 
 		$api_endpoint = Helper::instance()->is_debug_mode() ? AST_BLOCK_TEMPLATES_LIBRARY_URL . 'wp-json/ai/v1/content?debug=yes' : AST_BLOCK_TEMPLATES_LIBRARY_URL . 'wp-json/ai/v1/content';
 
+		$body = wp_json_encode( $post_data );
 		$request_args = array(
-			'body' => wp_json_encode( $post_data ),
+			'body' => is_string( $body ) ? $body : '',
 			'headers' => array(
 				'Content-Type' => 'application/json',
 			),
@@ -305,10 +310,18 @@ class Ai_Content {
 		// Verify Nonce.
 		check_ajax_referer( 'ast-block-templates-ai-content', 'security' );
 
-		$keywords = isset( $_POST['image_keyword'] ) ? json_decode( wp_unslash( $_POST['image_keyword'] ), true ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$images = isset( $_POST['images'] ) ? json_decode( wp_unslash( $_POST['images'] ), true ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$social_profiles = isset( $_POST['social_profiles'] ) ? json_decode( wp_unslash( $_POST['social_profiles'] ), true ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$save_only = isset( $_POST['save_only'] ) ? filter_var( $_POST['save_only'], FILTER_VALIDATE_BOOLEAN ) : false;
+		$raw_keywords = isset( $_POST['image_keyword'] ) ? sanitize_text_field( wp_unslash( $_POST['image_keyword'] ) ) : '';
+		$keywords = ! empty( $raw_keywords ) ? json_decode( $raw_keywords, true ) : array();
+		$keywords = is_array( $keywords ) ? $keywords : array();
+
+		$raw_images = isset( $_POST['images'] ) ? sanitize_text_field( wp_unslash( $_POST['images'] ) ) : '';
+		$images = ! empty( $raw_images ) ? json_decode( $raw_images, true ) : array();
+		$images = is_array( $images ) ? $images : array();
+
+		$raw_social_profiles = isset( $_POST['social_profiles'] ) ? sanitize_text_field( wp_unslash( $_POST['social_profiles'] ) ) : '';
+		$social_profiles = ! empty( $raw_social_profiles ) ? json_decode( $raw_social_profiles, true ) : array();
+		$social_profiles = is_array( $social_profiles ) ? $social_profiles : array();
+		$save_only = isset( $_POST['save_only'] ) ? filter_var( wp_unslash( $_POST['save_only'] ), FILTER_VALIDATE_BOOLEAN ) : false;
 
 		foreach ( $keywords as $key => $keyword ) {
 			$keywords[ $key ] = sanitize_text_field( wp_unslash( $keyword ) );
@@ -338,7 +351,9 @@ class Ai_Content {
 			}
 		}
 
-		$language = isset( $_POST['language'] ) ? json_decode( wp_unslash( $_POST['language'] ), true ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$raw_language = isset( $_POST['language'] ) ? sanitize_text_field( wp_unslash( $_POST['language'] ) ) : '';
+		$language = ! empty( $raw_language ) ? json_decode( $raw_language, true ) : array();
+		$language = is_array( $language ) ? $language : array();
 
 		$business_details = get_option( 'zipwp_user_business_details', array() );
 		$business_details['business_name'] = isset( $_POST['business_name'] ) ? sanitize_text_field( wp_unslash( $_POST['business_name'] ) ) : '';

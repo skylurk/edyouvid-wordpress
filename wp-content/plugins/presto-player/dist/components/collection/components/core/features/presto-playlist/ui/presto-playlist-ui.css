@@ -52,9 +52,6 @@
   padding-right: 15px;
   height: fit-content;
   min-height: 175px;
-  /* Track */
-  /* Handle */
-  /* Handle on hover */
 }
 .playlist__info--inner .playlist__list {
   gap: var(--presto-playlist-gap, 10px);
@@ -64,13 +61,22 @@
 .playlist__info--inner::-webkit-scrollbar {
   width: 6px;
 }
+.playlist__info--inner {
+  /* Track */
+}
 .playlist__info--inner::-webkit-scrollbar-track {
   background: #ddd;
   border-radius: 5px;
 }
+.playlist__info--inner {
+  /* Handle */
+}
 .playlist__info--inner::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 5px;
+}
+.playlist__info--inner {
+  /* Handle on hover */
 }
 .playlist__info--inner::-webkit-scrollbar-thumb:hover {
   background: #aaa;
@@ -104,13 +110,12 @@
   .playlist__info--inner {
     flex: 1;
     height: fit-content;
-    max-height: 200px;
-    min-height: min-content;
+    max-height: var(--presto-playlist-max-height-stacked, 200px);
+    min-height: var(--presto-playlist-min-height-stacked, 0);
   }
   .playlist__preview {
     min-height: 200px;
   }
-
   ::slotted([provider=audio]) {
     padding: 30px;
     min-height: 200px;
@@ -131,7 +136,7 @@
   .playlist__info--inner {
     flex: 1;
     height: fit-content;
-    max-height: 200px;
-    min-height: min-content;
+    max-height: var(--presto-playlist-max-height-stacked, 200px);
+    min-height: var(--presto-playlist-min-height-stacked, 0);
   }
 }

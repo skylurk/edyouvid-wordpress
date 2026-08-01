@@ -82,7 +82,7 @@ export default ({ selectedItems, setAttributes, className }) => {
         popoverProps={{ placement: "bottom-start" }}
         value={selectedItems}
         onSelect={(video) =>
-          setAttributes({ id: video.id, title: video?.title?.raw })
+          setAttributes({ id: video.id, title: video?.title })
         }
         onCreate={() => setStep("create")}
       />

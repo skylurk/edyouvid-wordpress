@@ -314,6 +314,17 @@ interface Replicastore_Interface {
 	public function delete_batch_metadata( $type, $object_ids, $meta_key );
 
 	/**
+	 * Delete metadata with a certain key and value for all objects.
+	 *
+	 * @access public
+	 *
+	 * @param string $type       Meta type.
+	 * @param string $meta_key   Meta key.
+	 * @param mixed  $meta_value Meta value to match.
+	 */
+	public function delete_metadata_by_key_value( $type, $meta_key, $meta_value );
+
+	/**
 	 * Retrieve value of a constant based on the constant name.
 	 *
 	 * @access public
@@ -414,9 +425,9 @@ interface Replicastore_Interface {
 	 *
 	 * @access public
 	 *
-	 * @param string $taxonomy   Taxonomy slug.
-	 * @param int    $term_id    ID of the term.
-	 * @param string $term_key   ID Field `term_id` or `term_taxonomy_id`.
+	 * @param string|false $taxonomy   Taxonomy slug.
+	 * @param int          $term_id    ID of the term.
+	 * @param string       $term_key   ID Field `term_id` or `term_taxonomy_id`.
 	 */
 	public function get_term( $taxonomy, $term_id, $term_key = 'term_id' );
 
@@ -486,6 +497,7 @@ interface Replicastore_Interface {
 	 * @access public
 	 *
 	 * @param int $user_id User ID.
+	 * @return \WP_User|null User object, or `null` if user invalid/not found.
 	 */
 	public function get_user( $user_id );
 

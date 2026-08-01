@@ -6,10 +6,10 @@
  * @package    TestimonialsCarouselElementor
  * @subpackage WordPress
  * @author     UAPP GROUP
- * @copyright  2024 UAPP GROUP
+ * @copyright  2026 UAPP GROUP
  * @license    https://opensource.org/licenses/GPL-3.0 GPL-3.0-only
  * @link
- * @since      11.7.0
+ * @since      12.0.1
  * php version 7.4.1
  */
 
@@ -32,40 +32,15 @@ defined('ABSPATH') || die();
 /**
  * TestimonialsCarousel_Blog widget class.
  *
- * @since 11.7.0
+ * @since 12.0.1
  */
 class TestimonialsCarousel_Blog extends Widget_Base
 {
   /**
-   * TestimonialsCarousel_Blog constructor.
-   *
-   * @param array $data
-   * @param null  $args
-   *
-   * @throws \Exception
-   */
-  public function __construct($data = [], $args = null)
-  {
-    parent::__construct($data, $args);
-    wp_register_style('swiper', plugins_url('/assets/css/swiper-bundle.min.css', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION);
-    wp_register_style('testimonials-carousel-blog', plugins_url('/assets/css/testimonials-carousel-blog.min.css', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION);
-
-    if (!function_exists('get_plugin_data')) {
-      require_once(ABSPATH . 'wp-admin/includes/plugin.php');
-    }
-
-    if (get_plugin_data(ELEMENTOR__FILE__)['Version'] >= "3.5.0") {
-      wp_register_script('testimonials-carousel-widget-handler', plugins_url('/assets/js/testimonials-carousel-widget-handler.min.js', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION, true);
-    } else {
-      wp_register_script('testimonials-carousel-widget-handler', plugins_url('/assets/js/testimonials-carousel-widget-old-elementor-handler.min.js', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION, true);
-    }
-  }
-
-  /**
    * Retrieve the widget name.
    *
    * @return string Widget name.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -79,7 +54,7 @@ class TestimonialsCarousel_Blog extends Widget_Base
    * Retrieve the widget title.
    *
    * @return string Widget title.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -93,7 +68,7 @@ class TestimonialsCarousel_Blog extends Widget_Base
    * Retrieve the widget icon.
    *
    * @return string Widget icon.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -112,7 +87,7 @@ class TestimonialsCarousel_Blog extends Widget_Base
    * When multiple categories passed, Elementor uses the first one.
    *
    * @return array Widget categories.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -134,9 +109,7 @@ class TestimonialsCarousel_Blog extends Widget_Base
 
   public function get_script_depends()
   {
-    $scripts = ['swiper', 'testimonials-carousel-widget-handler'];
-
-    return $scripts;
+    return \TestimonialsCarouselElementor\Testimonials_Carousel_Assets::get_widget_script_depends();
   }
 
   /**
@@ -161,7 +134,7 @@ class TestimonialsCarousel_Blog extends Widget_Base
    *
    * Adds different input fields to allow the user to change and customize the widget settings.
    *
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access protected
    */
@@ -922,26 +895,16 @@ class TestimonialsCarousel_Blog extends Widget_Base
     $this->add_responsive_control(
         'pagination_direction',
         [
-            'label'   => __('Direction', 'testimonials-carousel-elementor'),
-            'type'    => Controls_Manager::SELECT,
-            'options' => [
+            'label'              => __('Direction', 'testimonials-carousel-elementor'),
+            'type'               => Controls_Manager::SELECT,
+            'options'            => [
                 'vertical'   => esc_html__('Vertical', 'testimonials-carousel-elementor'),
                 'horizontal' => esc_html__('Horizontal', 'testimonials-carousel-elementor'),
             ],
-            'devices' => ['desktop'],
-            'default' => 'vertical'
-        ]
-    );
-    $this->add_responsive_control(
-        'pagination_direction_mobile',
-        [
-            'label'   => __('Direction', 'testimonials-carousel-elementor'),
-            'type'    => Controls_Manager::SELECT,
-            'options' => [
-                'horizontal' => esc_html__('Horizontal', 'testimonials-carousel-elementor'),
-            ],
-            'devices' => ['mobile'],
-            'default' => 'horizontal'
+            'default'            => 'vertical',
+            'tablet_default'     => 'vertical',
+            'mobile_default'     => 'horizontal',
+            'frontend_available' => true,
         ]
     );
     $this->add_responsive_control(
@@ -1133,7 +1096,7 @@ class TestimonialsCarousel_Blog extends Widget_Base
    *
    * Written in PHP and used to generate the final HTML.
    *
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access protected
    */
@@ -1167,6 +1130,22 @@ class TestimonialsCarousel_Blog extends Widget_Base
         shuffle($keys);
         $slide = array_map(fn($key) => $slide[$key], $keys);
       }
+
+      $blog_pagination_classes = 'swiper-pagination blog-slider__pagination';
+
+      if ($settings['navigation'] === 'none') {
+        $blog_pagination_classes .= ' blog-slider__pagination-disabled';
+      }
+
+      $pagination_desktop = $settings['pagination_direction'] ?? 'vertical';
+      $pagination_tablet  = $settings['pagination_direction_tablet'] ?? $pagination_desktop;
+      $pagination_mobile  = $settings['pagination_direction_mobile'] ?? 'horizontal';
+
+      if ($pagination_desktop === 'horizontal') {
+        $blog_pagination_classes .= ' blog-slider__pagination-horizontal';
+      } else {
+        $blog_pagination_classes .= ' blog-slider__pagination-vertical';
+      }
       ?>
 
       <section class="swiper mySwiper myBlog <?php if (
@@ -1174,7 +1153,13 @@ class TestimonialsCarousel_Blog extends Widget_Base
           || esc_attr($settings['navigation']) === "none"
       ) {
         echo esc_attr('slider-arrows-disabled');
-      } ?>">
+      } ?>"<?php
+      \TestimonialsCarouselElementor\Testimonials_Carousel_Slider_Render::print_data_attributes($settings);
+      echo ' data-tc-pagination-direction="' . esc_attr($pagination_desktop) . '"';
+      echo ' data-tc-pagination-direction-tablet="' . esc_attr($pagination_tablet) . '"';
+      echo ' data-tc-pagination-direction-mobile="' . esc_attr($pagination_mobile) . '"';
+      echo ' data-tc-slide-content-direction="' . esc_attr($settings['slide_content_direction'] ?? 'no') . '"';
+      ?>>
         <div
             class="swiper-wrapper blog-slider <?php if (esc_attr($settings['slide_content_direction']) === 'yes') {
               echo esc_attr('blog-slider-reverse');
@@ -1218,13 +1203,7 @@ class TestimonialsCarousel_Blog extends Widget_Base
           <?php } ?>
         </div>
         <div class="swiper-button-prev swiper-blog-button-prev"></div>
-        <div class="swiper-pagination blog-slider__pagination
-         <?php if (esc_attr($settings['navigation']) === 'none') {
-          echo esc_attr('blog-slider__pagination-disabled');
-        } ?>
-         <?php if (esc_attr($settings['pagination_direction']) === 'horizontal') {
-          esc_attr('blog-slider__pagination-horizontal');
-        } ?>"></div>
+        <div class="<?php echo esc_attr($blog_pagination_classes); ?>"></div>
         <div class="swiper-button-next swiper-blog-button-next"></div>
       </section>
     <?php } ?>

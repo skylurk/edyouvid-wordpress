@@ -10,8 +10,13 @@
 namespace Automattic\Jetpack\Extensions\Podcast_Player;
 
 use Automattic\Jetpack\Blocks;
+use Automattic\Jetpack\Status\Request;
 use Jetpack_Gutenberg;
 use Jetpack_Podcast_Helper;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 if ( ! class_exists( 'Jetpack_Podcast_Helper' ) ) {
 	require_once JETPACK__PLUGIN_DIR . '/_inc/lib/class-jetpack-podcast-helper.php';
@@ -25,10 +30,10 @@ function register_block() {
 	Blocks::jetpack_register_block(
 		__DIR__,
 		array(
-			'render_callback' => __NAMESPACE__ . '\render_block',
+			'render_callback'       => __NAMESPACE__ . '\render_block',
 			// Since Gutenberg #31873.
-			'style'           => 'wp-mediaelement',
-
+			'style'                 => 'wp-mediaelement',
+			'render_email_callback' => __NAMESPACE__ . '\render_email',
 		)
 	);
 }
@@ -59,7 +64,7 @@ function render_error( $message ) {
  */
 function render_block( $attributes, $content ) {
 	// Don't render an interactive version of the block outside the frontend context.
-	if ( ! jetpack_is_frontend() ) {
+	if ( ! Request::is_frontend() ) {
 		return $content;
 	}
 
@@ -107,6 +112,10 @@ function render_player( $player_data, $attributes ) {
 	// If there are no tracks (it is possible) then display appropriate user facing error message.
 	if ( empty( $player_data['tracks'] ) ) {
 		return render_error( __( 'No tracks available to play.', 'jetpack' ) );
+	}
+
+	if ( is_wp_error( $player_data['tracks'] ) ) {
+		return render_error( $player_data['tracks']->get_error_message() );
 	}
 
 	// Only use the amount of tracks requested.
@@ -177,7 +186,7 @@ function render_player( $player_data, $attributes ) {
 			<?php endif; ?>
 		</section>
 		<?php if ( ! $is_amp ) : ?>
-		<script type="application/json"><?php echo wp_json_encode( $player_props ); ?></script>
+		<script type="application/json"><?php echo wp_json_encode( $player_props, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP ); ?></script>
 		<?php endif; ?>
 	</div>
 	<?php
@@ -210,8 +219,8 @@ function get_colors( $name, $attrs, $property ) {
 	$attr_color  = "{$name}Color";
 	$attr_custom = 'custom' . ucfirst( $attr_color );
 
-	$color        = isset( $attrs[ $attr_color ] ) ? $attrs[ $attr_color ] : null;
-	$custom_color = isset( $attrs[ $attr_custom ] ) ? $attrs[ $attr_custom ] : null;
+	$color        = $attrs[ $attr_color ] ?? null;
+	$custom_color = $attrs[ $attr_custom ] ?? null;
 
 	$colors = array(
 		'class' => '',
@@ -259,14 +268,16 @@ function get_css_vars( $attrs ) {
  *    Keep it mind when using this param to pass
  *    properties to the template.
  *
+ * @html-template-var array $template_props
+ *
  * @param string $name           Template name, available in `./templates` folder.
  * @param array  $template_props Template properties. Optional.
  * @param bool   $print          Render template. True as default.
- * @return false|string          HTML markup or false.
+ * @return string|null           HTML markup or null.
  */
 function render( $name, $template_props = array(), $print = true ) {
 	if ( ! strpos( $name, '.php' ) ) {
-		$name = $name . '.php';
+		$name .= '.php';
 	}
 
 	$template_path = __DIR__ . '/templates/' . $name;
@@ -286,3 +297,64 @@ function render( $name, $template_props = array(), $print = true ) {
 		return $markup;
 	}
 }
+
+/**
+ * Render podcast player block for email.
+ *
+ * @since 15.0
+ *
+ * @param string $block_content     The original block HTML content.
+ * @param array  $parsed_block      The parsed block data including attributes.
+ * @param object $rendering_context Email rendering context.
+ *
+ * @return string
+ */
+function render_email( $block_content, array $parsed_block, $rendering_context ) {
+	// Validate input parameters and required dependencies
+	if ( ! isset( $parsed_block['attrs'] ) || ! is_array( $parsed_block['attrs'] ) ||
+		! class_exists( '\Automattic\WooCommerce\EmailEditor\Integrations\Core\Renderer\Blocks\Audio' ) ) {
+		return '';
+	}
+
+	$attr = $parsed_block['attrs'];
+
+	// Check if we have a valid podcast URL
+	if ( empty( $attr['url'] ) || ! wp_http_validate_url( $attr['url'] ) ) {
+		return '';
+	}
+
+	// Link to the post containing the podcast player for better UX
+	// Users can see the full context and interact with the full player on the site
+	$post_url = get_the_permalink();
+
+	if ( empty( $post_url ) ) {
+		return '';
+	}
+
+	// Build block content HTML with audio tag that the audio renderer expects
+	// Note: The audio renderer extracts the URL from the src attribute and uses it as a link,
+	// not as an actual audio source. While semantically incorrect to use a post URL in an
+	// audio src attribute, this is the expected format for the WooCommerce audio renderer.
+	// The renderer will create a clickable link to the post, not attempt to play audio.
+	$escaped_post_url   = esc_url( $post_url );
+	$block_content_html = sprintf( '<audio src="%s"></audio>', $escaped_post_url );
+
+	// Create a mock parsed block that WooCommerce's audio renderer can handle
+	$mock_parsed_block = array(
+		'attrs' => array(
+			'src'   => $escaped_post_url,
+			'label' => __( 'Listen to the podcast', 'jetpack' ),
+		),
+	);
+
+	// Preserve email_attrs if present (used for spacing)
+	if ( ! empty( $parsed_block['email_attrs'] ) ) {
+		$mock_parsed_block['email_attrs'] = $parsed_block['email_attrs'];
+	}
+
+	// Use WooCommerce's core audio renderer
+	$woo_audio_renderer = new \Automattic\WooCommerce\EmailEditor\Integrations\Core\Renderer\Blocks\Audio();
+
+	return $woo_audio_renderer->render( $block_content_html, $mock_parsed_block, $rendering_context );
+}
+

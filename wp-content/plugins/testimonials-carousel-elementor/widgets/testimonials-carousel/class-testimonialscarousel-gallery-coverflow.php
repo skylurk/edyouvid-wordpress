@@ -6,10 +6,10 @@
  * @package    TestimonialsCarouselElementor
  * @subpackage WordPress
  * @author     UAPP GROUP
- * @copyright  2024 UAPP GROUP
+ * @copyright  2026 UAPP GROUP
  * @license    https://opensource.org/licenses/GPL-3.0 GPL-3.0-only
  * @link
- * @since      11.7.0
+ * @since      12.0.1
  * php version 7.4.1
  */
 
@@ -32,41 +32,15 @@ defined('ABSPATH') || die();
 /**
  * TestimonialsCarousel_Coverflow widget class.
  *
- * @since 11.7.0
+ * @since 12.0.1
  */
 class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
 {
   /**
-   * TestimonialsCarousel_Coverflow constructor.
-   *
-   * @param array $data
-   * @param null  $args
-   *
-   * @throws \Exception
-   */
-  public function __construct($data = [], $args = null)
-  {
-    parent::__construct($data, $args);
-    wp_register_style('swiper', plugins_url('/assets/css/swiper-bundle.min.css', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION);
-    wp_register_style('testimonials-carousel', plugins_url('/assets/css/testimonials-carousel.min.css', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION);
-    wp_register_style('testimonials-gallery-carousel', plugins_url('/assets/css/testimonials-gallery-carousel.min.css', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION);
-
-    if (!function_exists('get_plugin_data')) {
-      require_once(ABSPATH . 'wp-admin/includes/plugin.php');
-    }
-
-    if (get_plugin_data(ELEMENTOR__FILE__)['Version'] >= "3.5.0") {
-      wp_register_script('testimonials-carousel-widget-handler', plugins_url('/assets/js/testimonials-carousel-widget-handler.min.js', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION, true);
-    } else {
-      wp_register_script('testimonials-carousel-widget-handler', plugins_url('/assets/js/testimonials-carousel-widget-old-elementor-handler.min.js', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION, true);
-    }
-  }
-
-  /**
    * Retrieve the widget name.
    *
    * @return string Widget name.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -80,7 +54,7 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
    * Retrieve the widget title.
    *
    * @return string Widget title.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -94,7 +68,7 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
    * Retrieve the widget icon.
    *
    * @return string Widget icon.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -113,7 +87,7 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
    * When multiple categories passed, Elementor uses the first one.
    *
    * @return array Widget categories.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -135,9 +109,7 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
 
   public function get_script_depends()
   {
-    $scripts = ['swiper', 'testimonials-carousel-widget-handler', 'ai-btn'];
-
-    return $scripts;
+    return \TestimonialsCarouselElementor\Testimonials_Carousel_Assets::get_widget_script_depends(array('ai-btn'));
   }
 
   /**
@@ -163,7 +135,7 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
    *
    * Adds different input fields to allow the user to change and customize the widget settings.
    *
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access protected
    */
@@ -655,7 +627,7 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
             ],
             'default'   => 'right',
             'selectors' => [
-                '{{WRAPPER}} .swiper-gallery-coverflow-buttons-block .swiper-pagination' => '{{VALUE}}: 10px',
+                '{{WRAPPER}} .swiper-gallery-coverflow-buttons-block.tc-gallery-nav-vertical' => '{{VALUE}}: 10px;',
             ],
             'condition' => [
                 'direction'  => 'vertical',
@@ -2053,7 +2025,7 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
                 ],
             ],
             'selectors' => [
-                '{{WRAPPER}} .mySwiper .swiper-pagination-bullet' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .mySwiperGalleryCoverflow .swiper-gallery-coverflow-buttons-block .swiper-pagination-bullet' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
             ],
         ]
     );
@@ -2070,7 +2042,7 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
                 ],
             ],
             'selectors' => [
-                '{{WRAPPER}} .mySwiper .swiper-pagination-bullet-active' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .mySwiperGalleryCoverflow .swiper-gallery-coverflow-buttons-block .swiper-pagination-bullet-active' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
             ],
         ]
     );
@@ -2081,7 +2053,7 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
             'label'     => esc_html__('Dots color', 'testimonials-carousel-elementor'),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .mySwiper .swiper-pagination-bullet' => 'background: {{VALUE}};',
+                '{{WRAPPER}} .mySwiperGalleryCoverflow .swiper-gallery-coverflow-buttons-block .swiper-pagination-bullet' => 'background: {{VALUE}};',
             ],
         ]
     );
@@ -2092,7 +2064,7 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
             'label'     => esc_html__('Dots hover color', 'testimonials-carousel-elementor'),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .mySwiper .swiper-pagination-bullet:hover' => 'background: {{VALUE}};',
+                '{{WRAPPER}} .mySwiperGalleryCoverflow .swiper-gallery-coverflow-buttons-block .swiper-pagination-bullet:hover' => 'background: {{VALUE}};',
             ],
         ]
     );
@@ -2103,7 +2075,7 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
             'label'     => esc_html__('Active dot color', 'testimonials-carousel-elementor'),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .mySwiper .swiper-pagination-bullet-active' => 'background: {{VALUE}};',
+                '{{WRAPPER}} .mySwiperGalleryCoverflow .swiper-gallery-coverflow-buttons-block .swiper-pagination-bullet-active' => 'background: {{VALUE}};',
             ],
         ]
     );
@@ -2115,7 +2087,7 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
    *
    * Written in PHP and used to generate the final HTML.
    *
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access protected
    */
@@ -2161,14 +2133,34 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
         shuffle($keys);
         $slide = array_map(fn($key) => $slide[$key], $keys);
       }
+
+      $gallery_nav_buttons_class = 'swiper-gallery-coverflow-buttons-block';
+
+      if ($settings['navigation'] === 'dots') {
+        $gallery_direction = $settings['direction'] ?: 'vertical';
+
+        if ($gallery_direction === 'vertical') {
+          $nav_position              = !empty($settings['navigation_position']) ? $settings['navigation_position'] : 'right';
+          $gallery_nav_buttons_class .= ' tc-gallery-nav-vertical tc-nav-pos-' . sanitize_html_class($nav_position);
+        } else {
+          $gallery_nav_buttons_class .= ' tc-gallery-nav-horizontal';
+        }
+      }
       ?>
 
-      <section class="swiper mySwiper myGallery mySwiperGalleryCoverflow <?php if (
-          esc_attr($settings['navigation']) === "dots"
-          || esc_attr($settings['navigation']) === "none"
-      ) {
-        echo esc_attr('slider-arrows-disabled');
-      } ?>">
+      <section
+          class="mySwiper myGallery mySwiperGalleryCoverflow <?php if (
+              esc_attr($settings['navigation']) === "dots"
+              || esc_attr($settings['navigation']) === "none"
+          ) {
+            echo esc_attr('slider-arrows-disabled');
+          } ?>"
+          data-tc-autoplay="<?php echo esc_attr($settings['autoplay']); ?>"
+          data-tc-autoplay-speed="<?php echo esc_attr($settings['autoplay_speed']); ?>"
+          data-tc-disable-interaction="<?php echo esc_attr($settings['disable_interaction']); ?>"
+          data-tc-navigation="<?php echo esc_attr($settings['navigation']); ?>"
+          data-tc-controller="<?php echo esc_attr($settings['controller']); ?>"
+      >
         <div class="testimonial-section <?php if (esc_attr($this->get_settings('slide_gallery_align')) === 'row') {
           echo esc_attr('testimonials-column');
         } else {
@@ -2177,7 +2169,7 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
              style="flex-direction: <?php echo esc_attr($this->get_settings('slide_gallery_align')); ?>"
         >
           <div class="gallery-wrapper">
-            <div class="swiper-container gallery-thumbs">
+            <div class="swiper swiper-container gallery-thumbs">
               <div class="swiper-wrapper">
                 <?php foreach ($slide as $item) { ?>
                   <div class="swiper-slide">
@@ -2191,7 +2183,12 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
             </div>
           </div>
           <div class="testimonial-wrapper">
-            <div class="swiper-container testimonial">
+            <div
+                class="swiper swiper-container testimonial"
+                data-tc-direction="<?php echo esc_attr($settings['direction']); ?>"
+                data-tc-direction-tablet="<?php echo esc_attr($settings['direction_tablet']); ?>"
+                data-tc-direction-mobile="<?php echo esc_attr($settings['direction_mobile']); ?>"
+            >
               <!-- Additional required wrapper -->
               <div class="swiper-wrapper ">
                 <!-- Slides -->
@@ -2238,7 +2235,7 @@ class TestimonialsCarousel_Gallery_Coverflow extends Widget_Base
                   </div>
                 <?php } ?>
               </div>
-              <div class="swiper-gallery-coverflow-buttons-block"></div>
+              <div class="<?php echo esc_attr($gallery_nav_buttons_class); ?>"></div>
             </div>
           </div>
         </div>

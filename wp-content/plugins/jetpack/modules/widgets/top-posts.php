@@ -12,9 +12,15 @@
 
 // phpcs:disable Universal.Files.SeparateFunctionsFromOO.Mixed -- TODO: Move classes to appropriately-named class files.
 
+use Automattic\Jetpack\Post_Media\Images;
 use Automattic\Jetpack\Redirect;
 use Automattic\Jetpack\Stats\WPCOM_Stats;
 use Automattic\Jetpack\Status;
+use Automattic\Jetpack\Status\Host;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 // Register the widget for use in Appearance -> Widgets
 add_action( 'widgets_init', 'jetpack_top_posts_widget_init' );
@@ -66,14 +72,11 @@ class Jetpack_Top_Posts_Widget extends WP_Widget {
 			array(
 				'description'                 => __( 'Shows your most viewed posts and pages.', 'jetpack' ),
 				'customize_selective_refresh' => true,
+				'show_instance_in_rest'       => true,
 			)
 		);
 
 		$this->default_title = __( 'Top Posts &amp; Pages', 'jetpack' );
-
-		if ( is_active_widget( false, false, $this->id_base ) || is_customize_preview() ) {
-			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_style' ) );
-		}
 
 		/**
 		 * Add explanation about how the statistics are calculated.
@@ -83,6 +86,21 @@ class Jetpack_Top_Posts_Widget extends WP_Widget {
 		 * @since 3.9.3
 		 */
 		add_action( 'jetpack_widget_top_posts_after_fields', array( $this, 'stats_explanation' ) );
+		add_filter( 'widget_types_to_hide_from_legacy_widget_block', array( $this, 'hide_widget_in_block_editor' ) );
+	}
+
+	/**
+	 * Remove the "Top Posts and Pages" widget from the Legacy Widget block
+	 *
+	 * @param array $widget_types List of widgets that are currently removed from the Legacy Widget block.
+	 * @return array $widget_types New list of widgets that will be removed.
+	 */
+	public function hide_widget_in_block_editor( $widget_types ) {
+		// @TODO: Hide for Simple sites when the block API starts working.
+		if ( ! ( new Host() )->is_wpcom_simple() ) {
+			$widget_types[] = 'top-posts';
+		}
+		return $widget_types;
 	}
 
 	/**
@@ -98,7 +116,7 @@ class Jetpack_Top_Posts_Widget extends WP_Widget {
 	 *
 	 * @param array $instance Instance configuration.
 	 *
-	 * @return void
+	 * @return string|void
 	 */
 	public function form( $instance ) {
 		$instance = wp_parse_args( (array) $instance, static::defaults() );
@@ -134,7 +152,7 @@ class Jetpack_Top_Posts_Widget extends WP_Widget {
 
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'count' ) ); ?>"><?php esc_html_e( 'Maximum number of posts to show (no more than 10):', 'jetpack' ); ?></label>
-			<input id="<?php echo esc_attr( $this->get_field_id( 'count' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'count' ) ); ?>" type="number" value="<?php echo (int) $count; ?>" min="1" max="10" />
+			<input id="<?php echo esc_attr( $this->get_field_id( 'count' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'count' ) ); ?>" type="number" value="<?php echo esc_attr( (string) $count ); ?>" min="1" max="10" />
 		</p>
 
 		<?php if ( defined( 'IS_WPCOM' ) && IS_WPCOM ) : ?>
@@ -281,13 +299,16 @@ class Jetpack_Top_Posts_Widget extends WP_Widget {
 
 		$instance = wp_parse_args( (array) $instance, static::defaults() );
 
-		$title = isset( $instance['title'] ) ? $instance['title'] : false;
+		$title = $instance['title'] ?? false;
 		if ( false === $title ) {
 			$title = $this->default_title;
 		}
 
 		/** This filter is documented in core/src/wp-includes/default-widgets.php */
 		$title = apply_filters( 'widget_title', $title );
+
+		// Enqueue front end assets.
+		$this->enqueue_style();
 
 		$count = isset( $instance['count'] ) ? (int) $instance['count'] : false;
 		if ( $count < 1 || 10 < $count ) {
@@ -414,24 +435,24 @@ class Jetpack_Top_Posts_Widget extends WP_Widget {
 				}
 
 				foreach ( $posts as &$post ) {
-					$image = Jetpack_PostImages::get_image(
+					$image = Images::get_image(
 						$post['post_id'],
 						array(
 							'fallback_to_avatars' => (bool) $get_image_options['fallback_to_avatars'],
-							'width'               => (int) $width,
-							'height'              => (int) $height,
+							'width'               => $width,
+							'height'              => $height,
 							'avatar_size'         => (int) $get_image_options['avatar_size'],
 						)
 					);
 
 					if ( $image ) {
-						$post['image'] = Jetpack_PostImages::fit_image_url(
+						$post['image'] = Images::fit_image_url(
 							$image['src'],
 							$width,
 							$height
 						);
 
-						$post['image_srcset'] = Jetpack_PostImages::generate_cropped_srcset(
+						$post['image_srcset'] = Images::generate_cropped_srcset(
 							$image,
 							$width,
 							$height
@@ -688,16 +709,19 @@ class Jetpack_Top_Posts_Widget extends WP_Widget {
 		$days = (int) apply_filters( 'jetpack_top_posts_days', 2, $args );
 
 		/** Handling situations where the number of days makes no sense - allows for unlimited days where $days = -1 */
-		if ( 0 === $days || false === $days ) {
+		if ( 0 === $days ) {
 			$days = 2;
 		}
 
 		$query_args      = array(
 			'max'       => 11,
 			'summarize' => 1,
-			'num'       => (int) $days,
+			'num'       => $days,
 		);
-		$post_view_posts = convert_stats_array_to_object( ( new WPCOM_Stats() )->get_top_posts( $query_args ) );
+		$wpcom_stats     = new WPCOM_Stats();
+		$post_view_posts = $wpcom_stats->convert_stats_array_to_object(
+			$wpcom_stats->get_top_posts( $query_args )
+		);
 
 		if ( ! isset( $post_view_posts->summary ) || empty( $post_view_posts->summary->postviews ) ) {
 			return array();

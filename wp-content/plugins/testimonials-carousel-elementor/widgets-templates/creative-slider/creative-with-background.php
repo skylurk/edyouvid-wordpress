@@ -20,7 +20,8 @@ function get_creative_with_background_template($settings, $attributes)
         style="--creative-with-background: url('<?php echo esc_url($settings['creative_with_background_image_background']['url']); ?>'); "
       <?php } ?>>
     <div class="creative-with-background__wrapper">
-      <div class="swiper mySwiper mySwiperCreative">
+      <div
+          class="swiper mySwiper mySwiperCreative"<?php \TestimonialsCarouselElementor\Testimonials_Carousel_Slider_Render::print_data_attributes($settings); ?>>
         <div class="swiper-wrapper">
           <?php $counter = 1;
           foreach ($slide as $item) { ?>
@@ -65,8 +66,19 @@ function get_creative_with_background_template($settings, $attributes)
       <?php }
 
       if (esc_attr($settings['navigation']) !== "none") { ?>
-        <div class="creative-with-background__pagination">
+        <div class="creative-with-background__pagination creative__navigation">
           <?php if (
+              esc_attr($settings['navigation']) === "both" || esc_attr($settings['navigation']) === "arrows"
+          ) { ?>
+            <div
+                class="swiper-button-prev <?php if (esc_attr($settings['navigation']) === "arrows") {
+                  echo esc_attr('creative-with-background__pagination-prev');
+                } ?>">
+              <?php Icons_Manager::render_icon($settings['icon_arrow_left'], ['aria-hidden' => 'true']) ?>
+            </div>
+          <?php }
+
+          if (
               esc_attr($settings['navigation']) === "dots" || esc_attr($settings['navigation']) === "both"
           ) { ?>
             <div class="swiper-pagination"></div>
@@ -80,12 +92,6 @@ function get_creative_with_background_template($settings, $attributes)
                   echo esc_attr('creative-with-background__pagination-next');
                 } ?>">
               <?php Icons_Manager::render_icon($settings['icon_arrow_right'], ['aria-hidden' => 'true']) ?>
-            </div>
-            <div
-                class="swiper-button-prev <?php if (esc_attr($settings['navigation']) === "arrows") {
-                  echo esc_attr('creative-with-background__pagination-prev');
-                } ?>">
-              <?php Icons_Manager::render_icon($settings['icon_arrow_left'], ['aria-hidden' => 'true']) ?>
             </div>
           <?php } ?>
         </div>

@@ -2,7 +2,7 @@
 /**
 * Plugin Name: WP Contact Form HubSpot
 * Description: Integrates Contact Form 7 and <a href="https://wordpress.org/plugins/contact-form-entries/">Contact Form Entries Plugin</a> and many other forms with HubSpot allowing form submissions to be automatically sent to your HubSpot account 
-* Version: 1.4.4
+* Version: 1.4.5
 * Requires at least: 3.8
 * Author URI: https://www.crmperks.com
 * Plugin URI: https://www.crmperks.com/plugins/contact-form-plugins/contact-form-hubspot-plugin/
@@ -25,7 +25,7 @@ class vxcf_hubspot {
   public  $crm_name = "hubspot";
   public  $id = "vxcf_hubspot";
   public  $domain = "vxcf-hubspot";
-  public  $version = "1.4.4";
+  public  $version = "1.4.5";
   public  $update_id = "6000001";
   public  $min_cf_version = "1.0";
   public $type = "vxcf_hubspot";

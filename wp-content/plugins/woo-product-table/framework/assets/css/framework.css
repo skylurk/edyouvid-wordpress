@@ -1,0 +1,787 @@
+/**
+ * CA Framework Styles
+ *
+ * Modern, clean design for offers, popups, required and recommended plugins.
+ *
+ * @package CA_Framework
+ * @version 1.0.0
+ */
+
+/* ==========================================================================
+   CSS Variables
+   ========================================================================== */
+
+:root {
+    --ca-fw-primary: #4f46e5;
+    --ca-fw-primary-hover: #4338ca;
+    --ca-fw-success: #059669;
+    --ca-fw-success-hover: #047857;
+    --ca-fw-danger: #dc2626;
+    --ca-fw-warning: #f59e0b;
+    --ca-fw-dark: #1e293b;
+    --ca-fw-gray: #64748b;
+    --ca-fw-light: #f8fafc;
+    --ca-fw-border: #e2e8f0;
+    --ca-fw-white: #ffffff;
+    --ca-fw-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --ca-fw-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+    --ca-fw-radius: 8px;
+    --ca-fw-radius-lg: 12px;
+    --ca-fw-transition: all 0.2s ease;
+}
+
+/* ==========================================================================
+   Common / Buttons
+   ========================================================================== */
+
+.ca-fw-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    cursor: pointer;
+    text-decoration: none;
+    transition: var(--ca-fw-transition);
+    white-space: nowrap;
+}
+
+.ca-fw-btn .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+}
+
+.ca-fw-btn-primary {
+    background: var(--ca-fw-primary);
+    color: var(--ca-fw-white);
+}
+
+.ca-fw-btn-primary:hover,
+.ca-fw-btn-primary:focus {
+    background: var(--ca-fw-primary-hover);
+    color: var(--ca-fw-white);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+}
+
+.ca-fw-btn-success {
+    background: var(--ca-fw-success);
+    color: var(--ca-fw-white);
+}
+
+.ca-fw-btn-success:hover,
+.ca-fw-btn-success:focus {
+    background: var(--ca-fw-success-hover);
+    color: var(--ca-fw-white);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+}
+
+.ca-fw-btn-outline {
+    background: transparent;
+    color: var(--ca-fw-primary);
+    border: 2px solid var(--ca-fw-primary);
+}
+
+.ca-fw-btn-outline:hover,
+.ca-fw-btn-outline:focus {
+    background: var(--ca-fw-primary);
+    color: var(--ca-fw-white);
+}
+
+.ca-fw-btn-secondary {
+    background: var(--ca-fw-light);
+    color: var(--ca-fw-dark);
+    border: 1px solid var(--ca-fw-border);
+}
+
+.ca-fw-btn-secondary:hover,
+.ca-fw-btn-secondary:focus {
+    background: var(--ca-fw-border);
+    color: var(--ca-fw-dark);
+}
+
+.ca-fw-btn:disabled,
+.ca-fw-btn.ca-fw-btn-loading {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.ca-fw-btn-loading .dashicons {
+    animation: ca-fw-spin 1s linear infinite;
+}
+
+@keyframes ca-fw-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.ca-fw-offer-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+    width: 100%;
+    flex: 1 100%;
+}
+
+/* Badge */
+.ca-fw-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, var(--ca-fw-danger), var(--ca-fw-danger));
+    color: var(--ca-fw-white);
+    margin-bottom: 8px;
+}
+
+.ca-fw-badge-dev {
+    background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+}
+
+.ca-fw-badge-flash {
+    background: linear-gradient(135deg, #ef4444, #f97316);
+    animation: ca-fw-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ca-fw-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Dismiss Button */
+.ca-fw-dismiss {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: var(--ca-fw-transition);
+    color: var(--ca-fw-gray);
+    line-height: 1;
+    z-index: 10;
+}
+
+.ca-fw-dismiss:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--ca-fw-dark);
+}
+
+.ca-fw-dismiss .dashicons {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+}
+.ca-fw-offer-content {
+    display: flex;
+    align-items: center;
+    gap: 3px 15px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+/* ==========================================================================
+   Offer - Starter Template
+   ========================================================================== */
+
+.ca-fw-offer {
+    position: relative;
+    margin: 15px 0;
+}
+
+.ca-fw-offer-starter .ca-fw-offer-inner {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    background: linear-gradient(135deg, #3e3e3e 0%, #000000 100%);
+    border-radius: var(--ca-fw-radius-lg);
+    padding: 24px 28px;
+    color: var(--ca-fw-white);
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--ca-fw-shadow-lg);
+}
+
+.ca-fw-offer-starter .ca-fw-offer-inner::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+}
+
+.ca-fw-offer-starter .ca-fw-offer-close {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.ca-fw-offer-starter .ca-fw-offer-close:hover {
+    color: var(--ca-fw-white);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.ca-fw-offer-starter .ca-fw-offer-image img {
+    max-width: 100px;
+    border-radius: var(--ca-fw-radius);
+}
+
+.ca-fw-offer-starter .ca-fw-offer-title {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ca-fw-white);
+}
+
+.ca-fw-offer-starter .ca-fw-offer-highlight {
+    font-size: 28px;
+    font-weight: 800;
+    color: #fbbf24;
+    margin-bottom: 6px;
+}
+
+.ca-fw-offer-starter .ca-fw-offer-desc {
+    margin: 0 0 4px;
+    font-size: 14px;
+    opacity: 0.9;
+    color: var(--ca-fw-white);
+}
+
+.ca-fw-offer-starter .ca-fw-badge {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+}
+
+.ca-fw-offer-starter .ca-fw-btn-primary {
+    background: var(--ca-fw-white);
+    color: var(--ca-fw-primary);
+}
+
+.ca-fw-offer-starter .ca-fw-btn-primary:hover {
+    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.3);
+}
+
+.ca-fw-offer-starter .ca-fw-btn-secondary {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--ca-fw-white);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.ca-fw-offer-starter .ca-fw-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* ==========================================================================
+   Offer - Developer Template
+   ========================================================================== */
+
+.ca-fw-offer-developer .ca-fw-offer-inner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--ca-fw-white);
+    border-left: 4px solid var(--ca-fw-primary);
+    border-radius: 4px;
+    padding: 16px 20px;
+    position: relative;
+    box-shadow: var(--ca-fw-shadow);
+}
+
+.ca-fw-offer-developer .ca-fw-offer-title {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ca-fw-dark);
+}
+.ca-fw-offer-developer .ca-fw-offer-title>*{
+    color: #06b6d4;
+}
+.ca-fw-offer-developer .ca-fw-offer-desc {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ca-fw-gray);
+}
+
+.ca-fw-offer-developer .ca-fw-offer-image img {
+    max-width: 100px;
+    border-radius: var(--ca-fw-radius);
+}
+
+/* ==========================================================================
+   Offer - Flash Template
+   ========================================================================== */
+
+.ca-fw-offer-flash .ca-fw-offer-inner {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+    border-radius: var(--ca-fw-radius-lg);
+    padding: 28px 32px;
+    color: var(--ca-fw-white);
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--ca-fw-shadow-lg);
+}
+
+.ca-fw-offer-flash .ca-fw-offer-inner::before {
+    content: '🔥';
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    font-size: 40px;
+    opacity: 0.15;
+}
+
+.ca-fw-offer-flash .ca-fw-offer-close {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.ca-fw-offer-flash .ca-fw-offer-close:hover {
+    color: var(--ca-fw-white);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.ca-fw-offer-flash .ca-fw-offer-image img {
+    max-width: 100px;
+    border-radius: var(--ca-fw-radius);
+}
+
+.ca-fw-offer-flash .ca-fw-offer-title {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--ca-fw-white);
+}
+
+.ca-fw-flash-highlight {
+    font-size: 28px;
+    font-weight: 900;
+    background: linear-gradient(90deg, #fbbf24, #f97316, #ef4444);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+}
+
+.ca-fw-offer-flash .ca-fw-offer-desc {
+    margin: 0 0 4px;
+    font-size: 14px;
+    opacity: 0.85;
+    color: var(--ca-fw-white);
+}
+
+.ca-fw-offer-flash .ca-fw-btn-primary {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: var(--ca-fw-white);
+    font-size: 14px;
+    padding: 10px 24px;
+}
+
+.ca-fw-offer-flash .ca-fw-btn-primary:hover {
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.5);
+    transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Popup
+   ========================================================================== */
+
+.ca-fw-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 100100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: ca-fw-fade-in 0.3s ease;
+}
+
+@keyframes ca-fw-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.ca-fw-popup {
+    background: var(--ca-fw-white);
+    border-radius: var(--ca-fw-radius-lg);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+    position: relative;
+    overflow: hidden;
+    animation: ca-fw-slide-up 0.3s ease;
+    width: 90%;
+}
+
+@keyframes ca-fw-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ca-fw-popup-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.06);
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: var(--ca-fw-transition);
+    color: var(--ca-fw-gray);
+    z-index: 10;
+    line-height: 1;
+}
+
+.ca-fw-popup-close:hover {
+    background: rgba(0, 0, 0, 0.12);
+    color: var(--ca-fw-dark);
+}
+
+.ca-fw-popup-close .dashicons {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+}
+
+.ca-fw-popup-image {
+    width: 100%;
+    overflow: hidden;
+    text-align: center;
+}
+
+.ca-fw-popup-image img {
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: cover;
+    max-height: 220px;
+    text-align: center;
+    padding: 16px;
+}
+
+.ca-fw-popup-content {
+    padding: 28px 32px 32px;
+}
+
+.ca-fw-popup-title {
+    margin: 0 0 10px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ca-fw-dark);
+}
+.ca-fw-popup-title>*{
+    color: var(--ca-fw-danger);
+}
+.ca-fw-popup-desc {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: var(--ca-fw-gray);
+    line-height: 1.6;
+}
+
+/* ==========================================================================
+   Plugin Cards (Required & Recommended)
+   ========================================================================== */
+
+.ca-fw-notice {
+    border: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.ca-fw-plugins-wrap {
+    background: var(--ca-fw-white);
+    border-radius: var(--ca-fw-radius-lg);
+    padding: 24px;
+    box-shadow: var(--ca-fw-shadow);
+    margin: 15px 0;
+    position: relative;
+}
+
+.ca-fw-plugins-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    position: relative;
+}
+
+.ca-fw-plugins-header > .dashicons {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    color: var(--ca-fw-warning);
+}
+
+.ca-fw-recommended-plugins .ca-fw-plugins-header > .dashicons {
+    color: var(--ca-fw-primary);
+}
+
+.ca-fw-plugins-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ca-fw-dark);
+}
+
+.ca-fw-plugins-header p {
+    width: 100%;
+    margin: 4px 0 0 32px;
+    font-size: 13px;
+    color: var(--ca-fw-gray);
+}
+
+.ca-fw-plugins-header .ca-fw-dismiss-btn {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: var(--ca-fw-transition);
+    color: var(--ca-fw-gray);
+    line-height: 1;
+}
+
+.ca-fw-plugins-header .ca-fw-dismiss-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--ca-fw-dark);
+}
+
+.ca-fw-plugins-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+.ca-fw-required-notice .ca-fw-plugins-grid {
+
+    grid-template-columns: 3fr 2fr;
+}
+
+.ca-fw-plugin-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid var(--ca-fw-border);
+    border-radius: var(--ca-fw-radius);
+    transition: var(--ca-fw-transition);
+    background: var(--ca-fw-light);
+}
+
+.ca-fw-plugin-card:hover {
+    border-color: var(--ca-fw-primary);
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
+}
+
+.ca-fw-plugin-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--ca-fw-radius);
+    overflow: hidden;
+}
+
+.ca-fw-plugin-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ca-fw-plugin-icon-placeholder {
+    background: linear-gradient(135deg, var(--ca-fw-primary), #7c3aed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ca-fw-plugin-icon-placeholder .dashicons {
+    color: var(--ca-fw-white);
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+}
+
+.ca-fw-plugin-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.ca-fw-plugin-info h4 {
+    margin: 0 0 4px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ca-fw-dark);
+}
+
+.ca-fw-plugin-info p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--ca-fw-gray);
+    line-height: 1.4;
+}
+
+.ca-fw-plugin-action {
+    flex-shrink: 0;
+}
+
+.ca-fw-plugin-action .ca-fw-btn {
+    font-size: 12px;
+    padding: 6px 14px;
+}
+
+/* Activated state */
+.ca-fw-plugin-card.ca-fw-plugin-activated {
+    border-color: var(--ca-fw-success);
+    background: #f0fdf4;
+}
+
+.ca-fw-plugin-card.ca-fw-plugin-activated .ca-fw-btn {
+    background: var(--ca-fw-success);
+    color: var(--ca-fw-white);
+    pointer-events: none;
+}
+
+/* ==========================================================================
+   Countdown Timer
+   ========================================================================== */
+
+.ca-fw-countdown {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 10px;
+    margin-bottom: 4px;
+    width: 100%;
+    flex: 1 100%;
+}
+.ca-fw-countdown-sep {
+    display: none;
+}
+.ca-fw-countdown-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 48px;
+    padding: 6px 8px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+}
+
+.ca-fw-countdown-number {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+}
+
+.ca-fw-countdown-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.8;
+    line-height: 1.2;
+}
+
+.ca-fw-countdown-sep {
+    font-size: 18px;
+    font-weight: 700;
+    opacity: 0.6;
+    line-height: 1;
+    padding-bottom: 12px;
+}
+
+/* Countdown in dark templates (starter, flash) */
+.ca-fw-offer-starter .ca-fw-countdown-item,
+.ca-fw-offer-flash .ca-fw-countdown-item {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--ca-fw-white);
+}
+
+.ca-fw-offer-starter .ca-fw-countdown-sep,
+.ca-fw-offer-flash .ca-fw-countdown-sep {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Countdown in developer template */
+.ca-fw-offer-developer .ca-fw-countdown-item {
+    background: var(--ca-fw-light);
+    color: var(--ca-fw-dark);
+    border: 1px solid var(--ca-fw-border);
+}
+
+.ca-fw-offer-developer .ca-fw-countdown-sep {
+    color: var(--ca-fw-gray);
+}
+
+/* Countdown in popup */
+.ca-fw-popup .ca-fw-countdown-item {
+    background: var(--ca-fw-light);
+    color: var(--ca-fw-dark);
+    border: 1px solid var(--ca-fw-border);
+}
+
+.ca-fw-popup .ca-fw-countdown-sep {
+    color: var(--ca-fw-gray);
+}
+
+/* Expired countdown */
+.ca-fw-countdown-expired .ca-fw-countdown-item {
+    opacity: 0.5;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 782px) {
+    .ca-fw-offer-starter .ca-fw-offer-inner,
+    .ca-fw-offer-flash .ca-fw-offer-inner {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .ca-fw-offer-buttons {
+        justify-content: center;
+    }
+
+    .ca-fw-plugins-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ca-fw-plugin-card {
+        flex-wrap: wrap;
+    }
+
+    .ca-fw-popup-content {
+        padding: 20px 24px 24px;
+    }
+}

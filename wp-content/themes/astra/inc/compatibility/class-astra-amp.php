@@ -3,8 +3,6 @@
  * AMP Compatibility.
  *
  * @package     Astra
- * @author      Astra
- * @copyright   Copyright (c) 2018, Astra
  * @link        https://wpastra.com/
  * @since       Astra 1.0.0
  */
@@ -16,13 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Astra BB Ultimate Addon Compatibility
  */
-if ( ! class_exists( 'Astra_AMP' ) ) :
+if ( ! class_exists( 'Astra_AMP' ) ) {
 
 	/**
 	 * Class Astra_AMP
 	 */
 	class Astra_AMP {
-
 		/**
 		 * Member Variable
 		 *
@@ -70,6 +67,16 @@ if ( ! class_exists( 'Astra_AMP' ) ) :
 			add_filter( 'astra_theme_dynamic_css', array( $this, 'dynamic_css' ) );
 			add_filter( 'astra_toggle_button_markup', array( $this, 'toggle_button_markup' ), 20, 2 );
 			add_filter( 'astra_schema_body', array( $this, 'body_id' ) );
+
+			/**
+			 * Scroll to top Addon.
+			 *
+			 * @since 4.0.0
+			 */
+			if ( true === astra_get_option( 'scroll-to-top-enable' ) ) {
+				remove_action( 'wp_footer', array( Astra_Scroll_To_Top_Loader::get_instance(), 'html_markup_loader' ) );
+				remove_filter( 'astra_dynamic_theme_css', 'astra_scroll_to_top_dynamic_css' );
+			}
 		}
 
 		/**
@@ -93,7 +100,6 @@ if ( ! class_exists( 'Astra_AMP' ) ) :
 		 * @return String Updated dynamic CSS with AMP specific changes.
 		 */
 		public function dynamic_css( $compiled_css ) {
-
 
 			if ( true === Astra_Builder_Helper::$is_header_footer_builder_active ) {
 				$css = array(
@@ -735,9 +741,6 @@ if ( ! class_exists( 'Astra_AMP' ) ) :
 						'text-align'              => 'center',
 						'padding-bottom'          => '0',
 					),
-					'.ast-safari-browser-less-than-11.ast-woocommerce-cart-menu.ast-header-break-point .header-main-layout-2 .main-header-container' => array(
-						'display' => 'flex',
-					),
 				);
 
 				// Tablet CSS.
@@ -1042,7 +1045,7 @@ if ( ! class_exists( 'Astra_AMP' ) ) :
 					'line-height' => '3',
 					'text-align'  => 'left',
 				),
-				'.ast-amp #ast-site-header-cart .widget_shopping_cart' => array(
+				'.ast-amp .ast-site-header-cart .widget_shopping_cart' => array(
 					'display' => 'none',
 				),
 				'.ast-theme.ast-woocommerce-cart-menu .ast-site-header-cart' => array(
@@ -1094,9 +1097,7 @@ if ( ! class_exists( 'Astra_AMP' ) ) :
 				);
 			}
 
-			$parse_css .= astra_parse_css( $astra_break_point_navigation, '', astra_header_break_point() );
-
-			return $parse_css;
+			return $parse_css . astra_parse_css( $astra_break_point_navigation, '', astra_header_break_point() );
 		}
 
 		/**
@@ -1201,9 +1202,9 @@ if ( ! class_exists( 'Astra_AMP' ) ) :
 		}
 
 	}
-endif;
+}
 
 /**
-* Kicking this off by calling 'get_instance()' method
-*/
+ * Kicking this off by calling 'get_instance()' method
+ */
 Astra_AMP::get_instance();

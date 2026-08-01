@@ -3,13 +3,17 @@
 Plugin Name: New Users Monitor
 Plugin URI: https://wpgear.xyz/new-users-monitor
 Description: Ext Security. Automatic scanning of the Users list, and detect unauthorized addition to the DB. Informs immediately Admin by email. Informative Widget in the console. (It is convenient to use with the plugin "Users Login Monitor")
-Version: 3.20
+Version: 3.22
 Text Domain: new-users-monitor
 Domain Path: /languages
 Author: WPGear
 Author URI: https://wpgear.xyz
 License: GPLv2
 */
+
+	if ( ! defined( 'ABSPATH' ) ) {
+		exit; // Exit if accessed directly
+	}
 
 	$NUM_plugin_url = plugin_dir_url( __FILE__ ); // со слэшем на конце
 	
@@ -20,11 +24,10 @@ License: GPLv2
 	$NUM_Disable_Login		= get_option( 'num_disable_login', 1 );			// Запрещаем Вход, если Пользователь не подтвержден.	
 	
 	$NUM_LocalePath = dirname (plugin_basename ( __FILE__ )) . '/languages/';
-	// __('Ext Security. Automatic scanning of the Users list, and detect unauthorized addition to the DB. Informs immediately Admin by email. Informative Widget in the console. (It is convenient to use with the plugin "Users Login Monitor")', 'new-users-monitor');
-	
+
 	include_once( __DIR__ .'/includes/functions.php' );
-	include_once( __DIR__ .'/includes/admin.php' );
-	include_once( __DIR__ .'/includes/widgets.php' );
+	include_once( __DIR__ .'/includes/admin/admin.php' );
+	include_once( __DIR__ .'/includes/admin/widgets.php' );
 	include_once( __DIR__ .'/includes/schedules.php' );
 	
 	/* Translate.
@@ -46,8 +49,8 @@ License: GPLv2
 		if ($screen_base == 'dashboard' || $screen_base == 'new-users-monitor/options') {
 			global $NUM_plugin_url;			
 		
-			wp_enqueue_style ('num_admin-style', $NUM_plugin_url .'admin-style.css'); // phpcs:ignore
-			wp_enqueue_style ('font-awesome_4.7', "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css");	 // phpcs:ignore 	
+			wp_enqueue_style ('num_admin-style', $NUM_plugin_url .'includes/admin/admin-style.css'); // phpcs:ignore
+			// wp_enqueue_style ('font-awesome_4.7', "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css");	 // phpcs:ignore 	
 		}
 	}
 	

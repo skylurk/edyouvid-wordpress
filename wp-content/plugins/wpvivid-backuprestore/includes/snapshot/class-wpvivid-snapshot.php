@@ -660,7 +660,7 @@ class WPvivid_Snapshot_Ex
                 <p><span>Action: </span><span></span><span class="wpvivid-animate-flicker"></span></p>
             </div>
             <div>
-                <input class="button-primary" style="width: 200px; height: 50px; font-size: 20px; margin-bottom: 10px; pointer-events: auto; opacity: 1;" id="wpvivid_create_snapshot" type="submit" value="Create a snapshot">
+                <input class="button-primary" style="width: 200px; font-size: 20px; margin-bottom: 10px; pointer-events: auto; opacity: 1;" id="wpvivid_create_snapshot" type="submit" value="Create a snapshot">
             </div>
             <div>
                 <p>

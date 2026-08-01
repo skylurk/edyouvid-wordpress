@@ -12,6 +12,10 @@ namespace Automattic\Jetpack\Extensions\Gif;
 use Automattic\Jetpack\Blocks;
 use Jetpack_Gutenberg;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Registers the block for use in Gutenberg
  * This is done via an action so that we can disable
@@ -33,13 +37,13 @@ add_action( 'init', __NAMESPACE__ . '\register_block' );
  * @return string
  */
 function render_block( $attr ) {
-	$padding_top = isset( $attr['paddingTop'] ) ? $attr['paddingTop'] : 0;
+	$padding_top = $attr['paddingTop'] ?? 0;
 	$style       = 'padding-top:' . $padding_top;
 	$giphy_url   = isset( $attr['giphyUrl'] )
 		? Jetpack_Gutenberg::validate_block_embed_url( $attr['giphyUrl'], array( 'giphy.com' ) )
 		: null;
-	$search_text = isset( $attr['searchText'] ) ? $attr['searchText'] : '';
-	$caption     = isset( $attr['caption'] ) ? $attr['caption'] : null;
+	$search_text = $attr['searchText'] ?? '';
+	$caption     = $attr['caption'] ?? null;
 
 	if ( ! $giphy_url ) {
 		return null;

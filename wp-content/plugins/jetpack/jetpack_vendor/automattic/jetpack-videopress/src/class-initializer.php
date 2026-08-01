@@ -92,6 +92,9 @@ class Initializer {
 
 		if ( is_admin() ) {
 			AJAX::init();
+		} else {
+			require_once __DIR__ . '/class-block-replacement.php';
+			Block_Replacement::init();
 		}
 	}
 
@@ -119,9 +122,12 @@ class Initializer {
 		Attachment_Handler::init();
 		Jwt_Token_Bridge::init();
 		Uploader_Rest_Endpoints::init();
+		Rest_Controller::init();
+		Initial_State::init();
 		VideoPress_Rest_Api_V1_Stats::init();
 		VideoPress_Rest_Api_V1_Site::init();
 		VideoPress_Rest_Api_V1_Settings::init();
+		VideoPress_Rest_Api_V1_Features::init();
 		XMLRPC::init();
 		Block_Editor_Content::init();
 		self::register_oembed_providers();
@@ -162,7 +168,7 @@ class Initializer {
 	 *
 	 * @return string|false
 	 */
-	public static function video_enqueue_bridge_when_oembed_present( $cache, $url, $attr, $post_ID ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public static function video_enqueue_bridge_when_oembed_present( $cache, $url, $attr, $post_ID = null ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		if ( Utils::is_videopress_url( $url ) ) {
 			Jwt_Token_Bridge::enqueue_jwt_token_bridge();
 		}
@@ -183,24 +189,30 @@ class Initializer {
 	/**
 	 * VideoPress video block render method
 	 *
-	 * @param array  $block_attributes - Block attributes.
-	 * @param string $content          - Current block markup.
-	 * @return string                    Block markup.
+	 * @global \WP_Embed $wp_embed WordPress embed handler.
+	 *
+	 * @param array     $block_attributes Block attributes.
+	 * @param string    $content          Current block markup.
+	 * @param \WP_Block $block            Current block.
+	 *
+	 * @return string Block markup.
 	 */
-	public static function render_videopress_video_block( $block_attributes, $content ) {
+	public static function render_videopress_video_block( $block_attributes, $content, $block ) {
 		global $wp_embed;
 
-		// CSS classes
-		$align        = isset( $block_attributes['align'] ) ? $block_attributes['align'] : null;
+		// CSS classes.
+		$align        = $block_attributes['align'] ?? null;
 		$align_class  = $align ? ' align' . $align : '';
 		$custom_class = isset( $block_attributes['className'] ) ? ' ' . $block_attributes['className'] : '';
 		$classes      = 'wp-block-jetpack-videopress jetpack-videopress-player' . $custom_class . $align_class;
 
-		// Inline style
+		// Inline style.
 		$style     = '';
-		$max_width = isset( $block_attributes['maxWidth'] ) ? $block_attributes['maxWidth'] : null;
+		$max_width = $block_attributes['maxWidth'] ?? null;
+
 		if ( $max_width && $max_width !== '100%' ) {
-			$style = sprintf( 'max-width: %s; margin: auto;', $max_width );
+			$style    = sprintf( 'max-width: %s;', $max_width );
+			$classes .= ' wp-block-jetpack-videopress--has-max-width';
 		}
 
 		/*
@@ -211,8 +223,8 @@ class Initializer {
 		 */
 		$figcaption = '';
 
-		// Caption from block attributes
-		$caption = isset( $block_attributes['caption'] ) ? $block_attributes['caption'] : null;
+		// Caption from block attributes.
+		$caption = $block_attributes['caption'] ?? null;
 
 		/*
 		 * If the caption is not stored into the block attributes,
@@ -220,7 +232,7 @@ class Initializer {
 		 */
 		if ( $caption === null ) {
 			preg_match( '/<figcaption>(.*?)<\/figcaption>/', $content, $matches );
-			$caption = isset( $matches[1] ) ? $matches[1] : null;
+			$caption = $matches[1] ?? null;
 		}
 
 		// If we have a caption, create the <figcaption /> element.
@@ -228,25 +240,25 @@ class Initializer {
 			$figcaption = sprintf( '<figcaption>%s</figcaption>', wp_kses_post( $caption ) );
 		}
 
-		// Custom anchor from block content
+		// Custom anchor from block content.
 		$id_attribute = '';
 
 		// Try to get the custom anchor from the block attributes.
 		if ( isset( $block_attributes['anchor'] ) && $block_attributes['anchor'] ) {
 			$id_attribute = sprintf( 'id="%s"', esc_attr( $block_attributes['anchor'] ) );
 		} elseif ( preg_match( '/<figure[^>]*id="([^"]+)"/', $content, $matches ) ) {
-			// Othwerwise, try to get the custom anchor from the <figure /> element.
-			$id_attribute = sprintf( 'id="%s"', $matches[1] );
+			// Otherwise, try to get the custom anchor from the <figure /> element.
+			$id_attribute = sprintf( 'id="%s"', esc_attr( $matches[1] ) );
 		}
 
-		// Preview On Hover data
+		// Preview On Hover data.
 		$is_poh_enabled =
 			isset( $block_attributes['posterData']['previewOnHover'] ) &&
 			$block_attributes['posterData']['previewOnHover'];
 
-		$autoplay = isset( $block_attributes['autoplay'] ) ? $block_attributes['autoplay'] : false;
-		$controls = isset( $block_attributes['controls'] ) ? $block_attributes['controls'] : false;
-		$poster   = isset( $block_attributes['posterData']['url'] ) ? $block_attributes['posterData']['url'] : null;
+		$autoplay = $block_attributes['autoplay'] ?? false;
+		$controls = $block_attributes['controls'] ?? false;
+		$poster   = $block_attributes['posterData']['url'] ?? null;
 
 		$preview_on_hover = '';
 
@@ -258,7 +270,7 @@ class Initializer {
 				'showControls'        => $controls,
 			);
 
-			// Create inlione style in case video has a custom poster.
+			// Create inline style in case video has a custom poster.
 			$inline_style = '';
 			if ( $poster ) {
 				$inline_style = sprintf(
@@ -271,7 +283,7 @@ class Initializer {
 			$preview_on_hover = sprintf(
 				'<div class="jetpack-videopress-player__overlay" %s></div><script type="application/json">%s</script>',
 				$inline_style,
-				wp_json_encode( $preview_on_hover )
+				wp_json_encode( $preview_on_hover, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP )
 			);
 
 			// Set `autoplay` and `muted` attributes to the video element.
@@ -283,11 +295,12 @@ class Initializer {
 		<figure class="%1$s" style="%2$s" %3$s>
 			%4$s
 			%5$s
+			%6$s
 		</figure>
 		';
 
-		// VideoPress URL
-		$guid           = isset( $block_attributes['guid'] ) ? $block_attributes['guid'] : null;
+		// VideoPress URL.
+		$guid           = $block_attributes['guid'] ?? null;
 		$videopress_url = Utils::get_video_press_url( $guid, $block_attributes );
 
 		$video_wrapper         = '';
@@ -295,23 +308,84 @@ class Initializer {
 
 		if ( $videopress_url ) {
 			$videopress_url = wp_kses_post( $videopress_url );
-			$oembed_html    = apply_filters( 'video_embed_html', $wp_embed->shortcode( array(), $videopress_url ) );
-			$video_wrapper  = sprintf(
+
+			/*
+			 * Provide a fallback iframe for when the oEmbed endpoint fails, e.g.
+			 * when the VideoPress backend isn't ready for a freshly uploaded video.
+			 * This prevents the published page from showing a bare link.
+			 */
+			$fallback = function ( $output, $url ) use ( $videopress_url ) {
+				if ( $url !== html_entity_decode( $videopress_url, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401 ) ) {
+					return $output;
+				}
+
+				return sprintf(
+					'<iframe title="%1$s" aria-label="%1$s" src="%2$s" width="640" height="360" allowfullscreen data-resize-to-parent="true" allow="clipboard-write"></iframe>',
+					esc_attr__( 'VideoPress Video Player', 'jetpack-videopress-pkg' ),
+					esc_url( preg_replace( '#/v/#', '/embed/', $url, 1 ) )
+				);
+			};
+
+			add_filter( 'embed_maybe_make_link', $fallback, 10, 2 );
+			$oembed_html = apply_filters( 'video_embed_html', $wp_embed->shortcode( array(), $videopress_url ) );
+			remove_filter( 'embed_maybe_make_link', $fallback );
+
+			$video_wrapper = sprintf(
 				'<div class="%s">%s %s</div>',
 				$video_wrapper_classes,
 				$preview_on_hover,
 				$oembed_html
 			);
+
+			/*
+			 * Self-heal failed oEmbed cache for VideoPress URLs.
+			 *
+			 * When the VideoPress backend isn't ready for a freshly uploaded video,
+			 * WordPress caches '{{unknown}}' in post meta with a TTL that is too long
+			 * for this use case. Clear recent failures so the next page render retries
+			 * oEmbed discovery, keeping the fallback iframe above temporary.
+			 */
+			$post_id = $block->context['postId'] ?? get_the_ID();
+
+			if ( $post_id ) {
+				$key_suffix   = md5( $videopress_url . serialize( wp_embed_defaults( $videopress_url ) ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Matching WP_Embed cache key format.
+				$oembed_value = get_post_meta( $post_id, '_oembed_' . $key_suffix, true );
+				$oembed_time  = (int) get_post_meta( $post_id, '_oembed_time_' . $key_suffix, true );
+
+				/*
+				 * Only clear the '{{unknown}}' cache entry when it is recent, to avoid
+				 * disabling WordPress's oEmbed backoff for persistent provider failures.
+				 */
+				if (
+					'{{unknown}}' === $oembed_value
+					&& ( ! $oembed_time || ( time() - $oembed_time ) < MINUTE_IN_SECONDS )
+				) {
+					delete_post_meta( $post_id, '_oembed_' . $key_suffix );
+					delete_post_meta( $post_id, '_oembed_time_' . $key_suffix );
+				}
+			}
 		}
 
-		// $id_attribute, $video_wrapper, $figcaption properly escaped earlier on the code
+		// Get premium content from block context.
+		$premium_block_plan_id    = isset( $block->context['premium-content/planId'] ) ? intval( $block->context['premium-content/planId'] ) : 0;
+		$is_premium_content_child = isset( $block->context['isPremiumContentChild'] ) ? (bool) $block->context['isPremiumContentChild'] : false;
+		$maybe_premium_script     = '';
+		if ( $is_premium_content_child ) {
+			Access_Control::instance()->set_guid_subscription( $guid, $premium_block_plan_id );
+			$escaped_guid         = wp_json_encode( $guid, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP );
+			$script_content       = "if ( ! window.__guidsToPlanIds ) { window.__guidsToPlanIds = {}; }; window.__guidsToPlanIds[$escaped_guid] = $premium_block_plan_id;";
+			$maybe_premium_script = '<script>' . $script_content . '</script>';
+		}
+
+		// $id_attribute, $video_wrapper, $figcaption properly escaped earlier in the code.
 		return sprintf(
 			$figure_template,
 			esc_attr( $classes ),
 			esc_attr( $style ),
 			$id_attribute,
 			$video_wrapper,
-			$figcaption
+			$figcaption,
+			$maybe_premium_script
 		);
 	}
 
@@ -322,6 +396,19 @@ class Initializer {
 	 * @return void
 	 */
 	public static function register_videopress_video_block() {
+		/*
+		 * If only Jetpack is active, and if the VideoPress module is not active,
+		 * we can register the block just to display a placeholder to turn on the module.
+		 * That invitation is only useful for admins though.
+		 */
+		if (
+			Status::is_jetpack_plugin_without_videopress_module_active()
+			&& ! Status::is_standalone_plugin_active()
+			&& ! current_user_can( 'jetpack_activate_modules' )
+		) {
+			return;
+		}
+
 		$videopress_video_metadata_file        = __DIR__ . '/../build/block-editor/blocks/video/block.json';
 		$videopress_video_metadata_file_exists = file_exists( $videopress_video_metadata_file );
 		if ( ! $videopress_video_metadata_file_exists ) {
@@ -344,23 +431,12 @@ class Initializer {
 			return;
 		}
 
-		// Is this a REST API request?
-		$is_rest = defined( 'REST_API_REQUEST' ) && REST_API_REQUEST;
-
-		if ( $is_rest ) {
-			register_block_type(
-				$videopress_video_metadata_file,
-				array(
-					'render_callback' => array( __CLASS__, 'render_videopress_video_block' ),
-				)
-			);
-			return;
-		}
-
 		$registration = register_block_type(
 			$videopress_video_metadata_file,
 			array(
-				'render_callback' => array( __CLASS__, 'render_videopress_video_block' ),
+				'render_callback'       => array( __CLASS__, 'render_videopress_video_block' ),
+				'render_email_callback' => array( Video_Block_Email_Renderer::class, 'render' ),
+				'uses_context'          => array( 'premium-content/planId', 'isPremiumContentChild', 'selectedPlanId' ),
 			)
 		);
 

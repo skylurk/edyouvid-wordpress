@@ -15,6 +15,10 @@ use Automattic\Jetpack\Partner;
 use Automattic\Jetpack\Redirect;
 use Automattic\Jetpack\Tracking;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Jetpack just in time messaging through out the admin
  *
@@ -27,7 +31,7 @@ class Post_Connection_JITM extends JITM {
 	/**
 	 * Tracking object.
 	 *
-	 * @var Automattic\Jetpack\Tracking
+	 * @var \Automattic\Jetpack\Tracking
 	 *
 	 * @access private
 	 */
@@ -43,9 +47,9 @@ class Post_Connection_JITM extends JITM {
 	/**
 	 * A special filter for WooCommerce, to set a message based on local state.
 	 *
-	 * @param string $content The current message.
+	 * @param object $content The current message.
 	 *
-	 * @return array The new message.
+	 * @return object The new message.
 	 */
 	public static function jitm_woocommerce_services_msg( $content ) {
 		if ( ! function_exists( 'wc_get_base_location' ) ) {
@@ -113,7 +117,7 @@ class Post_Connection_JITM extends JITM {
 				array(
 					'creative-mail-action' => 'install',
 				),
-				admin_url( 'edit.php?post_type=feedback' )
+				admin_url( 'admin.php?page=jetpack-forms-admin' )
 			),
 			'creative-mail-install'
 		);
@@ -130,7 +134,7 @@ class Post_Connection_JITM extends JITM {
 				array(
 					'creative-mail-action' => 'activate',
 				),
-				admin_url( 'edit.php?post_type=feedback' )
+				admin_url( 'admin.php?page=jetpack-forms-admin' )
 			),
 			'creative-mail-install'
 		);
@@ -225,10 +229,14 @@ class Post_Connection_JITM extends JITM {
 	}
 
 	/**
-	 * Asks the wpcom API for the current message to display keyed on query string and message path
+	 * Asks the wpcom API for the current message to display keyed on query string and message path.
+	 *
+	 * For sites running on the Dotcom Simple codebase, the network request is bypassed
+	 * via Client::wpcom_json_api_request_as_blog allowing for the JITM\Engine to be called
+	 * directly.
 	 *
 	 * @param string $message_path The message path to ask for.
-	 * @param string $query The query string originally from the front end.
+	 * @param array  $query Query parameters as an associative array.
 	 * @param bool   $full_jp_logo_exists If there is a full Jetpack logo already on the page.
 	 *
 	 * @return array The JITM's to show, or an empty array if there is nothing to show
@@ -266,15 +274,17 @@ class Post_Connection_JITM extends JITM {
 			array(
 				'external_user_id' => urlencode_deep( $user->ID ),
 				'user_roles'       => urlencode_deep( $user_roles ),
-				'query_string'     => urlencode_deep( $query ),
+				'query_string'     => urlencode_deep( build_query( $query ) ),
 				'mobile_browser'   => Device_Detection::is_smartphone() ? 1 : 0,
 				'_locale'          => get_user_locale(),
 			),
 			sprintf( '/sites/%d/jitm/%s', $site_id, $message_path )
 		);
 
+		$cache_key = 'jetpack_jitm_' . substr( md5( $path ), 0, 31 );
+
 		// Attempt to get from cache.
-		$envelopes = get_transient( 'jetpack_jitm_' . substr( md5( $path ), 0, 31 ) );
+		$envelopes = get_transient( $cache_key );
 
 		// If something is in the cache and it was put in the cache after the last sync we care about, use it.
 		$use_cache = false;
@@ -292,8 +302,16 @@ class Post_Connection_JITM extends JITM {
 		}
 
 		if ( $use_cache ) {
-			$last_sync  = (int) get_transient( 'jetpack_last_plugin_sync' );
-			$from_cache = $envelopes && $last_sync > 0 && $last_sync < $envelopes['last_response_time'];
+			$last_sync = (int) get_transient( 'jetpack_last_plugin_sync' );
+			// The sync timestamp indicates when a plugin change was last sent to Jetpack, however,
+			// it's stored in a transient and doesn't stay forever. Therefore, an admin who last changed
+			// a plugin a month ago is likely to have $last_sync=0.
+			//
+			// If the sync timestamp is missing (value 0): use the cache.
+			// If the timestamp exists and is older than the cached envelope: use the cache.
+			// If the timestamp exists and is newer: bypass and refresh.
+			// (This case means the JITM was created before the last plugin activate/deactivate and is invalid).
+			$from_cache = $envelopes && ( 0 === $last_sync || $last_sync < $envelopes['last_response_time'] );
 		} else {
 			$from_cache = false;
 		}
@@ -327,8 +345,7 @@ class Post_Connection_JITM extends JITM {
 			// Do not cache if expiration is 0 or we're not using the cache.
 			if ( 0 !== $expiration && $use_cache ) {
 				$envelopes['last_response_time'] = time();
-
-				set_transient( 'jetpack_jitm_' . substr( md5( $path ), 0, 31 ), $envelopes, $expiration );
+				set_transient( $cache_key, $envelopes, $expiration );
 			}
 		}
 
@@ -360,7 +377,8 @@ class Post_Connection_JITM extends JITM {
 			$this->tracking->record_user_event(
 				'jitm_view_client',
 				array(
-					'jitm_id' => $envelope->id,
+					'jitm_id'           => $envelope->id,
+					'jitm_message_path' => $message_path,
 				)
 			);
 
@@ -405,6 +423,7 @@ class Post_Connection_JITM extends JITM {
 			}
 
 			$envelope->content->icon = $this->generate_icon( $envelope->content->icon, $full_jp_logo_exists );
+			$envelope->message_path  = esc_attr( $message_path );
 
 			$stats->add( 'jitm', $envelope->id . '-viewed' );
 			$stats->do_server_side_stats();
@@ -412,5 +431,4 @@ class Post_Connection_JITM extends JITM {
 
 		return $envelopes;
 	}
-
 }

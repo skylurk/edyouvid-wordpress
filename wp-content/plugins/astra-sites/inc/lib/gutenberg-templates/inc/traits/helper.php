@@ -10,6 +10,10 @@ namespace Gutenberg_Templates\Inc\Traits;
 
 use Gutenberg_Templates\Inc\Traits\Instance;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Trait Instance.
  */
@@ -21,6 +25,7 @@ class Helper {
 	 * Log
 	 *
 	 * @param string $message   Log message.
+	 * @return void
 	 */
 	public function ast_block_templates_log( $message = '' ) {
 		
@@ -35,6 +40,8 @@ class Helper {
 
 	/**
 	 * Doing WP CLI
+	 *
+	 * @return bool
 	 */
 	public function ast_block_templates_doing_wp_cli() {
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
@@ -52,7 +59,9 @@ class Helper {
 	public function ast_block_templates_get_filesystem() {
 		global $wp_filesystem;
 
-		require_once ABSPATH . '/wp-admin/includes/file.php';
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . '/wp-admin/includes/file.php';
+		}
 
 		WP_Filesystem();
 
@@ -65,10 +74,10 @@ class Helper {
 	 * @param string $link  The Image link.
 	 *
 	 * @since 1.0.0
-	 * @return boolean
+	 * @return bool
 	 */
 	public function ast_block_templates_is_valid_image( $link = '' ) {
-		return preg_match( '/^((https?:\/\/)|(www\.))([a-z0-9-].?)+(:[0-9]+)?\/[\w\-]+\.(jpg|png|gif|jpeg)\/?$/i', $link );
+		return boolVal( preg_match( '/^((https?:\/\/)|(www\.))([a-z0-9-].?)+(:[0-9]+)?\/[\w\-]+\.(jpg|png|gif|jpeg)\/?$/i', $link ) );
 	}
 
 	/**
@@ -293,7 +302,7 @@ class Helper {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @return array
+	 * @return array<string, string>
 	 */
 	public function get_default_ai_categories() {
 		return array(
@@ -341,10 +350,12 @@ class Helper {
 	 */
 	public function create_single_file( $file ) {
 		if ( wp_mkdir_p( $file['file_base'] ) && ! file_exists( trailingslashit( $file['file_base'] ) . $file['file_name'] ) ) {
-			$file_handle = @fopen( trailingslashit( $file['file_base'] ) . $file['file_name'], 'w' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_read_fopen
-			if ( $file_handle ) {
-				fwrite( $file_handle, $file['file_content'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fwrite, WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_fwrite
-				fclose( $file_handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
+			global $wp_filesystem;
+			if ( ! function_exists( 'WP_Filesystem' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+			}
+			WP_Filesystem();
+			if ( $wp_filesystem && $wp_filesystem->put_contents( trailingslashit( $file['file_base'] ) . $file['file_name'], $file['file_content'], FS_CHMOD_FILE ) ) {
 				self::ast_block_templates_log( 'File: ' . $file['file_name'] . ' Created Successfully!' );
 			}
 		}
@@ -372,7 +383,12 @@ class Helper {
 			$this->create_single_file( $file_data );
 		}
 
-		if ( file_exists( AST_BLOCK_TEMPLATES_JSON_DIR . $file_name ) && file_put_contents( AST_BLOCK_TEMPLATES_JSON_DIR . $file_name, wp_json_encode( $file_content ) ) !== false ) { //phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_file_put_contents
+		global $wp_filesystem;
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+		WP_Filesystem();
+		if ( file_exists( AST_BLOCK_TEMPLATES_JSON_DIR . $file_name ) && $wp_filesystem && $wp_filesystem->put_contents( AST_BLOCK_TEMPLATES_JSON_DIR . $file_name, wp_json_encode( $file_content ), FS_CHMOD_FILE ) ) {
 			self::ast_block_templates_log( 'File: ' . $file_name . ' Updated Successfully!' );
 		} else {
 			self::ast_block_templates_log( 'File: ' . $file_name . ' Not Updated!' );
@@ -420,7 +436,16 @@ class Helper {
 	 */
 	public function get_block_template_customiser_css() {
 		return trim( self::get_json_file_content( 'ast-block-templates-customizer-css.json', false ), '"' );
-	}   
+	}
+
+	/**
+	 * Get global styles for Spectra v3.
+	 *
+	 * @return string
+	 */
+	public function get_block_template_global_styles() {
+		return trim( self::get_json_file_content( 'ast-block-templates-global-styles.json', false ), '"' );
+	}
 
 	/**
 	 * Get last exported checksum.
@@ -467,6 +492,96 @@ class Helper {
 	 */
 	public function get_sites_templates( $page = 0 ) {
 		return self::get_json_file_content( 'ast-block-templates-sites-' . $page . '.json', true );
+	}
+
+	/**
+	 * Get the server's country code using its public IP.
+	 *
+	 * @param string $provider Optional. GeoIP provider: 'ipwhois', 'ipapi', or 'ipinfo'. Default 'ipwhois'.
+	 * @param string $token    Optional. API token (only needed for ipapi/ipinfo).
+	 *
+	 * @since 2.4.11
+	 * @return string Two-letter ISO country code (e.g., 'RU', 'US'), or 'unknown' on failure.
+	 */
+	public static function get_server_country_code( $provider = 'ipwhois', $token = '' ) {
+		// Step 1: Get server's public IP.
+		$response = wp_safe_remote_get( 'https://api.ipify.org' );
+		if ( is_wp_error( $response ) ) {
+			return 'unknown';
+		}
+
+		$ip = wp_remote_retrieve_body( $response );
+		if ( empty( $ip ) ) {
+			return 'unknown';
+		}
+
+		// Step 2: Select provider endpoint.
+		switch ( strtolower( $provider ) ) {
+			case 'ipapi':
+				// Requires token for higher limits.
+				$url = "https://ipapi.co/{$ip}/country/";
+				if ( ! empty( $token ) ) {
+					$url = "https://ipapi.co/{$ip}/country/?key={$token}";
+				}
+				break;
+
+			case 'ipinfo':
+				$url = "https://ipinfo.io/{$ip}/country";
+				if ( ! empty( $token ) ) {
+					$url .= "?token={$token}";
+				}
+				break;
+
+			case 'ipwhois':
+			default:
+				// Default: ipwho.is (no token needed).
+				$url = "https://ipwho.is/{$ip}";
+				break;
+		}
+
+		// Step 3: Make request.
+		$response = wp_safe_remote_get( $url );
+		if ( is_wp_error( $response ) ) {
+			return 'unknown';
+		}
+
+		$body = wp_remote_retrieve_body( $response );
+
+		// Step 4: Parse response based on provider.
+		if ( 'ipwhois' === $provider ) {
+			$data = json_decode( $body, true );
+			if ( is_array( $data ) && isset( $data['country_code'] ) && is_string( $data['country_code'] ) ) {
+				return $data['country_code'];
+			}
+			return 'unknown';
+		}
+
+		// ipapi and ipinfo return plain text country code.
+		$country = trim( $body );
+		return ! empty( $country ) ? $country : 'unknown';
+	}
+
+	/**
+	 * Get Images Engines
+	 *
+	 * @since 2.4.11
+	 * @return array<string> Image Engines.
+	 */
+	public static function get_images_engines() {
+		$country_code = get_transient( 'zipwp_images_server_country_code' );
+
+		if ( false === $country_code ) {
+			$country_code = self::get_server_country_code();
+			set_transient( 'zipwp_images_server_country_code', $country_code, MONTH_IN_SECONDS );
+		}
+
+		// Use Unsplash for Russia as Pexels is blocked there.
+		if ( 'RU' === $country_code ) {
+			return array( 'unsplash' );
+		}
+
+		// Default to Pexels.
+		return array( 'pexels', 'unsplash' );
 	}
 }
 

@@ -5,6 +5,645 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.2] - 2026-06-08
+### Changed
+- Update dependencies. [#49354]
+
+### Fixed
+- Include the routes directory in the TypeScript config so dashboard route files type-check correctly. [#49368]
+
+## [4.3.1] - 2026-06-01
+### Changed
+- Update package dependencies. [#48404] [#49152]
+
+## [4.3.0] - 2026-05-25
+### Added
+- Abilities: Register Jetpack Backup abilities (overview, list, restores, run-backup) for WP 6.9+. [#48329]
+
+### Changed
+- Abilities: Rename slugs to `list-*` / `request-*` and register via the package's `actions.php`. [#48329]
+- Update package dependencies. [#48405] [#49012]
+
+### Fixed
+- Abilities: Accept fractional numeric strings in `parse_timestamp()`. [#48329]
+- Abilities: Drop dead branch in `map_event_status()` that returned the same value as the default case. [#48329]
+- Abilities: Terminate `jetpack-backup/list-backups` pagination on an empty page, not on a page shorter than `per_page`. [#48329]
+- Abilities: Report failure of `jetpack-backup/request-backup` when WordPress.com answers 200 with `{ success: false }` instead of claiming the backup was enqueued. [#48329]
+- Abilities: Replace PHP 7.4+ arrow function with a closure and initialize `$score` to support PHP 7.2. [#48329]
+
+## [4.2.56] - 2026-05-19
+### Changed
+- Build: Run webpack and wp-build scripts concurrently. [#48794]
+- Exclude development files from production builds. [#47365]
+- Update package dependencies. [#48696]
+
+## [4.2.55] - 2026-05-11
+### Changed
+- Components: Use Link from `@wordpress/ui` instead of ExternalLink. [#48529]
+
+## [4.2.54] - 2026-05-04
+### Changed
+- Internal: No longer require automattic/jetpack-changelogger as a per-project dev dependency. [#48225]
+
+## [4.2.53] - 2026-04-27
+### Changed
+- Update dependencies. [#46758]
+
+## [4.2.52] - 2026-04-20
+### Changed
+- Adopt the shared Jetpack admin-page-layout mixin on the Backup admin page: pinned header, scrolling middle, pinned footer, no window-level scroll. [#48109]
+- Storage meter: Migrate ProgressBar to @wordpress/components; preserve color-by-usage-level styling via scoped CSS. [#48206]
+- Update package dependencies. [#48106] [#48126] [#48141]
+
+## [4.2.51] - 2026-04-15
+### Changed
+- Update package dependencies. [#47907]
+- Update purchases endpoint from v1.1 /sites/$site/purchases to v1.2 /upgrades?site=$site. [#48035]
+
+## [4.2.50] - 2026-04-11
+### Changed
+- Update package dependencies. [#47890] [#47998]
+
+## [4.2.49] - 2026-04-06
+### Changed
+- Replace @automattic/jetpack-components Button with @wordpress/components Button in BackupNowButton component. [#47418]
+- Simplify admin menu title from 'VaultPress Backup' to 'Backups'. [#47418]
+- Update admin page footer design. [#47840]
+- Update package dependencies. [#47870]
+
+## [4.2.48] - 2026-03-30
+### Changed
+- Update package dependencies. [#47799]
+
+## [4.2.47] - 2026-03-23
+### Changed
+- Backup: Update header action buttons to use compact size for consistent UI. [#47679]
+- Update package dependencies. [#47684] [#47719]
+
+### Fixed
+- Prevent progress animation fro overlapping the page header. [#47697]
+
+## [4.2.46] - 2026-03-16
+### Changed
+- Update dependencies. [#47472]
+
+## [4.2.45] - 2026-03-09
+### Changed
+- Migrate admin page header to use unified AdminHeader component from jetpack-components. [#47313]
+- Replace @automattic/jetpack-components Button with @wordpress/components Button in BackupNowButton component. [#47417]
+- Replace license activation link with a "Use license key" button in the header actions area. [#47434]
+- Simplify admin menu title from 'VaultPress Backup' to 'Backups'. [#47417]
+- Storage popover: Use core components and remove custom CSS. [#47448]
+- Switch to Native TypeScript compiler based on Go. [#47375]
+- Update package dependencies. [#47496]
+
+### Fixed
+- Constrain license activation link width on mobile to prevent header overflow. [#47431]
+
+## [4.2.44] - 2026-03-02
+### Changed
+- Update dependencies. [#46758]
+
+## [4.2.43] - 2026-02-26
+### Changed
+- Update package dependencies. [#47285] [#47300] [#47309]
+
+## [4.2.42] - 2026-02-23
+### Changed
+- Convert testimonial and connection screen images from PNG to WebP. [#47085]
+- Update package dependencies. [#47173]
+
+### Removed
+- Remove outdated "Restore points created with every edit" notice from the Backup admin page. [#47216]
+
+## [4.2.41] - 2026-02-16
+### Changed
+- Update package dependencies. [#47099]
+
+### Fixed
+- Compatibility: Clean up deprecated CSS. [#47067]
+
+## [4.2.40] - 2026-02-10
+### Changed
+- Update package dependencies. [#46905] [#47002]
+
+## [4.2.39] - 2026-02-02
+### Changed
+- Update package dependencies. [#46854]
+
+## [4.2.38] - 2026-01-26
+### Changed
+- Update dependencies. [#46741]
+
+## [4.2.37] - 2026-01-19
+### Changed
+- Update package dependencies. [#46552] [#46647]
+
+## [4.2.36] - 2026-01-12
+### Changed
+- Update package dependencies. [#46456]
+
+## [4.2.35] - 2025-12-22
+### Changed
+- Update package dependencies. [#46362]
+
+## [4.2.34] - 2025-12-15
+### Changed
+- Update dependencies. [#46271]
+
+## [4.2.33] - 2025-12-08
+### Fixed
+- Ensure proper flags are used with `json_encode()`. [#46092]
+
+## [4.2.32] - 2025-12-01
+### Changed
+- Update package dependencies. [#46143]
+
+## [4.2.31] - 2025-11-20
+### Changed
+- Update package dependencies. [#46022]
+
+### Fixed
+- Phan: Address PhanPossiblyUndeclaredVariable violations. [#45911]
+
+## [4.2.30] - 2025-11-18
+### Changed
+- Update dependencies. [#45553]
+
+## [4.2.29] - 2025-11-17
+### Changed
+- Update package dependencies. [#45915] [#45932] [#45958]
+
+## [4.2.28] - 2025-11-10
+### Changed
+- Update package dependencies. [#45737] [#45756]
+
+## [4.2.27] - 2025-11-03
+### Changed
+- Update package dependencies. [#45652]
+
+## [4.2.26] - 2025-10-20
+### Changed
+- Update dependencies. [#45488]
+
+## [4.2.25] - 2025-10-06
+### Changed
+- Update package dependencies. [#45334] [#45335]
+
+## [4.2.24] - 2025-09-29
+### Changed
+- Update dependencies. [#44940]
+
+## [4.2.23] - 2025-09-22
+### Changed
+- Update dependencies. [#44940]
+
+## [4.2.22] - 2025-09-19
+### Changed
+- Update package dependencies. [#45173] [#45229]
+
+## [4.2.21] - 2025-09-15
+### Changed
+- Update dependencies. [#44940]
+
+## [4.2.20] - 2025-09-08
+### Changed
+- Update package dependencies. [#45027] [#45097]
+
+## [4.2.19] - 2025-09-01
+### Changed
+- Update dependencies. [#44940]
+
+## [4.2.18] - 2025-08-25
+### Changed
+- Update dependencies. [#44934]
+
+## [4.2.17] - 2025-08-18
+### Added
+- Add `typecheck` script to ensure that TypeScript files are type-checked. [#44795]
+
+## [4.2.16] - 2025-08-14
+### Changed
+- Update package dependencies. [#44701]
+
+## [4.2.15] - 2025-08-11
+### Changed
+- Update package dependencies. [#44677]
+
+### Fixed
+- I18n: Improve context hints in comments for translators. [#44686]
+
+## [4.2.14] - 2025-08-04
+### Changed
+- Update dependencies. [#44551]
+
+## [4.2.13] - 2025-07-28
+### Changed
+- Internal updates.
+
+## [4.2.12] - 2025-07-21
+### Changed
+- Update package dependencies. [#44356]
+
+## [4.2.11] - 2025-07-14
+### Changed
+- Update package dependencies. [#44217] [#44219]
+
+## [4.2.10] - 2025-07-07
+### Changed
+- Update package dependencies. [#44148] [#44151]
+
+## [4.2.9] - 2025-06-30
+### Changed
+- Update dependencies. [#43971]
+
+## [4.2.8] - 2025-06-27
+### Fixed
+- Fix PHP fatals on WP_Error. [#43388]
+
+## [4.2.7] - 2025-06-24
+### Changed
+- Update dependencies. [#43971]
+
+## [4.2.6] - 2025-06-23
+### Changed
+- Update package dependencies. [#44020]
+
+## [4.2.5] - 2025-06-16
+### Changed
+- Update dependencies. [#43878]
+
+## [4.2.4] - 2025-06-05
+### Changed
+- Update package dependencies. [#43718] [#43734] [#43766]
+
+## [4.2.3] - 2025-06-02
+### Changed
+- Internal updates.
+
+## [4.2.2] - 2025-05-26
+### Changed
+- Update dependencies. [#43569] [#43578]
+
+## [4.2.1] - 2025-05-19
+### Changed
+- Update package dependencies. [#43398]
+
+## [4.2.0] - 2025-05-12
+### Changed
+- Stable release management: Do not ship source files. [#43310]
+- Update package dependencies. [#43400]
+- Use `formatCurrency()` and `getCurrencyObject()` functions from the `@automattic/number-formatters` package. [#42796]
+
+## [4.1.2] - 2025-05-05
+### Changed
+- Update package dependencies. [#43326] [#43356]
+
+### Fixed
+- Linting: Address final rules in WordPress Stylelint config. [#43296]
+- Linting: Do additional stylesheet cleanup. [#43247]
+
+## [4.1.1] - 2025-04-28
+### Fixed
+- Linting: Fix more Stylelint violations. [#43213]
+- Linting: Remove outdated vendor prefixes in stylesheets. [#43219]
+
+## [4.1.0] - 2025-04-21
+### Added
+- Sync: Add `jetpack_sync_active_modules` callable to whitelist of must-sync callables. [#43134]
+
+## [4.0.22] - 2025-04-14
+### Fixed
+- Linting: Update stylesheets to use WordPress rules for fonts and colors. [#42920] [#42928]
+- Linting: Use double colon notation for pseudo-element selectors. [#43019]
+
+## [4.0.21] - 2025-04-07
+### Changed
+- Linting: First pass of style coding standards. [#42734]
+
+## [4.0.20] - 2025-04-03
+### Changed
+- Update package dependencies. [#42762] [#42809]
+
+## [4.0.19] - 2025-03-31
+### Changed
+- Update dependencies. [#42678]
+
+## [4.0.18] - 2025-03-24
+### Changed
+- Update dependencies. [#42565]
+
+## [4.0.17] - 2025-03-18
+### Changed
+- Update package dependencies. [#42511]
+
+### Fixed
+- Admin menu: Prevent PHP warnings by moving backup admin menu addition to a function hooked into `admin_menu`. [#42396]
+
+## [4.0.16] - 2025-03-17
+### Changed
+- Update dependencies. [#42498]
+
+## [4.0.15] - 2025-03-12
+### Added
+- Provide connection data to footer component. [#42000]
+
+### Changed
+- Update package dependencies. [#42384]
+
+## [4.0.14] - 2025-03-10
+### Changed
+- Internal updates.
+
+## [4.0.13] - 2025-03-03
+### Changed
+- Update package dependencies. [#42163]
+
+## [4.0.12] - 2025-02-24
+### Changed
+- Update dependencies. [#39855]
+
+## [4.0.11] - 2025-02-17
+### Changed
+- Update dependencies. [#39855]
+
+## [4.0.10] - 2025-02-11
+### Changed
+- Update dependencies. [#39855]
+
+## [4.0.9] - 2025-02-10
+### Changed
+- Update package dependencies. [#41491] [#41577]
+
+## [4.0.8] - 2025-02-03
+### Changed
+- Update package dependencies. [#41286]
+
+## [4.0.7] - 2025-01-20
+### Changed
+- Code: Use function-style exit() and die() with a default status code of 0. [#41167]
+- Updated package dependencies. [#41099]
+
+## [4.0.6] - 2025-01-06
+### Changed
+- Updated package dependencies. [#40798] [#40812]
+
+## [4.0.5] - 2024-12-16
+### Changed
+- Updated package dependencies. [#40564]
+
+## [4.0.4] - 2024-12-09
+### Changed
+- Updated package dependencies. [#40363] [#40372]
+
+## [4.0.3] - 2024-11-26
+### Changed
+- Update dependencies. [#39855]
+
+## [4.0.2] - 2024-11-25
+### Changed
+- Updated dependencies. [#40286]
+- Updated package dependencies. [#40288]
+
+## [4.0.1] - 2024-11-18
+### Changed
+- Update dependencies. [#39855]
+
+## [4.0.0] - 2024-11-14
+### Added
+- Backup: added next daily backup schedule time on admin page [#39914]
+
+### Removed
+- General: Update minimum PHP version to 7.2. [#40147]
+
+## [3.4.17] - 2024-11-11
+### Changed
+- Updated package dependencies. [#39999] [#40060]
+
+## [3.4.16] - 2024-11-04
+### Added
+- Enable test coverage. [#39961]
+
+## [3.4.15] - 2024-10-21
+### Changed
+- Update dependencies. [#39781]
+
+## [3.4.14] - 2024-10-14
+### Changed
+- Only include `wp-polyfill` as a script dependency when needed. [#39629]
+- Updated package dependencies. [#39707]
+
+## [3.4.13] - 2024-10-07
+### Changed
+- Updated package dependencies. [#39594]
+
+## [3.4.12] - 2024-09-30
+### Changed
+- Update dependencies. [#39528]
+
+## [3.4.11] - 2024-09-23
+### Changed
+- Update dependencies. [#38958]
+
+## [3.4.10] - 2024-09-16
+### Changed
+- Updated package dependencies. [#39332]
+
+### Fixed
+- Remove unnecessary leading space from i18n message. [#39305]
+- Stop considering discarded backups as successful backups on the admin page [#39385]
+
+## [3.4.9] - 2024-09-10
+### Changed
+- Updated package dependencies. [#39302]
+
+## [3.4.8] - 2024-09-09
+### Changed
+- Updated package dependencies. [#39278]
+
+## [3.4.7] - 2024-09-05
+### Changed
+- Updated package dependencies. [#39176]
+
+## [3.4.6] - 2024-09-02
+### Changed
+- Admin menu: change order of Jetpack sub-menu items [#39095]
+- Updated package dependencies. [#39111]
+
+## [3.4.5] - 2024-08-26
+### Changed
+- Updated package dependencies. [#39004]
+
+## [3.4.4] - 2024-08-21
+### Fixed
+- Decoupled backup connection screens from useConnection hook to avoid unnecessary loading and prevent duplicated API calls. [#38948]
+- Revert recent SVG image optimizations. [#38981]
+
+## [3.4.3] - 2024-08-19
+### Changed
+- Update dependencies. [#38861] [#38662]
+
+### Fixed
+- Lossless image optimization for images (should improve performance with no visible changes). [#38750]
+
+## [3.4.2] - 2024-07-22
+### Changed
+- Update dependencies. [#38402]
+
+## [3.4.1] - 2024-07-08
+### Changed
+- Updated package dependencies. [#38132]
+
+## [3.4.0] - 2024-06-27
+### Added
+- Add on-demand backups feature in the backup package [#37998]
+
+## [3.3.17] - 2024-06-24
+### Changed
+- Update backup header cards layout for responsive design [#37944]
+
+## [3.3.16] - 2024-06-17
+### Changed
+- Updated package dependencies. [#37796]
+
+## [3.3.15] - 2024-06-10
+### Changed
+- Updated package dependencies. [#37669]
+
+## [3.3.14] - 2024-06-03
+### Changed
+- Remove the 'jetpack-identity-crisis' dependency. [#36968]
+
+## [3.3.13] - 2024-05-27
+### Changed
+- Update dependencies. [#37323]
+
+## [3.3.12] - 2024-05-20
+### Changed
+- Updated package dependencies. [#37379] [#37380] [#37382]
+
+## [3.3.11] - 2024-05-09
+### Changed
+- Update dependencies. [#37280]
+
+## [3.3.10] - 2024-05-06
+### Added
+- Add missing package dependencies. [#37141]
+
+### Changed
+- Updated package dependencies. [#37147]
+
+## [3.3.9] - 2024-04-25
+### Changed
+- Internal updates.
+
+## [3.3.8] - 2024-04-22
+### Changed
+- Internal updates.
+
+## [3.3.7] - 2024-04-15
+### Changed
+- Internal updates.
+
+## [3.3.6] - 2024-04-08
+### Changed
+- Updated package dependencies. [#36760]
+
+## [3.3.5] - 2024-04-01
+### Changed
+- Update dependencies. [#36655]
+
+## [3.3.4] - 2024-03-27
+### Changed
+- Updated package dependencies. [#36585]
+
+## [3.3.3] - 2024-03-25
+### Fixed
+- Backup: change some error messages to not trigger security scanners [#36496]
+
+## [3.3.2] - 2024-03-18
+### Changed
+- Internal updates.
+
+## [3.3.1] - 2024-03-12
+### Changed
+- Update dependencies. [#36243]
+- Updated package dependencies. [#36325]
+
+## [3.3.0] - 2024-03-04
+### Added
+- Add endpoint to query backup preflight checks [#36032]
+
+### Changed
+- Updated package dependencies.
+
+### Fixed
+- Real time backups: Fix getting more than one row in the related orders table [#36096]
+
+## [3.2.0] - 2024-02-27
+### Added
+- Real time backups: Add endpoints orders to be used in real-time backups jetpack [#35649]
+
+## [3.1.5] - 2024-02-13
+### Changed
+- Updated package dependencies. [#35608]
+
+## [3.1.4] - 2024-02-08
+### Fixed
+- Write helper script to ABSPATH by default, just like we did before [#35508]
+
+## [3.1.3] - 2024-02-07
+### Changed
+- Update dependencies. [#35520]
+
+## [3.1.2] - 2024-02-05
+### Changed
+- Updated package dependencies.
+
+## [3.1.1] - 2024-01-29
+### Changed
+- Update dependencies.
+
+## [3.1.0] - 2024-01-22
+### Changed
+- Use blog ID instead site slug for checkout and WPCOM links. [#35020]
+
+## [3.0.0] - 2024-01-04
+### Fixed
+- Backup: Add namespace versioning to Helper_Script_Manager and other classes [#34739]
+
+## [2.0.5] - 2024-01-04
+### Changed
+- Updated package dependencies. [#34815] [#34816]
+
+## [2.0.4] - 2023-12-20
+### Changed
+- Updated package dependencies. [#34694]
+
+## [2.0.3] - 2023-12-13
+### Fixed
+- Backup: Bug fixes in helper script installation class. [#34297]
+
+## [2.0.2] - 2023-12-11
+### Changed
+- Updated package dependencies. [#34416]
+
+## [2.0.1] - 2023-12-03
+### Changed
+- Updated package dependencies. [#34411] [#34427]
+
+## [2.0.0] - 2023-11-20
+### Changed
+- Updated required PHP version to >= 7.0. [#34192]
+
+## [1.17.12] - 2023-11-14
+### Changed
+- Updated package dependencies. [#34093]
+
+## [1.17.11] - 2023-11-13
+### Changed
+- Updated dependencies.
+
 ## [1.17.10] - 2023-11-03
 
 ## [1.17.9] - 2023-10-23
@@ -31,8 +670,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.17.4] - 2023-09-04
 ### Changed
-- Updated package dependencies. [#32803]
-- Updated package dependencies. [#32804]
+- Updated package dependencies. [#32803] [#32804]
 
 ## [1.17.3] - 2023-08-28
 ### Added
@@ -502,6 +1140,144 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add API endpoints and Jetpack Backup package for managing Help…
 
+[4.3.2]: https://github.com/Automattic/jetpack-backup/compare/v4.3.1...v4.3.2
+[4.3.1]: https://github.com/Automattic/jetpack-backup/compare/v4.3.0...v4.3.1
+[4.3.0]: https://github.com/Automattic/jetpack-backup/compare/v4.2.56...v4.3.0
+[4.2.56]: https://github.com/Automattic/jetpack-backup/compare/v4.2.55...v4.2.56
+[4.2.55]: https://github.com/Automattic/jetpack-backup/compare/v4.2.54...v4.2.55
+[4.2.54]: https://github.com/Automattic/jetpack-backup/compare/v4.2.53...v4.2.54
+[4.2.53]: https://github.com/Automattic/jetpack-backup/compare/v4.2.52...v4.2.53
+[4.2.52]: https://github.com/Automattic/jetpack-backup/compare/v4.2.51...v4.2.52
+[4.2.51]: https://github.com/Automattic/jetpack-backup/compare/v4.2.50...v4.2.51
+[4.2.50]: https://github.com/Automattic/jetpack-backup/compare/v4.2.49...v4.2.50
+[4.2.49]: https://github.com/Automattic/jetpack-backup/compare/v4.2.48...v4.2.49
+[4.2.48]: https://github.com/Automattic/jetpack-backup/compare/v4.2.47...v4.2.48
+[4.2.47]: https://github.com/Automattic/jetpack-backup/compare/v4.2.46...v4.2.47
+[4.2.46]: https://github.com/Automattic/jetpack-backup/compare/v4.2.45...v4.2.46
+[4.2.45]: https://github.com/Automattic/jetpack-backup/compare/v4.2.44...v4.2.45
+[4.2.44]: https://github.com/Automattic/jetpack-backup/compare/v4.2.43...v4.2.44
+[4.2.43]: https://github.com/Automattic/jetpack-backup/compare/v4.2.42...v4.2.43
+[4.2.42]: https://github.com/Automattic/jetpack-backup/compare/v4.2.41...v4.2.42
+[4.2.41]: https://github.com/Automattic/jetpack-backup/compare/v4.2.40...v4.2.41
+[4.2.40]: https://github.com/Automattic/jetpack-backup/compare/v4.2.39...v4.2.40
+[4.2.39]: https://github.com/Automattic/jetpack-backup/compare/v4.2.38...v4.2.39
+[4.2.38]: https://github.com/Automattic/jetpack-backup/compare/v4.2.37...v4.2.38
+[4.2.37]: https://github.com/Automattic/jetpack-backup/compare/v4.2.36...v4.2.37
+[4.2.36]: https://github.com/Automattic/jetpack-backup/compare/v4.2.35...v4.2.36
+[4.2.35]: https://github.com/Automattic/jetpack-backup/compare/v4.2.34...v4.2.35
+[4.2.34]: https://github.com/Automattic/jetpack-backup/compare/v4.2.33...v4.2.34
+[4.2.33]: https://github.com/Automattic/jetpack-backup/compare/v4.2.32...v4.2.33
+[4.2.32]: https://github.com/Automattic/jetpack-backup/compare/v4.2.31...v4.2.32
+[4.2.31]: https://github.com/Automattic/jetpack-backup/compare/v4.2.30...v4.2.31
+[4.2.30]: https://github.com/Automattic/jetpack-backup/compare/v4.2.29...v4.2.30
+[4.2.29]: https://github.com/Automattic/jetpack-backup/compare/v4.2.28...v4.2.29
+[4.2.28]: https://github.com/Automattic/jetpack-backup/compare/v4.2.27...v4.2.28
+[4.2.27]: https://github.com/Automattic/jetpack-backup/compare/v4.2.26...v4.2.27
+[4.2.26]: https://github.com/Automattic/jetpack-backup/compare/v4.2.25...v4.2.26
+[4.2.25]: https://github.com/Automattic/jetpack-backup/compare/v4.2.24...v4.2.25
+[4.2.24]: https://github.com/Automattic/jetpack-backup/compare/v4.2.23...v4.2.24
+[4.2.23]: https://github.com/Automattic/jetpack-backup/compare/v4.2.22...v4.2.23
+[4.2.22]: https://github.com/Automattic/jetpack-backup/compare/v4.2.21...v4.2.22
+[4.2.21]: https://github.com/Automattic/jetpack-backup/compare/v4.2.20...v4.2.21
+[4.2.20]: https://github.com/Automattic/jetpack-backup/compare/v4.2.19...v4.2.20
+[4.2.19]: https://github.com/Automattic/jetpack-backup/compare/v4.2.18...v4.2.19
+[4.2.18]: https://github.com/Automattic/jetpack-backup/compare/v4.2.17...v4.2.18
+[4.2.17]: https://github.com/Automattic/jetpack-backup/compare/v4.2.16...v4.2.17
+[4.2.16]: https://github.com/Automattic/jetpack-backup/compare/v4.2.15...v4.2.16
+[4.2.15]: https://github.com/Automattic/jetpack-backup/compare/v4.2.14...v4.2.15
+[4.2.14]: https://github.com/Automattic/jetpack-backup/compare/v4.2.13...v4.2.14
+[4.2.13]: https://github.com/Automattic/jetpack-backup/compare/v4.2.12...v4.2.13
+[4.2.12]: https://github.com/Automattic/jetpack-backup/compare/v4.2.11...v4.2.12
+[4.2.11]: https://github.com/Automattic/jetpack-backup/compare/v4.2.10...v4.2.11
+[4.2.10]: https://github.com/Automattic/jetpack-backup/compare/v4.2.9...v4.2.10
+[4.2.9]: https://github.com/Automattic/jetpack-backup/compare/v4.2.8...v4.2.9
+[4.2.8]: https://github.com/Automattic/jetpack-backup/compare/v4.2.7...v4.2.8
+[4.2.7]: https://github.com/Automattic/jetpack-backup/compare/v4.2.6...v4.2.7
+[4.2.6]: https://github.com/Automattic/jetpack-backup/compare/v4.2.5...v4.2.6
+[4.2.5]: https://github.com/Automattic/jetpack-backup/compare/v4.2.4...v4.2.5
+[4.2.4]: https://github.com/Automattic/jetpack-backup/compare/v4.2.3...v4.2.4
+[4.2.3]: https://github.com/Automattic/jetpack-backup/compare/v4.2.2...v4.2.3
+[4.2.2]: https://github.com/Automattic/jetpack-backup/compare/v4.2.1...v4.2.2
+[4.2.1]: https://github.com/Automattic/jetpack-backup/compare/v4.2.0...v4.2.1
+[4.2.0]: https://github.com/Automattic/jetpack-backup/compare/v4.1.2...v4.2.0
+[4.1.2]: https://github.com/Automattic/jetpack-backup/compare/v4.1.1...v4.1.2
+[4.1.1]: https://github.com/Automattic/jetpack-backup/compare/v4.1.0...v4.1.1
+[4.1.0]: https://github.com/Automattic/jetpack-backup/compare/v4.0.22...v4.1.0
+[4.0.22]: https://github.com/Automattic/jetpack-backup/compare/v4.0.21...v4.0.22
+[4.0.21]: https://github.com/Automattic/jetpack-backup/compare/v4.0.20...v4.0.21
+[4.0.20]: https://github.com/Automattic/jetpack-backup/compare/v4.0.19...v4.0.20
+[4.0.19]: https://github.com/Automattic/jetpack-backup/compare/v4.0.18...v4.0.19
+[4.0.18]: https://github.com/Automattic/jetpack-backup/compare/v4.0.17...v4.0.18
+[4.0.17]: https://github.com/Automattic/jetpack-backup/compare/v4.0.16...v4.0.17
+[4.0.16]: https://github.com/Automattic/jetpack-backup/compare/v4.0.15...v4.0.16
+[4.0.15]: https://github.com/Automattic/jetpack-backup/compare/v4.0.14...v4.0.15
+[4.0.14]: https://github.com/Automattic/jetpack-backup/compare/v4.0.13...v4.0.14
+[4.0.13]: https://github.com/Automattic/jetpack-backup/compare/v4.0.12...v4.0.13
+[4.0.12]: https://github.com/Automattic/jetpack-backup/compare/v4.0.11...v4.0.12
+[4.0.11]: https://github.com/Automattic/jetpack-backup/compare/v4.0.10...v4.0.11
+[4.0.10]: https://github.com/Automattic/jetpack-backup/compare/v4.0.9...v4.0.10
+[4.0.9]: https://github.com/Automattic/jetpack-backup/compare/v4.0.8...v4.0.9
+[4.0.8]: https://github.com/Automattic/jetpack-backup/compare/v4.0.7...v4.0.8
+[4.0.7]: https://github.com/Automattic/jetpack-backup/compare/v4.0.6...v4.0.7
+[4.0.6]: https://github.com/Automattic/jetpack-backup/compare/v4.0.5...v4.0.6
+[4.0.5]: https://github.com/Automattic/jetpack-backup/compare/v4.0.4...v4.0.5
+[4.0.4]: https://github.com/Automattic/jetpack-backup/compare/v4.0.3...v4.0.4
+[4.0.3]: https://github.com/Automattic/jetpack-backup/compare/v4.0.2...v4.0.3
+[4.0.2]: https://github.com/Automattic/jetpack-backup/compare/v4.0.1...v4.0.2
+[4.0.1]: https://github.com/Automattic/jetpack-backup/compare/v4.0.0...v4.0.1
+[4.0.0]: https://github.com/Automattic/jetpack-backup/compare/v3.4.17...v4.0.0
+[3.4.17]: https://github.com/Automattic/jetpack-backup/compare/v3.4.16...v3.4.17
+[3.4.16]: https://github.com/Automattic/jetpack-backup/compare/v3.4.15...v3.4.16
+[3.4.15]: https://github.com/Automattic/jetpack-backup/compare/v3.4.14...v3.4.15
+[3.4.14]: https://github.com/Automattic/jetpack-backup/compare/v3.4.13...v3.4.14
+[3.4.13]: https://github.com/Automattic/jetpack-backup/compare/v3.4.12...v3.4.13
+[3.4.12]: https://github.com/Automattic/jetpack-backup/compare/v3.4.11...v3.4.12
+[3.4.11]: https://github.com/Automattic/jetpack-backup/compare/v3.4.10...v3.4.11
+[3.4.10]: https://github.com/Automattic/jetpack-backup/compare/v3.4.9...v3.4.10
+[3.4.9]: https://github.com/Automattic/jetpack-backup/compare/v3.4.8...v3.4.9
+[3.4.8]: https://github.com/Automattic/jetpack-backup/compare/v3.4.7...v3.4.8
+[3.4.7]: https://github.com/Automattic/jetpack-backup/compare/v3.4.6...v3.4.7
+[3.4.6]: https://github.com/Automattic/jetpack-backup/compare/v3.4.5...v3.4.6
+[3.4.5]: https://github.com/Automattic/jetpack-backup/compare/v3.4.4...v3.4.5
+[3.4.4]: https://github.com/Automattic/jetpack-backup/compare/v3.4.3...v3.4.4
+[3.4.3]: https://github.com/Automattic/jetpack-backup/compare/v3.4.2...v3.4.3
+[3.4.2]: https://github.com/Automattic/jetpack-backup/compare/v3.4.1...v3.4.2
+[3.4.1]: https://github.com/Automattic/jetpack-backup/compare/v3.4.0...v3.4.1
+[3.4.0]: https://github.com/Automattic/jetpack-backup/compare/v3.3.17...v3.4.0
+[3.3.17]: https://github.com/Automattic/jetpack-backup/compare/v3.3.16...v3.3.17
+[3.3.16]: https://github.com/Automattic/jetpack-backup/compare/v3.3.15...v3.3.16
+[3.3.15]: https://github.com/Automattic/jetpack-backup/compare/v3.3.14...v3.3.15
+[3.3.14]: https://github.com/Automattic/jetpack-backup/compare/v3.3.13...v3.3.14
+[3.3.13]: https://github.com/Automattic/jetpack-backup/compare/v3.3.12...v3.3.13
+[3.3.12]: https://github.com/Automattic/jetpack-backup/compare/v3.3.11...v3.3.12
+[3.3.11]: https://github.com/Automattic/jetpack-backup/compare/v3.3.10...v3.3.11
+[3.3.10]: https://github.com/Automattic/jetpack-backup/compare/v3.3.9...v3.3.10
+[3.3.9]: https://github.com/Automattic/jetpack-backup/compare/v3.3.8...v3.3.9
+[3.3.8]: https://github.com/Automattic/jetpack-backup/compare/v3.3.7...v3.3.8
+[3.3.7]: https://github.com/Automattic/jetpack-backup/compare/v3.3.6...v3.3.7
+[3.3.6]: https://github.com/Automattic/jetpack-backup/compare/v3.3.5...v3.3.6
+[3.3.5]: https://github.com/Automattic/jetpack-backup/compare/v3.3.4...v3.3.5
+[3.3.4]: https://github.com/Automattic/jetpack-backup/compare/v3.3.3...v3.3.4
+[3.3.3]: https://github.com/Automattic/jetpack-backup/compare/v3.3.2...v3.3.3
+[3.3.2]: https://github.com/Automattic/jetpack-backup/compare/v3.3.1...v3.3.2
+[3.3.1]: https://github.com/Automattic/jetpack-backup/compare/v3.3.0...v3.3.1
+[3.3.0]: https://github.com/Automattic/jetpack-backup/compare/v3.2.0...v3.3.0
+[3.2.0]: https://github.com/Automattic/jetpack-backup/compare/v3.1.5...v3.2.0
+[3.1.5]: https://github.com/Automattic/jetpack-backup/compare/v3.1.4...v3.1.5
+[3.1.4]: https://github.com/Automattic/jetpack-backup/compare/v3.1.3...v3.1.4
+[3.1.3]: https://github.com/Automattic/jetpack-backup/compare/v3.1.2...v3.1.3
+[3.1.2]: https://github.com/Automattic/jetpack-backup/compare/v3.1.1...v3.1.2
+[3.1.1]: https://github.com/Automattic/jetpack-backup/compare/v3.1.0...v3.1.1
+[3.1.0]: https://github.com/Automattic/jetpack-backup/compare/v3.0.0...v3.1.0
+[3.0.0]: https://github.com/Automattic/jetpack-backup/compare/v2.0.5...v3.0.0
+[2.0.5]: https://github.com/Automattic/jetpack-backup/compare/v2.0.4...v2.0.5
+[2.0.4]: https://github.com/Automattic/jetpack-backup/compare/v2.0.3...v2.0.4
+[2.0.3]: https://github.com/Automattic/jetpack-backup/compare/v2.0.2...v2.0.3
+[2.0.2]: https://github.com/Automattic/jetpack-backup/compare/v2.0.1...v2.0.2
+[2.0.1]: https://github.com/Automattic/jetpack-backup/compare/v2.0.0...v2.0.1
+[2.0.0]: https://github.com/Automattic/jetpack-backup/compare/v1.17.12...v2.0.0
+[1.17.12]: https://github.com/Automattic/jetpack-backup/compare/v1.17.11...v1.17.12
+[1.17.11]: https://github.com/Automattic/jetpack-backup/compare/v1.17.10...v1.17.11
 [1.17.10]: https://github.com/Automattic/jetpack-backup/compare/v1.17.9...v1.17.10
 [1.17.9]: https://github.com/Automattic/jetpack-backup/compare/v1.17.8...v1.17.9
 [1.17.8]: https://github.com/Automattic/jetpack-backup/compare/v1.17.7...v1.17.8

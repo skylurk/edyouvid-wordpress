@@ -138,7 +138,7 @@ class Wt_Import_Export_For_Woo_User_Basic_Import_Ajax
 				$size=isset($_FILES['wt_iew_import_file']['size']) ? sanitize_text_field(wp_unslash($_FILES['wt_iew_import_file']['size'])) : 0;
 				if($max_bytes>=$size)
 				{
-					$file_name = 'local_file_' . time() . '_' . $uploaded_file_name;
+                    $file_name = 'local-file-' . time() . '-' . str_replace( '_', '-', $uploaded_file_name );
                     $file_path = $this->import_obj->get_file_path($file_name);
 
                     // Initialize WordPress Filesystem
@@ -204,7 +204,7 @@ class Wt_Import_Export_For_Woo_User_Basic_Import_Ajax
 					*/
 					$file_url=(isset($_POST['file_url']) ? sanitize_url(wp_unslash($_POST['file_url'])) : '');
                     $map_profile_id=(isset($_POST['map_profile_id']) ? sanitize_text_field(wp_unslash($_POST['map_profile_id'])) : '');
-					if ( $file_url!="" && ! $map_profile_id ) {
+					if ( '' !== $file_url && ! $map_profile_id ) {
 						$this->import_obj->delete_import_file($file_url);
 					}
 				}else

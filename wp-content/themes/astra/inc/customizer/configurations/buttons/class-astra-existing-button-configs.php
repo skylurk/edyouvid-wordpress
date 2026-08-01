@@ -3,8 +3,6 @@
  * Astra Theme Customizer Configuration Base.
  *
  * @package     Astra
- * @author      Astra
- * @copyright   Copyright (c) 2020, Astra
  * @link        https://wpastra.com/
  * @since       Astra 2.6.0
  */
@@ -25,7 +23,6 @@ if ( ! class_exists( 'Astra_Existing_Button_Configs' ) ) {
 	 * Register Button Customizer Configurations.
 	 */
 	class Astra_Existing_Button_Configs extends Astra_Customizer_Config_Base {
-
 		/**
 		 * Register Button Customizer Configurations.
 		 *
@@ -118,8 +115,8 @@ if ( ! class_exists( 'Astra_Existing_Button_Configs' ) ) {
 				),
 
 				/**
-				* Option: Button Text Color
-				*/
+				 * Option: Button Text Color
+				 */
 				array(
 					'name'              => 'header-main-rt-section-button-text-color',
 					'transport'         => 'postMessage',
@@ -135,8 +132,8 @@ if ( ! class_exists( 'Astra_Existing_Button_Configs' ) ) {
 				),
 
 				/**
-				* Option: Button Text Hover Color
-				*/
+				 * Option: Button Text Hover Color
+				 */
 				array(
 					'name'              => 'header-main-rt-section-button-text-h-color',
 					'default'           => astra_get_option( 'header-main-rt-section-button-text-h-color' ),
@@ -152,8 +149,8 @@ if ( ! class_exists( 'Astra_Existing_Button_Configs' ) ) {
 				),
 
 				/**
-				* Option: Button Background Color
-				*/
+				 * Option: Button Background Color
+				 */
 				array(
 					'name'              => 'header-main-rt-section-button-back-color',
 					'default'           => astra_get_option( 'header-main-rt-section-button-back-color' ),
@@ -169,8 +166,8 @@ if ( ! class_exists( 'Astra_Existing_Button_Configs' ) ) {
 				),
 
 				/**
-				* Option: Button Button Hover Color
-				*/
+				 * Option: Button Button Hover Color
+				 */
 				array(
 					'name'              => 'header-main-rt-section-button-back-h-color',
 					'default'           => astra_get_option( 'header-main-rt-section-button-back-h-color' ),
@@ -193,6 +190,7 @@ if ( ! class_exists( 'Astra_Existing_Button_Configs' ) ) {
 					'default'   => astra_get_option( 'primary-header-button-text-typography' ),
 					'type'      => 'control',
 					'control'   => 'ast-settings-group',
+					'is_font'   => true,
 					'title'     => __( 'Typography', 'astra' ),
 					'section'   => 'section-primary-menu',
 					'transport' => 'postMessage',
@@ -222,7 +220,7 @@ if ( ! class_exists( 'Astra_Existing_Button_Configs' ) ) {
 					'section'   => 'section-primary-menu',
 					'control'   => 'ast-font',
 					'font_type' => 'ast-font-family',
-					'title'     => __( 'Family', 'astra' ),
+					'title'     => __( 'Font Family', 'astra' ),
 					'default'   => astra_get_option( 'primary-header-button-font-family' ),
 					'connect'   => ASTRA_THEME_SETTINGS . '[primary-header-button-font-weight]',
 					'priority'  => 1,
@@ -234,18 +232,34 @@ if ( ! class_exists( 'Astra_Existing_Button_Configs' ) ) {
 				array(
 					'name'        => 'primary-header-button-font-size',
 					'transport'   => 'postMessage',
-					'title'       => __( 'Size', 'astra' ),
+					'title'       => __( 'Font Size', 'astra' ),
 					'type'        => 'sub-control',
 					'parent'      => ASTRA_THEME_SETTINGS . '[primary-header-button-text-typography]',
 					'section'     => 'section-primary-menu',
-					'control'     => 'ast-responsive',
 					'default'     => astra_get_option( 'primary-header-button-font-size' ),
+					'control'     => 'ast-responsive-slider',
+					'suffix'      => array( 'px', 'em', 'vw', 'rem' ),
 					'input_attrs' => array(
-						'min' => 0,
-					),
-					'units'       => array(
-						'px' => 'px',
-						'em' => 'em',
+						'px'  => array(
+							'min'  => 0,
+							'step' => 1,
+							'max'  => 200,
+						),
+						'em'  => array(
+							'min'  => 0,
+							'step' => 0.01,
+							'max'  => 20,
+						),
+						'vw'  => array(
+							'min'  => 0,
+							'step' => 0.1,
+							'max'  => 25,
+						),
+						'rem' => array(
+							'min'  => 0,
+							'step' => 0.1,
+							'max'  => 20,
+						),
 					),
 				),
 
@@ -259,7 +273,7 @@ if ( ! class_exists( 'Astra_Existing_Button_Configs' ) ) {
 					'section'           => 'section-primary-menu',
 					'control'           => 'ast-font',
 					'font_type'         => 'ast-font-weight',
-					'title'             => __( 'Weight', 'astra' ),
+					'title'             => __( 'Font Weight', 'astra' ),
 					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_font_weight' ),
 					'default'           => astra_get_option( 'primary-header-button-font-weight' ),
 					'connect'           => 'primary-header-button-font-family',
@@ -366,8 +380,8 @@ if ( ! class_exists( 'Astra_Existing_Button_Configs' ) ) {
 				),
 
 				/**
-				* Option: Button Border Size
-				*/
+				 * Option: Button Border Size
+				 */
 				array(
 					'type'           => 'sub-control',
 					'parent'         => ASTRA_THEME_SETTINGS . '[primary-header-button-border-group]',
@@ -388,8 +402,8 @@ if ( ! class_exists( 'Astra_Existing_Button_Configs' ) ) {
 				),
 
 				/**
-				* Option: Button Border Color
-				*/
+				 * Option: Button Border Color
+				 */
 				array(
 					'name'              => 'header-main-rt-section-button-border-color',
 					'default'           => astra_get_option( 'header-main-rt-section-button-border-color' ),
@@ -404,8 +418,8 @@ if ( ! class_exists( 'Astra_Existing_Button_Configs' ) ) {
 				),
 
 				/**
-				* Option: Button Border Hover Color
-				*/
+				 * Option: Button Border Hover Color
+				 */
 				array(
 					'name'              => 'header-main-rt-section-button-border-h-color',
 					'default'           => astra_get_option( 'header-main-rt-section-button-border-h-color' ),
@@ -420,8 +434,8 @@ if ( ! class_exists( 'Astra_Existing_Button_Configs' ) ) {
 				),
 
 				/**
-				* Option: Button Border Radius
-				*/
+				 * Option: Button Border Radius
+				 */
 				array(
 					'name'        => 'header-main-rt-section-button-border-radius',
 					'default'     => astra_get_option( 'header-main-rt-section-button-border-radius' ),

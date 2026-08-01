@@ -479,16 +479,16 @@ progress.presto-progress::-webkit-progress-value {
 
 svg.presto-block-icon {
   fill: none !important;
-  stroke: var(--wp-admin-theme-color, #007cba) !important;
+  stroke: currentColor !important;
 }
 
 svg.playlist-block-icon {
-  color:  var(--wp-admin-theme-color, #007cba);
+  color: inherit;
 }
 
 .block-editor-list-view-leaf.is-selected {
   svg.playlist-block-icon {
-    color:  #fff;
+    color: #fff;
   }
   svg.presto-block-icon {
     stroke: #fff !important;

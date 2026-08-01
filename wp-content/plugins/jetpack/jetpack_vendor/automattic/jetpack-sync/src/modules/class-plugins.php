@@ -8,6 +8,11 @@
 namespace Automattic\Jetpack\Sync\Modules;
 
 use Automattic\Jetpack\Constants as Jetpack_Constants;
+use WP_Error;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 /**
  * Class to handle sync for plugins.
@@ -41,6 +46,42 @@ class Plugins extends Module {
 	private $plugins = array();
 
 	/**
+	 * List of all updated plugins.
+	 *
+	 * @access private
+	 *
+	 * @var array
+	 */
+	private $plugins_updated = array();
+
+	/**
+	 * List of plugins installed during this request.
+	 *
+	 * @access private
+	 *
+	 * @var array
+	 */
+	private $plugins_installed = array();
+
+	/**
+	 * List of all plugin update failures during this request.
+	 *
+	 * @access private
+	 *
+	 * @var array
+	 */
+	private $plugins_update_failures = array();
+
+	/**
+	 * State
+	 *
+	 * @access private
+	 *
+	 * @var array
+	 */
+	private $state = array();
+
+	/**
 	 * Sync module name.
 	 *
 	 * @access public
@@ -70,7 +111,6 @@ class Plugins extends Module {
 		add_action( 'jetpack_plugin_installed', $callable, 10, 1 );
 		add_action( 'jetpack_plugin_update_failed', $callable, 10, 4 );
 		add_action( 'jetpack_plugins_updated', $callable, 10, 2 );
-		add_action( 'admin_action_update', array( $this, 'check_plugin_edit' ) );
 		add_action( 'jetpack_edited_plugin', $callable, 10, 2 );
 		add_action( 'wp_ajax_edit-theme-plugin-file', array( $this, 'plugin_edit_ajax' ), 0 );
 
@@ -114,13 +154,14 @@ class Plugins extends Module {
 			return;
 		}
 
-		$plugins = ( isset( $details['plugins'] ) ? $details['plugins'] : null );
+		$plugins = ( $details['plugins'] ?? null );
 		if ( empty( $plugins ) ) {
 			$plugins = ( isset( $details['plugin'] ) ? array( $details['plugin'] ) : null );
 		}
 
 		// For plugin installer.
 		if ( empty( $plugins ) && method_exists( $upgrader, 'plugin_info' ) ) {
+			// @phan-suppress-next-line PhanUndeclaredMethod -- Checked above. See also https://github.com/phan/phan/issues/1204.
 			$plugins = array( $upgrader->plugin_info() );
 		}
 
@@ -130,59 +171,41 @@ class Plugins extends Module {
 
 		switch ( $details['action'] ) {
 			case 'update':
-				$state  = array(
+				$this->state = array(
 					'is_autoupdate' => Jetpack_Constants::is_true( 'JETPACK_PLUGIN_AUTOUPDATE' ),
 				);
-				$errors = $this->get_errors( $upgrader->skin );
+				$errors      = $this->get_errors( $upgrader->skin );
 				if ( $errors ) {
-					foreach ( $plugins as $slug ) {
-						/**
-						 * Sync that a plugin update failed
-						 *
-						 * @since 1.6.3
-						 * @since-jetpack 5.8.0
-						 *
-						 * @module sync
-						 *
-						 * @param string $plugin , Plugin slug
-						 * @param        string  Error code
-						 * @param        string  Error message
-						 */
-						do_action( 'jetpack_plugin_update_failed', $this->get_plugin_info( $slug ), $errors['code'], $errors['message'], $state );
+					foreach ( $plugins as $slug ) { // Accumulate failures and defer to shutdown, to reduce request-time lag.
+						$this->plugins_update_failures[] = array(
+							'plugin'  => $this->get_plugin_info( $slug ),
+							'code'    => $errors['code'],
+							'message' => $errors['message'],
+							'state'   => $this->state,
+						);
+					}
+					if ( ! has_action( 'shutdown', array( $this, 'sync_plugins_update_failed' ) ) ) {
+						add_action( 'shutdown', array( $this, 'sync_plugins_update_failed' ), 9 );
 					}
 
 					return;
 				}
-				/**
-				 * Sync that a plugin update
-				 *
-				 * @since 1.6.3
-				 * @since-jetpack 5.8.0
-				 *
-				 * @module sync
-				 *
-				 * @param array () $plugin, Plugin Data
-				 */
-				do_action( 'jetpack_plugins_updated', array_map( array( $this, 'get_plugin_info' ), $plugins ), $state );
+
+				$this->plugins_updated = array_map( array( $this, 'get_plugin_info' ), $plugins );
+				add_action( 'shutdown', array( $this, 'sync_plugins_updated' ), 9 );
+
 				break;
 			case 'install':
-		}
+				// Accumulate installs and defer to shutdown.
+				$this->plugins_installed = array_merge(
+					$this->plugins_installed,
+					array_map( array( $this, 'get_plugin_info' ), $plugins )
+				);
+				if ( ! has_action( 'shutdown', array( $this, 'sync_plugins_installed' ) ) ) {
+					add_action( 'shutdown', array( $this, 'sync_plugins_installed' ), 9 );
+				}
 
-		if ( 'install' === $details['action'] ) {
-			/**
-			 * Signals to the sync listener that a plugin was installed and a sync action
-			 * reflecting the installation and the plugin info should be sent
-			 *
-			 * @since 1.6.3
-			 * @since-jetpack 5.8.0
-			 *
-			 * @module sync
-			 *
-			 * @param array () $plugin, Plugin Data
-			 */
-			do_action( 'jetpack_plugin_installed', array_map( array( $this, 'get_plugin_info' ), $plugins ) );
-
-			return;
+				break;
 		}
 	}
 
@@ -212,6 +235,7 @@ class Plugins extends Module {
 	 * @return array|boolean Error on error, false otherwise.
 	 */
 	private function get_errors( $skin ) {
+		// @phan-suppress-next-line PhanUndeclaredMethod -- Checked before being called. See also https://github.com/phan/phan/issues/1204.
 		$errors = method_exists( $skin, 'get_errors' ) ? $skin->get_errors() : null;
 		if ( is_wp_error( $errors ) ) {
 			$error_code = $errors->get_error_code();
@@ -243,39 +267,6 @@ class Plugins extends Module {
 	}
 
 	/**
-	 * Handle plugin edit in the administration.
-	 *
-	 * @access public
-	 *
-	 * @todo The `admin_action_update` hook is called only for logged in users, but maybe implement nonce verification?
-	 */
-	public function check_plugin_edit() {
-		$screen = get_current_screen();
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		if ( 'plugin-editor' !== $screen->base || ! isset( $_POST['newcontent'] ) || ! isset( $_POST['plugin'] ) ) {
-			return;
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Validated manually just after.
-		$plugin  = wp_unslash( $_POST['plugin'] );
-		$plugins = get_plugins();
-		if ( ! isset( $plugins[ $plugin ] ) ) {
-			return;
-		}
-
-		/**
-		 * Helps Sync log that a plugin was edited
-		 *
-		 * @since 1.6.3
-		 * @since-jetpack 4.9.0
-		 *
-		 * @param string $plugin, Plugin slug
-		 * @param mixed $plugins[ $plugin ], Array of plugin data
-		 */
-		do_action( 'jetpack_edited_plugin', $plugin, $plugins[ $plugin ] );
-	}
-
-	/**
 	 * Handle plugin ajax edit in the administration.
 	 *
 	 * @access public
@@ -284,34 +275,33 @@ class Plugins extends Module {
 	 */
 	public function plugin_edit_ajax() {
 		// This validation is based on wp_edit_theme_plugin_file().
-		$args = wp_unslash( $_POST );
-		if ( empty( $args['file'] ) ) {
+		if ( empty( $_POST['file'] ) ) {
 			return;
 		}
 
-		$file = $args['file'];
+		$file = wp_unslash( $_POST['file'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Validated manually just after.
 		if ( 0 !== validate_file( $file ) ) {
 			return;
 		}
 
-		if ( ! isset( $args['newcontent'] ) ) {
+		if ( ! isset( $_POST['newcontent'] ) ) {
 			return;
 		}
 
-		if ( ! isset( $args['nonce'] ) ) {
+		if ( ! isset( $_POST['nonce'] ) ) {
 			return;
 		}
 
-		if ( empty( $args['plugin'] ) ) {
+		if ( empty( $_POST['plugin'] ) ) {
 			return;
 		}
 
-		$plugin = $args['plugin'];
+		$plugin = wp_unslash( $_POST['plugin'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Validated manually just after.
 		if ( ! current_user_can( 'edit_plugins' ) ) {
 			return;
 		}
 
-		if ( ! wp_verify_nonce( $args['nonce'], 'edit-plugin_' . $file ) ) {
+		if ( ! wp_verify_nonce( $_POST['nonce'], 'edit-plugin_' . $file ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- WP core doesn't pre-sanitize nonces either.
 			return;
 		}
 		$plugins = get_plugins();
@@ -410,5 +400,74 @@ class Plugins extends Module {
 			$args[1],
 			$plugin_data,
 		);
+	}
+
+	/**
+	 * Helper method for firing the 'jetpack_plugins_updated' action on shutdown.
+	 *
+	 * @access public
+	 */
+	public function sync_plugins_updated() {
+		/**
+		 * Sync that a plugin update
+		 *
+		 * @since 1.6.3
+		 * @since-jetpack 5.8.0
+		 *
+		 * @module sync
+		 *
+		 * @param array () $plugin, Plugin Data
+		 */
+		do_action( 'jetpack_plugins_updated', $this->plugins_updated, $this->state );
+	}
+
+	/**
+	 * Helper method for firing the 'jetpack_plugin_installed' action on shutdown.
+	 *
+	 * @access public
+	 */
+	public function sync_plugins_installed() {
+		if ( empty( $this->plugins_installed ) ) {
+			return;
+		}
+		/**
+		 * Signals to the sync listener that a plugin was installed and a sync action
+		 * reflecting the installation and the plugin info should be sent.
+		 *
+		 * @since 1.6.3
+		 * @since-jetpack 5.8.0
+		 *
+		 * @module sync
+		 *
+		 * @param array () $plugin, Plugin Data
+		 */
+		do_action( 'jetpack_plugin_installed', $this->plugins_installed );
+	}
+
+	/**
+	 * Helper method for firing the 'jetpack_plugin_update_failed' actions on shutdown.
+	 *
+	 * @access public
+	 */
+	public function sync_plugins_update_failed() {
+		if ( empty( $this->plugins_update_failures ) ) {
+			return;
+		}
+		foreach ( $this->plugins_update_failures as $failure ) {
+			/**
+			 * Sync that a plugin update failed
+			 *
+			 * @since 1.6.3
+			 * @since-jetpack 5.8.0
+			 *
+			 * @module sync
+			 *
+			 * @param array  $plugin Plugin Data
+			 * @param string $code   Error code
+			 * @param string $message Error message
+			 * @param array  $state  State data
+			 */
+			do_action( 'jetpack_plugin_update_failed', $failure['plugin'], $failure['code'], $failure['message'], $failure['state'] );
+		}
 	}
 }

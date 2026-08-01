@@ -7,6 +7,8 @@
 
 namespace Automattic\Jetpack\VideoPress;
 
+use WP_Post;
+
 /**
  * VideoPress block editor class for content generation
  */
@@ -80,12 +82,16 @@ class Block_Editor_Content {
 		// Make sure "false" will be actually false.
 		foreach ( $atts as $key => $value ) {
 			if ( is_string( $value ) && 'false' === strtolower( $value ) ) {
-				$atts[ $key ] = false;
+				$atts[ $key ] = 0;
 			}
 		}
 
-		if ( isset( $atts['preload'] ) ) {
+		if ( isset( $atts['preload'] ) && videopress_is_valid_preload( $atts['preload'] ) ) {
 			$atts['preloadcontent'] = $atts['preload'];
+		}
+
+		if ( isset( $atts['preloadcontent'] ) && ! videopress_is_valid_preload( $atts['preloadcontent'] ) ) {
+			unset( $atts['preloadcontent'] );
 		}
 
 		$atts = shortcode_atts( $defaults, $atts, 'videopress' );
@@ -129,6 +135,7 @@ class Block_Editor_Content {
 		'</figure>';
 
 		$version = Package_Version::PACKAGE_VERSION;
+		Jwt_Token_Bridge::enqueue_jwt_token_bridge();
 		wp_enqueue_script( 'videopress-iframe', 'https://videopress.com/videopress-iframe.js', array(), $version, true );
 
 		return sprintf( $block_template, $src, $width, $height, $cover );
@@ -142,7 +149,7 @@ class Block_Editor_Content {
 	 * @return string
 	 */
 	public static function videopress_video_block_by_guid( $content, $post ) {
-		if ( isset( $_GET['videopress_guid'], $_GET['_wpnonce'] )
+		if ( isset( $_GET['videopress_guid'] ) && isset( $_GET['_wpnonce'] )
 			&& wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'videopress-content-nonce' )
 			&& current_user_can( 'edit_post', $post->ID )
 			&& '' === $content
@@ -207,7 +214,7 @@ class Block_Editor_Content {
 					}
 
 					// Also test for old v.wordpress.com oembed URL.
-					if ( ! $videopress_guid && preg_match( '|^https?://v\.wordpress\.com/([a-zA-Z\d]{8})(.+)?$|i', $url, $matches ) ) { // phpcs:ignore WordPress.WP.CapitalPDangit.Misspelled
+					if ( ! $videopress_guid && preg_match( '|^https?://v\.wordpress\.com/([a-zA-Z\d]{8})(.+)?$|i', $url, $matches ) ) { // phpcs:ignore WordPress.WP.CapitalPDangit.MisspelledInText
 						$videopress_guid = $matches[1];
 					}
 

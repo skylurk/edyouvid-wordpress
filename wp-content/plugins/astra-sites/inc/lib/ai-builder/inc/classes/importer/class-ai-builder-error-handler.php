@@ -8,10 +8,10 @@
 
 namespace AiBuilder\Inc\Classes\Importer;
 
-use AiBuilder\Inc\Traits\Instance;
 use AiBuilder\Inc\Classes\Ai_Builder_Importer_Log;
-use Throwable;
+use AiBuilder\Inc\Traits\Instance;
 use Exception;
+use Throwable;
 
 define( 'ST_ERROR_FATALS', E_ERROR | E_PARSE | E_COMPILE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR );
 
@@ -19,7 +19,6 @@ define( 'ST_ERROR_FATALS', E_ERROR | E_PARSE | E_COMPILE_ERROR | E_USER_ERROR | 
  * Ai_Builder_Error_Handler
  */
 class Ai_Builder_Error_Handler {
-
 	use Instance;
 
 	/**
@@ -89,8 +88,21 @@ class Ai_Builder_Error_Handler {
 		} else {
 			$error = 'Uncaught Error';
 		}
-		Ai_Builder_Importer_Log::add( 'There was an error on website: ' . $error );
-		Ai_Builder_Importer_Log::add( $e );
+
+		// Prepare error context for logging.
+		$error_context = array(
+			'error_type' => $error,
+			'message'    => $e->getMessage(),
+			'file'       => $e->getFile(),
+			'line'       => $e->getLine(),
+			'trace'      => $e->getTraceAsString(),
+		);
+
+		Ai_Builder_Importer_Log::add(
+			'There was an error on website: ' . $error . ' - ' . $e->getMessage(),
+			'fatal',
+			$error_context
+		);
 
 		if ( wp_doing_ajax() ) {
 			wp_send_json_error(
@@ -131,8 +143,20 @@ class Ai_Builder_Error_Handler {
 			$error = 'Fatal error';
 		}
 
-		Ai_Builder_Importer_Log::add( 'There was an error on website: ' . $error );
-		Ai_Builder_Importer_Log::add( $e['message'] );
+		// Prepare error context for logging.
+		$error_context = array(
+			'error_type' => $error,
+			'type'       => $e['type'],
+			'message'    => $e['message'],
+			'file'       => $e['file'],
+			'line'       => $e['line'],
+		);
+
+		Ai_Builder_Importer_Log::add(
+			'There was an error on website: ' . $error . ' - ' . $e['message'],
+			'fatal',
+			$error_context
+		);
 
 		if ( wp_doing_ajax() ) {
 			wp_send_json_error(
@@ -149,6 +173,6 @@ class Ai_Builder_Error_Handler {
 }
 
 /**
-* Kicking this off by calling 'get_instance()' method
-*/
+ * Kicking this off by calling 'get_instance()' method
+ */
 Ai_Builder_Error_Handler::Instance();

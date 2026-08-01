@@ -7,6 +7,7 @@ import { useStateValue } from '../../../store/store';
 import './style.scss';
 import { setURLParmsValue } from '../../../utils/url-params';
 import { useFilteredSites } from '..';
+import { applyPriorityPinning } from '../../../utils/priority-templates';
 
 const SiteSearch = ( { setSiteData } ) => {
 	const [
@@ -109,7 +110,7 @@ const SiteSearch = ( { setSiteData } ) => {
 		<div className="st-search-box-wrap" ref={ parentRef }>
 			<div className="st-search-filter st-search-box" ref={ ref }>
 				<Search
-					apiUrl={ `${ astraSitesVars.ApiDomain }wp-json/starter-templates/v2/sites-search/?search=${ siteSearchTerm }&page-builder=${ builder }&type=${ siteType }${ stagingConnected }` }
+					apiUrl={ `${ astraSitesVars?.ApiDomain }wp-json/starter-templates/v2/sites-search/?search=${ siteSearchTerm }&page-builder=${ builder }&type=${ siteType }${ stagingConnected }` }
 					beforeSearchResult={ () => {
 						if ( ! siteSearchTerm ) {
 							return;
@@ -153,8 +154,13 @@ const SiteSearch = ( { setSiteData } ) => {
 
 						collectTerms( Object.keys( results ).length );
 
+						const pinnedResults = applyPriorityPinning(
+							results,
+							siteSearchTerm
+						);
+
 						setSiteData( {
-							sites: results,
+							sites: pinnedResults,
 							gridSkeleton: false,
 						} );
 					} }

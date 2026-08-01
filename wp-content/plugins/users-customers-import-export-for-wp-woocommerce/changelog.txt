@@ -1,6 +1,24 @@
 
 == Changelog ==
 
+= 2.7.4 2026-05-26 =
+* [Compatibility] - Tested OK with WordPress 7.0
+
+= 2.7.3 2026-05-06 =
+* [Compatibility] - Tested OK with WordPress 6.9.4
+* [Compatibility] – Tested OK with WooCommerce 10.7.0
+* [Improvement] – Performance enhancements.
+
+= 2.7.2 2026-03-10 =
+* [Compatibility] – Tested OK with WooCommerce 10.5.3
+* [Improvement] - Replaced underscores in import/export file names with hyphens.
+
+= 2.7.1 2026-2-16 =
+* [Compatibility] - Tested OK with WordPress 6.9.1
+* [Compatibility] – Tested OK with WooCommerce 10.5.1
+* [Improvement] - Enhancements to the import mapping screen.
+* [Fix] - Resolved an issue where the banner reappeared after dismissal on page reload.
+
 = 2.7.0 2026-1-26 =
 * [Compatibility] – Tested OK with WooCommerce 10.4.3
 * [Update] - Updated translation template (POT file)

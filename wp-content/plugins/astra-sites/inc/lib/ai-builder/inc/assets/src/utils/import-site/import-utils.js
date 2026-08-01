@@ -1,5 +1,7 @@
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
+import toast from 'react-hot-toast';
+import { toastBody } from '../../helpers';
 
 const { themeStatus } = aiBuilderVars;
 
@@ -168,28 +170,194 @@ export const getAiDemo = async (
 	return { success: false, data: aiResponse.data };
 };
 
-export const checkRequiredPlugins = async ( dispatch ) => {
+export const fetchRequiredPlugins = async (
+	$featured_plugins = [],
+	permissionCheck = false
+) => {
 	const reqPlugins = new FormData();
 	reqPlugins.append( 'action', 'astra-sites-required_plugins' );
 	reqPlugins.append( '_ajax_nonce', aiBuilderVars._ajax_nonce );
+	if ( $featured_plugins.length > 0 ) {
+		reqPlugins.append(
+			'feature_plugins',
+			JSON.stringify( $featured_plugins )
+		);
+	}
 
-	await fetch( ajaxurl, {
-		method: 'post',
-		body: reqPlugins,
-	} )
-		.then( ( response ) => response.json() )
-		.then( ( response ) => {
-			if ( response.success ) {
-				const rPlugins = response.data?.required_plugins;
-				const notInstalledPlugin = rPlugins.notinstalled || '';
-				const notActivePlugins = rPlugins.inactive || '';
-				dispatch( {
-					requiredPlugins: response.data,
-					notInstalledList: notInstalledPlugin,
-					notActivatedList: notActivePlugins,
-				} );
-			}
+	if ( permissionCheck ) {
+		reqPlugins.append( 'ai_plugin_permission', '1' );
+	}
+
+	try {
+		const response = await fetch( ajaxurl, {
+			method: 'post',
+			body: reqPlugins,
 		} );
+
+		return await response.json();
+	} catch ( error ) {
+		console.error( 'Error fetching required plugins:', error );
+		throw error;
+	}
+};
+
+export const checkRequiredPlugins = async ( dispatch ) => {
+	try {
+		const response = await fetchRequiredPlugins();
+
+		if ( response.success ) {
+			const rPlugins = response.data?.required_plugins;
+			const notInstalledPlugin = rPlugins.notinstalled || '';
+			const notActivePlugins = rPlugins.inactive || '';
+			dispatch( {
+				requiredPlugins: response.data,
+				notInstalledList: notInstalledPlugin,
+				notActivatedList: notActivePlugins,
+			} );
+			return response;
+		}
+		dispatch( {
+			importError: true,
+			importErrorMessages: {
+				primaryText: __(
+					'Required plugins could not be verified.',
+					'ai-builder'
+				),
+				tryAgain: true,
+				errorText: response?.data?.error,
+			},
+		} );
+		return response;
+	} catch ( error ) {
+		dispatch( {
+			importError: true,
+			importErrorMessages: {
+				primaryText: __(
+					'Required plugins could not be verified.',
+					'ai-builder'
+				),
+				tryAgain: true,
+				errorText: error.message,
+			},
+		} );
+		throw error;
+	}
+};
+
+export const getFeaturePluginList = (
+	features,
+	selectedEcommercePlugin,
+	siteFeatures
+) => {
+	const requiredPlugins = [];
+
+	features?.forEach( ( feature ) => {
+		switch ( feature ) {
+			case 'ecommerce':
+				if ( selectedEcommercePlugin === 'surecart' ) {
+					requiredPlugins.push( {
+						name: 'SureCart',
+						slug: 'surecart',
+						compulsory: siteFeatures?.find(
+							( f ) => f.id === 'ecommerce'
+						)?.compulsory,
+						init: 'surecart/surecart.php',
+					} );
+				} else if ( selectedEcommercePlugin === 'woocommerce' ) {
+					requiredPlugins.push( {
+						name: 'WooCommerce',
+						slug: 'woocommerce',
+						compulsory: siteFeatures?.find(
+							( f ) => f.id === 'ecommerce'
+						)?.compulsory,
+						init: 'woocommerce/woocommerce.php',
+					} );
+				}
+				break;
+			case 'donations':
+				requiredPlugins.push( {
+					name: 'SureCart',
+					slug: 'surecart',
+					compulsory: siteFeatures?.find(
+						( f ) => f.id === 'ecommerce'
+					)?.compulsory,
+					init: 'surecart/surecart.php',
+				} );
+				break;
+			case 'suretriggers':
+				requiredPlugins.push( {
+					name: 'OttoKit',
+					slug: 'suretriggers',
+					compulsory: siteFeatures?.find(
+						( f ) => f.id === 'suretriggers'
+					)?.compulsory,
+					init: 'suretriggers/suretriggers.php',
+				} );
+				break;
+			case 'smtp':
+				requiredPlugins.push( {
+					name: 'Suremail',
+					slug: 'suremails',
+					compulsory: siteFeatures?.find( ( f ) => f.id === 'smtp' )
+						?.compulsory,
+					init: 'suremails/suremails.php',
+				} );
+				break;
+			case 'sure-rank':
+				requiredPlugins.push( {
+					name: 'SureRank',
+					slug: 'surerank',
+					compulsory: siteFeatures?.find(
+						( f ) => f.id === 'sure-rank'
+					)?.compulsory,
+					init: 'surerank/surerank.php',
+				} );
+				break;
+			case 'sales-funnels':
+				requiredPlugins.push( {
+					name: 'CartFlows',
+					slug: 'cartflows',
+					init: 'cartflows/cartflows.php',
+				} );
+				requiredPlugins.push( {
+					name: 'Woocommerce Cart Abandonment Recovery',
+					slug: 'woo-cart-abandonment-recovery',
+					init: 'woo-cart-abandonment-recovery/woo-cart-abandonment-recovery.php',
+				} );
+				break;
+			case 'video-player':
+				requiredPlugins.push( {
+					name: 'Preso Player',
+					slug: 'presto-player',
+					init: 'presto-player/presto-player.php',
+				} );
+				break;
+			case 'appointment-bookings':
+				requiredPlugins.push( {
+					name: 'Latepoint',
+					slug: 'latepoint',
+					compulsory: siteFeatures?.find(
+						( f ) => f.id === 'appointment-bookings'
+					)?.compulsory,
+					init: 'latepoint/latepoint.php',
+				} );
+				break;
+			case 'live-chat':
+				requiredPlugins.push( {
+					name: '3CX',
+					slug: 'wp-live-chat-support',
+					compulsory: siteFeatures?.find(
+						( f ) => f.id === 'live-chat'
+					)?.compulsory,
+					init: 'wp-live-chat-support/wp-live-chat-support.php',
+				} );
+				break;
+			default:
+				break;
+		}
+	} );
+
+	return requiredPlugins;
 };
 
 export const activateAstra = ( dispatch ) => {
@@ -213,7 +381,7 @@ export const activateAstra = ( dispatch ) => {
 					importError: true,
 					importErrorMessages: {
 						primaryText: __(
-							'Astra theme installation failed.',
+							'Astra theme activation failed.',
 							'ai-builder'
 						),
 						secondaryText: '',
@@ -234,8 +402,12 @@ export const activateAstra = ( dispatch ) => {
 export const installAstra = ( importPercent, dispatch ) => {
 	const themeSlug = 'astra';
 	let percentage = importPercent;
-
 	if ( 'not-installed' === themeStatus ) {
+		percentage += 5;
+		dispatch( {
+			importPercent: percentage,
+			importStatus: __( 'Installing Astra Theme…', 'ai-builder' ),
+		} );
 		if (
 			wp.updates.shouldRequestFilesystemCredentials &&
 			! wp.updates.ajaxLocked
@@ -243,18 +415,45 @@ export const installAstra = ( importPercent, dispatch ) => {
 			wp.updates.requestFilesystemCredentials();
 		}
 
-		percentage += 5;
-		dispatch( {
-			importPercent: percentage,
-			importStatus: __( 'Installing Astra Theme…', 'ai-builder' ),
-		} );
+		wp.updates
+			.installTheme( {
+				slug: themeSlug,
+				ajax_nonce: aiBuilderVars._ajax_nonce,
+			} )
+			.catch( ( error ) => {
+				console.log( error );
+				// Check if error is due to folder already existing
+				const isFolderExistsError =
+					error?.errorCode === 'folder_exists' ||
+					( error?.errorMessage &&
+						error.errorMessage.toLowerCase().includes( 'folder' ) &&
+						error.errorMessage.toLowerCase().includes( 'exist' ) );
 
-		wp.updates.installTheme( {
-			slug: themeSlug,
-			ajax_nonce: aiBuilderVars._ajax_nonce,
-		} );
+				if ( isFolderExistsError ) {
+					// Theme is already installed, proceed to activate
+					dispatch( {
+						importStatus: __(
+							'Astra Theme Already Installed.',
+							'ai-builder'
+						),
+					} );
+					activateAstra( dispatch );
+				} else {
+					dispatch( {
+						importError: true,
+						importErrorMessages: {
+							primaryText:
+								error?.errorMessage ??
+								__(
+									'Theme installation failed.',
+									'ai-builder'
+								),
+							tryAgain: true,
+						},
+					} );
+				}
+			} );
 
-		// eslint-disable-next-line no-undef
 		jQuery( document ).on( 'wp-theme-install-success', function () {
 			dispatch( {
 				importStatus: __( 'Astra Theme Installed.', 'ai-builder' ),
@@ -275,6 +474,12 @@ export const installAstra = ( importPercent, dispatch ) => {
 	}
 };
 
+export const showErrorToast = ( title = '', error = {} ) => {
+	toast.error(
+		toastBody( { title, message: JSON.stringify( error, null, 4 ) } )
+	);
+};
+
 export const setSiteLogo = async ( logo ) => {
 	if ( '' === logo.id ) {
 		return;
@@ -289,7 +494,9 @@ export const setSiteLogo = async ( logo ) => {
 	await fetch( ajaxurl, {
 		method: 'post',
 		body: data,
-	} );
+	} ).catch( ( e ) =>
+		showErrorToast( __( 'Failed to save Site Logo', 'ai-builder' ), e )
+	);
 };
 
 export const setColorPalettes = async ( palette ) => {
@@ -306,7 +513,9 @@ export const setColorPalettes = async ( palette ) => {
 	await fetch( ajaxurl, {
 		method: 'post',
 		body: data,
-	} );
+	} ).catch( ( e ) =>
+		showErrorToast( __( 'Failed to save Color Palletes', 'ai-builder' ), e )
+	);
 };
 
 export const setSiteTitle = async ( businessName, showSiteTitle ) => {
@@ -324,7 +533,9 @@ export const setSiteTitle = async ( businessName, showSiteTitle ) => {
 	await fetch( ajaxurl, {
 		method: 'post',
 		body: data,
-	} );
+	} ).catch( ( e ) =>
+		showErrorToast( __( 'Failed to save Color Palletes', 'ai-builder' ), e )
+	);
 };
 
 export const saveTypography = async ( selectedValue ) => {
@@ -337,7 +548,9 @@ export const saveTypography = async ( selectedValue ) => {
 	await fetch( ajaxurl, {
 		method: 'post',
 		body: data,
-	} );
+	} ).catch( ( e ) =>
+		showErrorToast( __( 'Failed to save Typography', 'ai-builder' ), e )
+	);
 };
 
 export const divideIntoChunks = ( chunkSize, inputArray ) => {
@@ -355,28 +568,27 @@ export const divideIntoChunks = ( chunkSize, inputArray ) => {
 		counter++;
 	}
 	final.push( portion );
-
 	return final;
 };
 
 export const checkFileSystemPermissions = async ( dispatch ) => {
-	try {
-		const formData = new FormData();
-		formData.append( 'action', 'astra-sites-filesystem_permission' );
-		formData.append( '_ajax_nonce', aiBuilderVars._ajax_nonce );
-		const response = await fetch( aiBuilderVars.ajax_url, {
-			method: 'POST',
-			body: formData,
-		} );
-		const data = await response.json();
-
-		dispatch( {
-			fileSystemPermissions: data.data,
-		} );
-	} catch ( error ) {
-		/* eslint-disable-next-line no-console -- We are displaying errors in the console. */
-		console.error( error );
-	}
+	const formData = new FormData();
+	formData.append( 'action', 'astra-sites-filesystem_permission' );
+	formData.append( '_ajax_nonce', aiBuilderVars._ajax_nonce );
+	const data = await fetch( aiBuilderVars.ajax_url, {
+		method: 'POST',
+		body: formData,
+	} )
+		.then( ( res ) => res.json )
+		.catch( ( e ) =>
+			showErrorToast(
+				__( 'Failed to check File Permissions', 'ai-builder' ),
+				e
+			)
+		);
+	dispatch( {
+		fileSystemPermissions: data.data,
+	} );
 };
 
 export const setSiteLanguage = async ( siteLanguage = 'en_US' ) => {
@@ -392,5 +604,74 @@ export const setSiteLanguage = async ( siteLanguage = 'en_US' ) => {
 	await fetch( ajaxurl, {
 		method: 'post',
 		body: data,
+	} ).catch( ( e ) =>
+		showErrorToast( __( 'Failed to save Site Language', 'ai-builder' ), e )
+	);
+};
+
+export const generateAnalyticsLead = async ( tryAgainCount, status, data ) => {
+	const importContent = new FormData();
+	importContent.append( 'action', 'astra-sites-generate-analytics-lead' );
+	importContent.append( 'status', status );
+	importContent.append( 'try-again-count', tryAgainCount );
+	importContent.append( 'type', 'ai_builder' );
+	importContent.append( '_ajax_nonce', aiBuilderVars._ajax_nonce );
+
+	// Append extra data.
+	Object.entries( data ).forEach( ( [ key, value ] ) =>
+		importContent.append( key, value )
+	);
+
+	await fetch( ajaxurl, {
+		method: 'post',
+		body: importContent,
 	} );
+};
+
+/**
+ * Check if user has permission to import in multisite environment
+ *
+ * @param {Object} requiredPluginsData - Plugin requirements data from server
+ * @param {Object} aiBuilderVars       - Localized variables
+ * @return {Object} Permission check result
+ */
+export const checkMultisiteImportPermissions = (
+	requiredPluginsData,
+	aiBuilderVars
+) => {
+	// Only apply in multisite environments
+	if ( ! aiBuilderVars.isMultisite ) {
+		return { allowed: true };
+	}
+
+	// Server-side logic in helper.php already handles all the multisite permission checks
+	// and returns an 'error' key in the response data
+	const hasPluginError = requiredPluginsData?.error || false;
+	const hasThemeError = aiBuilderVars.canActivatePlugins
+		? themeStatus === 'not-installed'
+		: themeStatus !== 'installed-and-active';
+
+	if ( hasPluginError || hasThemeError ) {
+		// Extract missing plugins and themes from the required plugins data
+		const requiredPlugins = requiredPluginsData?.required_plugins || {};
+		const notInstalledPlugins = requiredPlugins.notinstalled || [];
+		const inactivePlugins = requiredPlugins.inactive || [];
+
+		let allMissingPlugins = [ ...notInstalledPlugins, ...inactivePlugins ];
+		if ( aiBuilderVars.canActivatePlugins ) {
+			allMissingPlugins = [ ...notInstalledPlugins ];
+		}
+
+		// Check theme requirements from localized variables
+		const missingThemes = hasThemeError ? [ { name: 'Astra' } ] : [];
+
+		return {
+			allowed: false,
+			missingThemes,
+			missingPlugins: allMissingPlugins,
+		};
+	}
+
+	// Import allowed
+	return { allowed: true };
 };

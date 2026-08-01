@@ -34,7 +34,10 @@ async function copyTextToClipboard(e) {
 
 function InserterShortcodeInput() {
   return (
-    <PanelBody title={__("Timestamp Shortcode", "presto-player")}>
+    <PanelBody
+      title={__("Timestamp Shortcode", "presto-player")}
+      initialOpen={false}
+    >
       <div className={"block-editor-inserter__shortcode-input"}>
         <p>
           {__(

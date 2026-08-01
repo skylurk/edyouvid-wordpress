@@ -10,7 +10,7 @@
 
 namespace AiBuilder\Inc\Compatibility\SureCart;
 
-if ( ! class_exists( 'Ai_Builder_Compatibility_SureCart' ) ) :
+if ( ! class_exists( 'Ai_Builder_Compatibility_SureCart' ) ) {
 
 	/**
 	 * SureCart Compatibility
@@ -18,7 +18,6 @@ if ( ! class_exists( 'Ai_Builder_Compatibility_SureCart' ) ) :
 	 * @since 3.3.0
 	 */
 	class Ai_Builder_Compatibility_SureCart {
-
 		/**
 		 * Instance
 		 *
@@ -27,6 +26,17 @@ if ( ! class_exists( 'Ai_Builder_Compatibility_SureCart' ) ) :
 		 * @since 3.3.0
 		 */
 		private static $instance = null;
+
+		/**
+		 * Constructor
+		 *
+		 * @since 3.3.0
+		 */
+		public function __construct() {
+			add_action( 'init', array( $this, 'disable_default_surecart_pages_creation' ), 2 );
+			add_action( 'astra_sites_import_complete', array( $this, 'get_all_pages' ), 10 );
+			add_action( 'astra_sites_after_plugin_activation', array( $this, 'activation' ), 10 );
+		}
 
 		/**
 		 * Initiator
@@ -42,24 +52,16 @@ if ( ! class_exists( 'Ai_Builder_Compatibility_SureCart' ) ) :
 		}
 
 		/**
-		 * Constructor
-		 *
-		 * @since 3.3.0
-		 */
-		public function __construct() {
-			add_action( 'init', array( $this, 'disable_default_surecart_pages_creation' ), 2 );
-			add_action( 'astra_sites_import_complete', array( $this, 'get_all_pages' ), 10 );
-			add_action( 'astra_sites_after_plugin_activation', array( $this, 'activation' ), 10 );
-		}
-
-		/**
 		 * Set the source to 'starter-templates' on activation.
 		 *
 		 * @since 1.0.15
+		 * @param string $plugin_init The path to the plugin file that was just activated.
 		 * @return void
 		 */
-		public function activation() {
-			update_option( 'surecart_source', 'starter_templates', false );
+		public function activation( $plugin_init ) {
+			if ( 'surecart/surecart.php' === $plugin_init ) {
+				update_option( 'surecart_source', 'starter_templates', false );
+			}
 		}
 
 		/**
@@ -83,7 +85,6 @@ if ( ! class_exists( 'Ai_Builder_Compatibility_SureCart' ) ) :
 					$this->check_page_types_and_update_options( $page_id, $page_content );
 				}
 			}
-
 		}
 
 		/**
@@ -118,13 +119,28 @@ if ( ! class_exists( 'Ai_Builder_Compatibility_SureCart' ) ) :
 		 * Why? SureCart creates set of pages on it's activation
 		 * These pages are re created via our XML import step.
 		 * In order to avoid the duplicacy we restrict these page creation process.
+		 * This is applicable for template which are setup with surecart.
 		 *
 		 * @since 3.3.0
 		 * @return void
 		 */
 		public function disable_default_surecart_pages_creation() {
-			if ( astra_sites_has_import_started() ) {
-				add_filter( 'surecart/seed/all', '__return_false' );
+			// Bail if import not started.
+			if ( ! astra_sites_has_import_started() ) {
+				return;
+			}
+
+			// Skip preventing surecart pages creation of AI template import.
+			if ( 'ai' === get_option( 'astra_sites_current_import_template_type' ) ) {
+				return;
+			}
+
+			$required_plugins_for_site = astra_get_site_data( 'required-plugins' );
+			if ( ! empty( $required_plugins_for_site ) && is_array( $required_plugins_for_site ) ) {
+				$plugin_slugs = array_column( $required_plugins_for_site, 'slug' );
+				if ( in_array( 'surecart', $plugin_slugs, true ) ) {
+					add_filter( 'surecart/seed/all', '__return_false' );
+				}
 			}
 		}
 	}
@@ -134,4 +150,4 @@ if ( ! class_exists( 'Ai_Builder_Compatibility_SureCart' ) ) :
 	 */
 	Ai_Builder_Compatibility_SureCart::instance();
 
-endif;
+}

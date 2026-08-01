@@ -1,0 +1,1 @@
+{"version":3,"file":"../css/video.css","mappings":"AAAA,kBAAkB,cAAc","sources":["webpack://cloudinary/./src/css/video.scss"],"sourcesContent":[".cld-video-player{max-width:100%}"],"names":[],"sourceRoot":""}

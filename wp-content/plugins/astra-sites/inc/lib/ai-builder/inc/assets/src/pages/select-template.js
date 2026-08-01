@@ -10,13 +10,16 @@ import { twMerge } from 'tailwind-merge';
 import { useSelect, useDispatch } from '@wordpress/data';
 import apiFetch from '@wordpress/api-fetch';
 import NavigationButtons from '../components/navigation-buttons';
+import { siteLogoDefault } from '../store/reducer';
 import { classNames, toastBody } from '../helpers';
 import { STORE_KEY } from '../store';
 import { ColumnItem } from '../components/column-item';
 import Input from '../components/input';
 import {
+	ArrowsRightLeftIcon,
 	ChevronUpIcon,
 	MagnifyingGlassIcon,
+	SwatchIcon,
 	XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { useForm } from 'react-hook-form';
@@ -33,7 +36,23 @@ import LoadingSpinner from '../components/loading-spinner';
 import { __ } from '@wordpress/i18n';
 import toast from 'react-hot-toast';
 import Heading from '../components/heading';
+import { getBuildersList } from '../components/page-builder-dropdown';
+import { debounce } from 'lodash';
+import SortByDropdown from '../components/sort-by-dropdown';
+import Tooltip from '../components/tooltip';
 export const USER_KEYWORD = 'st-template-search';
+export const getRandomUniqueId = () =>
+	Math.random().toString( 16 ).substring( 3 );
+
+const DESIGN_LOAD_BATCH_COUNT = 4; // how many templates to load at once
+
+// Determine default page builder
+const { supportedPageBuilders = [] } = aiBuilderVars;
+const defaultPageBuilder = ! [ 'block-editor', 'gutenberg' ].includes(
+	supportedPageBuilders?.[ 0 ]
+)
+	? supportedPageBuilders?.[ 0 ] // Could be 'elementor'
+	: 'spectra';
 
 const SelectTemplate = () => {
 	const { previousStep } = useNavigateSteps();
@@ -43,6 +62,10 @@ const SelectTemplate = () => {
 		setWebsiteSelectedTemplateAIStep,
 		setWebsiteTemplateSearchResultsAIStep,
 		setSelectedTemplateIsPremium,
+		setSelectedPageBuilder,
+		setWebsiteTypography,
+		setWebsiteLogo,
+		setSiteTitleVisible,
 	} = useDispatch( STORE_KEY );
 
 	const {
@@ -87,10 +110,34 @@ const SelectTemplate = () => {
 
 	const [ isFetching, setIsFetching ] = useState( false );
 	const [ backToTop, setBackToTop ] = useState( false );
+	const [ selectedBuilder, setSelectedBuilder ] =
+		useState( defaultPageBuilder );
+
+	const [ sortBy, setSortBy ] = useState( 'most-used' );
+	const [ shuffleCount, setShuffleCount ] = useState( 0 );
+	const handleShuffleColors = () => setShuffleCount( ( prev ) => prev + 1 );
+	const buildersList = getBuildersList();
+	const isDefaultSort = sortBy === 'most-used';
+	const buildSortPayload = () =>
+		isDefaultSort ? {} : { sort: { by: sortBy, order: 'desc' } };
+
+	useEffect( () => {
+		setSelectedPageBuilder(
+			selectedBuilder === 'spectra' ? 'gutenberg' : selectedBuilder
+		);
+	}, [ selectedBuilder ] );
 
 	const parentContainer = useRef( null );
 	const templatesContainer = useRef( null );
 	const abortRequest = useRef( [] );
+
+	// Batch template loading state
+	const [ designLoadState, setDesignLoadState ] = useState( {
+		toLoad: [],
+		loaded: [],
+	} );
+
+	const designToLoadList = designLoadState.toLoad;
 
 	const [ loadMoreTemplates, setLoadMoreTemplates ] = useReducer(
 		( state, updatedState ) => {
@@ -162,8 +209,14 @@ const SelectTemplate = () => {
 		return businessName;
 	};
 
-	const maybeHidePremiumTemplates = ( result ) => {
-		if ( ! aiBuilderVars?.show_premium_templates ) {
+	const handleHiddenTemplates = ( result ) => {
+		// Hide ecommerce templates if ecommerce is disabled in the AI Builder settings.
+		const hideEcommerceTemplates =
+			aiBuilderVars?.hide_site_features?.includes( 'ecommerce' );
+		// Hide premium templates if `show_premium_template` is false.
+		const hidePremiumTemplates = ! aiBuilderVars?.show_premium_templates;
+
+		if ( hidePremiumTemplates ) {
 			result = result.map( ( item ) => {
 				return {
 					...item,
@@ -174,10 +227,57 @@ const SelectTemplate = () => {
 			} );
 		}
 
+		if ( hideEcommerceTemplates ) {
+			result = result.map( ( item ) => {
+				return {
+					...item,
+					designs: item?.designs?.filter(
+						( template ) => template.features.ecommerce !== 'yes'
+					),
+				};
+			} );
+		}
+
 		return result;
 	};
 
-	const fetchTemplates = async ( keyword = getInitialUserKeyword() ) => {
+	// Called when an iframe (template preview) finishes loading
+	const onIframeLoaded = ( uniqueId ) => {
+		setDesignLoadState( ( state ) => {
+			const updatedToLoad = state.toLoad.filter(
+				( id ) => id !== uniqueId
+			);
+			const updatedLoaded = [ ...state.loaded, uniqueId ];
+
+			// Load next batch if current batch is fully loaded
+			if ( updatedToLoad.length === 0 ) {
+				const remainingToLoad = allTemplates
+					.filter(
+						( template ) =>
+							! updatedLoaded.includes( template.uniqueId ) &&
+							template.uniqueId !== uniqueId
+					)
+					.map( ( template ) => template.uniqueId )
+					.slice( 0, DESIGN_LOAD_BATCH_COUNT );
+
+				return {
+					toLoad: remainingToLoad,
+					loaded: updatedLoaded,
+				};
+			}
+
+			return {
+				toLoad: updatedToLoad,
+				loaded: updatedLoaded,
+			};
+		} );
+	};
+
+	const fetchTemplates = async (
+		keyword = getInitialUserKeyword(),
+		isPageBuilderChanged = false,
+		_selectedBuilder = selectedBuilder
+	) => {
 		if ( ! keyword ) {
 			return;
 		}
@@ -190,6 +290,7 @@ const SelectTemplate = () => {
 				} );
 				abortRequest.current = [];
 			}
+
 			setWebsiteTemplatesAIStep( [] );
 
 			const finalKeywords = [
@@ -203,68 +304,108 @@ const SelectTemplate = () => {
 			let results = [];
 			const allTemplatesList = [];
 
-			const promises = finalKeywords.map( async ( keywordItem ) => {
-				const abortController = new AbortController();
-				abortRequest.current.push( abortController );
+			// Create a single abort controller for the combined request
+			const abortController = new AbortController();
+			abortRequest.current.push( abortController );
+
+			// Use search endpoint for default sort, all-templates for active sort
+			let result = [];
+			if ( isDefaultSort ) {
 				const response = await apiFetch( {
 					path: 'zipwp/v1/templates',
 					method: 'POST',
 					data: {
-						keyword: keywordItem,
+						keywords: finalKeywords,
 						business_name: businessName,
+						page_builder: _selectedBuilder,
 					},
 					signal: abortController.signal,
 				} );
-				let result = response?.data?.data || [];
-
-				// Filter out premium templates if `show_premium_template` is false.
-				result = maybeHidePremiumTemplates( result );
-
-				if ( results.length === 0 ) {
-					results = result;
-				} else {
-					result.forEach( ( item, indx ) => {
-						if ( item?.designs?.length > 0 ) {
-							results[ indx ].designs = [
-								...results[ indx ].designs,
-								...item.designs.filter(
-									( template ) =>
-										! results[ indx ].designs.find(
-											( existingTemplate ) =>
-												existingTemplate.uuid ===
-												template.uuid
-										)
-								),
-							];
-						}
-					} );
-				}
-
-				// Get the the designs in sequence
-				result.forEach( ( item ) => {
-					if ( Array.isArray( item.designs ) ) {
-						allTemplatesList.push(
-							...item.designs.filter(
-								( template ) =>
-									! allTemplatesList.find(
-										( existingTemplate ) =>
-											existingTemplate.uuid ===
-											template.uuid
-									)
-							)
-						);
-					}
+				result = response?.data?.data || [];
+			} else {
+				const response = await apiFetch( {
+					path: 'zipwp/v1/all-templates',
+					method: 'POST',
+					data: {
+						business_name: businessName,
+						page_builder: _selectedBuilder,
+						keyword,
+						per_page: 20,
+						page: 0,
+						...buildSortPayload(),
+					},
+					signal: abortController.signal,
 				} );
+				result = response?.data?.data?.result || [];
+			}
 
-				setWebsiteTemplatesAIStep( [ ...allTemplatesList ] );
-				setWebsiteTemplateSearchResultsAIStep( [ ...results ] );
-				setIsFetching( false );
-				setLoadMoreTemplates( { showLoadMore: true } );
+			// Filter out Hidden templates based on the settings.
+			result = handleHiddenTemplates( result );
 
-				return true;
+			results = result.map( ( item ) => {
+				if ( Array.isArray( item.designs ) ) {
+					item.designs = item.designs.map( ( design ) => ( {
+						...design,
+						uniqueId: getRandomUniqueId(),
+					} ) );
+					return item;
+				}
+				return {
+					...item,
+					designs: [],
+				};
 			} );
 
-			await Promise.all( promises );
+			// Get the designs in sequence
+			result.forEach( ( item ) => {
+				if ( Array.isArray( item.designs ) ) {
+					allTemplatesList.push(
+						...item.designs.filter(
+							( template ) =>
+								! allTemplatesList.find(
+									( existingTemplate ) =>
+										existingTemplate.uuid === template.uuid
+								)
+						)
+					);
+				}
+			} );
+
+			setWebsiteTemplatesAIStep( [ ...allTemplatesList ] );
+			setWebsiteTemplateSearchResultsAIStep( [ ...results ] );
+			setIsFetching( false );
+			const isEmptyResults = allTemplatesList.length === 0;
+
+			let showLoadMoreTemplates = true;
+
+			if ( isEmptyResults ) {
+				showLoadMoreTemplates = false;
+			}
+			setLoadMoreTemplates( {
+				showLoadMore: showLoadMoreTemplates,
+				page: 1,
+			} );
+
+			// Add templates to load list
+			const templateIdList = allTemplatesList.map(
+				( { uniqueId } ) => uniqueId
+			);
+
+			setDesignLoadState( ( state ) => {
+				return {
+					...state,
+					loaded: isPageBuilderChanged ? [] : state.loaded,
+					toLoad: templateIdList.slice( 0, DESIGN_LOAD_BATCH_COUNT ),
+				};
+			} );
+
+			if ( isDefaultSort && allTemplatesList.length < 4 ) {
+				fetchAllTemplatesByPage( 1, {
+					searchResults: results,
+					templateList: allTemplatesList,
+					showLoadMoreTemplates,
+				} );
+			}
 		} catch ( error ) {
 			if ( error?.name === 'AbortError' ) {
 				return;
@@ -273,11 +414,19 @@ const SelectTemplate = () => {
 		}
 	};
 
-	const fetchAllTemplatesByPage = async ( page = 1 ) => {
+	const fetchAllTemplatesByPage = async (
+		page = 1,
+		{
+			searchResults = templateSearchResults,
+			templateList = allTemplates,
+			_showLoadMoreTemplates = loadMoreTemplates,
+		} = {}
+	) => {
 		try {
-			if ( loadMoreTemplates.loading ) {
+			if ( loadMoreTemplates.loading || ! _showLoadMoreTemplates ) {
 				return;
 			}
+
 			setLoadMoreTemplates( { loading: true } );
 
 			const response = await apiFetch( {
@@ -285,8 +434,13 @@ const SelectTemplate = () => {
 				method: 'POST',
 				data: {
 					business_name: businessName,
+					page_builder: selectedBuilder,
 					per_page: 9,
 					page,
+					...( ! isDefaultSort && {
+						keyword: debouncedKeyword || getInitialUserKeyword(),
+					} ),
+					...buildSortPayload(),
 				},
 			} );
 
@@ -300,43 +454,101 @@ const SelectTemplate = () => {
 			let result = response?.data?.data?.result || [];
 			const lastPage = response?.data?.data?.lastPage || 1;
 
-			// Filter out premium templates if `show_premium_template` is false.
-			result = maybeHidePremiumTemplates( result );
+			// Filter out Hidden templates based on the settings.
 
-			const updatedAllTemplates = [
-				...allTemplates,
-				...result.map( ( item ) => item.designs ).flat(),
-			];
-			const updatedSearchResults = [ ...templateSearchResults ];
-			result.forEach( ( item ) => {
-				if ( ! item?.match ) {
-					return;
+			result = handleHiddenTemplates( result );
+
+			// Get the the designs in sequence
+			const allTemplatesList = templateList ? [ ...templateList ] : [];
+			const newSearchResults = searchResults ? [ ...searchResults ] : [];
+
+			const allTemplatesListUUID = allTemplatesList.map(
+				( template ) => template.uuid
+			);
+
+			// There might be duplicates with same uuid, so add a uniqueId for each
+			result = result.map( ( item ) => {
+				if ( Array.isArray( item.designs ) ) {
+					item.designs = item.designs.map( ( design ) => {
+						if ( allTemplatesListUUID.includes( design.uuid ) ) {
+							return false;
+						}
+
+						// else return the design with a uniqueId
+						return {
+							...design,
+							uniqueId: getRandomUniqueId(),
+						};
+					} );
+
+					item.designs = item.designs.filter( ( design ) => design );
+					return item;
 				}
-				const indx = updatedSearchResults.findIndex(
-					( searchResult ) => searchResult?.match === item?.match
-				);
-				if ( indx !== -1 ) {
-					const existingDesigns = updatedSearchResults[
-						indx
-					].designs.map( ( design ) => design.uuid );
-					const newDesigns = item.designs.filter(
-						( designItem ) =>
-							! existingDesigns.includes( designItem.uuid )
-					);
-					updatedSearchResults[ indx ].designs = [
-						...updatedSearchResults[ indx ].designs,
-						...newDesigns,
-					];
-				}
+
+				return {
+					...item,
+					designs: [],
+				};
 			} );
 
-			setWebsiteTemplatesAIStep( updatedAllTemplates );
-			setWebsiteTemplateSearchResultsAIStep( updatedSearchResults );
+			result.forEach( ( item ) => {
+				if ( Array.isArray( item.designs ) ) {
+					allTemplatesList.push( ...item.designs );
+				}
+				newSearchResults.map( ( searchResult, ind ) => {
+					if ( searchResult.match === item.match ) {
+						searchResult.designs = [
+							...searchResult.designs,
+							...item.designs.filter(
+								( itm ) =>
+									! searchResult.designs.some(
+										( existingItem ) =>
+											existingItem.uuid === itm.uuid
+									)
+							),
+						];
+					}
+					newSearchResults[ ind ] = searchResult;
+					return searchResult;
+				} );
+			} );
 
-			if ( page === lastPage ) {
+			setWebsiteTemplatesAIStep( allTemplatesList );
+			setWebsiteTemplateSearchResultsAIStep( newSearchResults );
+
+			const templateIdList = allTemplatesList.map(
+				( { uniqueId } ) => uniqueId
+			);
+			// If toLoad list is empty, add new templates to load
+			setDesignLoadState( ( state ) => {
+				const newLoadList = templateIdList
+					.filter(
+						( uniqueId ) => ! state.loaded.includes( uniqueId )
+					)
+					.slice( 0, DESIGN_LOAD_BATCH_COUNT );
+
+				const isToLoadListEmpty = state.toLoad.length === 0;
+				const toLoad = isToLoadListEmpty ? newLoadList : state.toLoad;
+				return {
+					...state,
+					toLoad,
+				};
+			} );
+
+			const isEmptyResults = result.every(
+				( item ) => item.designs.length === 0
+			);
+
+			if ( page === lastPage || isEmptyResults ) {
 				setLoadMoreTemplates( { showLoadMore: false } );
 			}
+			setIsFetching( false );
+
+			setLoadMoreTemplates( {
+				page: loadMoreTemplates.page + 1,
+			} );
 		} catch ( error ) {
+			setIsFetching( false );
 			toast.error(
 				toastBody( {
 					message: error?.message?.toString(),
@@ -365,11 +577,54 @@ const SelectTemplate = () => {
 		};
 	}, [] );
 
-	useEffect( () => {
+	const resetState = () => {
+		// clear the state before calling the API
+		setLoadMoreTemplates( {
+			page: 1,
+			loading: false,
+			showLoadMore: false,
+		} );
+		setDesignLoadState( {
+			toLoad: [],
+			loaded: [],
+		} );
+		setWebsiteTemplatesAIStep( [] );
+		setWebsiteTemplateSearchResultsAIStep( [] );
+		setSelectedTemplateIsPremium( '' );
+		setWebsiteSelectedTemplateAIStep( '' );
+		setBackToTop( false );
+	};
+
+	const fetchNewTemplates = ( isPageBuilderChanged = false ) => {
+		resetState();
 		fetchTemplates(
-			debouncedKeyword ? debouncedKeyword : getInitialUserKeyword()
+			debouncedKeyword ? debouncedKeyword : getInitialUserKeyword(),
+			isPageBuilderChanged
 		);
-	}, [ debouncedKeyword ] );
+	};
+
+	useEffect( () => {
+		fetchNewTemplates( false );
+	}, [ debouncedKeyword, sortBy ] );
+
+	useEffect( () => {
+		// if there's a uuid in the query params, find the template
+		const urlParams = new URLSearchParams( window.location.search );
+		const templateUuid = urlParams.get( 'uuid' );
+
+		if ( templateUuid ) {
+			const selectedTemplateItem = allTemplates?.find(
+				( item ) => item?.uuid === templateUuid
+			);
+			if ( selectedTemplateItem ) {
+				setWebsiteSelectedTemplateAIStep( selectedTemplateItem.uuid );
+				setSelectedTemplateIsPremium( selectedTemplateItem.is_premium );
+				setWebsiteLogo( siteLogoDefault );
+				setWebsiteTypography( null );
+				setSiteTitleVisible( true );
+			}
+		}
+	}, [] );
 
 	const handleSubmitKeyword = ( { keyword } ) => {
 		onChangeKeyword( keyword );
@@ -384,66 +639,159 @@ const SelectTemplate = () => {
 	};
 
 	const onChangeKeyword = ( value = '' ) => {
+		resetState();
 		fetchTemplates( value );
-		setWebsiteSelectedTemplateAIStep( '' );
-		setSelectedTemplateIsPremium( '' );
 	};
 
 	const renderTemplates = useMemo( () => {
+		const recommendedTemplates = getTemplates( TEMPLATE_TYPE.RECOMMENDED );
+		const partialTemplates = getTemplates( TEMPLATE_TYPE.PARTIAL );
+		const genericTemplates = getTemplates( TEMPLATE_TYPE.GENERIC );
+
 		if (
-			! getTemplates( TEMPLATE_TYPE.RECOMMENDED )?.length &&
-			! getTemplates( TEMPLATE_TYPE.PARTIAL )?.length &&
-			! getTemplates( TEMPLATE_TYPE.GENERIC )?.length
+			! recommendedTemplates?.length &&
+			! partialTemplates?.length &&
+			! genericTemplates?.length
 		) {
-			return null;
+			return (
+				<div className="col-span-full flex flex-col items-center justify-center py-16">
+					<div className="text-base font-semibold text-app-heading">
+						{ __( 'No templates found', 'ai-builder' ) }
+					</div>
+					<div className="text-sm mt-2 text-zip-body-text">
+						{ __(
+							'Try changing your search keyword or sort options.',
+							'ai-builder'
+						) }
+					</div>
+				</div>
+			);
 		}
+
+		const recommendedTemplateIdSet = new Set(
+			recommendedTemplates.map( ( { uuid } ) => uuid )
+		);
+		const partialTemplateIdSet = new Set(
+			partialTemplates.map( ( { uuid } ) => uuid )
+		);
+
+		const filteredGenericTemplates = genericTemplates.filter(
+			( { uuid } ) =>
+				! recommendedTemplateIdSet.has( uuid ) &&
+				! partialTemplateIdSet.has( uuid )
+		);
 
 		return (
 			<>
-				{ getTemplates( TEMPLATE_TYPE.RECOMMENDED )?.map(
-					( template, index ) => (
-						<ColumnItem
-							key={ template.uuid }
-							template={ template }
-							position={ index + 1 }
-						/>
-					)
-				) }
-				{ getTemplates( TEMPLATE_TYPE.PARTIAL )?.map(
-					( template, index ) => (
-						<ColumnItem
-							key={ template.uuid }
-							template={ template }
-							position={
-								index +
-								1 +
-								( getTemplates( TEMPLATE_TYPE.RECOMMENDED )
-									?.length || 0 )
-							}
-						/>
-					)
-				) }
-				{ getTemplates( TEMPLATE_TYPE.GENERIC )?.map(
-					( template, index ) => (
-						<ColumnItem
-							key={ template.uuid }
-							template={ template }
-							position={
-								index +
-								1 +
-								( ( getTemplates( TEMPLATE_TYPE.RECOMMENDED )
-									?.length || 0 ) +
-									( getTemplates( TEMPLATE_TYPE.PARTIAL )
-										?.length || 0 ) )
-							}
-						/>
-					)
-				) }
+				{ recommendedTemplates?.map( ( template, index ) => (
+					<ColumnItem
+						key={ template.uniqueId }
+						template={ template }
+						position={ index + 1 }
+						onIframeLoaded={ onIframeLoaded } // callback to track load
+						shouldLoad={ designToLoadList.includes(
+							template.uniqueId
+						) }
+						shuffleCount={ shuffleCount }
+					/>
+				) ) }
+				{ partialTemplates?.map( ( template, index ) => (
+					<ColumnItem
+						key={ template.uniqueId }
+						template={ template }
+						position={
+							index + 1 + ( recommendedTemplates?.length || 0 )
+						}
+						onIframeLoaded={ onIframeLoaded } // callback to track load
+						shouldLoad={ designToLoadList.includes(
+							template.uniqueId
+						) }
+						shuffleCount={ shuffleCount }
+					/>
+				) ) }
+				{ filteredGenericTemplates?.map( ( template, index ) => (
+					<ColumnItem
+						key={ template.uniqueId }
+						template={ template }
+						position={
+							index +
+							1 +
+							( ( recommendedTemplates?.length || 0 ) +
+								( partialTemplates?.length || 0 ) )
+						}
+						onIframeLoaded={ onIframeLoaded } // callback to track load
+						shouldLoad={ designToLoadList.includes(
+							template.uniqueId
+						) }
+						shuffleCount={ shuffleCount }
+					/>
+				) ) }
 			</>
 		);
-	}, [ getTemplates ] );
+	}, [ getTemplates, designToLoadList, shuffleCount ] );
 
-	const handleShowBackToTop = ( event ) => {
+	const handleClickBackToTop = () => {
+		parentContainer.current.scrollTo( {
+			top: 0,
+			behavior: 'smooth',
+		} );
+	};
+
+	const lastVisibleTemplateCheckTop = useRef( 0 );
+	const checkForVisibleTemplates = ( target ) => {
+		const { scrollTop, clientHeight } = target;
+
+		if ( lastVisibleTemplateCheckTop.current === scrollTop ) {
+			return;
+		}
+		lastVisibleTemplateCheckTop.current = scrollTop;
+
+		const designs = target.querySelectorAll( '.design-template' );
+
+		const TOP_SEARCHBAR_HEIGHT = 80;
+		const BOTTOM_NAVBAR_HEIGHT = 80;
+
+		const actualClientHeight = clientHeight - TOP_SEARCHBAR_HEIGHT;
+		const actualScrollTop = scrollTop - TOP_SEARCHBAR_HEIGHT;
+		const actualScrollBottom =
+			actualScrollTop + actualClientHeight - BOTTOM_NAVBAR_HEIGHT;
+
+		const designList = Array.from( designs ).map( ( design ) => ( {
+			middlePoint: design.offsetTop + design.clientHeight / 2,
+			uniqueId: design.getAttribute( 'data-template-unique-id' ),
+		} ) );
+
+		const visibleTemplateIdList = designList
+			.filter( ( design ) => {
+				return (
+					design.middlePoint >= actualScrollTop &&
+					design.middlePoint <= actualScrollBottom // Middle point is within the range
+				);
+			} )
+			.map( ( { uniqueId } ) => uniqueId );
+
+		setDesignLoadState( ( state ) => {
+			const filterVisibleList = visibleTemplateIdList.filter(
+				( uniqueId ) =>
+					! (
+						state.loaded.includes( uniqueId ) &&
+						! state.toLoad.includes( uniqueId )
+					)
+			);
+
+			return {
+				...state,
+				toLoad: [ ...state.toLoad, ...filterVisibleList ],
+			};
+		} );
+	};
+
+	// Wait X amount of time after user scrolls and then checkForVisibleTemplates
+	const debouncedCheckForVisibleTemplates = debounce( ( target ) => {
+		checkForVisibleTemplates( target );
+	}, 2000 );
+
+	const handleScroll = ( event ) => {
 		const SCROLL_THRESHOLD = 100;
 		const { scrollTop } = event.target;
 
@@ -453,13 +801,8 @@ const SelectTemplate = () => {
 		if ( scrollTop <= SCROLL_THRESHOLD && backToTop ) {
 			setBackToTop( false );
 		}
-	};
 
-	const handleClickBackToTop = () => {
-		parentContainer.current.scrollTo( {
-			top: 0,
-			behavior: 'smooth',
-		} );
+		debouncedCheckForVisibleTemplates( event.target );
 	};
 
 	return (
@@ -469,40 +812,105 @@ const SelectTemplate = () => {
 				`mx-auto flex flex-col overflow-x-hidden`,
 				'w-full'
 			) }
-			onScroll={ handleShowBackToTop }
+			onScroll={ handleScroll }
 		>
 			<Heading
 				heading={ __( 'Choose the Design', 'ai-builder' ) }
-				className="px-5 md:px-10 lg:px-14 xl:px-15 pt-5 md:pt-10 lg:pt-8 xl:pt-8 max-w-fit mx-auto"
+				className="w-full px-5 md:px-10 lg:px-14 xl:px-15 pt-12 max-w-fit mx-auto text-[28px] font-semibold leading-9"
 			/>
 			<form
-				className="w-full pt-6 pb-14 max-w-[37.5rem] mx-auto"
+				className="w-full pt-4 pb-4 max-w-[37.5rem] mx-auto"
 				onSubmit={ handleSubmit( handleSubmitKeyword ) }
 			>
-				<Input
-					name="keyword"
-					inputClassName="pl-4"
-					register={ register }
-					placeholder={ __( 'Add a keyword', 'ai-builder' ) }
-					height="12"
-					error={ errors?.keyword }
-					suffixIcon={
-						<div className="absolute right-4 flex items-center">
-							<button
-								type="button"
-								className="w-auto h-auto p-0 flex items-center justify-center cursor-pointer bg-transparent border-0 focus:outline-none"
-								onClick={ handleClearSearch }
-							>
-								{ watchedKeyword ? (
-									<XMarkIcon className="w-5 h-5 text-zip-app-inactive-icon" />
-								) : (
-									<MagnifyingGlassIcon className="w-5 h-5 text-zip-app-inactive-icon" />
-								) }
-							</button>
-						</div>
-					}
-				/>
+				<div
+					className={ classNames(
+						'flex w-full bg-white items-center rounded-md shadow-sm border border-border-tertiary'
+					) }
+				>
+					<Input
+						name="keyword"
+						inputClassName={ 'pr-11 pl-2 !text-base' }
+						register={ register }
+						placeholder={ __( 'Add a keyword', 'ai-builder' ) }
+						height="12"
+						className="w-full h-12"
+						noBorder={ true }
+						error={ errors?.keyword }
+						prefixIcon={
+							<MagnifyingGlassIcon className="w-5 h-5 text-zip-app-inactive-icon ml-4 shrink-0" />
+						}
+						suffixIcon={
+							<div className="absolute right-4 flex items-center">
+								<button
+									type="button"
+									className="w-auto h-auto p-0 flex items-center justify-center cursor-pointer bg-transparent border-0 focus:outline-none"
+									onClick={ handleClearSearch }
+								>
+									{ watchedKeyword ? (
+										<XMarkIcon className="w-5 h-5 text-zip-app-inactive-icon" />
+									) : null }
+								</button>
+							</div>
+						}
+					/>
+				</div>
 			</form>
+
+			<div className="flex items-center justify-between flex-wrap gap-2.5 md:flex-nowrap md:gap-0 px-5 md:px-10 lg:px-14 xl:px-15 mt-2">
+				{ /* Page builder pills */ }
+				<div className="flex items-center gap-1 p-2 rounded-md bg-white">
+					{ buildersList.map( ( builder ) => (
+						<button
+							key={ builder.id }
+							type="button"
+							className={ classNames(
+								'flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm cursor-pointer border-0 transition-all duration-200',
+								selectedBuilder === builder.id
+									? 'bg-[#F2F4F7] font-semibold text-heading-text'
+									: 'bg-transparent font-normal text-zip-body-text hover:text-heading-text'
+							) }
+							onClick={ () => {
+								setSelectedBuilder( builder.id );
+								fetchTemplates(
+									watchedKeyword
+										? watchedKeyword
+										: getInitialUserKeyword(),
+									true,
+									builder.id
+								);
+							} }
+						>
+							<img
+								className="w-5 h-5"
+								src={ builder.image }
+								alt={ builder.title }
+							/>
+							{ builder.title }
+						</button>
+					) ) }
+				</div>
+
+				{ /* Sort + Shuffle */ }
+				<div className="flex items-center gap-3">
+					<SortByDropdown
+						value={ sortBy }
+						onChange={ ( option ) => setSortBy( option.id ) }
+					/>
+					<Tooltip
+						content={ __( 'Shuffle Colors', 'ai-builder' ) }
+						placement="top"
+					>
+						<button
+							type="button"
+							className="flex items-center justify-center gap-2 h-10 px-3 rounded-lg border border-solid border-border-tertiary bg-white text-heading-text hover:bg-[#F4F7FB] cursor-pointer transition-colors duration-200"
+							onClick={ handleShuffleColors }
+						>
+							<SwatchIcon className="w-5 h-5" />
+							<ArrowsRightLeftIcon className="w-5 h-5" />
+						</button>
+					</Tooltip>
+				</div>
+			</div>
 
 			<div
 				ref={ templatesContainer }
@@ -516,7 +924,7 @@ const SelectTemplate = () => {
 				<div
 					ref={ templatesContainer }
 					className={ classNames(
-						'grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-auto items-start justify-center gap-6 mb-10'
+						'grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 auto-rows-auto items-start justify-center gap-4 sm:gap-6 mb-10 mt-5'
 					) }
 				>
 					{ ! isFetching
@@ -528,7 +936,7 @@ const SelectTemplate = () => {
 			</div>
 
 			{ loadMoreTemplates.showLoadMore && (
-				<div className="align-center flex justify-center">
+				<div className="align-center flex justify-center sm:pb-0 pb-40">
 					<Button
 						className="min-w-[188px] min-h-[50px]"
 						variant="primary"
@@ -537,9 +945,6 @@ const SelectTemplate = () => {
 								return;
 							}
 							fetchAllTemplatesByPage( loadMoreTemplates.page );
-							setLoadMoreTemplates( {
-								page: loadMoreTemplates.page + 1,
-							} );
 						} }
 						disabled={ loadMoreTemplates.loading }
 					>
@@ -564,7 +969,7 @@ const SelectTemplate = () => {
 				</div>
 			) }
 
-			<div className="sticky bottom-0 bg-container-background py-4.75 px-5 md:px-10 lg:px-14 xl:px-15">
+			<div className="fixed sm:sticky bottom-0 w-full bg-container-background py-4.75 px-5 md:px-10 lg:px-14 xl:px-15">
 				<NavigationButtons
 					onClickPrevious={ previousStep }
 					hideContinue

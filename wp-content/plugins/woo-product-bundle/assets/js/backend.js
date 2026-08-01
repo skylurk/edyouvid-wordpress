@@ -54,6 +54,54 @@
         }
     });
 
+    // import/export
+    $(document).on('click touch', '.woosb-import-export', function (e) {
+        e.preventDefault();
+
+        var ids = $('#woosb_selected').find('input, select').serialize() || 0;
+
+        if (!$('#woosb_import_export').length) {
+            $('body').append('<div id=\'woosb_import_export\'></div>');
+        }
+
+        $('#woosb_import_export').html('Loading...');
+
+        $('#woosb_import_export').dialog({
+            minWidth: 460, title: 'Import/Export', modal: true, dialogClass: 'wpc-dialog', open: function () {
+                $('.ui-widget-overlay').bind('click', function () {
+                    $('#woosb_import_export').dialog('close');
+                });
+            },
+        });
+
+        var data = {
+            action: 'woosb_import_export', ids: ids, nonce: woosb_vars.nonce,
+        };
+
+        $.post(ajaxurl, data, function (response) {
+            $('#woosb_import_export').html(response);
+        });
+    });
+
+    $(document).on('click touch', '.woosb-import-export-save', function (e) {
+        if (confirm('Are you sure?')) {
+            $(this).addClass('disabled');
+
+            var ids = $('.woosb_import_export_data').val();
+            var data = {
+                action: 'woosb_import_export_save', ids: ids, nonce: woosb_vars.nonce,
+            };
+
+            $.post(ajaxurl, data, function (response) {
+                $('#woosb_import_export').dialog('close');
+                $('#woosb_selected .woosb-ul').html(response);
+                woosb_arrange();
+                woosb_change_price();
+                woosb_init_item();
+            });
+        }
+    });
+
     $(document).on('click touch', '#woosb_search_settings_update', function (e) {
         // save search settings
         e.preventDefault();

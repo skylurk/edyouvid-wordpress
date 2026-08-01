@@ -86,6 +86,28 @@ class Widget_Spacer extends Widget_Base {
 		return [ 'space' ];
 	}
 
+	protected function is_dynamic_content(): bool {
+		return false;
+	}
+
+	/**
+	 * Get style dependencies.
+	 *
+	 * Retrieve the list of style dependencies the widget requires.
+	 *
+	 * @since 3.24.0
+	 * @access public
+	 *
+	 * @return array Widget style dependencies.
+	 */
+	public function get_style_depends(): array {
+		return [ 'widget-spacer' ];
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
+	}
+
 	/**
 	 * Register spacer widget controls.
 	 *
@@ -169,5 +191,9 @@ class Widget_Spacer extends Widget_Base {
 			<div class="elementor-spacer-inner"></div>
 		</div>
 		<?php
+	}
+
+	public function render_markdown(): string {
+		return '';
 	}
 }

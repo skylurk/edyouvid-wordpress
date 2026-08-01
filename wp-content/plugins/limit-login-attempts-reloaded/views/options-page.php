@@ -8,20 +8,16 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit();
 }
 
-$active_tab = "dashboard";
-$active_app = ( Config::get( 'active_app' ) === 'custom' && LimitLoginAttempts::$cloud_app ) ? 'custom' : 'local';
-$is_active_app_custom = $active_app === 'custom';
+$allowed_tabs = array( 'dashboard', 'logs-local', 'logs-custom', 'settings', 'debug', 'premium', 'help', 'mfa' );
+$requested_tab = isset( $_GET['tab'] ) && is_string( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : '';
+$active_tab = in_array( $requested_tab, $allowed_tabs, true ) ? $requested_tab : 'dashboard';
 
-if ( ! empty( $_GET["tab"]) && in_array( $_GET["tab"], array( 'logs-local', 'logs-custom', 'settings', 'debug', 'premium', 'help' ) ) ) {
-
-	if ( ! LimitLoginAttempts::$cloud_app && $_GET['tab'] === 'logs-custom' ) {
-
-		$active_tab = 'logs-local';
-	} else {
-
-		$active_tab = sanitize_text_field( $_GET["tab"] );
-	}
+if ( $active_tab === 'logs-custom' && ! LimitLoginAttempts::$cloud_app ) {
+	$active_tab = 'logs-local';
 }
+
+$active_app = ( Config::get( Config::OPTION_ACTIVE_APP ) === 'custom' && LimitLoginAttempts::$cloud_app ) ? 'custom' : 'local';
+$is_active_app_custom = $active_app === 'custom';
 
 $auto_update_choice = Config::get( 'auto_update_choice' );
 $is_agency = false;
@@ -82,20 +78,37 @@ if ( $is_active_app_custom ) {
     <?php endif; ?>
 </div>
 
-<?php if ( ( $auto_update_choice || $auto_update_choice === null ) && !Helpers::is_auto_update_enabled() ) : ?>
-<div class="notice notice-error llar-auto-update-notice">
-    <p>
-        <?php _e( 'Do you want Limit Login Attempts Reloaded to provide the latest version automatically?', 'limit-login-attempts-reloaded' ); ?>
-        <a href="#" class="auto-enable-update-option" data-val="yes">
-            <?php _e( 'Yes, enable auto-update', 'limit-login-attempts-reloaded' ); ?>
-        </a>
-        |
-        <a href="#" class="auto-enable-update-option" data-val="no">
-            <?php _e( 'No thanks', 'limit-login-attempts-reloaded' ); ?>
-        </a>
-    </p>
-</div>
-<?php endif; ?>
+<?php
+if ( ! empty( $this->pending_admin_message ) ) {
+	$this->render_admin_notice( 'flash', $this->pending_admin_message );
+	$this->pending_admin_message = null;
+}
+if ( $this->should_show_mfa_recovery_links_expired_notice() ) {
+	$this->render_admin_notice(
+		'mfa-recovery-links-expired',
+		array(
+			'mfa_url' => $this->get_options_page_uri( 'mfa' ),
+		)
+	);
+}
+if ( ( $auto_update_choice || $auto_update_choice === null ) && ! Helpers::is_auto_update_enabled() ) {
+	$this->render_admin_notice( 'auto-update', array() );
+}
+if ( $active_tab === 'mfa' && ! is_ssl() ) {
+	$this->render_admin_notice( 'https-recommended-mfa', array() );
+}
+if ( 'debug' === $active_tab && $this->has_capability ) {
+	$foreign_authenticate_hooks = LimitLoginAttempts::get_foreign_authenticate_hooks();
+	if ( ! empty( $foreign_authenticate_hooks ) ) {
+		$this->render_admin_notice(
+			'debug-foreign-auth-hooks',
+			array(
+				'hooks' => $foreign_authenticate_hooks,
+			)
+		);
+	}
+}
+?>
 
 <div id="llar_popup_error_content" style="display: none">
     <div class="popup_error_content__content">
@@ -150,6 +163,10 @@ if ( $is_active_app_custom ) {
         <a href="<?php echo $this->get_options_page_uri( 'settings' ); ?>"
            class="nav-tab<?php echo $active_tab === 'settings' ? $nav_tab_active : '' ?>">
             <?php _e( 'Settings', 'limit-login-attempts-reloaded' ); ?>
+        </a>
+        <a href="<?php echo $this->get_options_page_uri( 'mfa' ); ?>"
+           class="nav-tab<?php echo $active_tab === 'mfa' ? $nav_tab_active : '' ?>">
+            <?php _e( '2FA', 'limit-login-attempts-reloaded' ); ?>
         </a>
 
         <?php if( $active_app === 'custom' ) : ?>

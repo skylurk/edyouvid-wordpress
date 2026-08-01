@@ -3,8 +3,6 @@
  * Helper class for font settings.
  *
  * @package     Astra
- * @author      Astra
- * @copyright   Copyright (c) 2020, Astra
  * @link        https://wpastra.com/
  * @since       Astra 1.0.19
  */
@@ -17,13 +15,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Font info class for System and Google fonts.
  */
-if ( ! class_exists( 'Astra_Font_Families' ) ) :
+if ( ! class_exists( 'Astra_Font_Families' ) ) {
 
 	/**
 	 * Font info class for System and Google fonts.
 	 */
 	final class Astra_Font_Families {
-
 		/**
 		 * System Fonts
 		 *
@@ -118,6 +115,36 @@ if ( ! class_exists( 'Astra_Font_Families' ) ) :
 		}
 
 		/**
+		 * Variant labels.
+		 *
+		 * @since 3.8.0
+		 * @return array
+		 */
+		public static function font_variant_labels() {
+			return array(
+				'100'       => __( 'Thin 100', 'astra' ),
+				'200'       => __( 'Extra Light 200', 'astra' ),
+				'300'       => __( 'Light 300', 'astra' ),
+				'400'       => __( 'Regular 400', 'astra' ),
+				'500'       => __( 'Medium 500', 'astra' ),
+				'600'       => __( 'Semi-Bold 600', 'astra' ),
+				'700'       => __( 'Bold 700', 'astra' ),
+				'800'       => __( 'Extra-Bold 800', 'astra' ),
+				'900'       => __( 'Ultra-Bold 900', 'astra' ),
+				'100italic' => __( 'Thin 100 Italic', 'astra' ),
+				'200italic' => __( 'Extra Light 200 Italic', 'astra' ),
+				'300italic' => __( 'Light 300 Italic', 'astra' ),
+				'400italic' => __( 'Regular 400 Italic', 'astra' ),
+				'italic'    => __( 'Regular 400 Italic', 'astra' ),
+				'500italic' => __( 'Medium 500 Italic', 'astra' ),
+				'600italic' => __( 'Semi-Bold 600 Italic', 'astra' ),
+				'700italic' => __( 'Bold 700 Italic', 'astra' ),
+				'800italic' => __( 'Extra-Bold 800 Italic', 'astra' ),
+				'900italic' => __( 'Ultra-Bold 900 Italic', 'astra' ),
+			);
+		}
+
+		/**
 		 * Google Fonts used in astra.
 		 * Array is generated from the google-fonts.json file.
 		 *
@@ -144,7 +171,7 @@ if ( ! class_exists( 'Astra_Font_Families' ) ) :
 
 				$google_fonts_arr = include $google_fonts_file;// phpcs:ignore: WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound
 
-				foreach ( $google_fonts_arr as $key => $font ) {
+				foreach ( $google_fonts_arr as $font ) {
 					$name = key( $font );
 					foreach ( $font[ $name ] as $font_key => $single_font ) {
 
@@ -152,7 +179,7 @@ if ( ! class_exists( 'Astra_Font_Families' ) ) :
 
 							foreach ( $single_font as $variant_key => $variant ) {
 
-								if ( 'regular' == $variant ) {
+								if ( 'regular' === $variant ) {
 									$font[ $name ][ $font_key ][ $variant_key ] = '400';
 								}
 							}
@@ -168,4 +195,4 @@ if ( ! class_exists( 'Astra_Font_Families' ) ) :
 
 	}
 
-endif;
+}

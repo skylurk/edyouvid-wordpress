@@ -51,6 +51,27 @@ const actions = {
 		};
 	},
 
+	setConfirmationStartOverModal( confirmationStartOverModal ) {
+		return {
+			type: actionsTypes.SET_CONFIRMATION_START_OVER_MODAL,
+			payload: confirmationStartOverModal,
+		};
+	},
+
+	setSignupLoginModal( signupLoginModal ) {
+		return {
+			type: actionsTypes.SET_SIGNUP_LOGIN_MODAL,
+			payload: signupLoginModal,
+		};
+	},
+
+	setReconnectModal( reconnectModal ) {
+		return {
+			type: actionsTypes.SET_RECONNECT_MODAL,
+			payload: reconnectModal,
+		};
+	},
+
 	setWebsiteTypeAIStep( websiteType ) {
 		return {
 			type: actionsTypes.SET_WEBSITE_TYPE_AI_STEP,
@@ -69,6 +90,27 @@ const actions = {
 		return {
 			type: actionsTypes.SET_WEBSITE_NAME_AI_STEP,
 			payload: websiteName,
+		};
+	},
+
+	setSiteGoalsAIStep( siteGoals ) {
+		return {
+			type: actionsTypes.SET_SITE_GOALS_AI_STEP,
+			payload: siteGoals,
+		};
+	},
+
+	setSiteToneAIStep( siteTone ) {
+		return {
+			type: actionsTypes.SET_SITE_TONE_AI_STEP,
+			payload: siteTone,
+		};
+	},
+
+	setUserKeywordsAIStep( userKeywords ) {
+		return {
+			type: actionsTypes.SET_USER_KEYWORDS_AI_STEP,
+			payload: userKeywords,
 		};
 	},
 
@@ -248,6 +290,20 @@ const actions = {
 	setFullOnboardingState( payload ) {
 		return {
 			type: actionsTypes.SET_FULL_ONBOARDING_STATE,
+			payload,
+		};
+	},
+
+	setSelectedPageBuilder( payload ) {
+		return {
+			type: actionsTypes.SET_SELECTED_PAGE_BUILDER,
+			payload,
+		};
+	},
+
+	setEcommerceType( payload ) {
+		return {
+			type: actionsTypes.SET_ECOMMERCE_TYPE,
 			payload,
 		};
 	},

@@ -4,7 +4,10 @@
  * uninstall.php
 */
 
-	// if uninstall.php is not called by WordPress, die
+	if ( ! defined( 'ABSPATH' ) ) {
+		exit; // Exit if accessed directly
+	}
+	
 	if (!defined('WP_UNINSTALL_PLUGIN')) {
 		die;
 	}
@@ -21,11 +24,11 @@
 	// Удаляем метаполя Плагина у всех Пользователей
 	global $wpdb;
 	
-	$num_usermeta_table = $wpdb -> prefix .'usermeta';
-	$meta_key = 'num_confirm';
+	$NUM_usermeta_table = $wpdb -> prefix .'usermeta';
+	$NUM_meta_key = 'num_confirm';
 
 	// prepare for Delete - not need.
-	$Query = "DELETE FROM $num_usermeta_table WHERE meta_key = $meta_key";
-	NUM_Debugger ($Query, '$Query', $debug_process, __FUNCTION__, __LINE__);
+	$NUM_Query = "DELETE FROM $NUM_usermeta_table WHERE meta_key = $NUM_meta_key";
+	NUM_Debugger ($NUM_Query, '$NUM_Query', $debug_process, __FUNCTION__, __LINE__);
 	
-	$wpdb -> query( $Query );  // phpcs:ignore 
+	$wpdb -> query( $NUM_Query );  // phpcs:ignore 

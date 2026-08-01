@@ -84,11 +84,37 @@ class THWCFD_Block_Integration implements IntegrationInterface {
 		$default_keys = ['contact', 'address', 'order', 'additional_info'];
 		$additional_sections = array_diff_key($all_sections, array_flip($default_keys));
 		$cfe_free_sections = array_intersect_key($all_sections, array_flip($default_keys));
+		if ( apply_filters( 'thwcfd_decode_block_field_entities', false ) ) {
+			$this->decode_block_field_entities( $additional_sections );
+			$this->decode_block_field_entities( $cfe_free_sections );
+		}
 		$data = [
 			'additionalSections' => $additional_sections,
 			'allSections' => $cfe_free_sections,
 		];
 		return $data;
+	}
+
+	private function decode_block_field_entities( &$sections ) {
+		if ( ! is_array( $sections ) ) {
+			return;
+		}
+		foreach ( $sections as $section ) {
+			if ( ! isset( $section->fields ) || ! is_array( $section->fields ) ) {
+				continue;
+			}
+			foreach ( $section->fields as $field ) {
+				if ( ! is_object( $field ) ) {
+					continue;
+				}
+				if ( isset( $field->title ) && is_string( $field->title ) ) {
+					$field->title = wp_specialchars_decode( $field->title, ENT_QUOTES );
+				}
+				if ( isset( $field->property_set['default'] ) && is_string( $field->property_set['default'] ) ) {
+					$field->property_set['default'] = wp_specialchars_decode( $field->property_set['default'], ENT_QUOTES );
+				}
+			}
+		}
 	}
 
      /**

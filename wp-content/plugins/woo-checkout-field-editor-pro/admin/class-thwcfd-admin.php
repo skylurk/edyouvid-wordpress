@@ -140,7 +140,7 @@ class THWCFD_Admin {
 						
 						printf(
 							/* translators: %s: Support team link */
-							esc_html__("Our Checkout Field Editor now supports WooCommerce Checkout Blocks! Currently, a few field types are available, and more will be added soon. 
+							esc_html__("Our Checkout Field Editor now supports WooCommerce Checkout Blocks!
 							If you're using Block Checkout, make sure to switch to the Block Checkout Fields tab, otherwise, your changes won’t be reflected. Have questions or need help? 
 							Reach out to our  %s .", 'woo-checkout-field-editor-pro'),
 							'<a href="https://www.themehigh.com/docs/support/" target="_blank" class="quick-widget-support-link">' . esc_html__(' Support team', 'woo-checkout-field-editor-pro') . '</a>'

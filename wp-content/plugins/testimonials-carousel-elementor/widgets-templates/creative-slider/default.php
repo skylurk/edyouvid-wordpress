@@ -16,7 +16,8 @@ function get_default_creative_template($settings, $attributes)
   ?>
 
   <section class="creative">
-    <div class="swiper mySwiper mySwiperCreative">
+    <div
+        class="swiper mySwiper mySwiperCreative"<?php \TestimonialsCarouselElementor\Testimonials_Carousel_Slider_Render::print_data_attributes($settings); ?>>
       <div class="swiper-wrapper">
         <?php $counter = 1;
         foreach ($slide as $item) {
@@ -55,20 +56,29 @@ function get_default_creative_template($settings, $attributes)
       </div>
     <?php }
 
-    if (
-        esc_attr($settings['navigation']) === "dots" || esc_attr($settings['navigation']) === "both"
-    ) { ?>
-      <div class="swiper-pagination"></div>
-    <?php }
+    if (esc_attr($settings['navigation']) !== "none") { ?>
+      <div class="creative__navigation">
+        <?php if (
+            esc_attr($settings['navigation']) === "both" || esc_attr($settings['navigation']) === "arrows"
+        ) { ?>
+          <div class="swiper-button-prev">
+            <?php Icons_Manager::render_icon($settings['icon_scroll_left'], ['aria-hidden' => 'true']) ?>
+          </div>
+        <?php }
 
-    if (
-        esc_attr($settings['navigation']) === "both" || esc_attr($settings['navigation']) === "arrows"
-    ) { ?>
-      <div class="swiper-button-next">
-        <?php Icons_Manager::render_icon($settings['icon_scroll_right'], ['aria-hidden' => 'true']) ?>
-      </div>
-      <div class="swiper-button-prev">
-        <?php Icons_Manager::render_icon($settings['icon_scroll_left'], ['aria-hidden' => 'true']) ?>
+        if (
+            esc_attr($settings['navigation']) === "dots" || esc_attr($settings['navigation']) === "both"
+        ) { ?>
+          <div class="swiper-pagination"></div>
+        <?php }
+
+        if (
+            esc_attr($settings['navigation']) === "both" || esc_attr($settings['navigation']) === "arrows"
+        ) { ?>
+          <div class="swiper-button-next">
+            <?php Icons_Manager::render_icon($settings['icon_scroll_right'], ['aria-hidden' => 'true']) ?>
+          </div>
+        <?php } ?>
       </div>
     <?php } ?>
   </section>

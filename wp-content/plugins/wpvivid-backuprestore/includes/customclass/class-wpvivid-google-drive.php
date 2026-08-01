@@ -40,6 +40,7 @@ class Wpvivid_Google_drive extends WPvivid_Remote
                 add_filter('wpvivid_get_out_of_date_remote',array($this,'wpvivid_get_out_of_date_google_drive'),10,2);
                 add_filter('wpvivid_storage_provider_tran',array($this,'wpvivid_storage_provider_google_drive'),10);
                 add_filter('wpvivid_get_root_path',array($this,'wpvivid_get_root_path_google_drive'),10);
+                add_filter('wpvivid_edit_remote_options', array($this, 'edit_remote_options'), 10, 3);
                 define('WPVIVID_INIT_STORAGE_TAB_GOOGLE_DRIVE',1);
             }
 
@@ -275,6 +276,30 @@ class Wpvivid_Google_drive extends WPvivid_Remote
                     </tr>
                     <tr>
                         <td class="plugin-title column-primary">
+                            <div class="wpvivid-storage-form">
+                                <input style="width: 50px" type="text" class="regular-text" autocomplete="off" option="googledrive" name="upload_chunk_size" placeholder="" value="2" onkeyup="value=value.replace(/\D/g,'')" />MB
+                            </div>
+                        </td>
+                        <td class="column-description desc">
+                            <div class="wpvivid-storage-form-desc">
+                                <i>The size of each upload block. Reduce this value if you experience timeouts during file uploads.</i>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="plugin-title column-primary">
+                            <div class="wpvivid-storage-form">
+                                <input style="width: 50px" type="text" class="regular-text" autocomplete="off" option="googledrive" name="download_chunk_size" placeholder="" value="2" onkeyup="value=value.replace(/\D/g,'')" />MB
+                            </div>
+                        </td>
+                        <td class="column-description desc">
+                            <div class="wpvivid-storage-form-desc">
+                                <i>The size of each download block. Reduce this value if you experience timeouts during file downloads.</i>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="plugin-title column-primary">
                             <div class="wpvivid-storage-select">
                                 <label>
                                     <input type="checkbox" option="googledrive" name="default" checked /><?php esc_html_e('Set as the default remote storage.', 'wpvivid-backuprestore'); ?>
@@ -327,12 +352,22 @@ class Wpvivid_Google_drive extends WPvivid_Remote
                     wpvivid_settings_changed = false;
                     var name='';
                     var path='';
+                    var upload_chunk_size='';
+                    var download_chunk_size='';
                     jQuery('input:text[option=googledrive]').each(function()
                     {
                         var key = jQuery(this).prop('name');
                         if(key==='name')
                         {
                             name = jQuery(this).val();
+                        }
+                        if(key==='upload_chunk_size')
+                        {
+                            upload_chunk_size = jQuery(this).val();
+                        }
+                        if(key==='download_chunk_size')
+                        {
+                            download_chunk_size = jQuery(this).val();
                         }
                     });
 
@@ -353,6 +388,12 @@ class Wpvivid_Google_drive extends WPvivid_Remote
                     else if(wpvivid_check_google_drive_storage_alias(name) === -1)
                     {
                         alert(wpvividlion.remoteexist);
+                    }
+                    else if(upload_chunk_size == ''){
+                        alert(wpvividlion.remote_upload_chunksize);
+                    }
+                    else if(download_chunk_size == ''){
+                        alert(wpvividlion.remote_download_chunksize);
                     }
                     else
                     {
@@ -401,6 +442,24 @@ class Wpvivid_Google_drive extends WPvivid_Remote
                         });
                     }
                 }
+
+                jQuery('input:text[option=googledrive][name=upload_chunk_size]').on("keyup", function(){
+                    var regExp = /^([1-9]|1[0-9]|2[0-9]|30)$/g;
+                    var input_value = jQuery('input:text[option=googledrive][name=upload_chunk_size]').val();
+                    if(!regExp.test(input_value) && input_value !== ''){
+                        alert('Only a number from 1-30 is allowed.');
+                        jQuery('input:text[option=googledrive][name=upload_chunk_size]').val('');
+                    }
+                });
+
+                jQuery('input:text[option=googledrive][name=download_chunk_size]').on("keyup", function(){
+                    var regExp = /^([1-9]|1[0-9]|2[0-9]|30)$/g;
+                    var input_value = jQuery('input:text[option=googledrive][name=download_chunk_size]').val();
+                    if(!regExp.test(input_value) && input_value !== ''){
+                        alert('Only a number from 1-30 is allowed.');
+                        jQuery('input:text[option=googledrive][name=download_chunk_size]').val('');
+                    }
+                });
             </script>
             <?php
         }
@@ -469,7 +528,31 @@ class Wpvivid_Google_drive extends WPvivid_Remote
                 <tr>
                     <td class="plugin-title column-primary">
                         <div class="wpvivid-storage-form">
-                            <input class="button-primary" type="submit" option="edit-remote" value="<?php esc_attr_e('Save Changes', 'wpvivid-backuprestore'); ?>" />
+                            <input style="width: 50px" type="text" class="regular-text" autocomplete="off" option="edit-googledrive" name="upload_chunk_size" placeholder="" value="2" onkeyup="value=value.replace(/\D/g,'')" />MB
+                        </div>
+                    </td>
+                    <td class="column-description desc">
+                        <div class="wpvivid-storage-form-desc">
+                            <i>The size of each upload block. Reduce this value if you experience timeouts during file uploads.</i>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="plugin-title column-primary">
+                        <div class="wpvivid-storage-form">
+                            <input style="width: 50px" type="text" class="regular-text" autocomplete="off" option="edit-googledrive" name="download_chunk_size" placeholder="" value="2" onkeyup="value=value.replace(/\D/g,'')" />MB
+                        </div>
+                    </td>
+                    <td class="column-description desc">
+                        <div class="wpvivid-storage-form-desc">
+                            <i>The size of each download block. Reduce this value if you experience timeouts during file downloads.</i>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="plugin-title column-primary">
+                        <div class="wpvivid-storage-form">
+                            <input class="button-primary" type="submit" onclick="wpvivid_google_drive_update_auth();" value="<?php esc_attr_e('Save Changes', 'wpvivid-backuprestore'); ?>" />
                         </div>
                     </td>
                     <td class="column-description desc">
@@ -485,6 +568,8 @@ class Wpvivid_Google_drive extends WPvivid_Remote
             function wpvivid_google_drive_update_auth()
             {
                 var name='';
+                var upload_chunk_size='';
+                var download_chunk_size='';
                 jQuery('input:text[option=edit-googledrive]').each(function()
                 {
                     var key = jQuery(this).prop('name');
@@ -492,18 +577,47 @@ class Wpvivid_Google_drive extends WPvivid_Remote
                     {
                         name = jQuery(this).val();
                     }
+                    if(key==='upload_chunk_size')
+                    {
+                        upload_chunk_size = jQuery(this).val();
+                    }
+                    if(key==='download_chunk_size')
+                    {
+                        download_chunk_size = jQuery(this).val();
+                    }
                 });
 
                 if(name == ''){
                     alert(wpvividlion.remotealias);
                 }
-                else if(wpvivid_check_onedrive_storage_alias(name) === -1){
-                    alert(wpvividlion.remoteexist);
+                else if(upload_chunk_size == ''){
+                    alert(wpvividlion.remote_upload_chunksize);
+                }
+                else if(download_chunk_size == ''){
+                    alert(wpvividlion.remote_download_chunksize);
                 }
                 else {
-                    location.href = '<?php echo esc_url(admin_url()) . 'admin.php?page=WPvivid' . '&action=wpvivid_google_drive_update_auth&name='?>' + name + '&id=' + wpvivid_editing_storage_id;
+                    wpvivid_edit_remote_storage();
                 }
             }
+
+            jQuery('input:text[option=edit-googledrive][name=upload_chunk_size]').on("keyup", function(){
+                var regExp = /^([1-9]|1[0-9]|2[0-9]|30)$/g;
+                var input_value = jQuery('input:text[option=edit-googledrive][name=upload_chunk_size]').val();
+                if(!regExp.test(input_value) && input_value !== ''){
+                    alert('Only a number from 1-30 is allowed.');
+                    jQuery('input:text[option=edit-googledrive][name=upload_chunk_size]').val('');
+                }
+            });
+
+            jQuery('input:text[option=edit-googledrive][name=download_chunk_size]').on("keyup", function(){
+                var regExp = /^([1-9]|1[0-9]|2[0-9]|30)$/g;
+                var input_value = jQuery('input:text[option=edit-googledrive][name=download_chunk_size]').val();
+                if(!regExp.test(input_value) && input_value !== ''){
+                    alert('Only a number from 1-30 is allowed.');
+                    jQuery('input:text[option=edit-googledrive][name=download_chunk_size]').val('');
+                }
+            });
         </script>
         <?php
     }
@@ -532,6 +646,16 @@ class Wpvivid_Google_drive extends WPvivid_Remote
         {
             $ret['error']="Warning: An alias for remote storage is required.";
             return $ret;
+        }
+
+        if(isset($this->options['upload_chunk_size']))
+        {
+            $this->options['upload_chunk_size']=$this->options['upload_chunk_size']*1024*1024;
+        }
+
+        if(isset($this->options['download_chunk_size']))
+        {
+            $this->options['download_chunk_size']=$this->options['download_chunk_size']*1024*1024;
         }
 
         $remoteslist=WPvivid_Setting::get_all_remote_options();
@@ -619,11 +743,12 @@ class Wpvivid_Google_drive extends WPvivid_Remote
                 WPvivid_taskmanager::wpvivid_reset_backup_retry_times($task_id);
             }
             $ref=$this->check_token($client, $service);
-            if($ref['result']=!WPVIVID_SUCCESS)
+            if($ref['result']!==WPVIVID_SUCCESS)
             {
                 return $ref;
             }
         }
+        WPvivid_taskmanager::update_backup_sub_task_progress($task_id,'upload',WPVIVID_REMOTE_GOOGLEDRIVE,WPVIVID_UPLOAD_SUCCESS,'Uploading completed.',$upload_job['job_data']);
         return array('result' =>WPVIVID_SUCCESS);
     }
 
@@ -732,7 +857,8 @@ class Wpvivid_Google_drive extends WPvivid_Remote
             $fileMetadata = new WPvivid_Google_Service_Drive_DriveFile(array(
                 'name' => basename($file),
                 'parents' => array($folder_id)));
-            $chunk_size = 1 * 1024 * 1024;
+
+            $chunk_size = isset($this->options['upload_chunk_size']) && !empty($this->options['upload_chunk_size']) ? $this->options['upload_chunk_size'] : WPVIVID_GOOGLEDRIVE_UPLOAD_SIZE;
             $client->setDefer(true);
             $request = $service->files->create($fileMetadata);
             $media = new WPvivid_Google_Http_MediaFileUpload(
@@ -795,8 +921,8 @@ class Wpvivid_Google_drive extends WPvivid_Remote
                 $upload_job['job_data'][basename($file)]['progress']=$media->getProgress();
 
                 //$wpvivid_plugin->wpvivid_log->WriteLog('resumeUri:'.$media->getResumeUri().'.','notice');
-                $wpvivid_plugin->wpvivid_log->WriteLog('progress:'.$media->getProgress().'.','notice');
-                WPvivid_taskmanager::update_backup_sub_task_progress($task_id,'upload',WPVIVID_REMOTE_GOOGLEDRIVE,WPVIVID_UPLOAD_SUCCESS,'Uploading '.basename($file),$upload_job['job_data']);
+                //$wpvivid_plugin->wpvivid_log->WriteLog('progress:'.$media->getProgress().'.','notice');
+                WPvivid_taskmanager::update_backup_sub_task_progress($task_id,'upload',WPVIVID_REMOTE_GOOGLEDRIVE,WPVIVID_UPLOAD_UNDO,'Uploading '.basename($file),$upload_job['job_data']);
             }
 
             fclose($handle);
@@ -805,7 +931,7 @@ class Wpvivid_Google_drive extends WPvivid_Remote
             {
                 $wpvivid_plugin->wpvivid_log->WriteLog('Finished uploading '.basename($file),'notice');
                 $upload_job['job_data'][basename($file)]['uploaded']=1;
-                WPvivid_taskmanager::update_backup_sub_task_progress($task_id,'upload',WPVIVID_REMOTE_GOOGLEDRIVE,WPVIVID_UPLOAD_SUCCESS,'Uploading '.basename($file).' completed.',$upload_job['job_data']);
+                WPvivid_taskmanager::update_backup_sub_task_progress($task_id,'upload',WPVIVID_REMOTE_GOOGLEDRIVE,WPVIVID_UPLOAD_UNDO,'Uploading '.basename($file).' completed.',$upload_job['job_data']);
                 $wpvivid_plugin->wpvivid_log->WriteLog('Upload success.','notice');
                 return array('result' =>WPVIVID_SUCCESS);
             }
@@ -839,7 +965,7 @@ class Wpvivid_Google_drive extends WPvivid_Remote
             $message = 'A exception ('.get_class($e).') occurred '.esc_html($e->getMessage()).' (Code: '.$e->getCode().', line '.$e->getLine().' in '.$e->getFile().') ';
             $wpvivid_plugin->wpvivid_log->WriteLog('Upload InvalidArgumentException, '.$message.', refresh token','notice');
             $ref=$this->check_token($client, $service);
-            if($ref['result']=!WPVIVID_SUCCESS)
+            if($ref['result']!==WPVIVID_SUCCESS)
             {
                 $wpvivid_plugin->wpvivid_log->WriteLog('refresh token failed, error: '.json_encode($ref),'notice');
                 return $ref;
@@ -920,16 +1046,22 @@ class Wpvivid_Google_drive extends WPvivid_Remote
                     }
                 }
 
+                $remote_options=WPvivid_Setting::get_remote_option($this->options['id']);
                 $this->options['token']=json_decode(wp_json_encode($token),1);
                 $this->options['token']['access_token']=base64_encode($this->options['token']['access_token']);
                 $this->options['is_encrypt']=1;
-                if(!isset($this->options['token']['refresh_token'])){
-                    $this->options['token']['refresh_token'] = base64_encode($tmp_refresh_token);
+                if($remote_options!==false)
+                {
+                    if(!isset($this->options['token']['refresh_token'])){
+                        $this->options['token']['refresh_token'] = base64_encode($tmp_refresh_token);
+                    }
+                    else{
+                        $this->options['token']['refresh_token']=base64_encode($this->options['token']['refresh_token']);
+                    }
+                    $remote_options['token']=$this->options['token'];
+                    $remote_options['is_encrypt']=1;
+                    WPvivid_Setting::update_remote_option($this->options['id'],$remote_options);
                 }
-                else{
-                    $this->options['token']['refresh_token']=base64_encode($this->options['token']['refresh_token']);
-                }
-                WPvivid_Setting::update_remote_option($this->options['id'],$this->options);
                 return array('result' => WPVIVID_SUCCESS,'data' => $client);
             }
             else
@@ -979,6 +1111,12 @@ class Wpvivid_Google_drive extends WPvivid_Remote
             if(isset($remote_options['is_encrypt']))
             {
                 $this->options['is_encrypt']=$remote_options['is_encrypt'];
+            }
+            if (isset($remote_options['upload_chunk_size'])) {
+                $this->options['upload_chunk_size'] = $remote_options['upload_chunk_size'];
+            }
+            if (isset($remote_options['download_chunk_size'])) {
+                $this->options['download_chunk_size'] = $remote_options['download_chunk_size'];
             }
         }
     }
@@ -1049,26 +1187,26 @@ class Wpvivid_Google_drive extends WPvivid_Remote
                     }
 
                     $fh = fopen($file_path, 'a');
-                    $upload_size = WPVIVID_GOOGLEDRIVE_UPLOAD_SIZE;
+                    $download_chunk_size = isset($this->options['download_chunk_size']) && !empty($this->options['download_chunk_size']) ? $this->options['download_chunk_size'] : WPVIVID_GOOGLEDRIVE_UPLOAD_SIZE;
                     $http = $client->authorize();
                     $wpvivid_plugin->wpvivid_download_log->WriteLog('Downloading file ' . $file['file_name'] . ', Size: ' . $file['size'] ,'notice');
                     while ($offset < $fileSize)
                     {
-                        $upload_end=min($offset+$upload_size-1,$fileSize-1);
+                        $download_end=min($offset+$download_chunk_size-1,$fileSize-1);
 
                         if ($offset > 0)
                         {
-                            $options['headers']['Range']='bytes='.$offset.'-'.$upload_end;
+                            $options['headers']['Range']='bytes='.$offset.'-'.$download_end;
                         } else {
-                            $options['headers']['Range']='bytes=0-'.$upload_end;
+                            $options['headers']['Range']='bytes=0-'.$download_end;
                         }
                         $request = new WPvividGuzzleHttp\Psr7\Request('GET', $download_url,$options['headers']);
                         $http_request = $http->send($request);
                         $http_response=$http_request->getStatusCode();
                         if (200 == $http_response || 206 == $http_response)
                         {
-                            fwrite($fh, $http_request->getBody()->getContents(),$upload_size);
-                            $offset=$upload_end + 1;
+                            fwrite($fh, $http_request->getBody()->getContents(),$download_chunk_size);
+                            $offset=$download_end + 1;
                         }
                         else
                         {
@@ -1231,6 +1369,29 @@ class Wpvivid_Google_drive extends WPvivid_Remote
         }
         return $storage_type;
     }
+
+    public function edit_remote_options($old_remote, $remote_options, $id)
+    {
+        if (!isset($old_remote['type']) || $old_remote['type'] !== 'googledrive') {
+            return $old_remote;
+        }
+
+        $allowed_new_keys = array(
+            'upload_chunk_size',
+            'download_chunk_size',
+        );
+
+        foreach ($allowed_new_keys as $key)
+        {
+            if (!isset($old_remote[$key]) && isset($remote_options[$key]))
+            {
+                $old_remote[$key] = $remote_options[$key];
+            }
+        }
+
+        return $old_remote;
+    }
+
     private function compare_php_version(){
         if(version_compare(WPVIVID_GOOGLE_NEED_PHP_VERSION,phpversion()) > 0){
             return array('result' => WPVIVID_FAILED,error => 'The required PHP version is higher than '.WPVIVID_GOOGLE_NEED_PHP_VERSION.'. After updating your PHP version, please try again.');

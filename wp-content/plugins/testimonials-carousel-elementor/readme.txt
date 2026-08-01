@@ -3,8 +3,8 @@ Contributors: uapp
 Tags: elementor, elementor addons, testimonial slider, testimonial carousel, carousel
 Requires PHP: 7.4.1
 Requires at least: 5.9
-Tested up to: 6.8.3
-Stable tag: 11.7.0
+Tested up to: 7.0
+Stable tag: 12.0.1
 License: GPLv3
 License URI: https://opensource.org/licenses/GPL-3.0
 
@@ -12,7 +12,7 @@ The compact Testimonial Carousel for Elementor lets you show long text reviews i
 
 == Description ==
 
-[Live Demo](https://prokitelementor.com/live-demo) | [Upgrade to Pro!](https://prokitelementor.com/#pricing)
+[Documentation](https://prokitelementor.com/faq/testimonial-carousel-for-elementor/) | [Live Demo](https://prokitelementor.com/live-demo) | [Upgrade to Pro!](https://prokitelementor.com/#pricing)
 
 The compact Testimonial Carousel for Elementor lets you show long text reviews in Pop-Up of Carousel Slider. Now you can easily show your long reviews using this plugin to your users as a Pop-Up from the Review Card. But without overloading the site with long texts.
 The plugin has many features and settings to customize the reviews to suit your needs. Upgrade to PRO and unlock new possibilities with [Pro Kit for Elementor!](https://prokitelementor.com)
@@ -51,31 +51,39 @@ Note : This plugin works with Elementor. Make sure you have [Elementor](https://
 
 == Screenshots ==
 
-1. Front-end design of "Testimonials Carousel With Thumbnails"
-2. Content the "Cube 360"
-3. Front-end design of "Cube 360"
-4. Front-end design of "Creative Carousel"
-5. Content the cube carousel
-6. Front-end design of cube carousel
-7. Front-end design of testimonials with blog
-8. Front-end design of testimonials with employees slider
-9. Front-end design of testimonials with gallery coverflow slider
-10. Front-end design of coverflow slider
-11. Front-end design of slider widgets
-12. Front-end design of slider widgets with open review
-13. Front-end design of WordPress testimonial slider
-14. Front-end design of WordPress slider with open review
-15. Front-end design of Elementor testimonial carousel
-16. Front-end design of Elementor testimonial widget with open review
-17. Front-end design of text testimonial carousel
-18. Front-end design of text testimonial carousel with open
-19. Administrator edit slider with popup
-20. Edit Elementor widget
-21. Edit testimonial carousel for Elementor
-22. Content testimonial slider settings
-23. Reviews testimonial carousel settings
+1. Front-end design of "Testimonial Quotes Carousel"
+2. Front-end design of "Testimonials Carousel With Thumbnails"
+3. Content the "Cube 360"
+4. Front-end design of "Cube 360"
+5. Front-end design of "Creative Carousel"
+6. Content the cube carousel
+7. Front-end design of cube carousel
+8. Front-end design of testimonials with blog
+9. Front-end design of testimonials with employees slider
+10. Front-end design of testimonials with gallery coverflow slider
+11. Front-end design of coverflow slider
+12. Front-end design of slider widgets
+13. Front-end design of slider widgets with open review
+14. Front-end design of WordPress testimonial slider
+15. Front-end design of WordPress slider with open review
+16. Front-end design of Elementor testimonial carousel
+17. Front-end design of Elementor testimonial widget with open review
+18. Front-end design of text testimonial carousel
+19. Front-end design of text testimonial carousel with open
+20. Administrator edit slider with popup
+21. Edit Elementor widget
+22. Edit testimonial carousel for Elementor
+23. Content testimonial slider settings
+24. Reviews testimonial carousel settings
 
 == Changelog ==
+
+= 12.0.1 - 2026-06-16 =
+- Fix: Fix errors that occur when debugging is enabled.
+
+= 12.0.0 - 2026-06-11 =
+- New: Added "Testimonial Quotes Carousel".
+- Fix: Fixed a compatibility issue with the new version of Elementor.
 
 = 11.7.0 - 2025-10-20 =
 - Security Fix: Security improvements.

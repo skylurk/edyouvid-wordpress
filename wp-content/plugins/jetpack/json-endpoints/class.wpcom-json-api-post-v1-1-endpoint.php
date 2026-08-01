@@ -1,5 +1,9 @@
 <?php // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Post v1_1 Endpoint class.
  */
@@ -34,6 +38,7 @@ abstract class WPCOM_JSON_API_Post_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint
 		),
 		'sticky'           => '(bool) Is the post sticky?',
 		'password'         => '(string) The plaintext password protecting the post, or, more likely, the empty string if the post is not password protected.',
+		'has_password'     => '(bool) Whether the post is password protected, regardless of whether the current user can access it.',
 		'parent'           => "(object>post_reference|false) A reference to the post's parent, if it has one.",
 		'type'             => "(string) The post's post_type. Post types besides post, page and revision need to be whitelisted using the <code>rest_api_allowed_post_types</code> filter.",
 		'discussion'       => '(object) Hash of discussion options for the post',
@@ -103,11 +108,6 @@ abstract class WPCOM_JSON_API_Post_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint
 			if ( isset( $args['content_width'] ) && $args['content_width'] ) {
 				$GLOBALS['content_width'] = (int) $args['content_width'];
 			}
-		}
-
-		if ( isset( $_SERVER['HTTP_USER_AGENT'] ) && strpos( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ), 'wp-windows8' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- we're not using this value and making changes, just checking if it exists.
-			remove_shortcode( 'gallery', 'gallery_shortcode' );
-			add_shortcode( 'gallery', array( $this, 'win8_gallery_shortcode' ) );
 		}
 
 		// fetch SAL post
@@ -220,6 +220,9 @@ abstract class WPCOM_JSON_API_Post_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint
 				case 'password':
 					$response[ $key ] = $post->get_password();
 					break;
+				case 'has_password':
+					$response[ $key ] = $post->get_has_password();
+					break;
 				/** (object|false) */
 				case 'parent':
 					$response[ $key ] = $post->get_parent();
@@ -325,6 +328,15 @@ abstract class WPCOM_JSON_API_Post_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint
 			return $response;
 		}
 
+		// Bail early if we do not have the necessary data.
+		if (
+			is_wp_error( $response )
+			|| ! isset( $response['posts'] )
+			|| ! is_array( $response['posts'] )
+		) {
+			return $response;
+		}
+
 		// Retrieve an array of field paths, such as: [`autosave.modified`, `autosave.post_ID`]
 		$fields = explode( ',', sanitize_text_field( wp_unslash( $_REQUEST['meta_fields'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- we're not making any changes to the site.
 
@@ -370,112 +382,5 @@ abstract class WPCOM_JSON_API_Post_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint
 		$post = $this->get_post_by( 'ID', $post_id, $context );
 		restore_current_blog();
 		return $post;
-	}
-
-	/**
-	 * Win8 Gallery shortcode.
-	 *
-	 * @param array $attr - the attribute.
-	 */
-	public function win8_gallery_shortcode( $attr ) {
-		global $post;
-
-		static $instance = 0;
-		++$instance;
-
-		// @todo - find out if this is a bug, intentionally unused, or can be removed.
-		$output = ''; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-
-		// We're trusting author input, so let's at least make sure it looks like a valid orderby statement
-		if ( isset( $attr['orderby'] ) ) {
-			$attr['orderby'] = sanitize_sql_orderby( $attr['orderby'] );
-			if ( ! $attr['orderby'] ) {
-				unset( $attr['orderby'] );
-			}
-		}
-
-		$atts = shortcode_atts(
-			array(
-				'order'     => 'ASC',
-				'orderby'   => 'menu_order ID',
-				'id'        => $post->ID,
-				'include'   => '',
-				'exclude'   => '',
-				'slideshow' => false,
-			),
-			$attr,
-			'gallery'
-		);
-		$id   = ! empty( $atts['id'] ) ? (int) $atts['id'] : 0;
-
-		// Custom image size and always use it.
-		add_image_size( 'win8app-column', 480 );
-		$size = 'win8app-column';
-
-		if ( 'RAND' === $atts['order'] ) {
-			$orderby = 'none';
-		} else {
-			$orderby = $atts['orderby'];
-		}
-
-		if ( ! empty( $atts['include'] ) ) {
-			$include      = preg_replace( '/[^0-9,]+/', '', $atts['include'] );
-			$_attachments = get_posts(
-				array(
-					'include'        => $include,
-					'post_status'    => 'inherit',
-					'post_type'      => 'attachment',
-					'post_mime_type' => 'image',
-					'order'          => $atts['order'],
-					'orderby'        => $orderby,
-				)
-			);
-			$attachments  = array();
-			foreach ( $_attachments as $key => $val ) {
-				$attachments[ $val->ID ] = $_attachments[ $key ];
-			}
-		} elseif ( ! empty( $atts['exclude'] ) ) {
-			$exclude     = preg_replace( '/[^0-9,]+/', '', $atts['exclude'] );
-			$attachments = get_children(
-				array(
-					'post_parent'    => $id,
-					'exclude'        => $exclude,
-					'post_status'    => 'inherit',
-					'post_type'      => 'attachment',
-					'post_mime_type' => 'image',
-					'order'          => $atts['order'],
-					'orderby'        => $orderby,
-				)
-			);
-		} else {
-			$attachments = get_children(
-				array(
-					'post_parent'    => $id,
-					'post_status'    => 'inherit',
-					'post_type'      => 'attachment',
-					'post_mime_type' => 'image',
-					'order'          => $atts['order'],
-					'orderby'        => $orderby,
-				)
-			);
-		}
-
-		if ( ! empty( $attachments ) ) {
-			foreach ( $attachments as $id => $attachment ) {
-				$link = isset( $attr['link'] ) && 'file' === $attr['link']
-					? wp_get_attachment_link( $id, $size, false, false )
-					: wp_get_attachment_link( $id, $size, true, false );
-
-				// phpcs:disable VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-				if ( $captiontag && trim( $attachment->post_excerpt ) ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UndefinedVariable
-					$output .= "<div class='wp-caption aligncenter'>$link
-						<p class='wp-caption-text'>" . wptexturize( $attachment->post_excerpt ) . '</p>
-						</div>';
-				} else {
-					$output .= $link . ' ';
-				}
-				// phpcs:enable VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-			}
-		}
 	}
 }

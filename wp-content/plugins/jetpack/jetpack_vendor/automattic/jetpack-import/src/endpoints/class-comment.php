@@ -7,6 +7,14 @@
 
 namespace Automattic\Jetpack\Import\Endpoints;
 
+use WP_Error;
+use WP_REST_Request;
+use WP_REST_Response;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Class Comment
  */
@@ -46,6 +54,8 @@ class Comment extends \WP_REST_Comments_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
 	 */
 	public function create_item( $request ) {
+		// Set the WP_IMPORTING constant to prevent sync notifications
+		$this->set_importing();
 		// Resolve comment post ID.
 		if ( ! empty( $request['post'] ) ) {
 			$posts = \get_posts( $this->get_import_db_query( $request['post'] ) );

@@ -9,6 +9,11 @@ div.wpt-wrap.beautiful_blacky_wrapper.wpt_column_sort #wpt_.wpt-table-tag.wpt-ta
     background: var(--wpt_sorted_td_bg) !important;
 }
 
-wpt_column_sort.wpt_column_sort #wpt_.wpt-table-tag.wpt-table-tag.wpt_product_table .wpt-tr-tag>.wpt-td-tag.this_column_sorted {
+.wpt_column_sort.wpt_column_sort #wpt_.wpt-table-tag.wpt-table-tag.wpt_product_table .wpt-tr-tag>.wpt-td-tag.this_column_sorted {
     background: rgba(20, 89, 153, 0.03) !important;
+}
+
+div.wpt-wrap .wpt-table-tag .wpt-td-tag table:not( .has-background ) tbody tr:nth-child(2n) td,
+div.wpt-wrap .wpt-table-tag .wpt-td-tag table:not( .has-background ) tbody td {
+    background-color: transparent !important;
 }

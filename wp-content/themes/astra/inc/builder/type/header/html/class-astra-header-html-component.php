@@ -3,8 +3,6 @@
  * HTML component.
  *
  * @package     Astra Builder
- * @author      Brainstorm Force
- * @copyright   Copyright (c) 2020, Brainstorm Force
  * @link        https://www.brainstormforce.com
  * @since       Astra 3.0.0
  */
@@ -22,17 +20,14 @@ define( 'ASTRA_HEADER_HTML_URI', ASTRA_THEME_URI . 'inc/builder/type/header/html
  * @since 3.0.0
  */
 class Astra_Header_Html_Component {
-
 	/**
 	 * Constructor function that initializes required actions and hooks
 	 */
 	public function __construct() {
 
 		// @codingStandardsIgnoreStart WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound
-		require_once ASTRA_HEADER_HTML_DIR . '/class-astra-header-html-component-loader.php';
-
 		// Include front end files.
-		if ( ! is_admin() ) {
+		if ( ! is_admin() || Astra_Builder_Customizer::astra_collect_customizer_builder_data() ) {
 			require_once ASTRA_HEADER_HTML_DIR . '/dynamic-css/dynamic.css.php';
 		}
 		// @codingStandardsIgnoreEnd WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound

@@ -26,7 +26,7 @@ add_filter( 'astra_dynamic_theme_css', 'astra_above_header_row_setting', 11 );
  */
 function astra_above_header_row_setting( $dynamic_css, $dynamic_css_filtered = '' ) {
 
-	if ( ! is_customize_preview() && ( ! Astra_Builder_helper::is_row_empty( 'above', 'header', 'desktop' ) && ! Astra_Builder_helper::is_row_empty( 'above', 'header', 'mobile' ) ) ) {
+	if ( ! is_customize_preview() && ( ! Astra_Builder_Helper::is_row_empty( 'above', 'header', 'desktop' ) && ! Astra_Builder_Helper::is_row_empty( 'above', 'header', 'mobile' ) ) ) {
 		return $dynamic_css;
 	}
 
@@ -44,12 +44,9 @@ function astra_above_header_row_setting( $dynamic_css, $dynamic_css_filtered = '
 	$mobile_background  = isset( $hba_header_bg_obj['mobile']['background-color'] ) ? $hba_header_bg_obj['mobile']['background-color'] : '';
 
 	// Header Height.
-	$hba_header_height_desktop = ( isset( $hba_header_height['desktop'] ) && ! empty( $hba_header_height['desktop'] ) ) ? $hba_header_height['desktop'] : '';
-	$hba_header_height_tablet  = ( isset( $hba_header_height['tablet'] ) && ! empty( $hba_header_height['tablet'] ) ) ? $hba_header_height['tablet'] : '';
-	$hba_header_height_mobile  = ( isset( $hba_header_height['mobile'] ) && ! empty( $hba_header_height['mobile'] ) ) ? $hba_header_height['mobile'] : '';
-
-	// Spacing CSS options.
-	$hba_header_spacing = astra_get_option( 'hba-header-spacing' );
+	$hba_header_height_desktop = isset( $hba_header_height['desktop'] ) && ! empty( $hba_header_height['desktop'] ) ? $hba_header_height['desktop'] : '';
+	$hba_header_height_tablet  = isset( $hba_header_height['tablet'] ) && ! empty( $hba_header_height['tablet'] ) ? $hba_header_height['tablet'] : '';
+	$hba_header_height_mobile  = isset( $hba_header_height['mobile'] ) && ! empty( $hba_header_height['mobile'] ) ? $hba_header_height['mobile'] : '';
 
 	/**
 	 * Above Header General options
@@ -88,12 +85,6 @@ function astra_above_header_row_setting( $dynamic_css, $dynamic_css_filtered = '
 	} else {
 		$common_css_output['.ast-above-header-bar'] = array(
 			'border-bottom-style' => 'none',
-		);
-	}
-
-	if ( is_astra_addon_3_5_0_version() ) {
-		$common_css_output['.ast-above-header-bar.ast-header-sticked'] = array(
-			'z-index' => 9,
 		);
 	}
 
@@ -141,11 +132,9 @@ function astra_above_header_row_setting( $dynamic_css, $dynamic_css_filtered = '
 
 	$_section = 'section-above-header-builder';
 
-	$selector = '.site-above-header-wrap[data-section="ast_header_above"]';
+	$parent_selector = '.ast-above-header.ast-above-header-bar, .ast-header-break-point #masthead.site-header .ast-above-header-bar';
 
-	$parent_selector = '.ast-above-header.ast-above-header-bar';
-
-	$dynamic_css .= Astra_Builder_Base_Dynamic_CSS::prepare_advanced_margin_padding_css( $_section, $parent_selector );
+	$dynamic_css .= Astra_Extended_Base_Dynamic_CSS::prepare_advanced_margin_padding_css( $_section, $parent_selector );
 
 	$dynamic_css .= Astra_Builder_Base_Dynamic_CSS::prepare_visibility_css( $_section, '.ast-above-header-bar', 'block', $mobile_tablet_default_display = 'grid' );
 

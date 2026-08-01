@@ -6,7 +6,7 @@ Tags: CRM, Marketing, Live Chat, Forms, Analytics
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.2
-Stable tag: 11.3.39
+Stable tag: 11.3.51
 
 The CRM, Sales, and Marketing WordPress plugin to grow your business better.
 
@@ -129,29 +129,6 @@ Then, when you're ready to go, pick a custom template:
 Choose from a variety of settings, color schemes, and fonts — or start from scratch. HubSpot comes with an intuitive form and popup builder that simplifies the process, no matter what type of form you have in mind.
 
 Rather stick with your existing forms and popup plugin? That’s fine too! HubSpot integrates with most WordPress form builders, form creators, and popup builders out-of-the-box so you don’t have to worry about a thing.
-
-### [Live Chat & Chatbots](https://www.hubspot.com/products/wordpress/live-chat)
-Make your website a 24-hour marketing machine on autopilot.
-
-Live web chat inside the HubSpot WordPress plugin streamlines the customer experience, making it easier than ever for you to engage with leads, convert them into customers, and provide them with the support they need.
-
-HubSpot’s WordPress live chat software offers:
-
-😀 Custom styling to match your website
-🤖 A variety of bot options including:
-
-- ✅ Concierge bot
-- ✅ Qualify leads bot
-- ✅ Meetings bot
-- ✅ Tickets bot
-- ✅ Knowledge base & support bot
-- ✅ Offline bot
-
-📲 Real-time messaging on the go via HubSpot’s mobile app
-👨‍💻 A Slack integration to receive and respond to chat notifications
-🕐 24/7 live support on autopilot
-
-Our free live chat feature helps you turn website visitors into customers by providing insightful, real-time support.
 
 ### [Analytics](https://www.hubspot.com/products/wordpress/analytics)
 
@@ -418,15 +395,12 @@ Please visit the <a href="https://community.hubspot.com/?utm_source=wordpress-pl
 == Changelog ==
 
 <a href="http://plugins.svn.wordpress.org/leadin/trunk/changelog.txt" target="_blank">Full changelog here</a>
-- Current version: 11.3.39
-- Version release date: 2026-01-29
+- Current version: 11.3.51
+- Version release date: 2026-06-21
+
+= 11.3.44 (2026-03-18) =
+* Fixed a trailing comma error on PHP versions lower than 7.3
 
 = 11.3.39 (2026-01-29) =
 * Ensure reverse proxy passes through request/response headers
-
-= 11.3.33 (2025-12-03) =
-* Fix CVE-2025-11762: Remove sensitive plugin data exposure to low-privilege users
-* Replace parse_url with wp_parse_url for WordPress compatibility
-* Remove deprecated load_plugin_textdomain function
-* Update tested up to WordPress 6.9
 

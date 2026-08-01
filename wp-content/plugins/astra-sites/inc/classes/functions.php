@@ -61,7 +61,7 @@ if ( ! function_exists( 'astra_sites_is_valid_image' ) ) :
 	 * @return boolean
 	 */
 	function astra_sites_is_valid_image( $link = '' ) {
-		return preg_match( '/^((https?:\/\/)|(www\.))([a-z0-9-].?)+(:[0-9]+)?\/[\w\-\@]+\.(jpg|png|gif|jpeg|svg)\/?$/i', $link );
+		return preg_match( '/^((https?:\/\/)|(www\.))([a-z0-9-].?)+(:[0-9]+)?(\/[\w\-\@]+)+\.(jpg|png|gif|jpeg|svg|webp)\/?$/i', $link );
 	}
 endif;
 
@@ -134,5 +134,21 @@ if ( ! function_exists( 'astra_sites_empty_post_excerpt' ) ) :
 				'post_excerpt' => '',
 			)
 		);
+	}
+endif;
+
+if ( ! function_exists( 'astra_sites_sanitize_recursive' ) ) :
+	/**
+	 * Recursively sanitize an array in single dimension or string using sanitize_text_field.
+	 *
+	 * @param mixed $data The data to sanitize. Can be a string or an array.
+	 * @since 4.4.21
+	 * @return mixed The sanitized data.
+	 */
+	function astra_sites_sanitize_recursive( $data ) {
+		if ( is_array( $data ) ) {
+			return array_map( 'astra_sites_sanitize_recursive', $data );
+		}
+		return sanitize_text_field( $data );
 	}
 endif;

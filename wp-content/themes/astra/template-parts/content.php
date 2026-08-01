@@ -14,11 +14,13 @@
 
 <article
 <?php
-		echo astra_attr(
-			'article-content',
-			array(
-				'id'    => 'post-' . get_the_id(),
-				'class' => join( ' ', get_post_class() ),
+		echo wp_kses_post(
+			astra_attr(
+				'article-content',
+				array(
+					'id'    => 'post-' . get_the_id(),
+					'class' => join( ' ', get_post_class() ),
+				)
 			)
 		);
 		?>
@@ -44,12 +46,14 @@
 
 	</header><!-- .entry-header -->
 
-	<div class="entry-content clear" 
+	<div class="entry-content clear"
 	<?php
-				echo astra_attr(
-					'article-entry-content',
-					array(
-						'class' => '',
+				echo wp_kses_post(
+					astra_attr(
+						'article-entry-content',
+						array(
+							'class' => '',
+						)
 					)
 				);
 				?>

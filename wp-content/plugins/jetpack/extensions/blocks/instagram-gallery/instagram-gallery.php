@@ -10,12 +10,14 @@
 namespace Automattic\Jetpack\Extensions\Instagram_Gallery;
 
 use Automattic\Jetpack\Blocks;
+use Automattic\Jetpack\External_Connections;
 use Jetpack;
 use Jetpack_Gutenberg;
 use Jetpack_Instagram_Gallery_Helper;
 
-const FEATURE_NAME = 'instagram-gallery';
-const BLOCK_NAME   = 'jetpack/' . FEATURE_NAME;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 /**
  * Registers the block for use in Gutenberg
@@ -25,8 +27,21 @@ const BLOCK_NAME   = 'jetpack/' . FEATURE_NAME;
 function register_block() {
 	if ( ( defined( 'IS_WPCOM' ) && IS_WPCOM ) || Jetpack::is_connection_ready() ) {
 		Blocks::jetpack_register_block(
-			BLOCK_NAME,
+			__DIR__,
 			array( 'render_callback' => __NAMESPACE__ . '\render_block' )
+		);
+
+		External_Connections::add_settings_for_service(
+			'writing',
+			array(
+				'service'      => 'instagram-basic-display',
+				'title'        => __( 'Instagram', 'jetpack' ),
+				'description'  => __( 'Display your more recent images from Instagram.', 'jetpack' ),
+				'support_link' => array(
+					'wpcom'   => 'https://wordpress.com/support/latest-instagram-posts/',
+					'jetpack' => 'latest-instagram-posts-block',
+				),
+			)
 		);
 	}
 }
@@ -52,7 +67,7 @@ function render_block( $attributes, $content ) { // phpcs:ignore VariableAnalysi
 	$spacing              = get_instagram_gallery_attribute( 'spacing', $attributes );
 
 	$grid_classes = Blocks::classes(
-		FEATURE_NAME,
+		Blocks::get_block_feature( __DIR__ ),
 		$attributes,
 		array(
 			'wp-block-jetpack-instagram-gallery__grid',
@@ -71,7 +86,7 @@ function render_block( $attributes, $content ) { // phpcs:ignore VariableAnalysi
 	}
 	$gallery = Jetpack_Instagram_Gallery_Helper::get_instagram_gallery( $access_token, $count );
 
-	if ( is_wp_error( $gallery ) || ! property_exists( $gallery, 'images' ) || 'ERROR' === $gallery->images ) {
+	if ( ! is_object( $gallery ) || is_wp_error( $gallery ) || ! property_exists( $gallery, 'images' ) || 'ERROR' === $gallery->images ) {
 		if ( ! current_user_can( 'edit_post', get_the_ID() ) ) {
 			return '';
 		}
@@ -85,7 +100,7 @@ function render_block( $attributes, $content ) { // phpcs:ignore VariableAnalysi
 		$message = $error_message
 			. '<br />'
 			. esc_html__( '(Only administrators and the post author will see this message.)', 'jetpack' );
-		return Jetpack_Gutenberg::notice( $message, 'error', Blocks::classes( FEATURE_NAME, $attributes ) );
+		return Jetpack_Gutenberg::notice( $message, 'error', Blocks::classes( Blocks::get_block_feature( __DIR__ ), $attributes ) );
 	}
 
 	if ( empty( $gallery->images ) ) {
@@ -94,7 +109,7 @@ function render_block( $attributes, $content ) { // phpcs:ignore VariableAnalysi
 
 	$images = array_slice( $gallery->images, 0, $count );
 
-	Jetpack_Gutenberg::load_assets_as_required( FEATURE_NAME );
+	Jetpack_Gutenberg::load_assets_as_required( __DIR__ );
 
 	ob_start();
 	?>

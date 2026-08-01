@@ -348,12 +348,14 @@ if ( ! class_exists( 'Astra_Sites_Batch_Processing_Importer' ) ) :
 			$sites_and_pages = array();
 			astra_sites_error_log( 'Requesting ' . $page );
 			update_site_option( 'astra-sites-batch-status-string', 'Requesting ' . $page );
+			update_site_option( 'astra-sites-current-page', $page );
 
 			$query_args = apply_filters(
 				'astra_sites_import_sites_query_args',
 				array(
-					'per_page' => 15,
-					'page'     => $page,
+					'per_page'           => 15,
+					'page'               => $page,
+					'spectra-blocks-ver' => Astra_Sites::get_rest_spectra_blocks_version(),
 				)
 			);
 

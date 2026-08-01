@@ -6,6 +6,7 @@ import {
 	MagnifyingGlassIcon,
 	SparklesIcon,
 	XMarkIcon,
+	InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 
 import apiFetch from '@wordpress/api-fetch';
@@ -21,21 +22,27 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import Masonry from 'react-layout-masonry';
 
+import ConnectZipWPBanner from '../components/connect-zipwp-banner';
 import Dropdown from '../components/dropdown';
 import Heading from '../components/heading';
 import ImagePreview from '../components/image-preview';
 import NavigationButtons from '../components/navigation-buttons';
+import SkipImagesModal from '../components/skip-images-modal';
 import SuggestedKeywords from '../components/suggested-keywords';
 import Tile from '../components/tile';
 import UploadImage from '../components/upload-image';
 
-import { classNames, toastBody } from '../helpers';
+import { classNames, getScreenWidthBreakPoint, toastBody } from '../helpers';
 import { useDebounce, useDebounceWithCancel } from '../hooks/use-debounce';
 import usePopper from '../hooks/use-popper';
 import { useNavigateSteps } from '../router';
 import { STORE_KEY } from '../store';
 import { MB_IN_BYTE } from '../utils/constants';
-import { clearSessionStorage, isValidImageURL } from '../utils/helpers';
+import {
+	clearSessionStorage,
+	getClientCountryCode,
+	isValidImageURL,
+} from '../utils/helpers';
 import { USER_KEYWORD } from './select-template';
 
 const ORIENTATIONS = {
@@ -60,6 +67,7 @@ const TABS = [
 	},
 	{
 		label: __( 'Upload Your Images', 'ai-builder' ),
+		mobileLabel: __( 'Upload', 'ai-builder' ),
 		value: 'upload',
 	},
 	{
@@ -69,7 +77,7 @@ const TABS = [
 ];
 
 const IMAGES_PER_PAGE = 20;
-const IMAGE_ENGINES = [ 'pexels' ];
+const IMAGE_ENGINES = [ aiBuilderVars?.imagesEngine || 'pexels' ];
 const SKELETON_COUNT = 15;
 
 const getImageSkeleton = ( count = SKELETON_COUNT ) => {
@@ -108,8 +116,11 @@ const Images = () => {
 	const { nextStep, previousStep } = useNavigateSteps();
 	const [ uploadingImagesCount, setUploadingImagesCount ] = useState( [ 0 ] );
 
-	const { setWebsiteImagesAIStep, setWebsiteTemplateKeywords } =
-		useDispatch( STORE_KEY );
+	const {
+		setWebsiteImagesAIStep,
+		setWebsiteTemplateKeywords,
+		setLoadingNextStep,
+	} = useDispatch( STORE_KEY );
 
 	const [ uploadedImages, setUploadedImages ] = useState( [] );
 
@@ -204,6 +215,8 @@ const Images = () => {
 			businessContact,
 			templateList,
 			siteLanguage,
+			userKeywords,
+			siteTone,
 		},
 		updateImages,
 		loadingNextStep,
@@ -261,9 +274,17 @@ const Images = () => {
 	const [ isLoading, setIsLoading ] = useState( false );
 	const [ backToTop, setBackToTop ] = useState( false );
 	const [ activeTab, setActiveTab ] = useState( 'all' );
+	const [ breakpoint, setBreakpoint ] = useState(
+		getScreenWidthBreakPoint()
+	);
 
 	const [ openSuggestedKeywords, setOpenSuggestedKeywords ] =
 		useState( false );
+	const [ openSkipModal, setOpenSkipModal ] = useState( false );
+	const [ needsZipWPAuth, setNeedsZipWPAuth ] = useState(
+		aiBuilderVars?.imagesEngine === 'freepik' &&
+			! aiBuilderVars?.zip_token_exists
+	);
 	const [ referenceRef, popperRef ] = usePopper( {
 		placement: 'bottom',
 		modifiers: [ { name: 'offset', options: { offset: [ 0, 0 ] } } ],
@@ -273,7 +294,7 @@ const Images = () => {
 	const scrollContainerRef = useRef( null );
 	const imageRequestCompleted = useRef( false );
 	const blackListedEngines = useRef( new Set() );
-	const previouslySelected = useRef( selectedImages );
+	// const previouslySelected = useRef( selectedImages );
 	const uploadImagesBtn = useRef( null );
 
 	const { register, handleSubmit, setValue, reset, setFocus, watch } =
@@ -424,6 +445,33 @@ const Images = () => {
 		}
 	};
 
+	// Client-side country check — catches the case where the WordPress server
+	// IP is outside Russia but the user is (e.g. VPS in Germany hosting a
+	// Russian site). Skipped when the banner is already showing or the user
+	// has a token. Runs once on mount.
+	useEffect( () => {
+		if ( needsZipWPAuth || aiBuilderVars?.zip_token_exists ) {
+			return;
+		}
+		getClientCountryCode().then( ( code ) => {
+			if ( code === 'RU' ) {
+				setNeedsZipWPAuth( true );
+			}
+		} );
+	}, [] );
+
+	// Fired by the Connect ZipWP banner once the user successfully completes
+	// auth. Clears the auth requirement and resets image state so the fetch
+	// effect re-runs.
+	const handleAuthSuccess = () => {
+		setNeedsZipWPAuth( false );
+		blackListedEngines.current.clear();
+		imageRequestCompleted.current = false;
+		setImages( [] );
+		setHasMore( true );
+		setPage( 1 );
+	};
+
 	// Define a function to fetch all images
 	const fetchAllImages = async ( engine ) => {
 		// eslint-disable-line
@@ -437,6 +485,16 @@ const Images = () => {
 			searchKeywords = businessName;
 		}
 
+		// Get client country code (checks cookie first, fetches from API if not cached).
+		const clientCountryCode = await getClientCountryCode();
+
+		// Russian clients: Freepik for white-label builds, Unsplash otherwise. Non-Russian clients use the passed-in engine.
+		const russianEngine = aiBuilderVars?.isWhiteLabelAIBuilder
+			? 'freepik'
+			: 'unsplash';
+		const selectedEngine =
+			clientCountryCode === 'RU' ? russianEngine : engine;
+
 		const payload = {
 			keywords: searchKeywords,
 			orientation: orientation.value,
@@ -446,7 +504,7 @@ const Images = () => {
 		try {
 			const res = await apiFetch( {
 				path: `zipwp/v1/images`,
-				data: { ...payload, engine },
+				data: { ...payload, engine: selectedEngine },
 				method: 'POST',
 				headers: {
 					'X-WP-Nonce': aiBuilderVars.rest_api_nonce,
@@ -517,6 +575,10 @@ const Images = () => {
 	};
 
 	useEffect( () => {
+		if ( needsZipWPAuth ) {
+			return;
+		}
+
 		imageRequestCompleted.current = false;
 		const fetchAllImagesFromAllEngines = async () => {
 			if ( isLoading || ! hasMore ) {
@@ -552,13 +614,14 @@ const Images = () => {
 		};
 
 		fetchAllImagesFromAllEngines();
-	}, [ debouncedImageKeywords, debouncedOrientation, page ] );
+	}, [ debouncedImageKeywords, debouncedOrientation, page, needsZipWPAuth ] );
 
 	useEffect( () => {
 		imageRequestCompleted.current = false;
 		blackListedEngines.current.clear();
 		setPage( 1 );
 		setImages( [] );
+		setHasMore( true );
 	}, [ keyword, orientation ] );
 
 	// Trigger to load more images.
@@ -619,6 +682,9 @@ const Images = () => {
 	const getRenderItems = () => {
 		switch ( activeTab ) {
 			case TABS[ 0 ].value:
+				if ( needsZipWPAuth ) {
+					return [];
+				}
 				return isLoading || ! imageRequestCompleted.current
 					? [ ...images, ...getImageSkeleton() ]
 					: images;
@@ -653,12 +719,14 @@ const Images = () => {
 				business_name: businessName,
 				business_category: businessType,
 				site_language: siteLanguage,
-				images: skip ? [] : selImages,
+				images: ! skip || selImages.length > 0 ? selImages : [],
 				keywords,
 				business_address: businessContact?.address || '',
 				business_phone: businessContact?.phone || '',
 				business_email: businessContact?.email || '',
 				social_profiles: businessContact?.socialMedia || [],
+				user_keywords: userKeywords || [],
+				site_tone: siteTone || '',
 			},
 		} )
 			.then( () => {} )
@@ -670,13 +738,63 @@ const Images = () => {
 	const handleClickNext =
 		( skip = false ) =>
 		async () => {
-			await handleSaveDetails( selectedImages, skip );
+			// Show modal if user clicks Next without selecting images
+			if ( skip || ! selectedImages.length ) {
+				setOpenSkipModal( true );
+				return;
+			}
+
+			// Auto-select top 10 images if user is skipping and has no selections
+			let currentSelectedImages = selectedImages;
+			if ( currentSelectedImages.length === 0 ) {
+				currentSelectedImages = autoSelectTopImages();
+			}
+
+			await handleSaveDetails( currentSelectedImages, skip );
 			clearSessionStorage( USER_KEYWORD );
 			nextStep();
-			if ( skip ) {
-				setWebsiteImagesAIStep( previouslySelected.current ?? [] );
-			}
+
+			// Stores - null value on state -> Commented out.
+			// if ( skip ) {
+			// 	setWebsiteImagesAIStep( previouslySelected.current ?? [] );
+			// }
 		};
+
+	const handleConfirmSkip = async () => {
+		// Auto-select top 10 images if no images are currently selected
+		setLoadingNextStep( true );
+		let currentSelectedImages = selectedImages;
+		if ( currentSelectedImages.length === 0 ) {
+			currentSelectedImages = autoSelectTopImages();
+		}
+
+		await handleSaveDetails( currentSelectedImages, true );
+		clearSessionStorage( USER_KEYWORD );
+		nextStep();
+		setLoadingNextStep( false );
+
+		// Stores - null value on state -> Commented out.
+		// setWebsiteImagesAIStep( previouslySelected.current ?? [] );
+	};
+
+	// Auto-select top 10 images when user skips selection
+	const autoSelectTopImages = () => {
+		// Only auto-select if no images are currently selected
+		if ( selectedImages?.length > 0 ) {
+			return selectedImages; // return existing selections
+		}
+
+		const imagesToSelect = images.slice( 0, 10 );
+		imagesToSelect.forEach( ( image ) => {
+			handleImageSelection( image );
+		} );
+
+		// Update the state with the selected images
+		const newSelectedImages = imagesToSelect;
+		setWebsiteImagesAIStep( newSelectedImages );
+
+		return newSelectedImages;
+	};
 
 	const handleImageSearch = ( data ) => {
 		setKeyword( data.keyword );
@@ -723,17 +841,29 @@ const Images = () => {
 		}
 	};
 
+	useEffect( () => {
+		const handleResize = () => {
+			setBreakpoint( getScreenWidthBreakPoint() );
+		};
+		window.addEventListener( 'resize', handleResize );
+		return () => {
+			window.removeEventListener( 'resize', handleResize );
+		};
+	}, [] );
+
 	return (
 		<div
 			className="w-full flex flex-col flex-auto h-full overflow-y-auto"
 			ref={ scrollContainerRef }
 			onScroll={ handleScroll }
 		>
-			<div className="w-full space-y-6">
+			<div className="w-full space-y-6 px-5 md:px-10 lg:px-14 xl:px-15 pb-2">
 				<Heading
 					heading={ __( 'Select the Images', 'ai-builder' ) }
-					className="px-5 md:px-10 lg:px-14 xl:px-15 pt-5 md:pt-10 lg:pt-8 xl:pt-8 max-w-fit mx-auto"
+					className="px-5 md:px-10 lg:px-14 xl:px-15 pt-5 md:pt-8 lg:pt-8 xl:pt-8 max-w-fit mx-auto leading-9"
 				/>
+			</div>
+			<div className="sticky top-0 pt-4 space-y-6 z-[1] bg-container-background px-5 md:px-10 lg:px-14 xl:px-15">
 				<form
 					className="w-full overflow-visible min-h-[3.125rem]"
 					onSubmit={ handleSubmit( handleImageSearch ) }
@@ -777,7 +907,7 @@ const Images = () => {
 							</button>
 						</div>
 						<input
-							className="!text-sm p-0 border-0 w-full focus:outline-none focus:ring-0 focus-visible:outline-none"
+							className="!text-base p-0 border-0 w-full focus:outline-none focus:ring-0 focus-visible:outline-none"
 							placeholder={ __(
 								'Add more relevant keywords…',
 								'ai-builder'
@@ -816,17 +946,15 @@ const Images = () => {
 						</div>
 					</div>
 				</form>
-			</div>
-			<div className="sticky top-0 pt-4 space-y-6 z-[1] bg-container-background px-5 md:px-10 lg:px-14 xl:px-15">
-				<div className=" rounded-t-lg py-4">
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-1 text-sm font-normal leading-[21px]">
+				<div className=" rounded-t-lg pt-4 !mt-0">
+					<div className="flex sm:flex-row flex-col items-start sm:items-center justify-between">
+						<div className="flex items-center gap-1 text-sm font-normal leading-[21px] sm:mb-0 mb-5 w-full h-[67px]">
 							{ /* Tabs */ }
 							<div className="flex items-center justify-start gap-3">
 								{ TABS.map( ( tab ) => (
 									<button
 										className={ classNames(
-											'before:content-[attr(data-title)] before:block before:font-bold before:text-sm before:invisible before:h-0',
+											'before:content-[""] before:block before:font-bold before:text-sm before:invisible before:h-0',
 											'pb-3 px-0 pt-0 !border-x-0 !border-t-0 border-b-2 border-solid !border-b-accent-st bg-transparent text-sm font-semibold text-accent-st cursor-pointer focus-visible:outline-none focus:outline-none',
 											tab.value !== activeTab &&
 												'border-0 font-normal text-body-text'
@@ -839,7 +967,10 @@ const Images = () => {
 										data-title={ tab.label }
 										disabled={ loadingNextStep }
 									>
-										{ tab.label }
+										{ tab.value === TABS[ 1 ].value &&
+										breakpoint === 'xs'
+											? tab.mobileLabel
+											: tab.label }
 										{ tab.value === TABS[ 2 ].value &&
 											!! getSelectedImages(
 												selectedImages
@@ -862,12 +993,12 @@ const Images = () => {
 								) ) }
 							</div>
 						</div>
-						{ activeTab === TABS[ 0 ].value && (
+						{ activeTab === TABS[ 0 ].value && ! needsZipWPAuth && (
 							<Dropdown
 								placement="right"
 								trigger={
 									<div
-										className="flex items-center gap-2 min-w-[100px] py-3 pl-4 pr-3 cursor-pointer border border-border-primary rounded-md"
+										className="flex items-center justify-between gap-2 min-w-[100px] w-[160px] py-3 pl-4 pr-3 cursor-pointer border border-border-primary rounded-md"
 										data-disabled={ loadingNextStep }
 									>
 										<span className="text-sm font-normal text-body-text leading-[150%]">
@@ -912,10 +1043,11 @@ const Images = () => {
 							!! selectedImages?.length && (
 								<button
 									onClick={ handleClearImageSelection }
-									className="px-1 py-px bg-transparent border border-solid border-border-primary rounded text-xs leading-4 text-body-text cursor-pointer"
+									className="flex border px-2.5 py-2 font-semibold border-blue-crayola text-xs rounded text-blue-crayola bg-white w-24"
 									disabled={ loadingNextStep }
 								>
-									{ __( 'Clear', 'ai-builder' ) }
+									<XMarkIcon className="w-4 h-4 block mr-1 text-zip-body-text" />
+									{ __( 'Clear all', 'ai-builder' ) }
 								</button>
 							) }
 						{ activeTab === TABS[ 1 ].value && (
@@ -923,7 +1055,7 @@ const Images = () => {
 								render={ ( { open } ) => (
 									<button
 										ref={ uploadImagesBtn }
-										className="px-0 bg-transparent border-none rounded text-xs leading-5 font-semibold text-accent-st cursor-pointer inline-flex items-center justify-end gap-2"
+										className="px-0 bg-transparent border-none rounded text-xs leading-5 font-semibold text-accent-st cursor-pointer inline-flex items-center justify-end gap-2 w-auto sm:w-44"
 										onClick={ open }
 										disabled={ loadingNextStep }
 									>
@@ -943,6 +1075,15 @@ const Images = () => {
 						) }
 					</div>
 				</div>
+				{ ! ( activeTab === TABS[ 0 ].value && needsZipWPAuth ) && (
+					<p className="text-start text-zip-body-text text-sm px-1 pb-2 items-center flex !mt-0">
+						<InformationCircleIcon className="w-4 h-4 inline-block mr-1 mb-0.5 shrink-0" />
+						{ __(
+							'Select 15 to 18 images for best results.',
+							'ai-builder'
+						) }
+					</p>
+				) }
 			</div>
 			<div
 				className="rounded-b-lg py-4 flex flex-col flex-auto relative px-5 md:px-10 lg:px-14 xl:px-15"
@@ -958,14 +1099,18 @@ const Images = () => {
 					>
 						<input { ...getInputProps() } />
 						<ArrowUpTrayIcon className="w-6 h-6 text-zip-app-inactive-icon" />
-						<p className="text-zip-body-text text-base">
+						<p className="text-zip-body-text text-base text-center">
 							<span className="text-accent-st min-w-fit break-keep text-nowrap whitespace-nowrap font-semibold mr-1">
 								{ __( 'Upload images', 'ai-builder' ) }
 							</span>
-							{ __(
-								'or drop your images here (Max 20)',
-								'ai-builder'
-							) }
+							<span>
+								{ __(
+									'or drop your images here',
+									'ai-builder'
+								) }
+								<br />
+								{ __( '(Max 20)', 'ai-builder' ) }
+							</span>
 						</p>
 						<p className="text-zip-body-text text-base">
 							{ __( 'PNG, JPG, JPEG', 'ai-builder' ) }
@@ -988,10 +1133,10 @@ const Images = () => {
 				<AnimatePresence>
 					{ renderImages?.length > 0 && (
 						<Masonry
-							className="gap-6 [&>div]:gap-6"
+							className="gap-4 sm:gap-6 [&>div]:gap-6"
 							columns={ {
 								default: 1,
-								220: 1,
+								640: 2,
 								767: 3,
 								1024: 3,
 								1280: 5,
@@ -1032,7 +1177,18 @@ const Images = () => {
 					</div>
 				) }
 
+				{ activeTab === TABS[ 0 ].value && needsZipWPAuth && (
+					<div className="flex flex-col items-center justify-center h-full">
+						<ConnectZipWPBanner
+							onAuthSuccess={ handleAuthSuccess }
+							onUploadOwn={ () =>
+								setActiveTab( TABS[ 1 ].value )
+							}
+						/>
+					</div>
+				) }
 				{ activeTab === TABS[ 0 ].value &&
+					! needsZipWPAuth &&
 					! isLoading &&
 					! images.length &&
 					imageRequestCompleted.current && (
@@ -1105,6 +1261,12 @@ const Images = () => {
 						  } ) }
 				/>
 			</div>
+			<SkipImagesModal
+				open={ openSkipModal }
+				setOpen={ setOpenSkipModal }
+				onConfirmSkip={ handleConfirmSkip }
+				loadingNextStep={ loadingNextStep }
+			/>
 		</div>
 	);
 };

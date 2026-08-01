@@ -6,10 +6,10 @@
  * @package    TestimonialsCarouselElementor
  * @subpackage WordPress
  * @author     UAPP GROUP
- * @copyright  2024 UAPP GROUP
+ * @copyright  2026 UAPP GROUP
  * @license    https://opensource.org/licenses/GPL-3.0 GPL-3.0-only
  * @link
- * @since      11.7.0
+ * @since      12.0.1
  * php version 7.4.1
  */
 
@@ -31,41 +31,15 @@ defined('ABSPATH') || die();
 /**
  * TestimonialsCarousel_Creative widget class.
  *
- * @since 11.7.0
+ * @since 12.0.1
  */
 class TestimonialsCarousel_Thumbnails extends Widget_Base
 {
   /**
-   * TestimonialsCarousel_Thumbnails constructor.
-   *
-   * @param array $data
-   * @param null  $args
-   *
-   * @throws \Exception
-   */
-  public function __construct($data = [], $args = null)
-  {
-    parent::__construct($data, $args);
-    wp_register_style('swiper', plugins_url('/assets/css/swiper-bundle-v11.min.css', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION);
-    wp_register_style('testimonials-carousel', plugins_url('/assets/css/testimonials-carousel.min.css', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION);
-    wp_register_style('testimonials-carousel-thumbnails', plugins_url('/assets/css/testimonials-carousel-thumbnails.min.css', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION);
-
-    if (!function_exists('get_plugin_data')) {
-      require_once(ABSPATH . 'wp-admin/includes/plugin.php');
-    }
-
-    if (get_plugin_data(ELEMENTOR__FILE__)['Version'] >= "3.5.0") {
-      wp_register_script('testimonials-carousel-widget-handler', plugins_url('/assets/js/testimonials-carousel-widget-handler.min.js', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION, true);
-    } else {
-      wp_register_script('testimonials-carousel-widget-handler', plugins_url('/assets/js/testimonials-carousel-widget-old-elementor-handler.min.js', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION, true);
-    }
-  }
-
-  /**
    * Retrieve the widget name.
    *
    * @return string Widget name.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -79,7 +53,7 @@ class TestimonialsCarousel_Thumbnails extends Widget_Base
    * Retrieve the widget title.
    *
    * @return string Widget title.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -93,7 +67,7 @@ class TestimonialsCarousel_Thumbnails extends Widget_Base
    * Retrieve the widget icon.
    *
    * @return string Widget icon.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -112,7 +86,7 @@ class TestimonialsCarousel_Thumbnails extends Widget_Base
    * When multiple categories passed, Elementor uses the first one.
    *
    * @return array Widget categories.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -134,9 +108,7 @@ class TestimonialsCarousel_Thumbnails extends Widget_Base
 
   public function get_script_depends()
   {
-    $scripts = ['swiper', 'testimonials-carousel-widget-handler'];
-
-    return $scripts;
+    return \TestimonialsCarouselElementor\Testimonials_Carousel_Assets::get_widget_script_depends(['swiper']);
   }
 
   /**
@@ -160,7 +132,7 @@ class TestimonialsCarousel_Thumbnails extends Widget_Base
    *
    * Adds different input fields to allow the user to change and customize the widget settings.
    *
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access protected
    */
@@ -1784,7 +1756,7 @@ class TestimonialsCarousel_Thumbnails extends Widget_Base
    *
    * Written in PHP and used to generate the final HTML.
    *
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access protected
    */
@@ -1821,19 +1793,20 @@ class TestimonialsCarousel_Thumbnails extends Widget_Base
       }
       ?>
 
-      <section id="thumbnails" class="testimonials-thumbnails myTestimonialsThumbnail mySwiper <?php if (
-          esc_attr($settings['navigation']) === "dots"
-          || esc_attr($settings['navigation']) === "thumbs_dots"
-          || esc_attr($settings['navigation']) === "thumbs"
-          || esc_attr($settings['navigation']) === "none"
-      ) {
-        echo esc_attr('slider-arrows-disabled');
-      } ?>">
+      <section id="<?php echo esc_attr('tc-thumbnails-' . $this->get_id()); ?>"
+               class="testimonials-thumbnails myTestimonialsThumbnail mySwiper <?php if (
+                   esc_attr($settings['navigation']) === "dots"
+                   || esc_attr($settings['navigation']) === "thumbs_dots"
+                   || esc_attr($settings['navigation']) === "thumbs"
+                   || esc_attr($settings['navigation']) === "none"
+               ) {
+                 echo esc_attr('slider-arrows-disabled');
+               } ?>"<?php \TestimonialsCarouselElementor\Testimonials_Carousel_Slider_Render::print_data_attributes($settings); ?>>
         <div class="testimonials-thumbnails__wrapper">
           <div class="swiper thumbnail__slider_1 <?php if (esc_attr($settings['navigation']) === "arrows_dots"
               || esc_attr($settings['navigation']) === "arrows") {
             echo esc_attr('thumbnail__slider_1-width');
-          } ?>">
+          } ?>"<?php \TestimonialsCarouselElementor\Testimonials_Carousel_Slider_Render::print_data_attributes($settings); ?>>
             <div class="swiper-wrapper">
               <?php foreach ($slide as $item) {
                 if (esc_url($item['slide_image']['url'])) { ?>
@@ -1892,10 +1865,10 @@ class TestimonialsCarousel_Thumbnails extends Widget_Base
                 || esc_attr($settings['navigation']) === "arrows"
             ) {
               echo esc_attr('d-none');
-            } ?>">
+            } ?>"<?php \TestimonialsCarouselElementor\Testimonials_Carousel_Slider_Render::print_data_attributes($settings); ?>>
               <div class="swiper-wrapper">
                 <?php foreach ($slide as $item) {
-                  if (isset($item['slide_image'], $item['slide_image']['url']) && !empty($item['slide_image']['url'])) { ?>
+                  if (esc_url($item['slide_image']['url'])) { ?>
                     <div class="swiper-slide">
                       <img class="thumbnail__image" src="<?php echo esc_url($item['slide_image']['url']); ?>"
                            alt="<?php echo esc_attr($item['slide_image']['alt'] ?? ''); ?>"/>
@@ -1923,7 +1896,8 @@ class TestimonialsCarousel_Thumbnails extends Widget_Base
         </div>
       </section>
 
-      <div class="slider-modal slider-testimonials-thumbnails-modal testimonials-thumbnails" id="slider-modal">
+      <div class="slider-modal slider-testimonials-thumbnails-modal testimonials-thumbnails"
+           id="<?php echo esc_attr('slider-modal-' . $this->get_id()); ?>">
         <div class="slider-modal-bg slider-modal-exit"></div>
         <div class="slider-modal-container slider-container-background slider-container-block-background">
           <div class="slider-modal-container-info swiper thumbnail__slider_1"></div>

@@ -121,7 +121,7 @@ class Queue {
 	}
 
 	/**
-	 * Get the front-most item on the queue without checking it out.
+	 * Get the front-most items on the queue without checking them out.
 	 *
 	 * @param int $count Number of items to return when looking at the items.
 	 *
@@ -129,6 +129,22 @@ class Queue {
 	 */
 	public function peek( $count = 1 ) {
 		$items = $this->fetch_items( $count );
+		if ( $items ) {
+			return Utils::get_item_values( $items );
+		}
+
+		return array();
+	}
+
+	/**
+	 * Get the last-added items on the queue without checking them out.
+	 *
+	 * @param int $count Number of items to return when looking at the items.
+	 *
+	 * @return array
+	 */
+	public function peek_newest( $count = 1 ) {
+		$items = $this->fetch_items( $count, 'DESC' );
 		if ( $items ) {
 			return Utils::get_item_values( $items );
 		}
@@ -199,7 +215,7 @@ class Queue {
 	 *
 	 * @param int $buffer_size Size of the buffer to checkout.
 	 *
-	 * @return Automattic\Jetpack\Sync\Queue_Buffer|bool|int|\WP_Error
+	 * @return \Automattic\Jetpack\Sync\Queue_Buffer|bool|int|\WP_Error
 	 */
 	public function checkout( $buffer_size ) {
 		if ( $this->get_checkout_id() ) {
@@ -245,14 +261,39 @@ class Queue {
 	}
 
 	/**
-	 * Pop elements from the queue.
+	 * Remove the oldest items from the queue.
 	 *
-	 * @param int $limit Number of items to pop from the queue.
+	 * @param int $limit Number of items to remove from the queue.
 	 *
 	 * @return array|object|null
 	 */
 	public function pop( $limit ) {
 		$items = $this->fetch_items( $limit );
+
+		if ( ! $items ) {
+			return array();
+		}
+
+		$ids = $this->get_ids( $items );
+
+		$this->delete( $ids );
+
+		return $items;
+	}
+
+	/**
+	 * Remove the newest items from the queue.
+	 *
+	 * @param int $limit Number of items to remove from the queue.
+	 *
+	 * @return array|object|null
+	 */
+	public function pop_newest( $limit ) {
+		$items = $this->fetch_items( $limit, 'DESC' );
+
+		if ( ! $items ) {
+			return array();
+		}
 
 		$ids = $this->get_ids( $items );
 
@@ -329,9 +370,8 @@ class Queue {
 			// phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition
 			while ( ( $current_item = array_shift( $current_items ) ) !== null ) {
 				// @codingStandardsIgnoreStart
-				$current_item->value = unserialize( $current_item->value );
+				$current_item->value = @unserialize( $current_item->value );
 				// @codingStandardsIgnoreEnd
-
 				$items[] = $current_item;
 			}
 		}
@@ -348,7 +388,7 @@ class Queue {
 	/**
 	 * Check in the queue.
 	 *
-	 * @param Automattic\Jetpack\Sync\Queue_Buffer $buffer Queue_Buffer object.
+	 * @param \Automattic\Jetpack\Sync\Queue_Buffer $buffer Queue_Buffer object.
 	 *
 	 * @return bool|\WP_Error
 	 */
@@ -367,8 +407,8 @@ class Queue {
 	/**
 	 * Close the buffer.
 	 *
-	 * @param Automattic\Jetpack\Sync\Queue_Buffer $buffer Queue_Buffer object.
-	 * @param null|array                           $ids_to_remove Ids to remove from the queue.
+	 * @param \Automattic\Jetpack\Sync\Queue_Buffer $buffer Queue_Buffer object.
+	 * @param null|array                            $ids_to_remove Ids to remove from the queue.
 	 *
 	 * @return bool|\WP_Error
 	 */
@@ -521,9 +561,12 @@ class Queue {
 		);
 
 		if ( $checkout_value ) {
-			list( $checkout_id, $timestamp ) = explode( ':', $checkout_value );
-			if ( (int) $timestamp > time() ) {
-				return $checkout_id;
+			$parts = explode( ':', $checkout_value, 2 );
+			if ( count( $parts ) === 2 ) {
+				list( $checkout_id, $timestamp ) = $parts;
+				if ( (int) $timestamp > time() ) {
+					return $checkout_id;
+				}
 			}
 		}
 
@@ -610,11 +653,15 @@ class Queue {
 	 * Return the items in the queue.
 	 *
 	 * @param null|int $limit Limit to the number of items we fetch at once.
+	 * @param string   $order      Sort direction for the items. Accepts 'ASC' or 'DESC'.
+	 *                             Any other value will be treated as 'ASC'.
 	 *
 	 * @return array|object|null
 	 */
-	private function fetch_items( $limit = null ) {
-		$items = $this->queue_storage->fetch_items( $limit );
+	private function fetch_items( $limit = null, $order = 'ASC' ) {
+		$order = 'DESC' === $order ? 'DESC' : 'ASC';
+
+		$items = $this->queue_storage->fetch_items( $limit, $order );
 
 		return $this->unserialize_values( $items );
 	}
@@ -653,7 +700,7 @@ class Queue {
 	/**
 	 * Return true if the buffer is still valid or an Error other wise.
 	 *
-	 * @param Automattic\Jetpack\Sync\Queue_Buffer $buffer The Queue_Buffer.
+	 * @param \Automattic\Jetpack\Sync\Queue_Buffer $buffer The Queue_Buffer.
 	 *
 	 * @return bool|WP_Error
 	 */

@@ -92,7 +92,7 @@
   box-shadow: none;
   color: var(--plyr-color-main);
   height: 9px;
-  outline: 1px solid #878787a6;
+  outline: 1px solid rgba(135, 135, 135, 0.6509803922);
   outline-offset: 2px;
   border-radius: 0px;
 }

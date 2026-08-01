@@ -64,7 +64,14 @@ class Cta_Box extends Widget_Base
         if( Plugin::$instance->editor->is_edit_mode() ) {
             return false;
         }
-        $content_type       = $this->get_settings('eael_cta_title_content_type');
+
+        $settings = $this->get_data( 'settings' );
+
+        if ( empty( $settings ) || ! is_array( $settings ) ) {
+            return false;
+        }
+
+        $content_type       = sanitize_text_field( $settings['eael_cta_title_content_type'] ?? '' );
         $is_dynamic_content = 'template' === $content_type;
 
         return $is_dynamic_content;
@@ -2127,7 +2134,7 @@ class Cta_Box extends Widget_Base
 		        $eael_template_id = $settings['eael_primary_templates'];
 		        // WPML Compatibility
 		        if ( ! is_array( $eael_template_id ) ) {
-			        $eael_template_id = apply_filters( 'wpml_object_id', $eael_template_id, 'wp_template', true );
+			        $eael_template_id = apply_filters( 'wpml_object_id', $eael_template_id, 'wp_template', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		        }
 
 		        if ( Plugin::$instance->editor->is_edit_mode() ) {

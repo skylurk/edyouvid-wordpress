@@ -273,6 +273,8 @@ class WPvivid_Admin
                 'error' => __('Error:', 'wpvivid-backuprestore'),
                 'remotealias' => __('Warning: An alias for remote storage is required.', 'wpvivid-backuprestore'),
                 'remoteexist' => __('Warning: The alias already exists in storage list.', 'wpvivid-backuprestore'),
+                'remote_upload_chunksize' => __('Warning: Please enter an upload block size.', 'wpvivid-backuprestore'),
+                'remote_download_chunksize' => __('Warning: Please enter a download block size.', 'wpvivid-backuprestore'),
                 'backup_calc_timeout' => __('Calculating the size of files, folder and database timed out. If you continue to receive this error, please go to the plugin settings, uncheck \'Calculate the size of files, folder and database before backing up\', save changes, then try again.', 'wpvivid-backuprestore'),
                 'restore_step1' => __('Step One: In the backup list, click the \'Restore\' button on the backup you want to restore. This will bring up the restore tab', 'wpvivid-backuprestore'),
                 'restore_step2' => __('Step Two: Choose an option to complete restore, if any', 'wpvivid-backuprestore'),

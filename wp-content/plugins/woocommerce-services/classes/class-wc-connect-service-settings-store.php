@@ -31,7 +31,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return object|array
 		 */
 		public function get_store_options() {
-			$currency_symbol = sanitize_text_field( html_entity_decode( get_woocommerce_currency_symbol() ) );
+			// ENT_COMPAT is explicitly set for cross-version compatibility as it was the default prior to PHP v8.1.
+			$currency_symbol = sanitize_text_field( html_entity_decode( get_woocommerce_currency_symbol(), ENT_COMPAT ) );
 			$dimension_unit  = sanitize_text_field( strtolower( get_option( 'woocommerce_dimension_unit' ) ) );
 			$weight_unit     = sanitize_text_field( strtolower( get_option( 'woocommerce_weight_unit' ) ) );
 			$base_location   = wc_get_base_location();
@@ -338,11 +339,10 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			return ( $a->instance_id > $b->instance_id ) ? 1 : -1;
-
 		}
 
 		/**
-		 * Returns the service type and id for each enabled WooCommerce Shipping & Tax service
+		 * Returns the service type and id for each enabled WooCommerce Tax service
 		 *
 		 * Shipping services also include instance_id and shipping zone id
 		 *
@@ -378,6 +378,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			global $wpdb;
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared --- Need to use interpolated for the `IN()` condition
 			$methods = $wpdb->get_results(
 				"SELECT * FROM {$wpdb->prefix}woocommerce_shipping_zone_methods " .
 				"LEFT JOIN {$wpdb->prefix}woocommerce_shipping_zones " .
@@ -385,6 +386,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				"WHERE method_id IN ({$escaped_list}) " .
 				'ORDER BY zone_order, instance_id;'
 			);
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 			if ( empty( $methods ) ) {
 				return $enabled_services;
@@ -613,6 +615,31 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			return $lookup;
+		}
+
+		public function is_eligible_for_migration() {
+			$migration_state = intval( get_option( 'wcshipping_migration_state', 0 ) );
+
+			// If the migration state is greater than "COMPLETED", then we can assume that the next part of the migration
+			// state is being handled by WooCommerce Shipping.
+			if ( $migration_state > WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED ) {
+				return false;
+			}
+
+			// Hide the migration notification if the site has any active shipping methods defined by WCS&T.
+			if ( ! empty( $this->get_enabled_services() ) ) {
+				return false;
+			}
+
+			$migration_dismissed = false;
+			if ( isset( $_COOKIE[ WC_Connect_Loader::MIGRATION_DISMISSAL_COOKIE_KEY ] ) && (int) $_COOKIE[ WC_Connect_Loader::MIGRATION_DISMISSAL_COOKIE_KEY ] === 1 ) {
+				$migration_dismissed = true;
+			}
+
+			$migration_pending = ! $migration_state || WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED !== $migration_state;
+			$migration_enabled = $this->service_schemas_store->is_wcship_wctax_migration_enabled();
+
+			return $migration_pending && $migration_enabled && ! $migration_dismissed;
 		}
 
 		private function translate_unit( $value ) {

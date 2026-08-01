@@ -22,7 +22,7 @@ class Main {
 	/**
 	 * Stats version.
 	 */
-	const VERSION = '0.12.2';
+	const VERSION = '0.31.5';
 
 	/**
 	 * Singleton Main instance.
@@ -52,6 +52,33 @@ class Main {
 	 */
 	private function __construct() {
 		add_action( 'rest_api_init', array( new REST_Controller(), 'register_rest_routes' ) );
+		// Disable JITM assets on the Stats page.
+		// JITM is handled separately by Stats: https://github.com/Automattic/wp-calypso/pull/95273.
+		add_filter(
+			'jetpack_display_jitms_on_screen',
+			function ( $show, $screen_id ) {
+				if ( 'jetpack_page_stats' === $screen_id ) {
+					return false;
+				}
+				return $show;
+			},
+			10,
+			2
+		);
+
+		// Register stats-admin transient prefix for cleanup by the stats package.
+		add_filter( 'jetpack_stats_transient_cleanup_prefixes', array( $this, 'register_transient_cleanup_prefix' ) );
+	}
+
+	/**
+	 * Register the stats-admin transient prefix for cleanup.
+	 *
+	 * @param array $prefixes List of transient prefixes to clean up.
+	 * @return array Modified list of prefixes.
+	 */
+	public function register_transient_cleanup_prefix( $prefixes ) {
+		$prefixes[] = WPCOM_Client::CACHE_TRANSIENT_PREFIX;
+		return $prefixes;
 	}
 
 	/**

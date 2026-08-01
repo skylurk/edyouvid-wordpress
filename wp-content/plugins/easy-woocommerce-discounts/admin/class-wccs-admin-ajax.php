@@ -95,15 +95,14 @@ class WCCS_Admin_Ajax {
 
 			$meta_data = array(
 				'date_time' => ! empty( $_POST['date_time'] ) ? map_deep( $_POST['date_time'], 'sanitize_text_field' ) : array(),
-				'date_times_match_mode' => ! empty( $_POST['date_times_match_mode'] ) && in_array( $_POST['date_times_match_mode'], array( 'one', 'all' ) ) ? sanitize_text_field( $_POST['date_times_match_mode'] ) : 'one',
-				'conditions_match_mode' => ! empty( $_POST['conditions_match_mode'] ) && in_array( $_POST['conditions_match_mode'], array( 'one', 'all' ) ) ? sanitize_text_field( $_POST['conditions_match_mode'] ) : 'all',
 			);
 
 			// Products list condition meta data.
 			if ( 'products-list' === $type ) {
 				$meta_data['include'] = ! empty( $_POST['include'] ) ? map_deep( $_POST['include'], 'sanitize_text_field' ) : array();
 				$meta_data['exclude'] = ! empty( $_POST['exclude'] ) ? map_deep( $_POST['exclude'], 'sanitize_text_field' ) : array();
-			}  // Cart Discount condition meta data.
+				$meta_data['paginate'] = ! empty( $_POST['paginate'] ) ? sanitize_text_field( $_POST['paginate'] ) : 'true';
+			} // Cart Discount condition meta data.
 			elseif ( 'cart-discount' === $type ) {
 				$meta_data['private_note'] = ! empty( $_POST['private_note'] ) ? sanitize_text_field( $_POST['private_note'] ) : '';
 				$meta_data['apply_mode'] = ! empty( $_POST['apply_mode'] ) ? sanitize_text_field( $_POST['apply_mode'] ) : 'all';
@@ -113,6 +112,10 @@ class WCCS_Admin_Ajax {
 				$meta_data['exclude_items'] = ! empty( $_POST['exclude_items'] ) ? map_deep( $_POST['exclude_items'], 'sanitize_text_field' ) : array();
 				$meta_data['manual'] = ! empty( $_POST['manual'] ) ? absint( $_POST['manual'] ) : 0;
 				$meta_data['usage_limit'] = ! empty( $_POST['usage_limit'] ) ? absint( $_POST['usage_limit'] ) : '';
+
+				if ( in_array( $meta_data['discount_type'], array( 'cart_subtotal_including_tax', 'cart_subtotal_excluding_tax', 'products_subtotal' ) ) ) {
+					$meta_data['ranges'] = ! empty( $_POST['ranges'] ) ? map_deep( $_POST['ranges'], 'sanitize_text_field' ) : array();
+				}
 			} // Shipping method condition meta data.
 			elseif ( 'shipping' === $type ) {
 				$meta_data['private_note'] = ! empty( $_POST['private_note'] ) ? sanitize_text_field( $_POST['private_note'] ) : '';
@@ -150,6 +153,19 @@ class WCCS_Admin_Ajax {
 
 						if ( isset( $data['id'] ) ) {
 							$delete_meta = array( 'discount_type', 'discount', 'purchase', 'purchased_items', 'purchased_message', 'repeat' );
+						}
+					} elseif ( 'purchase_x_receive_y' === $_POST['mode'] || 'purchase_x_receive_y_same' === $_POST['mode'] || 'bogo' === $_POST['mode'] ) {
+						$meta_data['purchase'] = ! empty( $_POST['purchase'] ) ? map_deep( $_POST['purchase'], 'sanitize_text_field' ) : (object) array( 'purchase' => '', 'receive' => '', 'discount_type' => 'percentage_discount', 'discount' => '' );
+						$meta_data['repeat'] = ! empty( $_POST['repeat'] ) ? sanitize_text_field( $_POST['repeat'] ) : 'false';
+
+						if ( 'bogo' !== $_POST['mode'] ) {
+							$meta_data['purchased_items'] = ! empty( $_POST['purchased_items'] ) ? map_deep( $_POST['purchased_items'], 'sanitize_text_field' ) : array();
+							$meta_data['purchased_message'] = ! empty( $_POST['purchased_message'] ) ? wp_kses_post( $_POST['purchased_message'] ) : '';
+							$meta_data['quantity_based_on'] = ! empty( $_POST['quantity_based_on'] ) ? sanitize_text_field( $_POST['quantity_based_on'] ) : 'all_products';
+						}
+
+						if ( isset( $data['id'] ) ) {
+							$delete_meta = array( 'discount_type', 'discount', 'quantities' );
 						}
 					} elseif ( 'simple' === $_POST['mode'] ) {
 						$meta_data['discount_type'] = ! empty( $_POST['discount_type'] ) ? sanitize_text_field( $_POST['discount_type'] ) : 'percentage_discount';
@@ -234,18 +250,21 @@ class WCCS_Admin_Ajax {
 		}
 
 		$condition = WCCS()->conditions->get_condition( $id );
-		$delete = WCCS()->conditions->delete( $id );
 
-		if ( $delete ) {
-			do_action( 'wccs_condition_deleted', $condition );
-			die(
-				json_encode(
-					array(
-						'success' => 1,
-						'message' => __( 'Condition deleted successfully.', 'easy-woocommerce-discounts' ),
+		if ( $condition ) {
+			$delete = WCCS()->conditions->delete( $id );
+
+			if ( $delete ) {
+				do_action( 'wccs_condition_deleted', $condition );
+				die(
+					json_encode(
+						array(
+							'success' => 1,
+							'message' => __( 'Condition deleted successfully.', 'easy-woocommerce-discounts' ),
+						)
 					)
-				)
-			);
+				);
+			}
 		}
 
 		die(
@@ -458,7 +477,7 @@ class WCCS_Admin_Ajax {
 			);
 		}
 
-		$condition_id = WCCS()->conditions->duplicate( (int) $_POST['id'] );
+		$condition_id = WCCS()->conditions->duplicate( intval( $_POST['id'] ) );
 		if ( ! $condition_id ) {
 			die(
 				json_encode(
@@ -537,13 +556,7 @@ class WCCS_Admin_Ajax {
 			$items = WCCS_Admin_Select_Data_Provider::get_rules( [ 'name' => $term, 'number' => $limit ] );
 		}
 
-		die(
-			json_encode(
-				array(
-					'items' => $items
-				)
-			)
-		);
+		die( json_encode( array( 'items' => $items ) ) );
 	}
 
 	/**

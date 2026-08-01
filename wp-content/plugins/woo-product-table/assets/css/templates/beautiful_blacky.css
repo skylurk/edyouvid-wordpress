@@ -132,15 +132,15 @@ div.beautiful_blacky_wrapper.wpt-wrap .wpt_action input.input-text.qty.text,
 div.beautiful_blacky_wrapper.wpt-wrap .qib-button-wrapper .quantity input.input-text.qty.text, 
 div.beautiful_blacky_wrapper.wpt-wrap .wpt_quantity input.input-text.qty.text, 
 div.beautiful_blacky_wrapper.wpt-wrap .wpt_quick_qty input.input-text.qty.text{
- border: 1px solid var(--wpt_white);
- background: var(--wpt_white);
- color: var(--wpt_black);
+ border: 1px solid var(--wpt_black);
+ background: var(--wpt_black);
+ color: var(--wpt_white);
 }
 
 div.beautiful_blacky_wrapper.wpt-wrap .wpt-table-tag .wpt-td-tag select{
- border: 1px solid #000000;
- background-color: #1b232a;
- color: #ffffff99;
+ border: 1px solid var(--wpt_black);
+ background-color: var(--wpt_black);
+ color: var(--wpt_white);
 }
 
 div.beautiful_blacky_wrapper.wpt-wrap .tag_or_div{
@@ -164,4 +164,7 @@ body.wpt_table_body .wpt-wrap .wpt-new-footer-cart{
 }
 body.wpt_table_body label.wpt-checkbox-item.wpt-checkbox-checked .wpt-checkbox-label {
     color: var(--wpt_text);
+}
+.wpt-new-footer-cart {
+    background: var(--wpt_thead_bg) !important;
 }

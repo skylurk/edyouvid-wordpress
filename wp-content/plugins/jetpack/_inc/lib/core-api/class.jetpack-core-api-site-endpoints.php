@@ -6,6 +6,7 @@
  */
 
 use Automattic\Jetpack\Connection\Client;
+use Automattic\Jetpack\Publicize\Publicize;
 use Automattic\Jetpack\Stats\WPCOM_Stats;
 
 /**
@@ -61,14 +62,14 @@ class Jetpack_Core_API_Site_Endpoint {
 	}
 
 	/**
-	 * Returns the result of `/sites/%s/purchases` endpoint call.
+	 * Returns the result of `/upgrades` endpoint call.
 	 *
 	 * @return array of site purchases.
 	 */
 	public static function get_purchases() {
 		// Make the API request.
-		$request  = sprintf( '/sites/%d/purchases', Jetpack_Options::get_option( 'id' ) );
-		$response = Client::wpcom_json_api_request_as_blog( $request, '1.1' );
+		$request  = sprintf( '/upgrades?site=%d', Jetpack_Options::get_option( 'id' ) );
+		$response = Client::wpcom_json_api_request_as_blog( $request, '1.2' );
 
 		// Bail if there was an error or malformed response.
 		if ( is_wp_error( $response ) || ! is_array( $response ) || ! isset( $response['body'] ) ) {
@@ -150,13 +151,11 @@ class Jetpack_Core_API_Site_Endpoint {
 		 * - Followers (only if subs module is active)
 		 * - Sharing counts (not currently supported in Jetpack -- https://github.com/Automattic/jetpack/issues/844 )
 		 */
-		$stats = null;
-		if ( function_exists( 'convert_stats_array_to_object' ) ) {
-				$stats = convert_stats_array_to_object(
-					( new WPCOM_Stats() )->get_stats( array( 'fields' => 'stats' ) )
-				);
-		}
-		$has_stats = null !== $stats && ! is_wp_error( $stats );
+		$wpcom_stats = new WPCOM_Stats();
+		$stats       = $wpcom_stats->convert_stats_array_to_object(
+			$wpcom_stats->get_stats( array( 'fields' => 'stats' ) )
+		);
+		$has_stats   = null !== $stats && ! is_wp_error( $stats );
 
 		// Yearly visitors.
 		if ( $has_stats && $stats->stats->visitors > 0 ) {
@@ -255,7 +254,7 @@ class Jetpack_Core_API_Site_Endpoint {
 		}
 
 		// Number of active Publicize connections.
-		if ( Jetpack::is_module_active( 'publicize' ) && class_exists( 'Publicize' ) ) {
+		if ( Jetpack::is_module_active( 'publicize' ) && class_exists( Publicize::class ) ) {
 			$publicize   = new Publicize();
 			$connections = $publicize->get_all_connections();
 
@@ -297,7 +296,7 @@ class Jetpack_Core_API_Site_Endpoint {
 			array(
 				'code'    => 'success',
 				'message' => esc_html__( 'Site benefits correctly received.', 'jetpack' ),
-				'data'    => wp_json_encode( $benefits ),
+				'data'    => wp_json_encode( $benefits, JSON_UNESCAPED_SLASHES ),
 			)
 		);
 	}

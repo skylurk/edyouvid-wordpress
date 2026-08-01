@@ -1,5 +1,5 @@
 /**
- * File navigation.js
+ * File style.js
  *
  * Handles toggling the navigation menu for small screens and enables tab
  * support for dropdown menus.
@@ -15,22 +15,6 @@
  * @return {Array}           The parent elements.
  */
 var astraGetParents = function ( elem, selector ) {
-
-	// Element.matches() polyfill.
-	if ( ! Element.prototype.matches) {
-		Element.prototype.matches =
-			Element.prototype.matchesSelector ||
-			Element.prototype.mozMatchesSelector ||
-			Element.prototype.msMatchesSelector ||
-			Element.prototype.oMatchesSelector ||
-			Element.prototype.webkitMatchesSelector ||
-			function(s) {
-				var matches = (this.document || this.ownerDocument).querySelectorAll( s ),
-					i = matches.length;
-				while (--i >= 0 && matches.item( i ) !== this) {}
-				return i > -1;
-			};
-	}
 
 	// Setup parents array.
 	var parents = [];
@@ -50,17 +34,6 @@ var astraGetParents = function ( elem, selector ) {
 	return parents;
 };
 
-/**
- * Deprecated: Get all of an element's parent elements up the DOM tree
- *
- * @param  {Node}   elem     The element.
- * @param  {String} selector Selector to match against [optional].
- * @return {Array}           The parent elements.
- */
-var getParents = function ( elem, selector ) {
-	console.warn( 'getParents() function has been deprecated since version 2.5.0 or above of Astra Theme and will be removed in the future. Use astraGetParents() instead.' );
-	astraGetParents( elem, selector );
-}
 
 /**
  * Toggle Class funtion
@@ -77,31 +50,6 @@ var astraToggleClass = function ( el, className ) {
 	}
 };
 
-/**
- * Deprecated: Toggle Class funtion
- *
- * @param  {Node}   elem     The element.
- * @param  {String} selector Selector to match against [optional].
- * @return {Array}           The parent elements.
- */
-var toggleClass = function ( el, className ) {
-	console.warn( 'toggleClass() function has been deprecated since version 2.5.0 or above of Astra Theme and will be removed in the future. Use astraToggleClass() instead.' );
-	astraToggleClass( el, className );
-};
-
-// CustomEvent() constructor functionality in Internet Explorer 9 and higher.
-(function () {
-
-	if (typeof window.CustomEvent === "function") return false;
-	function CustomEvent(event, params) {
-		params = params || { bubbles: false, cancelable: false, detail: undefined };
-		var evt = document.createEvent('CustomEvent');
-		evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
-		return evt;
-	}
-	CustomEvent.prototype = window.Event.prototype;
-	window.CustomEvent = CustomEvent;
-})();
 
 /**
  * Trigget custom JS Event.
@@ -122,10 +70,64 @@ var astraTriggerEvent = function astraTriggerEvent( el, typeArg ) {
 	el.dispatchEvent(event);
 };
 
+/**
+ * Scroll to ID/Top with smooth scroll behavior.
+ *
+ * @since x.x.x
+ *
+ * @param {Event} e Event which is been fired.
+ * @param {String} top offset from top.
+ */
+ astraSmoothScroll = function astraSmoothScroll( e, top ) {
+	e.preventDefault();
+	window.scrollTo({
+		top: top,
+		left: 0,
+		behavior: 'smooth'
+	});
+};
+
+/**
+ * Scroll to Top trigger visibility adjustments.
+ *
+ * @since x.x.x
+ *
+ * @param {Node} masthead Page header.
+ * @param {Node} astScrollTop Scroll to Top selector.
+ */
+astScrollToTopHandler = function ( masthead, astScrollTop ) {
+
+	var content = getComputedStyle(astScrollTop).content,
+		device  = astScrollTop.dataset.onDevices;
+	content = content.replace( /[^0-9]/g, '' );
+
+	if( 'both' == device || ( 'desktop' == device && '769' == content ) || ( 'mobile' == device && '' == content ) ) {
+		// Get current window / document scroll.
+		var  scrollTop = window.pageYOffset || document.body.scrollTop;
+		// If masthead found.
+		if( masthead && masthead.length ) {
+			if (scrollTop > masthead.offsetHeight + 100) {
+				astScrollTop.style.display = "block";
+			} else {
+				astScrollTop.style.display = "none";
+			}
+		} else {
+			// If there is no masthead set default start scroll
+			if ( window.pageYOffset > 300 ) {
+				astScrollTop.style.display = "block";
+			} else {
+				astScrollTop.style.display = "none";
+			}
+		}
+	} else {
+		astScrollTop.style.display = "none";
+	}
+};
+
 ( function() {
 
 	var menu_toggle_all 	 = document.querySelectorAll( '.main-header-menu-toggle' );
-	var menu_click_listeners = {};
+	var menu_click_listeners_nav = {};
 
 	/* Add break point Class and related trigger */
 	var updateHeaderBreakPoint = function () {
@@ -220,6 +222,7 @@ var astraTriggerEvent = function astraTriggerEvent( el, typeArg ) {
 		// Add Eventlisteners for Submenu.
 		if (astra_menu_toggle.length > 0) {
 			for (var i = 0; i < astra_menu_toggle.length; i++) {
+				astra_menu_toggle[i].removeEventListener('click', AstraToggleSubMenu);
 				astra_menu_toggle[i].addEventListener('click', AstraToggleSubMenu, false);
 			}
 		}
@@ -234,8 +237,9 @@ var astraTriggerEvent = function astraTriggerEvent( el, typeArg ) {
 
 				menu_toggle_all[i].setAttribute('data-index', i);
 
-				if ( ! menu_click_listeners[i] ) {
-					menu_click_listeners[i] = menu_toggle_all[i];
+				if ( ! menu_click_listeners_nav[i] ) {
+					menu_click_listeners_nav[i] = menu_toggle_all[i];
+					menu_toggle_all[i].removeEventListener('click', astraNavMenuToggle);
 					menu_toggle_all[i].addEventListener('click', astraNavMenuToggle, false);
 				}
 
@@ -250,6 +254,7 @@ var astraTriggerEvent = function astraTriggerEvent( el, typeArg ) {
 					// Add Eventlisteners for Submenu.
 					if (astra_menu_toggle.length > 0) {
 						for (var j = 0; j < astra_menu_toggle.length; j++) {
+							astra_menu_toggle[j].removeEventListener('click', AstraToggleSubMenu);
 							astra_menu_toggle[j].addEventListener('click', AstraToggleSubMenu, false);
 						}
 					}
@@ -347,30 +352,6 @@ var astraTriggerEvent = function astraTriggerEvent( el, typeArg ) {
 	});
 
 
-	var get_browser = function () {
-	    var ua = navigator.userAgent,tem,M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
-	    if(/trident/i.test(M[1])) {
-	        tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
-	        return;
-	    }
-	    if( 'Chrome'  === M[1] ) {
-	        tem = ua.match(/\bOPR|Edge\/(\d+)/)
-	        if(tem != null)   {
-	        	return;
-	        	}
-	        }
-	    M = M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
-	    if((tem = ua.match(/version\/(\d+)/i)) != null) {
-	    	M.splice(1,1,tem[1]);
-	    }
-
-	    var bodyElement = document.body;
-	    if( 'Safari' === M[0] && M[1] < 11 ) {
-		   bodyElement.classList.add( "ast-safari-browser-less-than-11" );
-	    }
-	}
-
-	get_browser();
 
 	/* Search Script */
 	var SearchIcons = document.getElementsByClassName( 'astra-search-icon' );
@@ -396,11 +377,23 @@ var astraTriggerEvent = function astraTriggerEvent( el, typeArg ) {
             }
         }
 	}
+	var SearchInputs = document.querySelectorAll( '.search-field' );
+	SearchInputs.forEach(input => {
+		input.addEventListener('focus', function (e) {
+			var sibling = this.parentNode.parentNode.parentNode.querySelector( '.ast-search-menu-icon' );
+			astraToggleClass( sibling, 'ast-dropdown-active' );
+		});
+		input.addEventListener('blur', function (e) {
+			var sibling = this.parentNode.parentNode.parentNode.querySelector( '.ast-search-menu-icon' );
+			sibling.classList.remove( 'ast-dropdown-active' );
+			astraToggleClass( sibling, 'ast-dropdown-active' );
+		});
+	});
 
 	/* Hide Dropdown on body click*/
 	document.body.onclick = function( event ) {
 		if ( typeof event.target.classList !==  'undefined' ) {
-			if ( ! event.target.classList.contains( 'ast-search-menu-icon' ) && astraGetParents( event.target, '.ast-search-menu-icon' ).length === 0 && astraGetParents( event.target, '.ast-search-icon' ).length === 0  ) {
+			if ( ! event.target.classList.contains( 'ast-search-menu-icon' ) && ! event.target.closest( '.ast-search-menu-icon' ) && ! event.target.closest( '.ast-search-icon' )  ) {
 				var dropdownSearchWrap = document.getElementsByClassName( 'ast-search-menu-icon' );
 				for (var i = 0; i < dropdownSearchWrap.length; i++) {
 					dropdownSearchWrap[i].classList.remove( 'ast-dropdown-active' );
@@ -480,7 +473,7 @@ var astraTriggerEvent = function astraTriggerEvent( el, typeArg ) {
             hash = '#';
 
         if( self && ! self.classList.contains('astra-search-icon') ) {
-            var link = new String( self );
+            var link = String( self );
             if( link.indexOf( hash ) !== -1 ) {
             	var link_parent = self.parentNode;
                 if ( document.body.classList.contains('ast-header-break-point') && ! ( document.querySelector("header.site-header").classList.contains("ast-menu-toggle-link") && link_parent.classList.contains("menu-item-has-children") ) ) {
@@ -533,24 +526,29 @@ var astraTriggerEvent = function astraTriggerEvent( el, typeArg ) {
    	}
 
 	/**
+	 * Sets or removes .focus class on an element and its ancestors until a specific class is found.
+	 * @param {Element} element - The element to apply the .focus class and traverse its ancestors.
+	 * @param {string} targetClass - The class name to search for in the ancestors.
+	 */
+	function toggleFocusAndAncestors(element, targetClass) {
+		while (-1 === element.className.indexOf(targetClass)) {
+		if ('li' === element.tagName.toLowerCase()) {
+			if (element.classList.contains('focus')) {
+			element.classList.remove('focus');
+			} else {
+			element.classList.add('focus');
+			}
+		}
+		element = element.parentElement;
+		}
+	}
+
+	/**
 	 * Sets or removes .focus class on an element on focus.
 	 */
 	function toggleFocus() {
 		var self = this;
-		// Move up through the ancestors of the current link until we hit .nav-menu.
-		while ( -1 === self.className.indexOf( 'nav-menu' ) ) {
-
-			// On li elements toggle the class .focus.
-			if ( 'li' === self.tagName.toLowerCase() ) {
-				if ( -1 !== self.className.indexOf( 'focus' ) ) {
-					self.className = self.className.replace( ' focus', '' );
-				} else {
-					self.className += ' focus';
-				}
-			}
-
-			self = self.parentElement;
-		}
+		toggleFocusAndAncestors(self, 'nav-menu');
 	}
 
 	/**
@@ -558,25 +556,12 @@ var astraTriggerEvent = function astraTriggerEvent( el, typeArg ) {
 	 */
 	function toggleBlurFocus() {
 		var self = this || '',
-            hash = '#';
-		var	link = new String( self );
-        if( link.indexOf( hash ) !== -1 && document.body.classList.contains('ast-mouse-clicked') ) {
-        	return;
-        }
-		// Move up through the ancestors of the current link until we hit .nav-menu.
-		while ( -1 === self.className.indexOf( 'nav-menu' ) ) {
-
-			// On li elements toggle the class .focus.
-			if ( 'li' === self.tagName.toLowerCase() ) {
-				if ( -1 !== self.className.indexOf( 'focus' ) ) {
-					self.className = self.className.replace( ' focus', '' );
-				} else {
-					self.className += ' focus';
-				}
-			}
-
-			self = self.parentElement;
+		hash = '#';
+		var link = String(self);
+		if (link.includes(hash) && document.body.classList.contains('ast-mouse-clicked')) {
+		return;
 		}
+		toggleFocusAndAncestors(self, 'nav-menu');
 	}
 
 	/* Add class if mouse clicked and remove if tab pressed */
@@ -590,6 +575,136 @@ var astraTriggerEvent = function astraTriggerEvent( el, typeArg ) {
 		body.addEventListener( 'keydown', function() {
 			body.classList.remove( 'ast-mouse-clicked' );
 		} );
+	}
+
+	/**
+	 * Scroll to specific hash link.
+	 *
+	 * @since x.x.x
+	 */
+	if ( astra.is_scroll_to_id ) {
+		// Calculate the offset top of an element, accounting for nested elements.
+		const getOffsetTop = (element) => {
+			let offsetTop = 0;
+			while (element) {
+				offsetTop += element.offsetTop;
+				element = element.offsetParent;
+			}
+			return offsetTop;
+		}
+
+		const scrollToIDHandler = ( e, hash = null ) => {
+
+			let offset = 0;
+			const siteHeader = document.querySelector('.site-header');
+
+			if (siteHeader) {
+
+				// Check and add offset to scroll top if header is sticky.
+				const stickyHeaders = siteHeader.querySelectorAll(
+					'div[data-stick-support]'
+				);
+
+				if ( stickyHeaders.length > 0 ) {
+					stickyHeaders.forEach( ( header ) => ( offset += header.clientHeight ) );
+				} else if ( typeof astraAddon !== 'undefined' && ! ( Number( astraAddon.sticky_hide_on_scroll ) && ! document?.querySelector( '.ast-header-sticked' ) ) ) {
+					const fixedHeader = document.querySelector( '#ast-fixed-header' );
+					if ( fixedHeader ) {
+						offset = fixedHeader?.clientHeight;
+						if ( Number( astraAddon?.header_main_shrink ) ) {
+							const headers = fixedHeader?.querySelectorAll(
+								'.ast-above-header-wrap, .ast-below-header-wrap'
+							);
+							headers?.forEach( () => ( offset -= 10 ) );
+						}
+					}
+				}
+
+				const href = hash ? hash : e.target?.closest( 'a' ).hash;
+				if (href) {
+					const scrollId = document.querySelector(href);
+					if (scrollId) {
+						const elementOffsetTop = getOffsetTop( scrollId );
+						if ( typeof astraAddon !== 'undefined' && Number( astraAddon.sticky_hide_on_scroll ) && window?.scrollY  < elementOffsetTop ) {
+							offset = 0;
+						}
+
+						const scrollOffsetTop = elementOffsetTop - offset;
+						if( scrollOffsetTop ) {
+							astraSmoothScroll( e, scrollOffsetTop );
+						}
+					}
+				}
+			}
+		}
+
+		let hashLinks = [];
+		const links = document.querySelectorAll(
+			'a[href*="#"]:not([href="#"]):not([href="#0"]):not([href*="uagb-tab"]):not(.uagb-toc-link__trigger):not(.skip-link):not(.nav-links a):not([href*="tab-"])'
+		);
+		if (links) {
+			for (const link of links) {
+				if (link.href.split("#")[0] !== location.href.split("#")[0]) {
+					// Store the hash
+					hashLinks.push({
+						hash: link.hash,
+						url: link.href.split("#")[0],
+					});
+				} else if (link.hash !== "") {
+					link.addEventListener("click", scrollToIDHandler);
+				}
+			}
+		}
+
+		window.addEventListener('DOMContentLoaded', (event) => {
+			for (let link of hashLinks) {
+				if (window.location.href.split('#')[0] === link.url) {
+					const siteHeader = document.querySelector('.site-header');
+					let offset = 0;
+	
+					// Check and add offset to scroll top if header is sticky.
+					const headerHeight = siteHeader.querySelectorAll('div[data-stick-support]');
+					if (headerHeight) {
+						headerHeight.forEach(single => {
+							offset += single.clientHeight;
+						});
+					}
+
+					const scrollId = document.querySelector(link.hash);
+					if (scrollId) {
+						const scrollOffsetTop = getOffsetTop(scrollId) - offset;
+						if (scrollOffsetTop) {
+							astraSmoothScroll(event, scrollOffsetTop);
+						}
+					}
+				}
+			}
+
+			// If there is a hash in the URL when the page loads, scroll to that element after a short delay.
+			if ( location.hash ) {
+				setTimeout( () => scrollToIDHandler( new Event( 'click' ), location.hash ), 750 );
+			}
+		});
+	}
+
+	/**
+	 * Scroll to top.
+	 *
+	 * @since x.x.x
+	 */
+	if ( astra.is_scroll_to_top ) {
+		var masthead     = document.querySelector( '#page header' );
+		var astScrollTop = document.getElementById( 'ast-scroll-top' );
+
+		astScrollToTopHandler(masthead, astScrollTop);
+
+		window.addEventListener('scroll', function () {
+			astScrollToTopHandler(masthead, astScrollTop);
+		});
+
+		astScrollTop.onclick = function(e){
+			astraSmoothScroll( e, 0 );
+		};
 	}
 
 } )();

@@ -2,40 +2,44 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Checkout Field Editor for WooCommerce 2.1.6\n"
+"Project-Id-Version: Checkout Field Editor for WooCommerce 2.1.9\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woo-checkout-field-editor-pro\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-01-11T19:23:12+00:00\n"
+"POT-Creation-Date: 2026-05-25T07:25:50+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.9.0\n"
+"X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: woo-checkout-field-editor-pro\n"
 
 #. Plugin Name of the plugin
+#: checkout-form-designer.php
 msgid "Checkout Field Editor for WooCommerce"
 msgstr ""
 
 #. Plugin URI of the plugin
 #. Author URI of the plugin
+#: checkout-form-designer.php
 msgid "https://www.themehigh.com"
 msgstr ""
 
 #. Description of the plugin
+#: checkout-form-designer.php
 msgid "Customize WooCommerce checkout fields(Add, Edit, Delete and re-arrange fields)."
 msgstr ""
 
 #. Author of the plugin
+#: checkout-form-designer.php
 msgid "ThemeHigh"
 msgstr ""
 
-#: admin/class-thwcfd-admin-form-block-field.php:382
+#: admin/class-thwcfd-admin-form-block-field.php:404
 msgid "Value"
 msgstr ""
 
-#: admin/class-thwcfd-admin-form-block-field.php:471
+#: admin/class-thwcfd-admin-form-block-field.php:573
 #: admin/class-thwcfd-admin-form-field.php:675
 msgid "Options"
 msgstr ""
@@ -247,26 +251,26 @@ msgid "Display Settings"
 msgstr ""
 
 #: admin/class-thwcfd-admin-form-field.php:683
-#: admin/assets/js/inc/thwcfd-admin-field.js:442
-#: admin/assets/js/thwcfd-admin.js:957
+#: admin/assets/js/inc/thwcfd-admin-field.js:456
+#: admin/assets/js/thwcfd-admin.js:971
 msgid "Option Value"
 msgstr ""
 
 #: admin/class-thwcfd-admin-form-field.php:684
-#: admin/assets/js/inc/thwcfd-admin-field.js:443
-#: admin/assets/js/thwcfd-admin.js:958
+#: admin/assets/js/inc/thwcfd-admin-field.js:457
+#: admin/assets/js/thwcfd-admin.js:972
 msgid "Option Text"
 msgstr ""
 
 #: admin/class-thwcfd-admin-form-field.php:686
-#: admin/assets/js/inc/thwcfd-admin-field.js:445
-#: admin/assets/js/thwcfd-admin.js:960
+#: admin/assets/js/inc/thwcfd-admin-field.js:459
+#: admin/assets/js/thwcfd-admin.js:974
 msgid "Add new option"
 msgstr ""
 
 #: admin/class-thwcfd-admin-form-field.php:686
-#: admin/assets/js/inc/thwcfd-admin-field.js:446
-#: admin/assets/js/thwcfd-admin.js:961
+#: admin/assets/js/inc/thwcfd-admin-field.js:460
+#: admin/assets/js/thwcfd-admin.js:975
 msgid "Remove option"
 msgstr ""
 
@@ -386,16 +390,16 @@ msgid "Actions"
 msgstr ""
 
 #: admin/class-thwcfd-admin-settings-block-fields.php:186
-#: block/class-thwcfd-block-order-data.php:415
-#: block/class-thwcfd-block-order-data.php:543
+#: block/class-thwcfd-block-order-data.php:419
+#: block/class-thwcfd-block-order-data.php:547
 #: admin/assets/js/inc/thwcfd-admin.js:97
-#: admin/assets/js/thwcfd-admin.js:1281
+#: admin/assets/js/thwcfd-admin.js:1297
 msgid "Yes"
 msgstr ""
 
 #: admin/class-thwcfd-admin-settings-block-fields.php:215
-#: admin/assets/js/inc/thwcfd-admin-field.js:92
-#: admin/assets/js/thwcfd-admin.js:607
+#: admin/assets/js/inc/thwcfd-admin-field.js:93
+#: admin/assets/js/thwcfd-admin.js:608
 msgid "Edit Field"
 msgstr ""
 
@@ -407,17 +411,17 @@ msgstr ""
 msgid "No checkout fields found. Click on Add Field button to create new fields."
 msgstr ""
 
-#: admin/class-thwcfd-admin-settings-block-fields.php:322
+#: admin/class-thwcfd-admin-settings-block-fields.php:331
 #: admin/class-thwcfd-admin-settings-general.php:286
 msgid "Your changes were not saved due to no fields found."
 msgstr ""
 
-#: admin/class-thwcfd-admin-settings-block-fields.php:373
+#: admin/class-thwcfd-admin-settings-block-fields.php:385
 #: admin/class-thwcfd-admin-settings-general.php:77
 msgid "Checkout fields successfully reset"
 msgstr ""
 
-#: admin/class-thwcfd-admin-settings-block-fields.php:592
+#: admin/class-thwcfd-admin-settings-block-fields.php:604
 msgid "Edit Section"
 msgstr ""
 
@@ -513,8 +517,9 @@ msgstr ""
 
 #. translators: %s: Support team link
 #: admin/class-thwcfd-admin.php:143
+#, php-format
 msgid ""
-"Our Checkout Field Editor now supports WooCommerce Checkout Blocks! Currently, a few field types are available, and more will be added soon. \n"
+"Our Checkout Field Editor now supports WooCommerce Checkout Blocks!\n"
 "\t\t\t\t\t\t\tIf you're using Block Checkout, make sure to switch to the Block Checkout Fields tab, otherwise, your changes won’t be reflected. Have questions or need help? \n"
 "\t\t\t\t\t\t\tReach out to our  %s ."
 msgstr ""
@@ -601,31 +606,30 @@ msgstr ""
 
 #. Translators: %s is the section ID.
 #: block/class-thwcfd-block-extend-store-endpoint.php:80
+#, php-format
 msgid "Additional checkout fields for section %s"
 msgstr ""
 
-#: block/class-thwcfd-block-order-data.php:415
-#: block/class-thwcfd-block-order-data.php:543
+#: block/class-thwcfd-block-order-data.php:419
+#: block/class-thwcfd-block-order-data.php:547
 msgid "No"
 msgstr ""
 
-#. translators: %s Field label.
-#: block/class-thwcfd-block.php:186
-msgid "%s (optional)"
-msgstr ""
-
 #. translators: %s is the title of the field being validated.
-#: block/class-thwcfd-block.php:262
+#: block/class-thwcfd-block.php:263
+#, php-format
 msgid "The provided %s is not a valid email address."
 msgstr ""
 
 #. translators: %s is the title of the field being validated.
-#: block/class-thwcfd-block.php:276
+#: block/class-thwcfd-block.php:277
+#, php-format
 msgid "The provided %s is not a valid phone number."
 msgstr ""
 
 #. translators: %s is the title of the field being validated.
-#: block/class-thwcfd-block.php:290
+#: block/class-thwcfd-block.php:291
+#, php-format
 msgid "The provided %s is not a valid postcode."
 msgstr ""
 
@@ -724,12 +728,14 @@ msgid "Kindly tell us your reason, so that we can improve"
 msgstr ""
 
 #. translators: %s: Field label
-#: public/class-thwcfd-public-checkout.php:548
+#: public/class-thwcfd-public-checkout.php:552
+#, php-format
 msgid "<strong>%s</strong> is not a valid number."
 msgstr ""
 
 #. translators: %s: Field label
-#: public/class-thwcfd-public-checkout.php:553
+#: public/class-thwcfd-public-checkout.php:557
+#, php-format
 msgid "<strong>%s</strong> is not a valid url."
 msgstr ""
 
@@ -738,23 +744,23 @@ msgstr ""
 msgid "NAME/ID must begin with a lowercase letter ([a-z]) or underscores (\"_\") and may be followed by any number of lowercase letters, digits ([0-9]) and underscores (\"_\")"
 msgstr ""
 
-#: admin/assets/js/inc/thwcfd-admin-field.js:92
-#: admin/assets/js/thwcfd-admin.js:607
+#: admin/assets/js/inc/thwcfd-admin-field.js:93
+#: admin/assets/js/thwcfd-admin.js:608
 msgid "New Field"
-msgstr ""
-
-#: admin/assets/js/inc/thwcfd-admin-field.js:347
-#: admin/assets/js/thwcfd-admin.js:862
-msgid "Enter default value given in the options."
-msgstr ""
-
-#: admin/assets/js/inc/thwcfd-admin-field.js:354
-#: admin/assets/js/thwcfd-admin.js:869
-msgid "Enter default values given in the options."
 msgstr ""
 
 #: admin/assets/js/inc/thwcfd-admin-field.js:361
 #: admin/assets/js/thwcfd-admin.js:876
+msgid "Enter default value given in the options."
+msgstr ""
+
+#: admin/assets/js/inc/thwcfd-admin-field.js:368
+#: admin/assets/js/thwcfd-admin.js:883
+msgid "Enter default values given in the options."
+msgstr ""
+
+#: admin/assets/js/inc/thwcfd-admin-field.js:375
+#: admin/assets/js/thwcfd-admin.js:890
 msgid "Default value must be a number."
 msgstr ""
 
@@ -763,6 +769,10 @@ msgstr ""
 #: block/assets/dist/contact-info-section-frontend.js:1
 #: block/assets/dist/contact-info-section.js:1
 #: block/assets/js/components/select/index.js:27
+#: block/assets/dist/additional-sections-frontend.js:727
+#: block/assets/dist/additional-sections.js:914
+#: block/assets/dist/contact-info-section-frontend.js:393
+#: block/assets/dist/contact-info-section.js:502
 msgid "Please select a valid option"
 msgstr ""
 
@@ -772,6 +782,11 @@ msgstr ""
 #: block/assets/dist/contact-info-section-frontend.js:4
 #: block/assets/dist/contact-info-section.js:4
 #: block/assets/js/components/select/index.js:45
+#: block/assets/dist/additional-sections-frontend.js:745
+#: block/assets/dist/additional-sections.js:932
+#: block/assets/dist/contact-info-section-frontend.js:411
+#: block/assets/dist/contact-info-section.js:520
+#, js-format
 msgid "Select a %s"
 msgstr ""
 
@@ -780,6 +795,10 @@ msgstr ""
 #: block/assets/dist/contact-info-section-frontend.js:4
 #: block/assets/dist/contact-info-section.js:4
 #: block/assets/js/components/radio-control/index.js:21
+#: block/assets/dist/additional-sections-frontend.js:490
+#: block/assets/dist/additional-sections.js:677
+#: block/assets/dist/contact-info-section-frontend.js:156
+#: block/assets/dist/contact-info-section.js:265
 msgid "Please select an option"
 msgstr ""
 
@@ -788,6 +807,10 @@ msgstr ""
 #: block/assets/dist/contact-info-section-frontend.js:4
 #: block/assets/dist/contact-info-section.js:4
 #: block/assets/js/components/custom-validation-handler.js:37
+#: block/assets/dist/additional-sections-frontend.js:414
+#: block/assets/dist/additional-sections.js:408
+#: block/assets/dist/contact-info-section-frontend.js:80
+#: block/assets/dist/contact-info-section.js:96
 msgid "Please enter a valid email address"
 msgstr ""
 
@@ -796,6 +819,10 @@ msgstr ""
 #: block/assets/dist/contact-info-section-frontend.js:4
 #: block/assets/dist/contact-info-section.js:4
 #: block/assets/js/components/custom-validation-handler.js:30
+#: block/assets/dist/additional-sections-frontend.js:407
+#: block/assets/dist/additional-sections.js:401
+#: block/assets/dist/contact-info-section-frontend.js:73
+#: block/assets/dist/contact-info-section.js:89
 msgid "Please enter a valid URL"
 msgstr ""
 
@@ -804,5 +831,9 @@ msgstr ""
 #: block/assets/dist/contact-info-section-frontend.js:4
 #: block/assets/dist/contact-info-section.js:4
 #: block/assets/js/components/custom-validation-handler.js:23
+#: block/assets/dist/additional-sections-frontend.js:400
+#: block/assets/dist/additional-sections.js:394
+#: block/assets/dist/contact-info-section-frontend.js:66
+#: block/assets/dist/contact-info-section.js:82
 msgid "Please enter a valid Phone Number"
 msgstr ""

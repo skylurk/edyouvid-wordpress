@@ -18,7 +18,6 @@ if ( ! defined( 'WEBSTORIES_VERSION' ) ) {
  * @since 3.2.0
  */
 class Astra_Web_Stories {
-
 	/**
 	 * Constructor
 	 *
@@ -27,7 +26,7 @@ class Astra_Web_Stories {
 	 */
 	public function __construct() {
 		add_action( 'after_setup_theme', array( $this, 'web_stories_setup' ) );
-		add_action( 'astra_body_top', array( $this, 'web_stories_embed' ) );
+		add_action( apply_filters( 'astra_web_stories_position', 'astra_body_top' ), array( $this, 'web_stories_embed' ) );
 		add_filter( 'astra_dynamic_theme_css', array( $this, 'web_stories_css' ) );
 	}
 

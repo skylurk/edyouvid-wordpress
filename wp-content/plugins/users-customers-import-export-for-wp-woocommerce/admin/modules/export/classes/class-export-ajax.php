@@ -674,6 +674,7 @@ class Wt_Import_Export_For_Woo_User_Basic_Export_Ajax
 		$step_keys=$this->step_keys;
 		$current_index=$this->current_step_index;
 		$last_page=$this->last_page;
+		$legacy_arrow_style = version_compare( get_bloginfo( 'version' ), '7.0', '>=' ) ? '' : ' style="line-height:27px;"';
 		if($current_index!==false) /* step exists */
 		{
 			if($current_index>0) //add back button
@@ -682,10 +683,10 @@ class Wt_Import_Export_For_Woo_User_Basic_Export_Ajax
 					'type'=>'button',
 					'action_type'=>'step',
 					'key'=>$step_keys[$current_index-1],
-					'text'=>'<span class="dashicons dashicons-arrow-left-alt2" style="line-height:27px;"></span> '.__('Back', 'users-customers-import-export-for-wp-woocommerce'),
+					'text'=>'<span class="dashicons dashicons-arrow-left-alt2"'.$legacy_arrow_style.'></span> '.__('Back', 'users-customers-import-export-for-wp-woocommerce'),
 				);
 			}
-			
+
 			if(isset($step_keys[$current_index+1])) /* not last step */
 			{
 				$next_number=$current_index+2;
@@ -695,7 +696,7 @@ class Wt_Import_Export_For_Woo_User_Basic_Export_Ajax
 					'type'=>'button',
 					'action_type'=>'step',
 					'key'=>$next_key,
-					'text'=>__('Step', 'users-customers-import-export-for-wp-woocommerce').' '.$next_number.': '.$next_title.' <span class="dashicons dashicons-arrow-right-alt2" style="line-height:27px;"></span>',
+					'text'=>__('Step', 'users-customers-import-export-for-wp-woocommerce').' '.$next_number.': '.$next_title.' <span class="dashicons dashicons-arrow-right-alt2"'.$legacy_arrow_style.'></span>',
 				);
 
 				if($this->export_method=='quick' || $this->export_method=='template') //Quick Or Template method

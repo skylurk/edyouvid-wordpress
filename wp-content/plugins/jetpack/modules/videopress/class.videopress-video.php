@@ -1,4 +1,9 @@
 <?php // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * VideoPress video object retrieved from VideoPress servers and parsed.
  *
@@ -171,6 +176,13 @@ class VideoPress_Video {
 	 * @since 1.5
 	 */
 	public $captions;
+
+	/**
+	 * Error data.
+	 *
+	 * @var mixed
+	 */
+	public $error;
 
 	/**
 	 * Setup the object.

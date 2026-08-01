@@ -4,7 +4,15 @@ namespace LLAR\Core;
 
 use Exception;
 use IXR_Error;
+use LLAR\Core\Digest\DigestDispatcher;
+use LLAR\Core\Digest\DigestRetriesController;
+use LLAR\Core\Digest\DigestScheduler;
+use LLAR\Core\Digest\DigestStorage;
+use LLAR\Core\Digest\DigestUiController;
 use LLAR\Core\Http\Http;
+use LLAR\Core\Integrations\BaseIntegration;
+use LLAR\Core\Integrations\IntegrationManager;
+use LLAR\Core\MfaFlow\MfaRestApi;
 use WP_Error;
 use WP_User;
 
@@ -12,6 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 class LimitLoginAttempts
 {
+
 	/**
 	 * Admin options page slug
 	 * @var string
@@ -60,7 +69,52 @@ class LimitLoginAttempts
 	 */
 	public static $cloud_app = null;
 
+	/**
+	 * Integration manager for third-party plugins
+	 *
+	 * @var IntegrationManager
+	 */
+	private $integration_manager = null;
+
 	private $info_data = array();
+
+	/**
+	 * MFA manager instance (MfaManager: MfaBackupCodes, MfaEndpoint, MfaSettings, MfaValidator).
+	 *
+	 * @var \LLAR\Core\Mfa\MfaManager
+	 */
+	private $mfa_controller = null;
+
+	/**
+	 * Admin notices controller (renders notice views for options page).
+	 *
+	 * @var \LLAR\Core\AdminNoticesController
+	 */
+	private $admin_notices_controller = null;
+	private $auth_acl_response_cache = array();
+	private $auth_acl_response_cache_max_size = 50;
+
+	/**
+	 * Request-scoped cache: hook callback -> reflection file path (avoids repeated Reflection API).
+	 *
+	 * @var array
+	 */
+	private static $hook_callback_source_file_cache = array();
+
+	/**
+	 * Request-scoped cache: normalized source file path -> plugin metadata (avoids repeated get_plugins scans).
+	 *
+	 * @var array
+	 */
+	private static $hook_source_file_plugin_cache = array();
+
+	/**
+	 * Pending flash message to display on options page (e.g. "Settings saved").
+	 * Rendered via AdminNoticesController when options-page is loaded.
+	 *
+	 * @var array|null Keys: 'msg', 'is_error'. Null when none.
+	 */
+	public $pending_admin_message = null;
 
 	/**
 	 * Class instance accessible in other classes
@@ -76,6 +130,103 @@ class LimitLoginAttempts
 	 */
 	public static $capabilities = 'llar_admin';
 	public $has_capability = false;
+
+	/**
+	 * Guard: handshake already attempted this request (avoids double handshake from wp_authenticate_user + limit_login_failed).
+	 *
+	 * @var bool
+	 */
+	private static $mfa_flow_handshake_attempted = false;
+
+	/**
+	 * Guard: failed login already recorded in this request.
+	 * Reset on each `init` for persistent runtimes (Swoole/FrankenPHP).
+	 *
+	 * @var bool
+	 */
+	private static $failed_login_recorded_in_request = false;
+
+	/**
+	 * Priority for the late authenticate safety net.
+	 *
+	 * @temporary WP 7.0 compat — remove after WP 7.1 release or when auth flow is stable.
+	 */
+	const LATE_AUTH_PRIORITY = 99990;
+
+	/**
+	 * @temporary WP 7.0 compat — single source of truth for auth failure WP_Error codes.
+	 * TODO: Remove after WP 7.1 release or when auth flow is stable.
+	 *
+	 * @var array
+	 */
+	private static $auth_failure_codes = array( 'invalid_username', 'invalid_email', 'incorrect_password', 'authentication_failed' );
+
+	/**
+	 * Cached results of WP version checks.
+	 *
+	 * @var array
+	 */
+	private static $wp_version_cache = array();
+
+	/**
+	 * Check whether the current WordPress version is at least $version. Result is cached.
+	 *
+	 * @param string $version Minimum version to compare against (e.g. '6.9', '7.0').
+	 * @return bool
+	 */
+	private static function is_wp_at_least( $version ) {
+		if ( ! isset( self::$wp_version_cache[ $version ] ) ) {
+			$current = preg_replace( '/[^0-9.].*/', '', Helpers::get_wordpress_version() );
+			self::$wp_version_cache[ $version ] = version_compare( $current, $version, '>=' );
+		}
+		return self::$wp_version_cache[ $version ];
+	}
+
+	/**
+	 * Reset per-request static guards for persistent PHP runtimes (Swoole, FrankenPHP).
+	 * $wp_version_cache is intentionally NOT reset — WP version does not change between requests.
+	 */
+	public static function reset_request_guards() {
+		self::$failed_login_recorded_in_request = false;
+	}
+
+	/**
+	 * Allowed tabs for options page
+	 */
+	public static $allowed_tabs = array( 'logs-local', 'logs-custom', 'settings', 'mfa', 'debug', 'premium', 'help' );
+
+	/**
+	 * Check if a role is an admin role
+	 *
+	 * @param string $role_key Role key (e.g., 'administrator')
+	 * @param string $role_name Role display name (e.g., 'Administrator') - optional, deprecated, not used
+	 * @return bool True if role is admin-related
+	 */
+	public static function is_admin_role( $role_key, $role_name = '' ) {
+		// Validate input
+		if ( ! is_string( $role_key ) || empty( $role_key ) ) {
+			return false;
+		}
+
+		// Primary check: exact match for administrator role
+		if ( 'administrator' === $role_key ) {
+			return true;
+		}
+
+		// Secondary check: verify role has admin capabilities (most reliable method)
+		$role = get_role( $role_key );
+		if ( $role && $role->has_cap( 'manage_options' ) ) {
+			return true;
+		}
+
+		// Fallback: check if role key is exactly 'admin' (common custom admin role name)
+		// Note: We don't check $role_name to avoid false positives (e.g., 'admin_peter' user name)
+		if ( 'admin' === strtolower( $role_key ) ) {
+			return true;
+		}
+
+		return false;
+	}
 
 	private $plans = array(
 		'default'       => array(
@@ -111,9 +262,20 @@ class LimitLoginAttempts
 		Config::init();
 		Http::init();
 
+		// Initialize integrations manager
+		$this->integration_manager = new IntegrationManager( $this );
+
 		$this->hooks_init();
 		$this->setup();
 		$this->cloud_app_init();
+
+		// Initialize MFA (dependency injection: MfaBackupCodes, MfaEndpoint, MfaSettings)
+		$payload_storage = \LLAR\Core\Mfa\RescuePayloadStorage\RescuePayloadStorageSelector::get_storage();
+		$mfa_backup_codes = new \LLAR\Core\Mfa\MfaBackupCodes( $payload_storage );
+		$mfa_endpoint     = new \LLAR\Core\Mfa\MfaEndpoint( $mfa_backup_codes, $payload_storage );
+		$mfa_settings    = new \LLAR\Core\Mfa\MfaSettings();
+		$this->mfa_controller = new \LLAR\Core\Mfa\MfaManager( $mfa_backup_codes, $mfa_endpoint, $mfa_settings, $payload_storage );
+		$this->mfa_controller->register();
 
 		( new Shortcodes() )->register();
 		( new Ajax() )->register();
@@ -144,6 +306,7 @@ class LimitLoginAttempts
 		add_action( 'admin_print_scripts-index.php', array( $this, 'load_admin_scripts' ) );
 
 		add_action( 'admin_init', array( $this, 'dashboard_page_redirect' ), 9999 );
+		add_action( 'admin_init', array( $this, 'onboarding_redirect_to_dashboard' ), 5 );
 		add_action( 'admin_init', array( $this, 'setup_cookie' ), 10 );
 
 		add_action( 'login_footer', array( $this, 'login_page_gdpr_message' ) );
@@ -158,6 +321,8 @@ class LimitLoginAttempts
 		add_filter( 'registration_errors', array( $this, 'llar_submit_registration_errors' ), 10, 3 );
 
 		register_activation_hook( LLA_PLUGIN_FILE, array( $this, 'activation' ) );
+
+		add_action( 'upgrader_process_complete', array( $this, 'after_plugin_update' ), 10, 2 );
 	}
 
 	/**
@@ -165,11 +330,52 @@ class LimitLoginAttempts
 	 */
 	public function activation()
 	{
-		if ( ! Config::get( 'activation_timestamp' ) ) {
+		Helpers::persist_stored_plugin_version();
 
+		if ( ! Config::exists( 'activation_timestamp' ) ) {
 			set_transient( 'llar_dashboard_redirect', true, 30 );
 		}
+
+		Config::apply_digest_defaults_on_fresh_activation();
 	}
+
+	/**
+	 * After this plugin is updated from wp-admin, persist the new file version.
+	 *
+	 * @param \WP_Upgrader $upgrader Upgrader instance (unused).
+	 * @param array        $options  Context: action, type, plugins, etc.
+	 * @return void
+	 */
+	public function after_plugin_update( $upgrader, $options ) {
+		if ( ! isset( $options['type'], $options['action'] ) || 'update' !== $options['action'] || 'plugin' !== $options['type'] ) {
+			return;
+		}
+		if ( empty( $options['plugins'] ) || ! is_array( $options['plugins'] ) ) {
+			return;
+		}
+		if ( ! in_array( LLA_PLUGIN_BASENAME, $options['plugins'], true ) ) {
+			return;
+		}
+
+		$old_version = (string) Config::get( 'plugin_version' );
+		Helpers::persist_stored_plugin_version();
+		$new_version = (string) Config::get( 'plugin_version' );
+
+		if ( $old_version !== $new_version ) {
+			if ( '' !== $old_version ) {
+				Config::ensure_digest_defaults_for_existing_site();
+			}
+
+			/**
+			 * Fires after LLAR plugin version is persisted post-update.
+			 *
+			 * @param string $old_version Previously stored version (may be empty).
+			 * @param string $new_version Newly stored version.
+			 */
+			do_action( 'llar_plugin_version_updated', $old_version, $new_version );
+		}
+	}
+
 
 	public function setup_cookie()
 	{
@@ -206,6 +412,345 @@ class LimitLoginAttempts
 	}
 
 	/**
+	 * Whether a retries_stats bucket key is older than cutoff (safe strtotime for string keys).
+	 *
+	 * @param mixed $key    Bucket key (unix ts or date string).
+	 * @param int   $cutoff Cutoff unix timestamp.
+	 *
+	 * @return bool
+	 */
+	private function is_retries_stats_bucket_expired( $key, $cutoff ) {
+		if ( is_numeric( $key ) ) {
+			return (int) $key < $cutoff;
+		}
+		$ts = strtotime( (string) $key );
+		if ( false === $ts ) {
+			return false;
+		}
+		return $ts < $cutoff;
+	}
+
+	/**
+	 * Plain-text strings for failed-attempts circle (no HTML; whitelist keys only).
+	 *
+	 * @param string $key Level text key, e.g. zero_title, desc_low.
+	 *
+	 * @return string
+	 */
+	private function get_risk_circle_string( $key ) {
+		switch ( $key ) {
+			case 'zero_title':
+				return __( 'Hooray! Zero failed login attempts (past 24 hrs)', 'limit-login-attempts-reloaded' );
+			case 'desc_low':
+				return __( 'Your site is currently at a low risk for brute force activity.', 'limit-login-attempts-reloaded' );
+			case 'desc_medium':
+				return __( 'Your site is currently at a medium risk for brute force activity.', 'limit-login-attempts-reloaded' );
+			case 'failed_today_title':
+				return __( 'Failed Login Attempts Today', 'limit-login-attempts-reloaded' );
+			default:
+				return '';
+		}
+	}
+
+	/**
+	 * Recommendation HTML: Micro Cloud path (link text translated; markup built in code).
+	 *
+	 * @return string
+	 */
+	private function get_micro_cloud_recommendation_html() {
+		return sprintf(
+			__(
+				'Based on your level of brute force activity, we recommend <a class="llar_orange %s">free Micro Cloud upgrade</a> to access features to reduce failed logins and improve site performance.',
+				'limit-login-attempts-reloaded'
+			),
+			'button_micro_cloud'
+		);
+	}
+
+	/**
+	 * Recommendation HTML: premium upgrade URL (href escaped; rel on external target).
+	 *
+	 * @param string $upgrade_premium_url Premium URL.
+	 * @param bool   $open_new_window     Open link in a new window.
+	 *
+	 * @return string
+	 */
+	private function get_premium_recommendation_desc( $upgrade_premium_url, $open_new_window = true ) {
+		$url       = esc_url( $upgrade_premium_url );
+		if ( $open_new_window ) {
+			return sprintf(
+				__(
+					'Based on your level of brute force activity, we recommend <a href="%s" class="llar_orange" target="_blank" rel="noopener noreferrer">upgrading to premium</a> to access features to reduce failed logins and improve site performance.',
+					'limit-login-attempts-reloaded'
+				),
+				$url
+			);
+		}
+
+		return sprintf(
+			__(
+				'Based on your level of brute force activity, we recommend <a href="%s" class="llar_orange">upgrading to premium</a> to access features to reduce failed logins and improve site performance.',
+				'limit-login-attempts-reloaded'
+			),
+			$url
+		);
+	}
+
+	/**
+	 * Get failed login attempts count for the last 24 hours in local mode.
+	 *
+	 * @return int
+	 */
+	public function get_local_retries_count_for_last_day() {
+		$retries_count = 0;
+		$retries_stats = Config::get( 'retries_stats' );
+
+		if ( $retries_stats ) {
+			$cutoff_ts = time() - DAY_IN_SECONDS;
+			foreach ( $retries_stats as $key => $count ) {
+				if ( is_numeric( $key ) && (int) $key > $cutoff_ts ) {
+					$retries_count += $count;
+				} elseif ( ! is_numeric( $key ) && date_i18n( 'Y-m-d' ) === $key ) {
+					$retries_count += $count;
+				}
+			}
+		}
+
+		return (int) $retries_count;
+	}
+
+	/**
+	 * Remove retries_stats buckets older than 8 days (keeps autoload option bounded).
+	 *
+	 * @param array $retries_stats Stats keyed by time bucket.
+	 *
+	 * @return array
+	 */
+	private function prune_retries_stats_old_buckets( $retries_stats ) {
+		if ( ! is_array( $retries_stats ) || empty( $retries_stats ) ) {
+			return $retries_stats;
+		}
+
+		$cutoff = strtotime( '-8 day' );
+		foreach ( $retries_stats as $key => $count ) {
+			if ( $this->is_retries_stats_bucket_expired( $key, $cutoff ) ) {
+				unset( $retries_stats[ $key ] );
+			}
+		}
+
+		return $retries_stats;
+	}
+
+	/**
+	 * Build localized retries chart title with attempts count.
+	 *
+	 * @param int $retries_count Number of retries.
+	 *
+	 * @return string
+	 */
+	private function get_retries_chart_title_with_count( $retries_count ) {
+		return sprintf(
+			_n(
+				'%d failed login attempt ',
+				'%d failed login attempts ',
+				$retries_count,
+				'limit-login-attempts-reloaded'
+			),
+			$retries_count
+		) . __( '(past 24 hrs)', 'limit-login-attempts-reloaded' );
+	}
+
+	/**
+	 * Build recommendation description for elevated brute force activity.
+	 *
+	 * @param string $setup_code App setup code.
+	 *
+	 * @return string
+	 */
+	private function get_recommendation_desc( $setup_code ) {
+		if ( ! empty( $setup_code ) ) {
+			$premium_tab_url = $this->get_options_page_uri( 'premium' );
+			return $this->get_premium_recommendation_desc( $premium_tab_url, false );
+		}
+
+		return $this->get_micro_cloud_recommendation_html();
+	}
+
+	/**
+	 * Resolve risk level by retries count using configured ranges.
+	 *
+	 * @param int   $retries_count Retries count.
+	 * @param array $levels        Risk levels config.
+	 *
+	 * @return array
+	 */
+	private function resolve_risk_level( $retries_count, $levels ) {
+		$default_level = null;
+
+		foreach ( $levels as $level ) {
+			if ( isset( $level['exact'] ) && (int) $level['exact'] === $retries_count ) {
+				return $level;
+			}
+
+			if ( isset( $level['max_exclusive'] ) && (int) $level['max_exclusive'] > $retries_count ) {
+				return $level;
+			}
+
+			if ( ! empty( $level['default'] ) ) {
+				$default_level = $level;
+			}
+		}
+
+		return null !== $default_level ? $default_level : array();
+	}
+
+	/**
+	 * Build chart title/description/color from matched risk level.
+	 *
+	 * @param array  $matched_level        Matched level config.
+	 * @param int    $retries_count        Retries count.
+	 * @param array  $risk_config          Risk config.
+	 * @param string $setup_code           App setup code.
+	 * @param string $upgrade_premium_url  Premium upgrade URL.
+	 *
+	 * @return array
+	 */
+	private function build_chart_display_data( $matched_level, $retries_count, $risk_config, $setup_code, $upgrade_premium_url ) {
+		$risk_colors = ( isset( $risk_config['colors'] ) && is_array( $risk_config['colors'] ) ) ? $risk_config['colors'] : array();
+		$default_color = isset( $risk_colors['green'] ) ? $risk_colors['green'] : '#97F6C8';
+
+		$retries_chart_title = '';
+		$retries_chart_desc = '';
+		$retries_chart_color = $default_color;
+
+		$rule_flag_keys = array( 'count_title', 'warning_title', 'recommendation', 'premium_recommendation' );
+		foreach ( array( 'title', 'count_title', 'warning_title', 'desc', 'recommendation', 'premium_recommendation', 'color' ) as $rule_key ) {
+			if ( ! isset( $matched_level[ $rule_key ] ) ) {
+				continue;
+			}
+			if ( in_array( $rule_key, $rule_flag_keys, true ) ) {
+				if ( true !== $matched_level[ $rule_key ] && ! $matched_level[ $rule_key ] ) {
+					continue;
+				}
+			} elseif ( empty( $matched_level[ $rule_key ] ) ) {
+				continue;
+			}
+
+			switch ( $rule_key ) {
+				case 'title':
+					if ( ! empty( $matched_level['title'] ) ) {
+						$retries_chart_title = $this->get_risk_circle_string( $matched_level['title'] );
+					}
+					break;
+				case 'count_title':
+					$retries_chart_title = $this->get_retries_chart_title_with_count( $retries_count );
+					break;
+				case 'warning_title':
+					$medium_upper = isset( $risk_config['bounds']['medium_upper'] ) ? (int) $risk_config['bounds']['medium_upper'] : 0;
+					if ( $medium_upper <= 0 && isset( $matched_level['min_inclusive'] ) ) {
+						$medium_upper = (int) $matched_level['min_inclusive'];
+					}
+					if ( $medium_upper <= 0 ) {
+						$medium_upper = 300;
+					}
+					/* translators: %d: threshold count (e.g. 300) for "N+ failed login attempts" (high risk, local mode). */
+					$retries_chart_title = sprintf(
+						__( 'Your site has experienced %d+ failed login attempts in the past 24 hours.', 'limit-login-attempts-reloaded' ),
+						$medium_upper
+					);
+					break;
+				case 'desc':
+					if ( ! empty( $matched_level['desc'] ) ) {
+						$retries_chart_desc = $this->get_risk_circle_string( $matched_level['desc'] );
+					}
+					break;
+				case 'recommendation':
+					$recommendation_html = $this->get_recommendation_desc( $setup_code );
+					if ( ! empty( $retries_chart_desc ) ) {
+						$retries_chart_desc .= '<br><br>' . $recommendation_html;
+					} else {
+						$retries_chart_desc = $recommendation_html;
+					}
+					break;
+				case 'premium_recommendation':
+					$retries_chart_desc = $this->get_premium_recommendation_desc( $upgrade_premium_url );
+					break;
+				case 'color':
+					if ( isset( $risk_colors[ $matched_level['color'] ] ) ) {
+						$retries_chart_color = $risk_colors[ $matched_level['color'] ];
+					}
+					break;
+			}
+		}
+
+		return array(
+			'retries_chart_title' => $retries_chart_title,
+			'retries_chart_desc'  => $retries_chart_desc,
+			'retries_chart_color' => $retries_chart_color,
+		);
+	}
+
+	/**
+	 * Build data for failed attempts circle widget.
+	 *
+	 * Local mode: risk color bands by retries (0 / 1–99 / 100–299 / 300+). Custom Cloud: always green
+	 * indicator; retries count only (no risk band styling).
+	 *
+	 * @param bool        $is_active_app_custom Cloud mode flag.
+	 * @param bool|string $is_exhausted         Cloud exhausted flag (unused for donut styling; kept for callers).
+	 * @param string      $block_sub_group      Cloud plan name (unused for donut styling; kept for callers).
+	 * @param string      $setup_code           App setup code.
+	 * @param string      $upgrade_premium_url  Premium upgrade URL.
+	 * @param bool|array  $api_stats            Cloud API stats.
+	 *
+	 * @return array
+	 */
+	public function get_failed_attempts_circle_data( $is_active_app_custom, $is_exhausted, $block_sub_group, $setup_code, $upgrade_premium_url, $api_stats ) {
+		$risk_config         = llar_get_risk_config();
+		$risk_levels         = ( isset( $risk_config['levels'] ) && is_array( $risk_config['levels'] ) ) ? $risk_config['levels'] : array();
+		$risk_colors         = ( isset( $risk_config['colors'] ) && is_array( $risk_config['colors'] ) ) ? $risk_config['colors'] : array();
+		$retries_chart_title = '';
+		$retries_chart_desc  = '';
+		$retries_chart_color = '';
+		$retries_count       = 0;
+
+		if ( ! $is_active_app_custom ) {
+			$retries_count = $this->get_local_retries_count_for_last_day();
+
+			$local_levels  = isset( $risk_levels['local'] ) && is_array( $risk_levels['local'] ) ? $risk_levels['local'] : array();
+			$matched_level = $this->resolve_risk_level( $retries_count, $local_levels );
+			$display_data = $this->build_chart_display_data( $matched_level, $retries_count, $risk_config, $setup_code, $upgrade_premium_url );
+			$retries_chart_title = $display_data['retries_chart_title'];
+			$retries_chart_desc = $display_data['retries_chart_desc'];
+			$retries_chart_color = $display_data['retries_chart_color'];
+		} else {
+			// Custom Cloud: always green "no risk" indicator; show retries count only (product spec).
+			if ( $api_stats && ! empty( $api_stats['attempts']['count'] ) && is_array( $api_stats['attempts']['count'] ) ) {
+				$attempt_counts = array();
+				foreach ( $api_stats['attempts']['count'] as $v ) {
+					if ( is_numeric( $v ) ) {
+						$attempt_counts[] = (int) $v;
+					}
+				}
+				if ( ! empty( $attempt_counts ) ) {
+					$retries_count = (int) end( $attempt_counts );
+				}
+			}
+
+			$retries_chart_title = $this->get_risk_circle_string( 'failed_today_title' );
+			$retries_chart_desc  = '';
+			$retries_chart_color = isset( $risk_colors['green'] ) ? $risk_colors['green'] : '#97F6C8';
+		}
+
+		return array(
+			'retries_chart_title' => $retries_chart_title,
+			'retries_chart_desc'  => $retries_chart_desc,
+			'retries_chart_color' => $retries_chart_color,
+			'retries_count'       => (int) $retries_count,
+		);
+	}
+
+	/**
 	 * Redirect to dashboard page after installed
 	 */
 	public function dashboard_page_redirect()
@@ -221,6 +766,32 @@ class LimitLoginAttempts
 
 		wp_redirect( admin_url( 'index.php?page=' . $this->_options_page_slug ) );
 		exit();
+	}
+
+	/**
+	 * Redirect to dashboard when onboarding is not completed yet (so onboarding can start on any plugin page).
+	 * Runs on admin_init before any output to avoid "headers already sent" when using wp_safe_redirect().
+	 */
+	public function onboarding_redirect_to_dashboard()
+	{
+		if ( empty( $_GET['page'] ) || $this->_options_page_slug !== $_GET['page'] ) {
+			return;
+		}
+		$tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'dashboard';
+		if ( 'dashboard' === $tab ) {
+			return;
+		}
+		if ( Config::get( 'onboarding_popup_shown' ) ) {
+			return;
+		}
+		if ( 'custom' === Config::get( Config::OPTION_ACTIVE_APP ) && self::$cloud_app ) {
+			return;
+		}
+		if ( ! empty( Config::get( 'app_setup_code' ) ) ) {
+			return;
+		}
+		wp_safe_redirect( $this->get_options_page_uri( 'dashboard' ) );
+		exit;
 	}
 
 	/**
@@ -240,15 +811,19 @@ class LimitLoginAttempts
 			Config::update( 'notice_enable_notify_timestamp', strtotime( '-32 day' ) );
 		}
 
-		if ( version_compare( Helpers::get_wordpress_version(), '5.5', '<' ) ) {
+		if ( ! self::is_wp_at_least( '5.5' ) ) {
 			Config::update( 'auto_update_choice', 0 );
 		}
 
-		// Load languages files via a later hook
-		// TODO: load_plugin_textdomain() is deprecated in WordPress 6.9+. WordPress now uses automatic JIT (Just-In-Time) translation loading.
-		// This function still works for backward compatibility, but should be removed in future versions.
-		// JIT translation loading automatically loads translation files when needed, so explicit load_plugin_textdomain() calls are no longer necessary.
-	    add_action('init', array( $this, 'load_plugin_textdomain_in_time' ) );
+		// Load translations and defaults in a WP-version-safe way.
+		add_action( 'init', array( $this, 'load_plugin_textdomain_in_time' ) );
+
+		// Reset per-request static guards for persistent runtimes (Swoole/FrankenPHP).
+		add_action( 'init', array( __CLASS__, 'reset_request_guards' ), 0 );
+
+		$this->register_mfa_providers();
+		DigestScheduler::bootstrap();
+		DigestDispatcher::bootstrap();
 
 		// Check if installed old plugin
 		$this->check_original_installed();
@@ -261,11 +836,10 @@ class LimitLoginAttempts
 		add_action( 'wp_login', array( $this, 'limit_login_success' ), 10, 2 );
 
 		add_filter( 'shake_error_codes', array( $this, 'failure_shake' ) );
+		add_filter( 'wp_login_errors', array( $this, 'inject_mfa_return_login_error' ), 10, 2 );
 		add_action( 'login_errors', array( $this, 'fixup_error_messages' ) );
 		// hook for the plugin UM
 		add_action( 'um_submit_form_errors_hook_login', array( $this, 'um_limit_login_failed' ) );
-		// hook for the plugin MemberPress
-		add_filter( 'mepr_validate_login', array( $this, 'mepr_validate_login_handler' ), 10, 2 );
 
 		if ( Helpers::is_network_mode() ) {
 			add_action( 'network_admin_menu', array( $this, 'network_admin_menu' ) );
@@ -287,14 +861,11 @@ class LimitLoginAttempts
 		// Add notices for XMLRPC request
 		add_filter( 'xmlrpc_login_error', array( $this, 'xmlrpc_error_messages' ) );
 
-		// Add notices to woocommerce login page
-		add_action( 'wp_head', array( $this, 'add_wc_notices' ) );
-
 		/*
-		* This action should really be changed to the 'authenticate' filter as
-		* it will probably be deprecated. That is however only available in
-		* later versions of WP.
-		*/
+		 * Primary auth chain: guard at lowest priority, then early ACL/blacklist,
+		 * credentials tracking, late error fallback, and final lockout safety net.
+		 */
+		add_filter( 'authenticate', array( $this, 'authenticate_guard_filter' ), -9999, 3 );
 		add_action( 'authenticate', array( $this, 'track_credentials' ), 1, 3 ); // to replace the deprecated wp_authenticate hook
 		add_action( 'authenticate', array( $this, 'authenticate_filter' ), 0, 3 );
 
@@ -304,8 +875,19 @@ class LimitLoginAttempts
 		 */
 		add_action( 'authenticate', array( $this, 'authenticate_filter_errors_fix' ), 35, 3 );
 
+		// @temporary WP 7.0 compat — late safety net.
+		// TODO: Remove after WP 7.1 release or when auth flow is stable.
+		if ( self::is_wp_at_least( '7.0' ) ) {
+			add_filter( 'authenticate', array( $this, 'authenticate_late_lockout_check' ), self::LATE_AUTH_PRIORITY, 3 );
+		}
+
 		add_filter( 'plugin_action_links_' . LLA_PLUGIN_BASENAME, array( $this, 'add_action_links' ) );
 
+		// MFA flow callback: llar_mfa=1&token=...&code=...
+		add_action( 'init', array( $this, 'mfa_flow_callback' ), 1 );
+		add_action( 'init', array( DigestStorage::class, 'register_post_type' ) );
+		add_filter( 'query_vars', array( $this, 'add_mfa_flow_query_var' ) );
+		MfaRestApi::register();
 
 		$role = get_role( 'administrator' );
 
@@ -320,18 +902,19 @@ class LimitLoginAttempts
 
 
 	/**
-	 * Later loading of translations load_plugin_textdomain
-	 * 
-	 * TODO: This method uses deprecated load_plugin_textdomain() function.
-	 * WordPress 6.9+ uses automatic JIT (Just-In-Time) translation loading, which means
-	 * translation files are loaded automatically when needed. This explicit call can be
-	 * removed in future versions. Ensure translation files are properly named and placed
-	 * in the languages directory for JIT loading to work correctly.
+	 * Initialize i18n and plugin defaults.
+	 *
+	 * WordPress 6.9+ (including 7.x) uses JIT translation loading and no longer needs
+	 * explicit `load_plugin_textdomain()` calls. Older WordPress versions still rely on it.
+	 *
+	 * @return void
 	 */
 	public function load_plugin_textdomain_in_time()
 	{
-		// TODO: Remove load_plugin_textdomain() call - WordPress 6.9+ handles translations automatically via JIT loading
-		load_plugin_textdomain( 'limit-login-attempts-reloaded', false, plugin_basename( __DIR__ ) . '/../languages' );
+		if ( ! self::is_wp_at_least( '6.9' ) ) {
+			load_plugin_textdomain( 'limit-login-attempts-reloaded', false, basename( LLA_PLUGIN_DIR ) . '/languages' );
+		}
+
 		Config::init_defaults();
 	}
 
@@ -352,30 +935,37 @@ class LimitLoginAttempts
 
 	public function login_page_render_js()
 	{
-		if ( isset( $_SESSION['llar_user_is_whitelisted'] ) && true === $_SESSION['llar_user_is_whitelisted'] ) {
-			unset( $_SESSION['llar_user_is_whitelisted'] );
+		if ( true === LoginFlowTransientStore::get( 'llar_user_is_whitelisted', false ) ) {
+			LoginFlowTransientStore::merge( array( 'llar_user_is_whitelisted' => null ) );
 			return;
 		}
 		global $limit_login_just_lockedout, $limit_login_nonempty_credentials, $um_limit_login_failed;
 
-		if ( Config::get( 'active_app' ) === 'local' && ! $limit_login_nonempty_credentials ) {
+		$llar_mfa_error = isset( $_GET['llar_mfa_error'] ) ? sanitize_text_field( wp_unslash( $_GET['llar_mfa_error'] ) ) : '';
+		// Same error output as failed login for any MFA redirect (session_expired, code_invalid, etc.).
+		$show_mfa_return_error = ( $llar_mfa_error !== '' );
+
+		if ( Config::get( Config::OPTION_ACTIVE_APP ) === 'local' && ! $limit_login_nonempty_credentials && ! $show_mfa_return_error ) {
 			return;
 		}
 
 		$custom_error = Config::get( 'custom_error_message' );
 		$late_hook_errors = ! empty( $this->all_errors_array['late_hook_errors'] ) ? $this->all_errors_array['late_hook_errors'] : false;
 		$is_wp_login_page = isset( $_POST['log'] );
-		$is_woo_login_page = ( function_exists( 'is_account_page' ) && is_account_page() && isset( $_POST['username'] ) );
+		$is_custom_login_page = $this->integration_manager->is_custom_login_page();
 
-		if ( $limit_login_nonempty_credentials && ( $is_wp_login_page || $is_woo_login_page || $um_limit_login_failed ) ) :
+		$mfa_return_message = __( '<strong>ERROR</strong>: Incorrect username or password.', 'limit-login-attempts-reloaded' );
+		if ( ( $limit_login_nonempty_credentials && ( $is_wp_login_page || $is_custom_login_page || $um_limit_login_failed ) ) || $show_mfa_return_error ) :
             ?>
 
             <script>
                 ;( function( $ ) {
                     let ajaxUrlObj = new URL( `<?php echo admin_url( 'admin-ajax.php' ); ?>` );
-                    let um_limit_login_failed = `<?php echo esc_js( $um_limit_login_failed ) ?>`;
+                    let um_limit_login_failed = `<?php echo esc_js( isset( $um_limit_login_failed ) ? $um_limit_login_failed : '' ); ?>`;
                     let late_hook_errors = <?php echo wp_json_encode( wp_kses_post( ( $late_hook_errors ) ) ) ?>;
                     let custom_error = <?php echo wp_json_encode( nl2br( esc_html( $custom_error ) ) ) ?>;
+                    let llar_mfa_return_error = <?php echo $show_mfa_return_error ? 'true' : 'false'; ?>;
+                    let llar_mfa_return_message = <?php echo wp_json_encode( wp_kses_post( $mfa_return_message ) ); ?>;
 
                     ajaxUrlObj.protocol = location.protocol;
 
@@ -383,6 +973,14 @@ class LimitLoginAttempts
                         action: 'get_remaining_attempts_message',
                         sec: '<?php echo wp_create_nonce( "llar-get-remaining-attempts-message" ); ?>'
                     }, function( response ) {
+                        if ( llar_mfa_return_error ) {
+                            if ( response.success && response.data ) {
+                                notification_login_page( response.data + ( custom_error.length ? '<br /><br />' + custom_error : '' ) );
+                            } else {
+                                notification_login_page( llar_mfa_return_message + ( custom_error.length ? '<br /><br />' + custom_error : '' ) );
+                            }
+                            return;
+                        }
                         if ( response.success && response.data ) {
 
                             if ( custom_error.length ) {
@@ -411,7 +1009,11 @@ class LimitLoginAttempts
                                 notification_login_page(custom_error);
                             }
                         }
-                    } )
+                    } ).fail( function() {
+                        if ( llar_mfa_return_error ) {
+                            notification_login_page( llar_mfa_return_message + ( custom_error.length ? '<br /><br />' + custom_error : '' ) );
+                        }
+                    } );
 
                     function notification_login_page( message ) {
 
@@ -452,7 +1054,7 @@ class LimitLoginAttempts
 			'<a href="' . $this->get_options_page_uri( 'settings' ) . '">' . __( 'Settings', 'limit-login-attempts-reloaded' ) . '</a>',
 		), $actions );
 
-		if ( Config::get( 'active_app' ) === 'local' ) {
+		if ( Config::get( Config::OPTION_ACTIVE_APP ) === 'local' ) {
 
 			if ( empty( Config::get( 'app_setup_code' ) ) ) {
 
@@ -474,9 +1076,27 @@ class LimitLoginAttempts
 		return $actions;
 	}
 
+	/**
+	 * Add llar_mfa to public query vars for MFA flow callback.
+	 *
+	 * @param array $vars Existing query vars.
+	 * @return array
+	 */
+	public function add_mfa_flow_query_var( $vars ) {
+		$vars[] = 'llar_mfa';
+		return $vars;
+	}
+
+	/**
+	 * MFA flow callback: handle llar_mfa=1&token=...&code=... and exit if handled.
+	 */
+	public function mfa_flow_callback() {
+		\LLAR\Core\MfaFlow\CallbackHandler::maybe_handle();
+	}
+
 	public function cloud_app_init()
 	{
-		if ( Config::get( 'active_app' ) === 'custom' && $config = Config::get( 'app_config' ) ) {
+		if ( Config::get( Config::OPTION_ACTIVE_APP ) === 'custom' && $config = Config::get( 'app_config' ) ) {
 
 			self::$cloud_app = new CloudApp( $config );
 		}
@@ -549,28 +1169,6 @@ class LimitLoginAttempts
 		return $error;
 	}
 
-	/**
-	 * Errors on WooCommerce account page
-	 */
-	public function add_wc_notices()
-	{
-		global $limit_login_just_lockedout, $limit_login_nonempty_credentials, $limit_login_my_error_shown;
-
-		if ( ! function_exists( 'is_account_page' ) || ! function_exists( 'wc_add_notice' ) || ! $limit_login_nonempty_credentials ) {
-			return;
-		}
-
-		/*
-		* During lockout we do not want to show any other error messages (like
-		* unknown user or empty password).
-		*/
-		if ( empty( $_POST ) && ! $this->is_limit_login_ok() && ! $limit_login_just_lockedout ) {
-
-			if ( is_account_page() ) {
-				wc_add_notice( $this->error_msg(), 'error' );
-			}
-		}
-	}
 
 	/**
 	 * @param $user
@@ -582,64 +1180,33 @@ class LimitLoginAttempts
 	 */
 	public function authenticate_filter( $user, $username, $password )
 	{
-		if ( ! session_id() ) {
-			session_start();
+		LoginFlowTransientStore::ensure_token();
+		if ( ! is_wp_error( $user ) ) {
+			LoginFlowTransientStore::merge( array( 'errors_in_early_hook' => false ) );
 		}
-		$_SESSION['errors_in_early_hook'] = false;
+
+		$error_message = '';
+		if ( $this->check_login_blocked( $username, $password, $error_message ) ) {
+			return $this->create_username_blacklisted_error( $error_message );
+		}
 
 		if ( ! empty( $username ) && ! empty( $password ) ) {
+			$ip = $this->get_address();
 
-			if ( self::$cloud_app && $response = self::$cloud_app->acl_check( array(
-					'ip'        => Helpers::get_all_ips(),
-					'login'     => $username,
-					'gateway'   => Helpers::detect_gateway()
-				) ) ) {
-
-				if ( $response['result'] === 'deny' ) {
-
-					unset( $_SESSION['login_attempts_left'] );
-
+			if ( self::$cloud_app && $response = $this->get_auth_acl_response( $username ) ) {
+				if ( 'pass' === $response['result'] ) {
 					remove_filter( 'login_errors', array( $this, 'fixup_error_messages' ) );
-					remove_filter( 'wp_login_failed', array( $this, 'limit_login_failed' ) );
-					remove_filter( 'wp_authenticate_user', array( $this, 'wp_authenticate_user' ), 99999 );
 
-					// Remove default WP authentication filters
-					remove_filter( 'authenticate', 'wp_authenticate_username_password', 20 );
-					remove_filter( 'authenticate', 'wp_authenticate_email_password', 20 );
-
-					$err = __( '<strong>ERROR</strong>: Too many failed login attempts.', 'limit-login-attempts-reloaded' );
-
-					$time_left = ( ! empty( $response['time_left'] ) ) ? $response['time_left'] : 0;
-					if ( $time_left ) {
-
-						if ( $time_left > 60 ) {
-							$time_left = ceil( $time_left / 60 );
-							$err .= ' ' . sprintf( _n( 'Please try again in %d hour.', 'Please try again in %d hours.', $time_left, 'limit-login-attempts-reloaded' ), $time_left );
-						} else {
-							$err .= ' ' . sprintf( _n( 'Please try again in %d minute.', 'Please try again in %d minutes.', $time_left, 'limit-login-attempts-reloaded' ), $time_left );
+					// @temporary WP 7.0 compat — on WP 7.0+ keep all hooks active; late safety net handles recording and lockout.
+					// TODO: Remove after WP 7.1 release or when auth flow is stable.
+					// On older WP, preserve original hook removal logic.
+					if ( ! self::is_wp_at_least( '7.0' ) ) {
+						$mfa_effectively_enabled = Config::get( 'mfa_enabled' ) && ( false === get_transient( MfaConstants::TRANSIENT_MFA_DISABLED ) );
+						if ( ! $mfa_effectively_enabled ) {
+							remove_filter( 'wp_login_failed', array( $this, 'limit_login_failed' ) );
 						}
+						remove_filter( 'wp_authenticate_user', array( $this, 'wp_authenticate_user' ), 99999 );
 					}
-
-					$err = ! empty( $err ) ? '<span>' . $err . '</span>' : '';
-
-					self::$cloud_app->add_error( $err );
-
-					$user = new WP_Error();
-					$user->add( 'username_blacklisted', $err );
-
-					$_SESSION['errors_in_early_hook'] = true;
-					$this->all_errors_array['early_hook_errors'] = $err;
-
-					if ( defined('XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
-
-						header('HTTP/1.0 403 Forbidden' );
-						exit;
-					}
-				} elseif ( $response['result'] === 'pass' ) {
-
-					remove_filter( 'login_errors', array( $this, 'fixup_error_messages' ) );
-					remove_filter( 'wp_login_failed', array( $this, 'limit_login_failed' ) );
-					remove_filter( 'wp_authenticate_user', array( $this, 'wp_authenticate_user' ), 99999 );
 				}
 			} else {
 
@@ -651,7 +1218,7 @@ class LimitLoginAttempts
 					&& ( $this->is_username_blacklisted( $username ) || $this->is_ip_blacklisted( $ip ) )
 				) {
 
-					unset( $_SESSION['login_attempts_left'] );
+					LoginFlowTransientStore::merge( array( 'login_attempts_left' => null ) );
 
 					remove_filter( 'login_errors', array( $this, 'fixup_error_messages' ) );
 					remove_filter( 'wp_login_failed', array( $this, 'limit_login_failed' ) );
@@ -668,7 +1235,7 @@ class LimitLoginAttempts
 
 					$user->add( 'username_blacklisted', $err );
 
-					$_SESSION['errors_in_early_hook'] = true;
+					LoginFlowTransientStore::merge( array( 'errors_in_early_hook' => true ) );
 					$this->all_errors_array['early_hook_errors'] = $err;
 
 					if ( defined('XMLRPC_REQUEST') && XMLRPC_REQUEST ) {
@@ -678,9 +1245,13 @@ class LimitLoginAttempts
 					}
 
 				} elseif ( $this->is_username_whitelisted( $username ) || $this->is_ip_whitelisted( $ip ) ) {
-					$_SESSION['llar_user_is_whitelisted'] = true;
+					LoginFlowTransientStore::merge( array( 'llar_user_is_whitelisted' => true ) );
+					// Do not run limit_login_failed for whitelist: no lockout, but lockout_check / retries would still run and hit the API.
 					remove_filter( 'wp_login_failed', array( $this, 'limit_login_failed' ) );
-					remove_filter( 'wp_authenticate_user', array( $this, 'wp_authenticate_user' ), 99999 );
+					$mfa_effectively_enabled = Config::get( 'mfa_enabled' ) && ( false === get_transient( MfaConstants::TRANSIENT_MFA_DISABLED ) );
+					if ( ! $mfa_effectively_enabled ) {
+						remove_filter( 'wp_authenticate_user', array( $this, 'wp_authenticate_user' ), 99999 );
+					}
 					remove_filter( 'login_errors', array( $this, 'fixup_error_messages' ) );
 
 				} elseif ( self::$cloud_app && self::$cloud_app->last_response_code === 403 ) {
@@ -690,6 +1261,270 @@ class LimitLoginAttempts
 		}
 
 		return $user;
+	}
+
+	/**
+	 * Run ACL / blacklist checks before third-party late authenticate hooks.
+	 *
+	 * @param mixed  $user
+	 * @param string $username
+	 * @param string $password
+	 * @return mixed
+	 */
+	public function authenticate_guard_filter( $user, $username, $password ) {
+
+		$error_message = '';
+		if ( $this->check_login_blocked( $username, $password, $error_message ) ) {
+			remove_filter( 'authenticate', 'wp_authenticate_username_password', 20 );
+			remove_filter( 'authenticate', 'wp_authenticate_email_password', 20 );
+			return $this->create_username_blacklisted_error( $error_message );
+		}
+
+		return $user;
+	}
+
+	/**
+	 * Unified blocked-login check for cloud ACL and local blacklist.
+	 *
+	 * @param string $username
+	 * @param string $password
+	 * @param string $error_message
+	 * @return bool
+	 * @throws Exception
+	 */
+	private function check_login_blocked( $username, $password, &$error_message ) {
+		if ( empty( $username ) || empty( $password ) ) {
+			return false;
+		}
+
+		if ( self::$cloud_app && $response = $this->get_auth_acl_response( $username ) ) {
+			if ( 'deny' === $response['result'] ) {
+				$time_left = ! empty( $response['time_left'] ) ? (int) $response['time_left'] : 0;
+				$error_message = $this->build_lockout_error_message( $time_left );
+
+				self::$cloud_app->add_error( $error_message );
+				$this->log_security_event( 'cloud_acl_deny', $username, $this->get_address(), array( 'time_left' => $time_left ) );
+				LoginFlowTransientStore::ensure_token();
+				LoginFlowTransientStore::merge(
+					array(
+						'errors_in_early_hook'           => true,
+						'llar_early_hook_error_message' => $error_message,
+						'login_attempts_left'            => null,
+					)
+				);
+				$this->all_errors_array['early_hook_errors'] = $error_message;
+
+				if ( defined('XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
+					header('HTTP/1.0 403 Forbidden' );
+					exit;
+				}
+
+				remove_filter( 'login_errors', array( $this, 'fixup_error_messages' ) );
+				remove_filter( 'wp_login_failed', array( $this, 'limit_login_failed' ) );
+				remove_filter( 'wp_authenticate_user', array( $this, 'wp_authenticate_user' ), 99999 );
+
+				return true;
+			}
+		}
+
+		$ip = $this->get_address();
+		if (
+			( ! $this->is_username_whitelisted( $username ) && ! $this->is_ip_whitelisted( $ip ) )
+			&& ( $this->is_username_blacklisted( $username ) || $this->is_ip_blacklisted( $ip ) )
+		) {
+			$error_message = $this->build_lockout_error_message();
+			$this->log_security_event( 'local_blacklist_block', $username, $ip );
+			LoginFlowTransientStore::ensure_token();
+			LoginFlowTransientStore::merge(
+				array(
+					'errors_in_early_hook' => true,
+					'login_attempts_left'  => null,
+				)
+			);
+			$this->all_errors_array['early_hook_errors'] = $error_message;
+
+			remove_filter( 'login_errors', array( $this, 'fixup_error_messages' ) );
+			remove_filter( 'wp_login_failed', array( $this, 'limit_login_failed' ) );
+			remove_filter( 'wp_authenticate_user', array( $this, 'wp_authenticate_user' ), 99999 );
+
+			if ( defined('XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
+				header('HTTP/1.0 403 Forbidden' );
+				exit;
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Build lockout error message with optional time left.
+	 *
+	 * @param int $time_left
+	 * @return string
+	 */
+	private function build_lockout_error_message( $time_left = 0 ) {
+		$err = __( '<strong>ERROR</strong>: Too many failed login attempts.', 'limit-login-attempts-reloaded' );
+
+		if ( 0 < $time_left ) {
+			if ( 60 < $time_left ) {
+				$time_left = ceil( $time_left / 60 );
+				$err .= ' ' . sprintf( _n( 'Please try again in %d hour.', 'Please try again in %d hours.', $time_left, 'limit-login-attempts-reloaded' ), $time_left );
+			} else {
+				$err .= ' ' . sprintf( _n( 'Please try again in %d minute.', 'Please try again in %d minutes.', $time_left, 'limit-login-attempts-reloaded' ), $time_left );
+			}
+		}
+
+		return '<span>' . wp_kses_post( $err ) . '</span>';
+	}
+
+	/**
+	 * Create standardized lockout WP_Error.
+	 *
+	 * @param string $error_message
+	 * @return WP_Error
+	 */
+	private function create_username_blacklisted_error( $error_message ) {
+		return new WP_Error( 'username_blacklisted', $error_message );
+	}
+
+	/**
+	 * Lightweight security event logging (enabled when WP debug log is active).
+	 *
+	 * @param string $event_type
+	 * @param string $username
+	 * @param string $ip
+	 * @param array  $details
+	 * @return void
+	 */
+	private function log_security_event( $event_type, $username, $ip, $details = array() ) {
+		if ( ! defined( 'WP_DEBUG_LOG' ) || ! WP_DEBUG_LOG ) {
+			return;
+		}
+
+		error_log(
+			'[LLAR Security] ' . wp_json_encode(
+				array(
+					'event'    => $event_type,
+					'username' => $this->mask_username_for_log( $username ),
+					'ip'       => $this->mask_ip_for_log( $ip ),
+					'gateway'  => Helpers::detect_gateway(),
+					'details'  => $this->sanitize_security_log_details( $details ),
+				)
+			)
+		);
+	}
+
+	/**
+	 * Allow only non-sensitive detail keys in security logs.
+	 *
+	 * @param array $details Raw details.
+	 * @return array
+	 */
+	private function sanitize_security_log_details( $details ) {
+		if ( empty( $details ) || ! is_array( $details ) ) {
+			return array();
+		}
+
+		$allowed = apply_filters(
+			'llar_security_log_detail_keys',
+			array( 'time_left', 'attempts', 'reason', 'window' )
+		);
+		if ( ! is_array( $allowed ) ) {
+			$allowed = array( 'time_left', 'attempts', 'reason', 'window' );
+		}
+
+		$safe = array();
+		foreach ( $details as $key => $value ) {
+			if ( in_array( (string) $key, $allowed, true ) ) {
+				$safe[ $key ] = $value;
+			}
+		}
+
+		return $safe;
+	}
+
+	/**
+	 * Mask username in logs to reduce sensitive data exposure.
+	 *
+	 * @param string $username
+	 * @return string
+	 */
+	private function mask_username_for_log( $username ) {
+		$username = (string) $username;
+		$length = strlen( $username );
+		if ( $length <= 0 ) {
+			return '';
+		}
+		if ( $length <= 2 ) {
+			return str_repeat( '*', $length );
+		}
+
+		return substr( $username, 0, 2 ) . str_repeat( '*', $length - 2 );
+	}
+
+	/**
+	 * Reduce IP precision in debug logs (privacy).
+	 *
+	 * @param string $ip
+	 * @return string
+	 */
+	private function mask_ip_for_log( $ip ) {
+		$ip = (string) $ip;
+		if ( '' === $ip ) {
+			return '';
+		}
+
+		if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) {
+			return preg_replace( '/\.\d+$/', '.0', $ip );
+		}
+
+		if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) ) {
+			if ( function_exists( 'inet_pton' ) && function_exists( 'inet_ntop' ) ) {
+				$binary = inet_pton( $ip );
+				if ( false !== $binary && 16 === strlen( $binary ) ) {
+					$masked = substr( $binary, 0, 8 ) . str_repeat( "\0", 8 );
+					$masked_ip = inet_ntop( $masked );
+					if ( false !== $masked_ip ) {
+						return $masked_ip . '/64';
+					}
+				}
+			}
+			if ( function_exists( 'wp_hash' ) ) {
+				return wp_hash( $ip );
+			}
+		}
+
+		return '***';
+	}
+
+	/**
+	 * Cached Cloud ACL response for current authenticate request.
+	 *
+	 * @param string $username
+	 * @return array|false
+	 * @throws Exception
+	 */
+	private function get_auth_acl_response( $username ) {
+		$payload = array(
+			'ip'      => Helpers::get_all_ips(),
+			'login'   => $username,
+			'gateway' => Helpers::detect_gateway(),
+		);
+		$cache_key = md5( wp_json_encode( $payload ) );
+
+		if ( isset( $this->auth_acl_response_cache[ $cache_key ] ) ) {
+			return $this->auth_acl_response_cache[ $cache_key ];
+		}
+
+		$response = self::$cloud_app->acl_check( $payload );
+		if ( $this->auth_acl_response_cache_max_size <= count( $this->auth_acl_response_cache ) ) {
+			array_shift( $this->auth_acl_response_cache );
+		}
+		$this->auth_acl_response_cache[ $cache_key ] = $response;
+
+		return $response;
 	}
 
 
@@ -715,6 +1550,18 @@ class LimitLoginAttempts
 
 			if ( is_wp_error( $user ) ) {
 
+				// @temporary WP 7.0 compat — fallback recording for auth flows where wp_login_failed is unreliable.
+				// TODO: Remove after WP 7.1 release or when auth flow is stable.
+				if ( self::is_wp_at_least( '7.0' ) ) {
+					$error_codes = $user->get_error_codes();
+					if (
+						! self::$failed_login_recorded_in_request
+						&& array_intersect( self::$auth_failure_codes, $error_codes )
+					) {
+						$this->record_failed_login_attempt( $username );
+					}
+				}
+
 				// BuddyPress errors
 				if ( in_array('bp_account_not_activated', $user->get_error_codes() ) ) {
 
@@ -729,6 +1576,68 @@ class LimitLoginAttempts
 		return $user;
 	}
 
+	/**
+	 * Late authenticate safety net for WP 7.0+ compatibility.
+	 *
+	 * @temporary WP 7.0 compat — remove after WP 7.1 release or when auth flow is stable.
+	 *
+	 * Runs at a very high priority on the authenticate filter to catch
+	 * failed logins that were not recorded by earlier hooks (e.g. when
+	 * wp_login_failed does not fire or core auth runs at changed priorities)
+	 * and to enforce lockout even when the wp_authenticate_user filter
+	 * inside wp_authenticate_username_password is not reached.
+	 *
+	 * @param mixed  $user
+	 * @param string $username
+	 * @param string $password
+	 * @return mixed
+	 */
+	public function authenticate_late_lockout_check( $user, $username, $password ) {
+		if ( empty( $username ) || empty( $password ) ) {
+			return $user;
+		}
+
+		// Successful auth already validated by earlier guards — do not override.
+		if ( $user instanceof \WP_User ) {
+			return $user;
+		}
+
+		if ( is_wp_error( $user ) ) {
+			$error_codes = $user->get_error_codes();
+
+			if (
+				in_array( 'too_many_retries', $error_codes, true )
+				|| in_array( 'username_blacklisted', $error_codes, true )
+			) {
+				return $user;
+			}
+
+			if ( ! self::$failed_login_recorded_in_request ) {
+				if ( array_intersect( self::$auth_failure_codes, $error_codes ) ) {
+					$this->record_failed_login_attempt( $username );
+				}
+			}
+		}
+
+		$ip = $this->get_address();
+		if (
+			! $this->is_ip_whitelisted( $ip )
+			&& ! $this->is_username_whitelisted( $username )
+			&& ! $this->is_limit_login_ok( $username )
+		) {
+			global $limit_login_my_error_shown;
+			$limit_login_my_error_shown = true;
+
+			$error = new WP_Error();
+			$error->add( 'too_many_retries', $this->error_msg( $username ) );
+			LoginFlowTransientStore::merge( array( 'errors_in_early_hook' => false ) );
+
+			return $error;
+		}
+
+		return $user;
+	}
+
 	public function ultimate_member_register_error_codes( $codes )
 	{
 		if ( ! is_array( $codes ) ) {
@@ -739,6 +1648,13 @@ class LimitLoginAttempts
 		$codes[] = 'username_blacklisted';
 
 		return $codes;
+	}
+
+	/**
+	 * Register MFA flow providers (e.g. LlarMfaProvider).
+	 */
+	private function register_mfa_providers() {
+		\LLAR\Core\MfaFlow\MfaProviderRegistry::register( new \LLAR\Core\MfaFlow\Providers\Email\LlarMfaProvider() );
 	}
 
 	/**
@@ -839,7 +1755,7 @@ class LimitLoginAttempts
 
 	private function get_submenu_items()
 	{
-		$active_app        = Config::get( 'active_app' );
+		$active_app        = Config::get( Config::OPTION_ACTIVE_APP );
 		$app_setup_code    = Config::get( 'app_setup_code' );
 		$is_cloud_app_enabled = $active_app === 'custom';
 		$is_local_empty_setup_code = ( $active_app === 'local' && empty( $app_setup_code ) );
@@ -854,6 +1770,11 @@ class LimitLoginAttempts
 				'id'    => 'settings',
 				'name'  => __( 'Settings', 'limit-login-attempts-reloaded' ),
 				'url'   => '&tab=settings'
+			),
+			array(
+				'id'    => 'mfa',
+				'name'  => __( '2FA', 'limit-login-attempts-reloaded' ),
+				'url'   => '&tab=mfa'
 			),
 			$is_cloud_app_enabled
 				? array(
@@ -912,7 +1833,7 @@ class LimitLoginAttempts
 				74
 			);
 
-			$is_cloud_app_enabled = Config::get( 'active_app' ) === 'custom';
+			$is_cloud_app_enabled = Config::get( Config::OPTION_ACTIVE_APP ) === 'custom';
 			$submenu_items = $this->get_submenu_items();
 
 			$index = 1;
@@ -935,10 +1856,12 @@ class LimitLoginAttempts
 			remove_submenu_page( $this->_options_page_slug, $this->_options_page_slug );
 
 			if ( ! $is_cloud_app_enabled && isset( $submenu[$this->_options_page_slug] ) ) {
-
-				$submenu[$this->_options_page_slug][6][4] =
-					! empty($submenu[$this->_options_page_slug][6][4])
-						? $submenu[$this->_options_page_slug][6][4] . ' llar-submenu-premium-item'
+				// Premium is the last submenu item (Dashboard, Settings, 2FA, Logs, Debug, Help, Premium).
+				$submenu_keys = array_keys( $submenu[$this->_options_page_slug] );
+				$premium_key  = end( $submenu_keys );
+				$submenu[$this->_options_page_slug][$premium_key][4] =
+					! empty( $submenu[$this->_options_page_slug][$premium_key][4] )
+						? $submenu[$this->_options_page_slug][$premium_key][4] . ' llar-submenu-premium-item'
 						: 'llar-submenu-premium-item';
 			}
 
@@ -992,7 +1915,7 @@ class LimitLoginAttempts
 
 		if (
 			! empty( $_COOKIE['llar_menu_alert_icon_shown'] )
-			|| Config::get( 'active_app' ) !== 'local'
+			|| Config::get( Config::OPTION_ACTIVE_APP ) !== 'local'
 			|| ! Config::get( 'show_warning_badge' )
 		) {
 			return '';
@@ -1105,11 +2028,64 @@ class LimitLoginAttempts
 
 
 	/**
+	 * Resolve login identifier for cloud ACL checks.
+	 *
+	 * @param string $username Optional username from the auth hook.
+	 * @return string
+	 */
+	private function resolve_login_username( $username = '' ) {
+		if ( '' !== $username ) {
+			return $username;
+		}
+
+		if ( isset( $_REQUEST['log'] ) ) {
+			return sanitize_text_field( wp_unslash( $_REQUEST['log'] ) );
+		}
+
+		if ( $this->integration_manager ) {
+			return $this->integration_manager->get_login_identifier();
+		}
+
+		return '';
+	}
+
+	/**
+	 * Cloud ACL lockout state for the current request.
+	 *
+	 * Returns null when cloud mode is off, the username cannot be resolved, or
+	 * the Cloud API is unreachable — in those cases the caller must fall back
+	 * to the local lockouts check so failover keeps blocking attackers.
+	 *
+	 * @param string $username Optional username from the auth hook.
+	 * @return bool|null True when login is allowed, false when denied, null when local check applies.
+	 * @throws Exception
+	 */
+	private function is_cloud_login_allowed( $username = '' ) {
+		if ( ! self::$cloud_app ) {
+			return null;
+		}
+
+		$username = $this->resolve_login_username( $username );
+		if ( '' === $username ) {
+			return null;
+		}
+
+		$response = $this->get_auth_acl_response( $username );
+		if ( ! $response ) {
+			return null;
+		}
+
+		return ( 'deny' !== $response['result'] );
+	}
+
+	/**
 	 * Check if it is ok to login
 	 *
+	 * @param string $username Optional username from the auth hook.
 	 * @return bool
+	 * @throws Exception
 	 */
-	public function is_limit_login_ok()
+	public function is_limit_login_ok( $username = '' )
 	{
 		$ip = $this->get_address();
 
@@ -1118,12 +2094,36 @@ class LimitLoginAttempts
 			return true;
 		}
 
-		/* lockout active? */
-		$lockouts = Config::get( 'lockouts' );
+		$cloud_allowed = $this->is_cloud_login_allowed( $username );
+		if ( null !== $cloud_allowed ) {
+			return $cloud_allowed;
+		}
+
+		/* lockout active? (local mode only) */
+		$lockouts = Config::get( Config::OPTION_LOCKOUTS );
 
 		return ( ! is_array( $lockouts ) || ! isset( $lockouts[ $ip ] ) || time() >= $lockouts[ $ip ] );
 	}
 
+
+	/**
+	 * Redirect browser to MFA app URL. Clears output buffers, then sends Location header or HTML fallback.
+	 *
+	 * @param string $url Redirect URL (already escaped).
+	 */
+	public static function mfa_redirect_to_url( $url ) {
+		while ( ob_get_level() ) {
+			ob_end_clean();
+		}
+		if ( ! headers_sent() ) {
+			header( 'Location: ' . $url, true, 302 );
+			exit;
+		}
+		$url_attr = esc_attr( $url );
+		$url_js   = esc_js( $url );
+		echo '<!DOCTYPE html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=' . $url_attr . '"><title>Redirect</title></head><body><p><a href="' . $url_attr . '">Continue to verification</a></p><script>window.location.replace("' . $url_js . '");</script></body></html>';
+		exit;
+	}
 
 	/**
 	 * For plugin UM
@@ -1142,9 +2142,9 @@ class LimitLoginAttempts
 	 * to track credentials and check lockouts before MemberPress validates the password
 	 * This enables the plugin to display remaining attempts messages
 	 *
-	 * @param array $errors Array of existing errors
+	 * @param array $errors Array of existing errors (MemberPress passes validate_login output first).
 	 * @param array $params Login parameters (log, pwd)
-	 * @return array Unchanged errors array (we don't block, only track)
+	 * @return array Errors for MemberPress; when LLAR blocks login, returns that message as first error.
 	 */
 	public function mepr_validate_login_handler( $errors, $params = array() )
 	{
@@ -1155,33 +2155,179 @@ class LimitLoginAttempts
 		$log = sanitize_text_field( wp_unslash( $_POST['log'] ) );
 		$pwd = isset( $_POST['pwd'] ) ? $_POST['pwd'] : ''; // Password should not be sanitized
 
-		// Trigger authenticate filter to track credentials and check lockouts
-		// This sets $limit_login_nonempty_credentials and $_SESSION['login_attempts_left']
-		// We don't block here - MemberPress will handle blocking if needed
-		apply_filters( 'authenticate', null, $log, $pwd );
+		// Trigger authenticate filter to track credentials and check lockouts.
+		$auth_result = apply_filters( 'authenticate', null, $log, $pwd );
 
-		// Return errors unchanged - we're only tracking, not blocking
+		if ( is_wp_error( $auth_result ) ) {
+			$codes = $auth_result->get_error_codes();
+			if ( in_array( 'too_many_retries', $codes, true ) ) {
+				return array( $auth_result->get_error_message( 'too_many_retries' ) );
+			}
+			if ( in_array( 'username_blacklisted', $codes, true ) ) {
+				return array( $auth_result->get_error_message( 'username_blacklisted' ) );
+			}
+		}
+
+		if ( ! $this->is_limit_login_ok( $log ) ) {
+			return array( $this->error_msg( $log ) );
+		}
+
 		return $errors;
 	}
 
 	/**
-	 * Action when login attempt failed
+	 * Run MFA flow on login: handshake, save session, redirect to MFA app.
+	 * Exits on successful redirect. Call only after password verification.
 	 *
-	 * Increase nr of retries (if necessary). Reset valid value. Setup
-	 * lockout if nr of retries are above threshold. And more!
-	 *
-	 * A note on external whitelist: retries and statistics are still counted and
-	 * notifications done as usual, but no lockout is done.
-	 *
-	 * @param $username
+	 * @param string  $username             Value from login form (user_login or email).
+	 * @param bool    $is_pre_authenticated True if password was already validated (successful login).
+	 * @param WP_User $authenticated_user  Optional. User after password check (use when log field is email).
+	 * @return void Exits on redirect; otherwise returns.
 	 */
-	public function limit_login_failed( $username )
-	{
-		if ( ! session_id() ) {
-			session_start();
+	private function try_mfa_flow_redirect( $username, $is_pre_authenticated = false, $authenticated_user = null ) {
+		// CRITICAL: never fetch or disclose any user info unless password was verified.
+		if ( ! $is_pre_authenticated ) {
+			return;
+		}
+		$ip = $this->get_address();
+
+		$mfa_temporarily_disabled = false !== get_transient( MfaConstants::TRANSIENT_MFA_DISABLED );
+		$mfa_enabled              = (bool) Config::get( 'mfa_enabled' ) && ! $mfa_temporarily_disabled;
+		$user = null;
+		if ( is_a( $authenticated_user, 'WP_User' ) ) {
+			$user = $authenticated_user;
+		} elseif ( is_string( $username ) && '' !== $username ) {
+			$user = get_user_by( 'login', $username );
+			if ( ! $user && function_exists( 'is_email' ) && is_email( $username ) ) {
+				$user = get_user_by( 'email', $username );
+			}
+		}
+		$mfa_roles         = Config::get( 'mfa_roles', array() );
+		$mfa_roles         = is_array( $mfa_roles ) ? $mfa_roles : array();
+		$has_mfa_groups    = ! empty( $mfa_roles );
+		$user_excluded     = $user && $has_mfa_groups && ! array_intersect( (array) $user->roles, $mfa_roles );
+		$should_trigger_mfa = $mfa_enabled && $has_mfa_groups && ! $user_excluded;
+
+		if ( ! $should_trigger_mfa ) {
+			return;
 		}
 
-		$_SESSION['login_attempts_left'] = 0;
+		if ( self::$mfa_flow_handshake_attempted ) {
+			return;
+		}
+
+		$provider_id = defined( 'LLA_MFA_PROVIDER' ) ? LLA_MFA_PROVIDER : 'llar';
+		$provider     = \LLAR\Core\MfaFlow\MfaProviderRegistry::get( $provider_id );
+		if ( ! $provider ) {
+			return;
+		}
+
+		$rate_key = 'llar_mfa_flow_handshake_' . md5( $ip . ( defined( 'AUTH_SALT' ) ? AUTH_SALT : 'llar' ) );
+		$rate     = get_transient( $rate_key );
+		$period   = defined( 'LLA_MFA_FLOW_HANDSHAKE_RATE_LIMIT_PERIOD' ) ? (int) LLA_MFA_FLOW_HANDSHAKE_RATE_LIMIT_PERIOD : 60;
+		$max      = defined( 'LLA_MFA_FLOW_HANDSHAKE_RATE_LIMIT_MAX' ) ? (int) LLA_MFA_FLOW_HANDSHAKE_RATE_LIMIT_MAX : 5;
+
+		if ( is_array( $rate ) && isset( $rate['t'], $rate['c'] ) ) {
+			if ( time() - (int) $rate['t'] >= $period ) {
+				$rate = array( 'c' => 0, 't' => time() );
+			}
+		} else {
+			$rate = array( 'c' => 0, 't' => time() );
+		}
+
+		$rate_ok = ( (int) $rate['c'] < $max );
+		if ( ! $rate_ok ) {
+			$rate['c'] = (int) $rate['c'] + 1;
+			set_transient( $rate_key, $rate, $period );
+			return;
+		}
+
+		self::$mfa_flow_handshake_attempted = true;
+		$user_group = '';
+		if ( $user && ! empty( $user->roles ) && is_array( $user->roles ) ) {
+			$user_group = reset( $user->roles );
+		}
+		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) : '';
+		$cancel_url  = add_query_arg( 'llar_mfa_cancelled', '1', wp_login_url() );
+		$current_request_uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+		$current_login_url   = '';
+		if ( is_string( $current_request_uri ) && '' !== $current_request_uri ) {
+			$current_login_url = home_url( $current_request_uri );
+		}
+		$login_url = ( '' !== $current_login_url ) ? $current_login_url : wp_login_url();
+		$login_url   = add_query_arg( 'llar_mfa', '1', $login_url );
+		if ( '' !== $redirect_to ) {
+			$login_url = add_query_arg( 'redirect_to', $redirect_to, $login_url );
+		}
+		$payload     = array(
+			'user_ip'              => Helpers::get_all_ips(),
+			'login_url'            => $login_url,
+			'user_group'           => $user_group,
+			'is_pre_authenticated' => (bool) $is_pre_authenticated,
+		);
+		if ( $user ) {
+			$payload['user_id'] = (int) $user->ID;
+			if ( ! empty( $user->user_email ) && is_string( $user->user_email ) ) {
+				$payload['user_email'] = Helpers::obfuscate_email( $user->user_email );
+			}
+		}
+
+		$result = $provider->handshake( $payload );
+
+		$has_token         = ! empty( $result['data']['token'] );
+		$has_secret        = ! empty( $result['data']['secret'] );
+		$redirect_url_value = isset( $result['data']['redirect_url'] ) ? $result['data']['redirect_url'] : ( isset( $result['data']['redirectUrl'] ) ? $result['data']['redirectUrl'] : '' );
+		$has_redirect      = ! empty( $redirect_url_value );
+
+		if ( $result['success'] && $has_token && $has_secret && $has_redirect ) {
+			// Save session locally so callback can enforce is_pre_authenticated.
+			$store = new \LLAR\Core\MfaFlow\SessionStore();
+			// Single secret from MFA app (handshake response): used for verify and for send_code endpoint authorization.
+			$store->save_send_email_secret( $result['data']['token'], $result['data']['secret'] );
+			$state = wp_generate_password( 32, false, false );
+			$remember_me = ! empty( $_REQUEST['rememberme'] );
+			$session_username = ( $user && ! empty( $user->user_login ) ) ? $user->user_login : $username;
+			$store->save_session(
+				$result['data']['token'],
+				$result['data']['secret'],
+				$session_username,
+				$user ? (int) $user->ID : 0,
+				$redirect_to,
+				$cancel_url,
+				$provider_id,
+				$is_pre_authenticated,
+				$remember_me
+			);
+			$store->save_callback_state( $state, $result['data']['token'] );
+			\LLAR\Core\MfaFlow\SessionStore::set_state_cookie( $state );
+			$mfa_redirect_url = esc_url_raw( $redirect_url_value );
+			if ( $mfa_redirect_url ) {
+				self::mfa_redirect_to_url( $mfa_redirect_url );
+				exit;
+			}
+		}
+
+		// When external MFA API does not respond, behave as if MFA is absent (same mechanism as rescue; 1 min).
+		if ( ! $result['success'] && ! empty( $result['server_unreachable'] ) ) {
+			set_transient( MfaConstants::TRANSIENT_MFA_DISABLED, 'api_unreachable', 60 );
+			return;
+		}
+
+		$rate['c'] = (int) $rate['c'] + 1;
+		set_transient( $rate_key, $rate, $period );
+	}
+
+	/**
+	 * Record one failed login attempt: Cloud lockout_check and/or local retries, lockout, notify.
+	 * Used by limit_login_failed (wp_login_failed hook).
+	 *
+	 * @param string $username Login username.
+	 */
+	private function record_failed_login_attempt( $username ) {
+		self::$failed_login_recorded_in_request = true;
+
+		LoginFlowTransientStore::ensure_token();
+		LoginFlowTransientStore::merge( array( 'login_attempts_left' => 0 ) );
 
 		if ( self::$cloud_app && $response = self::$cloud_app->lockout_check( array(
 				'ip'        => Helpers::get_all_ips(),
@@ -1191,7 +2337,7 @@ class LimitLoginAttempts
 
 			if ( $response['result'] === 'allow' ) {
 
-				$_SESSION['login_attempts_left'] = (int)$response['attempts_left'];
+				LoginFlowTransientStore::merge( array( 'login_attempts_left' => (int) $response['attempts_left'] ) );
 
 			} elseif ( $response['result'] === 'deny' ) {
 
@@ -1211,7 +2357,7 @@ class LimitLoginAttempts
 				}
 
 				self::$cloud_app->add_error( $err );
-				$_SESSION['errors_in_early_hook'] = false;
+				LoginFlowTransientStore::merge( array( 'errors_in_early_hook' => false ) );
 			}
 
 		} else {
@@ -1219,7 +2365,7 @@ class LimitLoginAttempts
 			$ip = $this->get_address();
 
 			/* if currently locked-out, do not add to retries */
-			$lockouts = Config::get( 'lockouts' );
+			$lockouts = Config::get( Config::OPTION_LOCKOUTS );
 
 			if ( ! is_array( $lockouts ) ) {
 				$lockouts = array();
@@ -1260,7 +2406,9 @@ class LimitLoginAttempts
 
 				$retries_stats[ $date_key ] = 1;
 			}
+			$retries_stats = $this->prune_retries_stats_old_buckets( $retries_stats );
 			Config::update( 'retries_stats', $retries_stats );
+			DigestRetriesController::save_failed_attempt( $ip, $username );
 
 			/* Check validity and add one to retries */
 			if ( isset( $retries[ $ip ] ) && isset( $valid[ $ip ] ) && time() < $valid[ $ip ] ) {
@@ -1280,7 +2428,7 @@ class LimitLoginAttempts
 				*/
 				$this->cleanup( $retries, null, $valid );
 
-				$_SESSION['login_attempts_left'] = $this->calculate_retries_remaining();
+				LoginFlowTransientStore::merge( array( 'login_attempts_left' => $this->calculate_retries_remaining() ) );
 
 				return;
 			}
@@ -1317,6 +2465,8 @@ class LimitLoginAttempts
 					/* normal lockout */
 					$lockouts[ $ip ] = time() + Config::get( 'lockout_duration' );
 				}
+
+				DigestRetriesController::save_lockout( $ip );
 			}
 
 			/* do housecleaning and save values */
@@ -1335,6 +2485,21 @@ class LimitLoginAttempts
 				Config::update( 'lockouts_total', $total + 1 );
 			}
 		}
+	}
+
+	/**
+	 * Action when login attempt failed
+	 *
+	 * @param string $username Login username.
+	 */
+	public function limit_login_failed( $username ) {
+		// @temporary WP 7.0 compat — prevent double-recording when late authenticate fallback already fired.
+		// TODO: Remove after WP 7.1 release or when auth flow is stable.
+		if ( self::$failed_login_recorded_in_request ) {
+			return;
+		}
+
+		$this->record_failed_login_attempt( $username );
 	}
 
 	/**
@@ -1371,6 +2536,8 @@ class LimitLoginAttempts
 	{
 		$ip = $this->get_address();
 		$retries = Config::get( 'retries' );
+		$notify_email_after = (int) Config::get( 'notify_email_after' );
+		$notify_email_after = max( 1, $notify_email_after );
 
 		if ( ! is_array( $retries ) ) {
 			$retries = array();
@@ -1379,7 +2546,7 @@ class LimitLoginAttempts
 		/* check if we are at the right nr to do notification */
 		if (
 			isset( $retries[ $ip ] )
-			&& ( ( (int) $retries[ $ip ] / Config::get( 'allowed_retries' ) ) % Config::get( 'notify_email_after' ) ) != 0
+			&& ( ( (int) $retries[ $ip ] / Config::get( 'allowed_retries' ) ) % $notify_email_after ) != 0
 		) {
 			return;
 		}
@@ -1436,34 +2603,39 @@ class LimitLoginAttempts
 		$plugin_data = get_plugin_data( LLA_PLUGIN_DIR . 'limit-login-attempts-reloaded.php' );
 
 		$subject = sprintf(
-			__( "Failed login by IP %s %s", 'limit-login-attempts-reloaded' ),
+			__( 'Failed login by IP %1$s %2$s', 'limit-login-attempts-reloaded' ),
 			esc_html( $ip ),
 			esc_html( $site_domain )
 		);
 
+		$unsubscribe_url = admin_url( 'options-general.php?page=' . $this->_options_page_slug . '&tab=settings' );
+		$unsubscribe_footer_text = DigestDispatcher::build_unsubscribe_footer_text(
+			array( 'unsubscribe_text' => LLA_DIGEST_DEFINITIONS['daily']['unsubscribe_text'] ),
+			$unsubscribe_url
+		);
+
 		ob_start();
-		include LLA_PLUGIN_DIR . 'views/emails/failed-login.php';
+		include LLA_PLUGIN_DIR . 'views/emails/failed-login-content.php';
 		$email_body = ob_get_clean();
 
 		// get current url with the current page and the current query string
-		$current_url_label = preg_replace( '/^\/|\/$/', '', $_SERVER['REQUEST_URI'] );
-		$current_url = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : get_site_url() . $_SERVER['REQUEST_URI'];
+		$current_url_label = Helpers::get_current_url_label();
+		$current_url = Helpers::get_current_url();
 
 		$placeholders = array(
-			'{name}'                => $admin_name,
-			'{domain}'              => $site_domain,
-			'{attempts_count}'      => $count,
-			'{lockouts_count}'      => $lockouts,
+			'{name}'                => esc_html( (string) $admin_name ),
+			'{domain}'              => esc_html( (string) $site_domain ),
+			'{attempts_count}'      => (int) $count,
+			'{lockouts_count}'      => (int) $lockouts,
 			'{ip_address}'          => esc_html( $ip ),
 			'{ip_address_link}'     => esc_url( 'https://www.limitloginattempts.com/location/?ip=' . $ip ),
-			'{username}'            => $user,
-			'{blocked_duration}'    => $when,
+			'{username}'            => esc_html( (string) $user ),
+			'{blocked_duration}'    => esc_html( (string) $when ),
 			'{dashboard_url}'       => admin_url( 'options-general.php?page=' . $this->_options_page_slug ),
 			'{premium_url}'         => 'https://www.limitloginattempts.com/info.php?from=plugin-lockout-email&v=' . $plugin_data['Version'],
 			'{llar_url}'            => 'https://www.limitloginattempts.com/?from=plugin-lockout-email&v=' . $plugin_data['Version'],
-			'{unsubscribe_url}'     => admin_url( 'options-general.php?page=' . $this->_options_page_slug . '&tab=settings' ),
-			'{current_url}'         => $current_url,
-			'{current_url_label}'   => $current_url_label,
+			'{current_url}'         => esc_url( $current_url ),
+			'{current_url_label}'   => esc_html( (string) $current_url_label ),
 		);
 
 		$email_body = str_replace(
@@ -1489,7 +2661,7 @@ class LimitLoginAttempts
 			return;
 		}
 
-		$log = $option = Config::get( 'logged' );
+		$log = $option = Config::get( Config::OPTION_LOGGED );
 
 		if ( ! is_array( $log ) ) {
 			$log = array();
@@ -1519,7 +2691,7 @@ class LimitLoginAttempts
 			Config::add( 'logged', $log );
 		} else {
 
-			Config::update( 'logged', $log );
+			Config::update( Config::OPTION_LOGGED, $log );
 		}
 	}
 
@@ -1596,8 +2768,44 @@ class LimitLoginAttempts
 	 */
 	public function wp_authenticate_user( $user, $password )
 	{
+		$username = isset( $_REQUEST['log'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['log'] ) ) : '';
+		if ( '' === $username && $this->integration_manager ) {
+			$username = $this->integration_manager->get_login_identifier();
+		}
+		if ( empty( $password ) && $this->integration_manager ) {
+			$integration_credentials = $this->integration_manager->get_login_credentials();
+			if ( is_array( $integration_credentials ) && ! empty( $integration_credentials['password'] ) ) {
+				$password = $integration_credentials['password'];
+			}
+		}
+		$ip       = $this->get_address();
+		$user_login = is_a( $user, 'WP_User' ) ? $user->user_login : ( ( ! empty( $user ) && ! is_wp_error( $user ) ) ? $user : '' );
+		$not_locked_out = $this->check_whitelist_ips( false, $ip ) || $this->check_whitelist_usernames( false, $user_login ) || $this->is_limit_login_ok( $username );
+
 		if ( is_wp_error( $user ) ) {
 			return $user;
+		}
+
+		// is_pre_authenticated must reflect actual password check: WP may pass valid $user by username before password is verified.
+		$password_ok = false;
+		if ( is_a( $user, 'WP_User' ) && ! empty( $password ) ) {
+			$password_ok = wp_check_password( $password, $user->user_pass, $user->ID );
+		}
+
+		// If locked out, do not run MFA flow — return lockout error so blocked user cannot bypass via correct password + MFA.
+		if ( ! $not_locked_out ) {
+			$error = new WP_Error();
+			global $limit_login_my_error_shown;
+			$limit_login_my_error_shown = true;
+			$error->add( 'too_many_retries', $this->error_msg( $username ) );
+			LoginFlowTransientStore::merge( array( 'errors_in_early_hook' => false ) );
+			return $error;
+		}
+
+		// Trigger MFA flow (for selected roles). Only treat as pre-authenticated if password was verified.
+		if ( $username !== '' ) {
+			$auth_user_for_mfa = ( $password_ok && is_a( $user, 'WP_User' ) ) ? $user : null;
+			$this->try_mfa_flow_redirect( $username, $password_ok, $auth_user_for_mfa );
 		}
 
 		$user_login = '';
@@ -1611,9 +2819,9 @@ class LimitLoginAttempts
 		}
 
 		if (
-			$this->check_whitelist_ips( false, $this->get_address() )
+			$this->check_whitelist_ips( false, $ip )
 			|| $this->check_whitelist_usernames( false, $user_login )
-			|| $this->is_limit_login_ok()
+			|| $this->is_limit_login_ok( $username )
 		) {
 			return $user;
 		}
@@ -1633,10 +2841,10 @@ class LimitLoginAttempts
 		} else {
 
 			// This error should be the same as in "shake it" filter below
-			$error->add( 'too_many_retries', $this->error_msg() );
+			$error->add( 'too_many_retries', $this->error_msg( $username ) );
 		}
 
-		$_SESSION['errors_in_early_hook'] = false;
+		LoginFlowTransientStore::merge( array( 'errors_in_early_hook' => false ) );
 
 		return $error;
 	}
@@ -1675,12 +2883,40 @@ class LimitLoginAttempts
 	/**
 	 * Construct informative error message
 	 *
+	 * @param string $username Optional username from the auth hook.
 	 * @return string
+	 * @throws Exception
 	 */
-	public function error_msg()
+	public function error_msg( $username = '' )
 	{
+		if ( self::$cloud_app ) {
+			$app_errors = self::$cloud_app->get_errors();
+			if ( ! empty( $app_errors ) ) {
+				$msg = is_array( $app_errors ) ? implode( ' ', $app_errors ) : (string) $app_errors;
+				$this->all_errors_array['late_hook_errors'] = $msg;
+				LoginFlowTransientStore::merge( array( 'errors_in_early_hook' => false ) );
+
+				return $msg;
+			}
+
+			$resolved_username = $this->resolve_login_username( $username );
+			if ( '' !== $resolved_username ) {
+				$response = $this->get_auth_acl_response( $resolved_username );
+				if ( $response && 'deny' === $response['result'] ) {
+					$time_left = ! empty( $response['time_left'] ) ? (int) $response['time_left'] : 0;
+					$msg       = wp_strip_all_tags( $this->build_lockout_error_message( $time_left ) );
+					$this->all_errors_array['late_hook_errors'] = $msg;
+					LoginFlowTransientStore::merge( array( 'errors_in_early_hook' => false ) );
+
+					return $msg;
+				}
+			}
+		}
+
+		// Cloud is off or unreachable — fall back to the local lockouts timer so failover messages match the lockout state.
+
 		$ip       = $this->get_address();
-		$lockouts = Config::get( 'lockouts' );
+		$lockouts = Config::get( Config::OPTION_LOCKOUTS );
 		$a        = $this->checkKey($lockouts, $ip);
 		$b        = $this->checkKey($lockouts, $this->getHash($ip));
 
@@ -1695,7 +2931,7 @@ class LimitLoginAttempts
 			$msg .= __( 'Please try again later.', 'limit-login-attempts-reloaded' );
 
 			$this->all_errors_array['late_hook_errors'] = $msg;
-			$_SESSION['errors_in_early_hook'] = false;
+			LoginFlowTransientStore::merge( array( 'errors_in_early_hook' => false ) );
 
 			return $msg;
 		}
@@ -1711,9 +2947,27 @@ class LimitLoginAttempts
 		}
 
 		$this->all_errors_array['late_hook_errors'] = $msg;
-		$_SESSION['errors_in_early_hook'] = false;
+		LoginFlowTransientStore::merge( array( 'errors_in_early_hook' => false ) );
 
 		return $msg;
+	}
+
+	/**
+	 * When returning from MFA with llar_mfa_error, inject an error so WordPress outputs the red #login_error block.
+	 *
+	 * @param \WP_Error $errors      WP_Error object passed to login_header().
+	 * @param string   $redirect_to  Redirect URL.
+	 * @return \WP_Error
+	 */
+	public function inject_mfa_return_login_error( $errors, $redirect_to ) {
+		$llar_mfa_error = isset( $_GET['llar_mfa_error'] ) ? sanitize_text_field( wp_unslash( $_GET['llar_mfa_error'] ) ) : '';
+		if ( $llar_mfa_error !== '' ) {
+			if ( ! is_wp_error( $errors ) ) {
+				$errors = new \WP_Error();
+			}
+			$errors->add( 'llar_mfa_return', __( '<strong>ERROR</strong>: Incorrect username or password.', 'limit-login-attempts-reloaded' ) );
+		}
+		return $errors;
 	}
 
 	/**
@@ -1728,6 +2982,19 @@ class LimitLoginAttempts
 		global $limit_login_just_lockedout, $limit_login_nonempty_credentials, $limit_login_my_error_shown;
 
 		$error_msg = $this->get_message();
+
+		$early_hook_msg = LoginFlowTransientStore::get( 'llar_early_hook_error_message', '' );
+		if ( $early_hook_msg !== '' && is_string( $early_hook_msg ) ) {
+			$content = $early_hook_msg;
+			LoginFlowTransientStore::merge(
+				array(
+					'llar_early_hook_error_message' => null,
+					'errors_in_early_hook'           => false,
+				)
+			);
+		} else {
+		$llar_mfa_error = isset( $_GET['llar_mfa_error'] ) ? sanitize_text_field( wp_unslash( $_GET['llar_mfa_error'] ) ) : '';
+		$show_mfa_return_error = ( $llar_mfa_error !== '' );
 
 		if ( $limit_login_nonempty_credentials ) {
 
@@ -1750,17 +3017,21 @@ class LimitLoginAttempts
 					$content = __( '<strong>ERROR</strong>: Incorrect username or password.', 'limit-login-attempts-reloaded' );
 				}
 			}
+		} elseif ( $show_mfa_return_error ) {
+			/* Same red error as failed login when returning from MFA (e.g. pre_auth_required). */
+			$content = __( '<strong>ERROR</strong>: Incorrect username or password.', 'limit-login-attempts-reloaded' );
 		}
 
 		if ( ! empty( $error_msg ) ) {
 
 			$content = $error_msg;
 		}
+		}
 
 		$content = ! empty( $content ) ? '<span>' . $content . '</span>' : '';
 
 		$this->all_errors_array['late_hook_errors'] = $content;
-		$_SESSION['errors_in_early_hook'] = false;
+		LoginFlowTransientStore::merge( array( 'errors_in_early_hook' => false ) );
 
 		return $content;
 	}
@@ -1856,9 +3127,9 @@ class LimitLoginAttempts
 	public function cleanup( $retries = null, $lockouts = null, $valid = null )
 	{
 		$now      = time();
-		$lockouts = ! is_null( $lockouts ) ? $lockouts : Config::get( 'lockouts' );
+		$lockouts = ! is_null( $lockouts ) ? $lockouts : Config::get( Config::OPTION_LOCKOUTS );
 
-		$log = Config::get( 'logged' );
+		$log = Config::get( Config::OPTION_LOGGED );
 
 		/* remove old lockouts */
 		if ( is_array( $lockouts ) ) {
@@ -1877,10 +3148,10 @@ class LimitLoginAttempts
 					}
 				}
 			}
-			Config::update( 'lockouts', $lockouts );
+			Config::update( Config::OPTION_LOCKOUTS, $lockouts );
 		}
 
-		Config::update( 'logged', $log );
+		Config::update( Config::OPTION_LOGGED, $log );
 
 		/* remove retries that are no longer valid */
 		$valid   = ! is_null( $valid ) ? $valid : Config::get( 'retries_valid' );
@@ -1909,15 +3180,13 @@ class LimitLoginAttempts
 
 		$retries_stats = Config::get( 'retries_stats' );
 
-		if($retries_stats) {
+		if ( $retries_stats ) {
 
-			foreach( $retries_stats as $key => $count ) {
+			$stats_cutoff = strtotime( '-8 day' );
+			foreach ( $retries_stats as $key => $count ) {
 
-				if (
-					( is_numeric( $key ) && $key < strtotime( '-8 day' ) )
-					|| ( ! is_numeric( $key ) && strtotime( $key ) < strtotime( '-8 day' ) )
-				) {
-					unset($retries_stats[$key]);
+				if ( $this->is_retries_stats_bucket_expired( $key, $stats_cutoff ) ) {
+					unset( $retries_stats[ $key ] );
 				}
 			}
 
@@ -1954,7 +3223,7 @@ class LimitLoginAttempts
 			/* Should we clear log? */
 			if ( isset( $_POST[ 'clear_log' ] ) ) {
 
-				Config::update( 'logged', array() );
+				Config::update( Config::OPTION_LOGGED, array() );
 				$this->show_message( __( 'Cleared IP log', 'limit-login-attempts-reloaded' ) );
 			}
 
@@ -1968,7 +3237,7 @@ class LimitLoginAttempts
 			/* Should we restore current lockouts? */
 			if ( isset( $_POST[ 'reset_current' ] ) ) {
 
-				Config::update( 'lockouts', array() );
+				Config::update( Config::OPTION_LOCKOUTS, array() );
 				$this->show_message( __( 'Cleared current lockouts', 'limit-login-attempts-reloaded' ) );
 			}
 
@@ -2067,9 +3336,15 @@ class LimitLoginAttempts
 				Config::update('notify_email_after',        (int)$_POST['email_after'] );
 				Config::update('gdpr_message',              sanitize_textarea_field( Helpers::deslash( $_POST['gdpr_message'] ) ) );
 				Config::update('custom_error_message',      sanitize_textarea_field( Helpers::deslash( $_POST['custom_error_message'] ) ) );
-				Config::update('admin_notify_email',        sanitize_email( $_POST['admin_notify_email'] ) );
+				$admin_notify_email = isset( $_POST['admin_notify_email'] ) ? sanitize_email( wp_unslash( $_POST['admin_notify_email'] ) ) : '';
+				if ( empty( $admin_notify_email ) ) {
+					$this->show_message( __( 'Please enter a valid admin notification email.', 'limit-login-attempts-reloaded' ), true );
+					$admin_notify_email = Config::get( 'admin_notify_email' );
+				}
+				Config::update('admin_notify_email',        $admin_notify_email );
+				DigestUiController::save_settings_from_request();
 
-				Config::update('active_app', sanitize_text_field( $_POST['active_app'] ) );
+				Config::update( Config::OPTION_ACTIVE_APP, sanitize_text_field( $_POST['active_app'] ) );
 
 				$trusted_ip_origins = ( ! empty( $_POST['lla_trusted_ip_origins'] ) )
 					? array_map( 'trim', explode( ',', sanitize_text_field( $_POST['lla_trusted_ip_origins'] ) ) )
@@ -2117,10 +3392,325 @@ class LimitLoginAttempts
 				}
 				$this->show_message( __( 'Settings saved.', 'limit-login-attempts-reloaded' ) );
 				$this->cloud_app_init();
+			} elseif ( isset( $_POST['llar_update_mfa_settings'] ) ) {
+				// Handle MFA settings submission via controller (capability checked inside)
+				if ( $this->mfa_controller ) {
+					$show_popup = $this->mfa_controller->handle_settings_submission();
+					if ( ! $show_popup ) {
+						$this->show_message( __( 'Settings saved.', 'limit-login-attempts-reloaded' ) );
+					}
+				}
 			}
 		}
 
-		include_once( LLA_PLUGIN_DIR . 'views/options-page.php' );
+		// Prepare roles data for MFA tab (before including view to ensure data is ready)
+		// Check if we're on MFA tab (GET or POST with tab parameter, or default after form submit)
+		$current_tab = 'settings';
+		if ( isset( $_GET['tab'] ) && in_array( $_GET['tab'], self::$allowed_tabs ) ) {
+			$current_tab = sanitize_text_field( $_GET['tab'] );
+		} elseif ( isset( $_POST['llar_update_mfa_settings'] ) ) {
+			// After MFA form submit, we're still on MFA tab
+			$current_tab = 'mfa';
+		}
+
+		$lockout_notify_items = explode( ',', (string) Config::get( 'lockout_notify' ) );
+		$email_checked = in_array( 'email', $lockout_notify_items, true );
+		$digest_notification_checkboxes = DigestUiController::get_notification_checkboxes();
+
+		// MFA tab data comes from get_settings_for_view() (single source in MfaSettingsManager)
+		include_once LLA_PLUGIN_DIR . 'views/options-page.php';
+	}
+
+	/**
+	 * Render an admin notice view by key (e.g. 'auto-update', 'mfa-no-ssl').
+	 *
+	 * @param string $notice_key Notice identifier.
+	 * @param array  $args       Variables to pass to the notice view.
+	 * @return void
+	 */
+	public function render_admin_notice( $notice_key, array $args = array() ) {
+		if ( null === $this->admin_notices_controller ) {
+			$this->admin_notices_controller = new AdminNoticesController();
+		}
+		$this->admin_notices_controller->render( $notice_key, $args );
+	}
+
+	/**
+	 * Show warning when MFA is enabled and rescue links need attention: no rescue payload transients,
+	 * or latest payload expiry is within RESCUE_NOTICE_THRESHOLD. Uses a short-lived cache for the
+	 * max-expiry query to avoid scanning wp_options on every admin page load.
+	 *
+	 * @return bool
+	 */
+	public function should_show_mfa_recovery_links_expired_notice() {
+		if ( ! (bool) Config::get( 'mfa_enabled' ) ) {
+			return false;
+		}
+
+		$seconds_left = $this->mfa_controller->get_rescue_links_seconds_left();
+		if ( null === $seconds_left ) {
+			return true;
+		}
+
+		return $seconds_left <= MfaConstants::RESCUE_NOTICE_THRESHOLD;
+	}
+
+	/**
+	 * Return non-LLAR callbacks attached to authenticate filter.
+	 *
+	 * When the owning plugin cannot be resolved (empty plugin metadata), we still want to warn
+	 * if the hook runs at an unusual priority (often security plugins use very early/late priorities).
+	 * Callbacks with unknown origin but a typical priority are skipped to avoid noisy Debug notices:
+	 * many benign cases (themes, mu-plugins, shared vendor paths) sit in the same numeric range as
+	 * core and common plugins. Filter hooks below can widen the "normal" window if needed.
+	 *
+	 * @return array
+	 */
+	public static function get_foreign_authenticate_hooks() {
+		global $wp_filter;
+
+		if ( empty( $wp_filter['authenticate'] ) || ! is_object( $wp_filter['authenticate'] ) || ! isset( $wp_filter['authenticate']->callbacks ) ) {
+			return array();
+		}
+
+		$allowed_callbacks = array(
+			'wp_authenticate_username_password',
+			'wp_authenticate_email_password',
+			'wp_authenticate_spam_check',
+		);
+
+		$foreign = array();
+		foreach ( $wp_filter['authenticate']->callbacks as $priority => $callbacks ) {
+			if ( ! is_array( $callbacks ) ) {
+				continue;
+			}
+
+			foreach ( $callbacks as $callback_data ) {
+				if ( empty( $callback_data['function'] ) ) {
+					continue;
+				}
+
+				$callback_name = self::normalize_hook_callback_name( $callback_data['function'] );
+				if ( '' === $callback_name ) {
+					continue;
+				}
+
+				$is_llar = ( 0 === strpos( $callback_name, __CLASS__ . '::' ) );
+				if ( $is_llar || in_array( $callback_name, $allowed_callbacks, true ) ) {
+					continue;
+				}
+
+				$plugin_meta = self::detect_plugin_for_hook_callback( $callback_data['function'] );
+				$hook_priority = (int) $priority;
+				// Unknown source + normal-looking priority: omit from the list (see docblock on this method).
+				if ( empty( $plugin_meta ) && ! self::is_anomalous_authenticate_priority( $hook_priority ) ) {
+					continue;
+				}
+
+				$foreign[] = array(
+					'priority'      => $hook_priority,
+					'callback'      => $callback_name,
+					'accepted_args' => isset( $callback_data['accepted_args'] ) ? (int) $callback_data['accepted_args'] : 0,
+					'plugin'        => $plugin_meta,
+				);
+			}
+		}
+
+		return $foreign;
+	}
+
+	/**
+	 * Whether authenticate hook priority is unusual enough to surface unknown callbacks.
+	 *
+	 * Default "normal" band is [-10000, 999]: covers LLAR early hooks, core (e.g. 20), and typical
+	 * third-party priorities. Outside that band we treat priority as anomalous and list the callback
+	 * even when plugin metadata is missing. The optional filter can force anomalous for edge cases
+	 * inside the band.
+	 *
+	 * @param int $priority Hook priority.
+	 * @return bool
+	 */
+	private static function is_anomalous_authenticate_priority( $priority ) {
+		$priority = (int) $priority;
+		$min = (int) apply_filters( 'llar_foreign_auth_hook_normal_priority_min', -10000 );
+		$max = (int) apply_filters( 'llar_foreign_auth_hook_normal_priority_max', 999 );
+		if ( $priority < $min || $priority > $max ) {
+			return true;
+		}
+
+		// Allow hosts to flag specific in-band priorities as worth showing without plugin resolution.
+		return (bool) apply_filters( 'llar_foreign_auth_hook_force_anomalous_priority', false, $priority );
+	}
+
+	/**
+	 * Convert callback to stable printable format.
+	 *
+	 * @param mixed $callback
+	 * @return string
+	 */
+	private static function normalize_hook_callback_name( $callback ) {
+		if ( is_string( $callback ) ) {
+			return $callback;
+		}
+
+		if ( is_array( $callback ) && 2 === count( $callback ) ) {
+			if ( is_object( $callback[0] ) ) {
+				return get_class( $callback[0] ) . '::' . $callback[1];
+			}
+			if ( is_string( $callback[0] ) ) {
+				return $callback[0] . '::' . $callback[1];
+			}
+		}
+
+		if ( $callback instanceof \Closure ) {
+			return 'Closure';
+		}
+
+		return '';
+	}
+
+	/**
+	 * Resolve plugin metadata for callback, if callback comes from plugin file.
+	 *
+	 * @param mixed $callback
+	 * @return array
+	 */
+	private static function detect_plugin_for_hook_callback( $callback ) {
+		$source_file = self::get_hook_callback_source_file_cached( $callback );
+		if ( '' === $source_file ) {
+			return array();
+		}
+
+		$source_file = wp_normalize_path( $source_file );
+		if ( isset( self::$hook_source_file_plugin_cache[ $source_file ] ) ) {
+			return self::$hook_source_file_plugin_cache[ $source_file ];
+		}
+
+		if ( ! function_exists( 'get_plugins' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		$plugins = get_plugins();
+		$plugins_dir = trailingslashit( wp_normalize_path( WP_PLUGIN_DIR ) );
+
+		if ( 0 !== strpos( $source_file, $plugins_dir ) ) {
+			self::$hook_source_file_plugin_cache[ $source_file ] = array();
+
+			return array();
+		}
+
+		$relative_file = ltrim( substr( $source_file, strlen( $plugins_dir ) ), '/' );
+		$result = array();
+
+		foreach ( $plugins as $plugin_file => $plugin_data ) {
+			$plugin_file = wp_normalize_path( $plugin_file );
+			$plugin_dir = dirname( $plugin_file );
+			$is_main_file = ( $relative_file === $plugin_file );
+			$is_inside_plugin_dir = ( '.' !== $plugin_dir && 0 === strpos( $relative_file, trailingslashit( $plugin_dir ) ) );
+
+			if ( ! $is_main_file && ! $is_inside_plugin_dir ) {
+				continue;
+			}
+
+			$slug = explode( '/', $plugin_file );
+			$slug = sanitize_key( $slug[0] );
+
+			$result = array(
+				'slug'    => $slug,
+				'name'    => isset( $plugin_data['Name'] ) ? $plugin_data['Name'] : '',
+				'version' => isset( $plugin_data['Version'] ) ? $plugin_data['Version'] : '',
+				'file'    => $plugin_file,
+			);
+			break;
+		}
+
+		self::$hook_source_file_plugin_cache[ $source_file ] = $result;
+
+		return $result;
+	}
+
+	/**
+	 * Stable cache key for a hook callback (reflection is expensive per callback).
+	 *
+	 * @param mixed $callback Callback from WP_Hook.
+	 * @return string
+	 */
+	private static function get_hook_callback_cache_key( $callback ) {
+		if ( is_string( $callback ) ) {
+			return 's:' . $callback;
+		}
+
+		if ( is_array( $callback ) && 2 === count( $callback ) ) {
+			if ( is_object( $callback[0] ) ) {
+				return 'o:' . spl_object_hash( $callback[0] ) . ':' . (string) $callback[1];
+			}
+			if ( is_string( $callback[0] ) ) {
+				return 'c:' . $callback[0] . '::' . (string) $callback[1];
+			}
+		}
+
+		if ( $callback instanceof \Closure ) {
+			return 'f:' . spl_object_hash( $callback );
+		}
+
+		return 'u:' . md5( serialize( $callback ) );
+	}
+
+	/**
+	 * Return source file for callback, with per-request cache.
+	 *
+	 * @param mixed $callback
+	 * @return string
+	 */
+	private static function get_hook_callback_source_file_cached( $callback ) {
+		$key = self::get_hook_callback_cache_key( $callback );
+		if ( isset( self::$hook_callback_source_file_cache[ $key ] ) ) {
+			return self::$hook_callback_source_file_cache[ $key ];
+		}
+
+		$file = self::get_hook_callback_source_file( $callback );
+		self::$hook_callback_source_file_cache[ $key ] = $file;
+
+		return $file;
+	}
+
+	/**
+	 * Get callback source file path using reflection.
+	 *
+	 * @param mixed $callback
+	 * @return string
+	 */
+	private static function get_hook_callback_source_file( $callback ) {
+		try {
+			if ( is_string( $callback ) && function_exists( $callback ) ) {
+				$reflection = new \ReflectionFunction( $callback );
+				return (string) $reflection->getFileName();
+			}
+
+			if ( is_array( $callback ) && 2 === count( $callback ) ) {
+				$object_or_class = $callback[0];
+				$method = $callback[1];
+
+				if ( is_object( $object_or_class ) && method_exists( $object_or_class, $method ) ) {
+					$reflection = new \ReflectionMethod( $object_or_class, $method );
+					return (string) $reflection->getFileName();
+				}
+
+				if ( is_string( $object_or_class ) && method_exists( $object_or_class, $method ) ) {
+					$reflection = new \ReflectionMethod( $object_or_class, $method );
+					return (string) $reflection->getFileName();
+				}
+			}
+
+			if ( $callback instanceof \Closure ) {
+				$reflection = new \ReflectionFunction( $callback );
+				return (string) $reflection->getFileName();
+			}
+		} catch ( \Exception $e ) {
+			return '';
+		}
+
+		return '';
 	}
 
 	/**
@@ -2129,9 +3719,11 @@ class LimitLoginAttempts
 	 * @param $msg
 	 * @param bool $is_error
 	 */
-	public function show_message( $msg, $is_error = false )
-	{
-		Helpers::show_message( $msg, $is_error );
+	public function show_message( $msg, $is_error = false ) {
+		$this->pending_admin_message = array(
+			'msg'      => $msg,
+			'is_error' => $is_error,
+		);
 	}
 
 	/**
@@ -2286,7 +3878,7 @@ class LimitLoginAttempts
                         $( '.llar-review-dismiss' ).on( 'click', function( e ) {
                             e.preventDefault();
 
-                            var type = $( this ).data( 'type' );
+                            const type = $( this ).data( 'type' );
 
                             $.post( ajaxurl, {
                                 action: 'dismiss_review_notice',
@@ -2302,10 +3894,10 @@ class LimitLoginAttempts
                         } );
 
                         function createCookie( name, value, days ) {
-                            var expires;
+                            let expires;
 
                             if ( days ) {
-                                var date = new Date();
+                                const date = new Date();
                                 date.setTime( date.getTime() + (days * 24 * 60 * 60 * 1000 ) );
                                 expires = "; expires=" + date.toGMTString();
                             } else {
@@ -2330,7 +3922,7 @@ class LimitLoginAttempts
 			@setcookie( 'llar_enable_notify_notice_shown', '', time() - 3600, '/' );
 		}
 
-		$active_app = Config::get( 'active_app' );
+		$active_app = Config::get( Config::OPTION_ACTIVE_APP );
 		$notify_methods = explode( ',', Config::get( 'lockout_notify' ) );
 
 		if (
@@ -2379,7 +3971,7 @@ class LimitLoginAttempts
                         $( '.llar-notify-notice-dismiss' ).on( 'click', function( e ) {
                             e.preventDefault();
 
-                            var type = $( this ).data( 'type' );
+                            const type = $( this ).data( 'type' );
 
                             $.post( ajaxurl, {
                                 action: 'dismiss_notify_notice',
@@ -2411,10 +4003,10 @@ class LimitLoginAttempts
                         } );
 
                         function createCookie( name, value, days ) {
-                            var expires;
+                            let expires;
 
                             if ( days ) {
-                                var date = new Date();
+                                const date = new Date();
                                 date.setTime( date.getTime() + ( days * 24 * 60 * 60 * 1000 ) );
                                 expires = "; expires=" + date.toGMTString();
                             } else {
@@ -2464,6 +4056,42 @@ class LimitLoginAttempts
 		) );
 	}
 
+	/**
+	 * Public wrapper for llar_api_response to allow integrations to use it
+	 * Only allows calls from integration classes within this plugin
+	 *
+	 * @param string $user_data User data to check
+	 * @param BaseIntegration|null $integration Integration instance (optional, for security validation)
+	 * @return array API response
+	 */
+	public function check_registration_api( $user_data, $integration = null ) {
+		// This method allows integrations to check registration via API. 
+		// Only trusted integration classes may call it.
+		if ( null !== $integration && $integration instanceof BaseIntegration ) {
+			// Additional security check: verify the class is in the correct namespace
+			// This prevents external code from extending BaseIntegration and calling this method
+			$integration_class = get_class( $integration );
+			$expected_namespace = 'LLAR\Core\Integrations\\';
+
+			// Check if the class is in the expected namespace
+			if ( strpos( $integration_class, $expected_namespace ) !== 0 ) {
+				// Class is not in the trusted namespace, deny the request
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( sprintf( 'LLAR: Security check failed - integration class %s is not in trusted namespace', $integration_class ) );
+				}
+				return array( 'result' => 'deny' );
+			}
+
+			$response = $this->llar_api_response( $user_data );
+
+			return $response;
+		}
+
+		// If no integration object is provided, deny the request
+		return array( 'result' => 'deny' );
+
+	}
+
 
 	/**
 	 * Register new user standard WP
@@ -2487,7 +4115,7 @@ class LimitLoginAttempts
 		}
 
 		$user_login_sanitize = sanitize_user( $_POST['user_login'] );
-		$user_email_sanitize = sanitize_user( $_POST['user_email'] );
+		$user_email_sanitize = sanitize_email( $_POST['user_email'] );
 
 		// Check any non-empty
 		$check_combo = ! empty( $user_login_sanitize ) ? $user_login_sanitize : $user_email_sanitize;
@@ -2512,7 +4140,7 @@ class LimitLoginAttempts
 
 			// Set the marker and the error
 			$this->user_blocking = true;
-			$this->error_messages = __( '<strong>Error</strong>: Registration is currently disabled.', 'limit-login-attempts-reloaded' );
+			$this->error_messages = __( 'Registration is currently disabled.', 'limit-login-attempts-reloaded' );
 		}
 	}
 

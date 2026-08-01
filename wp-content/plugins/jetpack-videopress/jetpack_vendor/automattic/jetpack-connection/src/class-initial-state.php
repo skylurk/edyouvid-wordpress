@@ -15,19 +15,14 @@ use Automattic\Jetpack\Status;
 class Initial_State {
 
 	/**
-	 * Whether the initial state was already rendered
-	 *
-	 * @var boolean
-	 */
-	private static $rendered = false;
-
-	/**
 	 * Get the initial state data.
 	 *
 	 * @return array
 	 */
 	private static function get_data() {
 		global $wp_version;
+
+		$status = new Status();
 
 		return array(
 			'apiRoot'            => esc_url_raw( rest_url() ),
@@ -37,9 +32,27 @@ class Initial_State {
 			'userConnectionData' => REST_Connector::get_user_connection_data( false ),
 			'connectedPlugins'   => REST_Connector::get_connection_plugins( false ),
 			'wpVersion'          => $wp_version,
-			'siteSuffix'         => ( new Status() )->get_site_suffix(),
-			'connectionErrors'   => Error_Handler::get_instance()->get_verified_errors(),
+			'siteSuffix'         => $status->get_site_suffix(),
+			'connectionErrors'   => Error_Handler::get_instance()->get_displayable_errors(),
+			'isOfflineMode'      => $status->is_offline_mode(),
+			'calypsoEnv'         => ( new Status\Host() )->get_calypso_env(),
 		);
+	}
+
+	/**
+	 * Set the connection script data.
+	 *
+	 * @param array $data The script data.
+	 */
+	public static function set_connection_script_data( $data ) {
+
+		$data['connection'] = self::get_data();
+
+		if ( empty( $data['site']['wpcom']['blog_id'] ) ) {
+			$data['site']['wpcom']['blog_id'] = absint( \Jetpack_Options::get_option( 'id', 0 ) );
+		}
+
+		return $data;
 	}
 
 	/**
@@ -48,11 +61,27 @@ class Initial_State {
 	 * @return string
 	 */
 	public static function render() {
-		if ( self::$rendered ) {
-			return null;
-		}
-		self::$rendered = true;
-		return 'var JP_CONNECTION_INITIAL_STATE=JSON.parse(decodeURIComponent("' . rawurlencode( wp_json_encode( self::get_data() ) ) . '"));';
+		/*
+		 * `window.jpTracksContext` is an intentionally minimal, Tracks-specific global used by the
+		 * @automattic/jetpack-analytics package to read `blog_id` at event-fire time. It exists
+		 * separately from `window.JetpackScriptData` because the analytics package is consumed in
+		 * contexts (e.g. Boost frontend) where `JetpackScriptData` is not reliably available, and
+		 * coupling the analytics package to that schema would widen its surface unnecessarily.
+		 * When both are present, `JetpackScriptData.site.wpcom.blog_id` is populated via
+		 * `set_connection_script_data()` above for other consumers.
+		 */
+		return 'var JP_CONNECTION_INITIAL_STATE; typeof JP_CONNECTION_INITIAL_STATE === "object" || (JP_CONNECTION_INITIAL_STATE = ' . wp_json_encode( self::get_data(), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP ) . ');'
+			. sprintf( 'window.jpTracksContext = window.jpTracksContext || {}; window.jpTracksContext.blog_id = %s;', absint( \Jetpack_Options::get_option( 'id', 0 ) ) );
 	}
 
+	/**
+	 * Render the initial state using an inline script.
+	 *
+	 * @param string $handle The JS script handle.
+	 *
+	 * @return void
+	 */
+	public static function render_script( $handle ) {
+		wp_add_inline_script( $handle, static::render(), 'before' );
+	}
 }

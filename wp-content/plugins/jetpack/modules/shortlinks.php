@@ -1,7 +1,7 @@
 <?php
 /**
  * Module Name: WP.me Shortlinks
- * Module Description: Generates shorter links using the wp.me domain.
+ * Module Description: Share short, easy-to-remember links to your posts and pages.
  * Sort Order: 8
  * First Introduced: 1.1
  * Requires Connection: Yes
@@ -12,6 +12,10 @@
  *
  * @package automattic/jetpack
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 add_filter( 'pre_get_shortlink', 'wpme_get_shortlink_handler', 1, 4 );
 
@@ -33,9 +37,9 @@ if ( ! function_exists( 'wpme_dec2sixtwo' ) ) {
 		}
 
 		for ( $t = floor( log10( $num ) / log10( 62 ) ); $t >= 0; $t-- ) {
-			$a   = floor( $num / pow( 62, $t ) );
-			$out = $out . substr( $index, $a, 1 );
-			$num = $num - ( $a * pow( 62, $t ) );
+			$a    = (int) floor( $num / pow( 62, $t ) );
+			$out .= substr( $index, $a, 1 );
+			$num -= $a * pow( 62, $t );
 		}
 
 		return $out;
@@ -84,8 +88,8 @@ function wpme_get_shortlink( $id = 0, $context = 'post', $allow_slugs = true ) {
 	$post_id = $post->ID;
 	$type    = '';
 
-	if ( $allow_slugs && 'publish' === $post->post_status && 'post' === $post->post_type && strlen( $post->post_name ) <= 8 && false === strpos( $post->post_name, '%' )
-		&& false === strpos( $post->post_name, '-' ) ) {
+	if ( $allow_slugs && 'publish' === $post->post_status && 'post' === $post->post_type && strlen( $post->post_name ) <= 8 && ! str_contains( $post->post_name, '%' )
+		&& ! str_contains( $post->post_name, '-' ) ) {
 		$id   = $post->post_name;
 		$type = 's';
 	} else {
@@ -171,7 +175,8 @@ function wpme_rest_register_shortlinks() {
  * @return string
  */
 function wpme_rest_get_shortlink( $object ) {
-	return wpme_get_shortlink( $object['id'], array() );
+	$object_id = $object['id'] ?? 0;
+	return wpme_get_shortlink( $object_id, array() );
 }
 
 // Add shortlinks to the REST API Post response.
@@ -181,7 +186,10 @@ add_action( 'rest_api_init', 'wpme_rest_register_shortlinks' );
  * Set the Shortlink Gutenberg extension as available.
  */
 function wpme_set_extension_available() {
-	Jetpack_Gutenberg::set_extension_available( 'jetpack/shortlinks' );
+	Jetpack_Gutenberg::set_extension_available( 'shortlinks' );
 }
 
 add_action( 'init', 'wpme_set_extension_available' );
+
+require_once __DIR__ . '/shortlinks/abilities/class-shortlinks-abilities.php';
+\Automattic\Jetpack\Plugin\Abilities\Shortlinks_Abilities::init();

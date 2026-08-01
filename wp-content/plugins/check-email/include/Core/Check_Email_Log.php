@@ -47,7 +47,7 @@ class Check_Email_Log {
 		if ( $this->loaded ) {
 			return;
 		}
-
+		// phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound
 		load_plugin_textdomain( 'check-email', false, $this->translations_path );
 
 		$this->table_manager->load();
@@ -57,7 +57,7 @@ class Check_Email_Log {
 		}
 
 		$this->loaded = true;
-
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		do_action( 'check_email_loaded' );
 	}
 

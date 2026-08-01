@@ -8,6 +8,7 @@
 namespace Automattic\Jetpack\Sync\Replicastore;
 
 use Automattic\Jetpack\Sync;
+use Automattic\Jetpack\Sync\Modules\WooCommerce_HPOS_Orders;
 use Exception;
 use WP_Error;
 
@@ -132,13 +133,14 @@ class Table_Checksum {
 	/**
 	 * Table_Checksum constructor.
 	 *
-	 * @param string  $table The table to calculate checksums for.
-	 * @param string  $salt  Optional salt to add to the checksum.
+	 * @param string  $table                   The table to calculate checksums for.
+	 * @param string  $salt                    Optional salt to add to the checksum.
 	 * @param boolean $perform_text_conversion If text fields should be latin1 converted.
+	 * @param array   $additional_columns      Additional columns to add to the checksum calculation.
 	 *
 	 * @throws Exception Throws exception from inner functions.
 	 */
-	public function __construct( $table, $salt = null, $perform_text_conversion = false ) {
+	public function __construct( $table, $salt = null, $perform_text_conversion = false, $additional_columns = null ) {
 
 		if ( ! Sync\Settings::is_checksum_enabled() ) {
 			throw new Exception( 'Checksums are currently disabled.' );
@@ -146,7 +148,7 @@ class Table_Checksum {
 
 		$this->salt = $salt;
 
-		$this->default_tables = $this->get_default_tables();
+		$this->default_tables = static::get_default_tables();
 
 		$this->perform_text_conversion = $perform_text_conversion;
 
@@ -163,6 +165,8 @@ class Table_Checksum {
 
 		$this->prepare_fields( $this->table_configuration );
 
+		$this->prepare_additional_columns( $additional_columns );
+
 		// Run any callbacks to check if a table is enabled or not.
 		if (
 			is_callable( $this->is_table_enabled_callback )
@@ -177,7 +181,7 @@ class Table_Checksum {
 	 *
 	 * @return array
 	 */
-	protected function get_default_tables() {
+	protected static function get_default_tables() {
 		global $wpdb;
 
 		return array(
@@ -209,18 +213,14 @@ class Table_Checksum {
 				'range_field'               => 'comment_ID',
 				'key_fields'                => array( 'comment_ID' ),
 				'checksum_fields'           => array( 'comment_date_gmt' ),
-				'filter_values'             => array(
-					'comment_type'     => array(
-						'operator' => 'IN',
-						'values'   => apply_filters(
-							'jetpack_sync_whitelisted_comment_types',
-							array( '', 'comment', 'trackback', 'pingback', 'review' )
+				'filter_values'             => array_merge(
+					Sync\Settings::get_allowed_comment_types_structured(),
+					array(
+						'comment_approved' => array(
+							'operator' => 'NOT IN',
+							'values'   => array( 'spam' ),
 						),
-					),
-					'comment_approved' => array(
-						'operator' => 'NOT IN',
-						'values'   => array( 'spam' ),
-					),
+					)
 				),
 				'is_table_enabled_callback' => function () {
 					return false !== Sync\Modules::get_module( 'comments' );
@@ -285,13 +285,28 @@ class Table_Checksum {
 			),
 			'links'                      => $wpdb->links, // TODO describe in the array format or add exceptions.
 			'options'                    => $wpdb->options, // TODO describe in the array format or add exceptions.
+			'wc_product_lookup'          => array( // wc_product_lookup is a table in the cache database
+				'table'                     => $wpdb->posts,
+				'range_field'               => 'ID',
+				'key_fields'                => array( 'ID' ),
+				'checksum_fields'           => array( 'post_modified_gmt' ),
+				'filter_values'             => array(
+					'post_type' => array(
+						'operator' => 'IN',
+						'values'   => array( 'product', 'product_variation' ),
+					),
+				),
+				'is_table_enabled_callback' => function () {
+					return false !== Sync\Modules::get_module( 'woocommerce_products' );
+				},
+			),
 			'woocommerce_order_items'    => array(
 				'table'                     => "{$wpdb->prefix}woocommerce_order_items",
 				'range_field'               => 'order_item_id',
 				'key_fields'                => array( 'order_item_id' ),
 				'checksum_fields'           => array( 'order_id' ),
 				'checksum_text_fields'      => array( 'order_item_name', 'order_item_type' ),
-				'is_table_enabled_callback' => array( $this, 'enable_woocommerce_tables' ),
+				'is_table_enabled_callback' => 'Automattic\Jetpack\Sync\Replicastore\Table_Checksum::enable_woocommerce_tables',
 			),
 			'woocommerce_order_itemmeta' => array(
 				'table'                     => "{$wpdb->prefix}woocommerce_order_itemmeta",
@@ -302,7 +317,50 @@ class Table_Checksum {
 				'parent_table'              => 'woocommerce_order_items',
 				'parent_join_field'         => 'order_item_id',
 				'table_join_field'          => 'order_item_id',
-				'is_table_enabled_callback' => array( $this, 'enable_woocommerce_tables' ),
+				'is_table_enabled_callback' => function () {
+					return false !== Sync\Modules::get_module( 'meta' ) && self::enable_woocommerce_tables();
+				},
+			),
+			'wc_orders'                  => array(
+				'table'                     => "{$wpdb->prefix}wc_orders",
+				'range_field'               => 'id',
+				'key_fields'                => array( 'id' ),
+				'checksum_fields'           => array( 'date_updated_gmt', 'total_amount' ),
+				'checksum_text_fields'      => array( 'type', 'status' ),
+				'filter_values'             => array(
+					'type'   => array(
+						'operator' => 'IN',
+						'values'   => WooCommerce_HPOS_Orders::get_order_types_to_sync( true ),
+					),
+					'status' => array(
+						'operator' => 'IN',
+						'values'   => WooCommerce_HPOS_Orders::get_all_possible_order_status_keys(),
+					),
+				),
+				'is_table_enabled_callback' => 'Automattic\Jetpack\Sync\Replicastore\Table_Checksum::enable_woocommerce_hpos_tables',
+			),
+			'wc_order_addresses'         => array(
+				'table'                     => "{$wpdb->prefix}wc_order_addresses",
+				'range_field'               => 'order_id',
+				'key_fields'                => array( 'order_id', 'address_type' ),
+				'checksum_text_fields'      => array( 'address_type' ),
+				'parent_table'              => 'wc_orders',
+				'parent_join_field'         => 'id',
+				'table_join_field'          => 'order_id',
+				'filter_values'             => array(),
+				'is_table_enabled_callback' => 'Automattic\Jetpack\Sync\Replicastore\Table_Checksum::enable_woocommerce_hpos_tables',
+			),
+			'wc_order_operational_data'  => array(
+				'table'                     => "{$wpdb->prefix}wc_order_operational_data",
+				'range_field'               => 'order_id',
+				'key_fields'                => array( 'order_id' ),
+				'checksum_fields'           => array( 'date_paid_gmt', 'date_completed_gmt' ),
+				'checksum_text_fields'      => array( 'order_key' ),
+				'parent_table'              => 'wc_orders',
+				'parent_join_field'         => 'id',
+				'table_join_field'          => 'order_id',
+				'filter_values'             => array(),
+				'is_table_enabled_callback' => 'Automattic\Jetpack\Sync\Replicastore\Table_Checksum::enable_woocommerce_hpos_tables',
 			),
 			'users'                      => array(
 				'table'                     => $wpdb->users,
@@ -337,6 +395,15 @@ class Table_Checksum {
 	}
 
 	/**
+	 * Get allowed table configurations.
+	 *
+	 * @return array
+	 */
+	public static function get_allowed_tables() {
+		return apply_filters( 'jetpack_sync_checksum_allowed_tables', static::get_default_tables() );
+	}
+
+	/**
 	 * Prepare field params based off provided configuration.
 	 *
 	 * @param array $table_configuration The table configuration array.
@@ -344,14 +411,14 @@ class Table_Checksum {
 	protected function prepare_fields( $table_configuration ) {
 		$this->key_fields                = $table_configuration['key_fields'];
 		$this->range_field               = $table_configuration['range_field'];
-		$this->checksum_fields           = isset( $table_configuration['checksum_fields'] ) ? $table_configuration['checksum_fields'] : array();
-		$this->checksum_text_fields      = isset( $table_configuration['checksum_text_fields'] ) ? $table_configuration['checksum_text_fields'] : array();
-		$this->filter_values             = isset( $table_configuration['filter_values'] ) ? $table_configuration['filter_values'] : null;
+		$this->checksum_fields           = $table_configuration['checksum_fields'] ?? array();
+		$this->checksum_text_fields      = $table_configuration['checksum_text_fields'] ?? array();
+		$this->filter_values             = $table_configuration['filter_values'] ?? null;
 		$this->additional_filter_sql     = ! empty( $table_configuration['filter_sql'] ) ? $table_configuration['filter_sql'] : '';
-		$this->parent_table              = isset( $table_configuration['parent_table'] ) ? $table_configuration['parent_table'] : null;
-		$this->parent_join_field         = isset( $table_configuration['parent_join_field'] ) ? $table_configuration['parent_join_field'] : $table_configuration['range_field'];
-		$this->table_join_field          = isset( $table_configuration['table_join_field'] ) ? $table_configuration['table_join_field'] : $table_configuration['range_field'];
-		$this->is_table_enabled_callback = isset( $table_configuration['is_table_enabled_callback'] ) ? $table_configuration['is_table_enabled_callback'] : false;
+		$this->parent_table              = $table_configuration['parent_table'] ?? null;
+		$this->parent_join_field         = $table_configuration['parent_join_field'] ?? $table_configuration['range_field'];
+		$this->table_join_field          = $table_configuration['table_join_field'] ?? $table_configuration['range_field'];
+		$this->is_table_enabled_callback = $table_configuration['is_table_enabled_callback'] ?? false;
 	}
 
 	/**
@@ -456,7 +523,8 @@ class Table_Checksum {
 			switch ( $filter['operator'] ) {
 				case 'IN':
 				case 'NOT IN':
-					$values_placeholders = implode( ',', array_fill( 0, count( $filter['values'] ), '%s' ) );
+					$filter_values_count = is_countable( $filter['values'] ) ? count( $filter['values'] ) : 0;
+					$values_placeholders = implode( ',', array_fill( 0, $filter_values_count, '%s' ) );
 					$statement           = "{$key} {$filter['operator']} ( $values_placeholders )";
 
 					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -599,7 +667,10 @@ class Table_Checksum {
 		$filter_stamenet = $this->build_filter_statement( $range_from, $range_to, $filter_values );
 
 		$join_statement = '';
-		if ( $this->parent_table ) {
+		// On WPCOM the checksum comparison does not use the parent table INNER JOIN.
+		// WPCOM sets parent_table in its config solely for the count optimization in
+		// get_range_edges(), so we skip the JOIN to avoid query differences.
+		if ( $this->parent_table && ! ( defined( 'IS_WPCOM' ) && IS_WPCOM ) ) {
 			$parent_table_obj    = new Table_Checksum( $this->parent_table );
 			$parent_filter_query = $parent_table_obj->build_filter_statement( null, null, null, 'parent_table' );
 
@@ -669,19 +740,26 @@ class Table_Checksum {
 
 		$this->validate_fields( array( $this->range_field ) );
 
-		// Performance :: When getting the postmeta range we do not want to filter by the whitelist.
-		// The reason for this is that it leads to a non-performant query that can timeout.
-		// Instead lets get the range based on posts regardless of meta.
+		// Performance :: For meta tables (postmeta, commentmeta, termmeta, woocommerce_order_itemmeta)
+		// we strip the filter_values (e.g. meta_key whitelist) when building the range edges query.
+		// These filters cause non-performant queries that can timeout on large tables.
+		// The actual data filtering happens during checksum calculation — via the filter_values
+		// WHERE clause and, when enabled, the parent table INNER JOIN.
+		$is_meta_table = in_array(
+			$this->table,
+			array( $wpdb->postmeta, $wpdb->commentmeta, $wpdb->termmeta, "{$wpdb->prefix}woocommerce_order_itemmeta" ),
+			true
+		);
 		$filter_values = $this->filter_values;
-		if ( 'postmeta' === $this->table ) {
+		if ( $is_meta_table ) {
 			$this->filter_values = null;
 		}
 
 		// `trim()` to make sure we don't add the statement if it's empty.
 		$filters = trim( $this->build_filter_statement( $range_from, $range_to ) );
 
-		// Reset Post meta filter.
-		if ( 'postmeta' === $this->table ) {
+		// Restore filter values.
+		if ( $is_meta_table ) {
 			$this->filter_values = $filter_values;
 		}
 
@@ -711,6 +789,33 @@ class Table_Checksum {
 		 * If `$limit` is not specified, we can directly use the table.
 		 */
 		if ( ! $limit ) {
+			// For tables that would use COUNT(DISTINCT), avoid the expensive full table scan
+			// by using the parent table's count instead. Only for full-table calls — sub-range
+			// calls need the actual COUNT(DISTINCT) scoped to the range, and those are cheap
+			// because the WHERE clause limits the scan.
+			if ( $distinct_count && null === $range_from && null === $range_to ) {
+				$parent_count = $this->get_parent_table_count();
+				if ( (int) $parent_count > 0 ) {
+					$min_max_query = "
+						SELECT
+							MIN({$this->range_field}) as min_range,
+							MAX({$this->range_field}) as max_range
+						FROM
+							{$this->table}
+							{$filter_statement}
+					";
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+					$result = $wpdb->get_row( $min_max_query, ARRAY_A );
+
+					if ( $result && is_array( $result ) ) {
+						$result['item_count']                    = $parent_count;
+						self::$range_edges_cache[ $this->table ] = $result;
+						return $result;
+					}
+				}
+			}
+
 			$query .= "
 				{$this->table}
 	            {$filter_statement}
@@ -743,7 +848,91 @@ class Table_Checksum {
 			throw new Exception( 'Unable to get range edges' );
 		}
 
+		// Cache full-range results so child meta tables can reuse the parent's count.
+		// Only cache when no range constraints — sub-range counts would pollute the cache.
+		if ( ! $limit && null === $range_from && null === $range_to ) {
+			self::$range_edges_cache[ $this->table ] = $result;
+		}
+
 		return $result;
+	}
+
+	/**
+	 * Static cache for range edge results, keyed by table name.
+	 *
+	 * When checksum_all() processes tables sequentially, the parent table's
+	 * get_range_edges() result is cached so child tables can reuse the
+	 * item_count without re-querying.
+	 *
+	 * @var array
+	 */
+	private static $range_edges_cache = array();
+
+	/**
+	 * Reset the static range edges cache.
+	 *
+	 * Should be called when the underlying data changes and cached
+	 * counts may be stale (e.g. between test runs).
+	 */
+	public static function reset_range_edges_cache() {
+		self::$range_edges_cache = array();
+	}
+
+	/**
+	 * Get the row count from the parent table as an approximate item count.
+	 *
+	 * For tables with compound keys or non-unique range fields, COUNT(DISTINCT range_field)
+	 * causes expensive full table scans. Since item_count is only used for bucket sizing
+	 * in checksum_histogram(), the parent table's row count is an acceptable approximation.
+	 * In typical cases the parent count >= the distinct child count, producing slightly
+	 * more (smaller) buckets. The caller guards against a zero parent count (e.g. orphaned
+	 * child rows) by falling back to the original COUNT(DISTINCT) query.
+	 *
+	 * Returns false when the parent table's count is not a reliable proxy (e.g.
+	 * term_taxonomy, whose count does not correlate with distinct range_field values
+	 * in terms, termmeta, or term_relationships).
+	 *
+	 * Uses a static cache so that if the parent table was already processed
+	 * (e.g. posts before postmeta in checksum_all), no additional query is needed.
+	 *
+	 * @return int|false The parent table row count, or false if not applicable.
+	 */
+	private function get_parent_table_count() {
+		if ( ! $this->parent_table ) {
+			return false;
+		}
+
+		// term_taxonomy's count is not a reliable proxy for the distinct range_field
+		// values in terms, termmeta, or term_relationships.
+		if ( 'term_taxonomy' === $this->parent_table ) {
+			return false;
+		}
+
+		try {
+			$parent_table_obj = new Table_Checksum( $this->parent_table );
+		} catch ( Exception $e ) {
+			return false;
+		}
+
+		// Check static cache first — the parent may have been queried already
+		// (e.g. posts processed before postmeta in checksum_all).
+		if ( isset( self::$range_edges_cache[ $parent_table_obj->table ] ) ) {
+			return (int) self::$range_edges_cache[ $parent_table_obj->table ]['item_count'];
+		}
+
+		// Query the parent table's range edges. For single-key parent tables this is
+		// a simple COUNT (no DISTINCT), so it's fast.
+		try {
+			$parent_range = $parent_table_obj->get_range_edges();
+
+			if ( is_array( $parent_range ) && isset( $parent_range['item_count'] ) ) {
+				return (int) $parent_range['item_count'];
+			}
+
+			return false;
+		} catch ( Exception $e ) {
+			return false;
+		}
 	}
 
 	/**
@@ -826,7 +1015,7 @@ class Table_Checksum {
 	 *
 	 * @return bool
 	 */
-	protected function enable_woocommerce_tables() {
+	public static function enable_woocommerce_tables() {
 		/**
 		 * On WordPress.com, we can't directly check if the site has support for WooCommerce.
 		 * Having the option to override the functionality here helps with syncing WooCommerce tables.
@@ -843,14 +1032,82 @@ class Table_Checksum {
 			return true;
 		}
 
-		// No need to proceed if WooCommerce is not available.
-		if ( ! class_exists( 'WooCommerce' ) ) {
-			return false;
-		}
-
-		// TODO more checks if needed. Probably query the DB to make sure the tables exist.
-
-		return true;
+		// If the 'woocommerce' module is enabled, this means that WooCommerce class exists.
+		return false !== Sync\Modules::get_module( 'woocommerce' );
 	}
 
+	/**
+	 * Make sure the WooCommerce HPOS tables should be enabled for Checksum/Fix.
+	 *
+	 * @see Automattic\Jetpack\SyncActions::initialize_woocommerce
+	 *
+	 * @since 3.3.0
+	 *
+	 * @return bool
+	 */
+	public static function enable_woocommerce_hpos_tables() {
+		/**
+		 * On WordPress.com, we can't directly check if the site has support for WooCommerce HPOS tables.
+		 * Having the option to override the functionality here helps with syncing WooCommerce HPOS tables.
+		 *
+		 * @since 3.3.0
+		 *
+		 * @param bool If we should we force-enable WooCommerce HPOS tables support.
+		 */
+		$force_woocommerce_hpos_support = apply_filters( 'jetpack_table_checksum_force_enable_woocommerce_hpos', false );
+
+		// If we're forcing WooCommerce HPOS tables support, there's no need to check further.
+		// This is used on WordPress.com.
+		if ( $force_woocommerce_hpos_support ) {
+			return true;
+		}
+
+		// If the 'woocommerce_hpos_orders' module is enabled, this means that WooCommerce class exists
+		// and HPOS is enabled too.
+		return false !== Sync\Modules::get_module( 'woocommerce_hpos_orders' );
+	}
+
+	/**
+	 * Prepare and append custom columns to the list of columns that we run the checksum on.
+	 *
+	 * @param string|array $additional_columns List of additional columns.
+	 *
+	 * @return void
+	 * @throws Exception When field validation fails.
+	 */
+	protected function prepare_additional_columns( $additional_columns ) {
+		/**
+		 * No need to do anything if the parameter is not provided or empty.
+		 */
+		if ( empty( $additional_columns ) ) {
+			return;
+		}
+
+		if ( ! is_array( $additional_columns ) ) {
+			if ( ! is_string( $additional_columns ) ) {
+				throw new Exception( 'Invalid value for additional fields' );
+			}
+
+			$additional_columns = explode( ',', $additional_columns );
+		}
+
+		/**
+		 * Validate the fields. If any don't conform to the required norms, we will throw an exception and
+		 * halt code here.
+		 */
+		$this->validate_fields( $additional_columns );
+
+		/**
+		 * Assign the fields to the checksum_fields to be used in the checksum later.
+		 *
+		 * We're adding the fields to the rest of the `checksum_fields`, so we don't need
+		 * to implement extra logic just for the additional fields.
+		 */
+		$this->checksum_fields = array_unique(
+			array_merge(
+				$this->checksum_fields,
+				$additional_columns
+			)
+		);
+	}
 }

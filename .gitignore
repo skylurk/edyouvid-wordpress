@@ -9,8 +9,16 @@ wp-config.php
 wp-content/ai1wm-backups/
 wp-content/updraft/
 wp-content/wpvivid/
+wp-content/wpvividbackups/
 *.wpress
 *.zip.bak
+
+# --- WordPress transient directories (auto-generated, not custom code) ------
+wp-content/upgrade/
+wp-content/jetpack-waf/
+
+# --- User data exports (contains PII — never commit) -----------------------
+wp-content/webtoffee_export/
 
 # --- User-uploaded media (846 MB — tracked outside git) -----
 wp-content/uploads/

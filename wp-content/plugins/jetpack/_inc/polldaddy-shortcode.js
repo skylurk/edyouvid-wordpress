@@ -2,7 +2,7 @@
 	function parseJSON( str ) {
 		try {
 			return str ? w.JSON.parse( str ) : null;
-		} catch ( error ) {
+		} catch {
 			return null;
 		}
 	}
@@ -24,7 +24,7 @@
 					let poll_url;
 					try {
 						poll_url = new w.URL( poll.url, 'https://invalid.tld' );
-					} catch ( error ) {
+					} catch {
 						return false;
 					}
 					if (
@@ -38,7 +38,7 @@
 						return false;
 					}
 					const wp_pd_js = d.createElement( 'script' );
-					wp_pd_js.src = poll.url;
+					wp_pd_js.src = poll_url.href;
 					wp_pd_js.async = true;
 					d.head.appendChild( wp_pd_js );
 				}

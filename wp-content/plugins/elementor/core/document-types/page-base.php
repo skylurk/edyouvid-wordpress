@@ -8,7 +8,7 @@ use Elementor\Plugin;
 use Elementor\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit; // Exit if accessed directly.
 }
 
 abstract class PageBase extends Document {
@@ -69,11 +69,11 @@ abstract class PageBase extends Document {
 	protected function register_controls() {
 		parent::register_controls();
 
-		self::register_hide_title_control( $this );
+		static::register_hide_title_control( $this );
 
-		self::register_post_fields_control( $this );
+		static::register_post_fields_control( $this );
 
-		self::register_style_controls( $this );
+		static::register_style_controls( $this );
 	}
 
 	/**
@@ -171,6 +171,61 @@ abstract class PageBase extends Document {
 		Plugin::$instance->controls_manager->add_custom_css_controls( $document );
 	}
 
+	public static function get_labels(): array {
+		$plural_label   = static::get_plural_title();
+		$singular_label = static::get_title();
+
+		$labels = [
+			'name' => $plural_label, // Already translated.
+			'singular_name' => $singular_label, // Already translated.
+			'all_items' => sprintf(
+				/* translators: 1: Plural label. */
+				__( 'All %s', 'elementor' ),
+				$plural_label
+			),
+			'add_new' => esc_html__( 'Add New', 'elementor' ),
+			'add_new_item' => sprintf(
+				/* translators: %s: Singular label. */
+				__( 'Add New %s', 'elementor' ),
+				$singular_label
+			),
+			'edit_item' => sprintf(
+				/* translators: %s: Singular label. */
+				__( 'Edit %s', 'elementor' ),
+				$singular_label
+			),
+			'new_item' => sprintf(
+				/* translators: %s: Singular label. */
+				__( 'New %s', 'elementor' ),
+				$singular_label
+			),
+			'view_item' => sprintf(
+				/* translators: %s: Singular label. */
+				__( 'View %s', 'elementor' ),
+				$singular_label
+			),
+			'search_items' => sprintf(
+				/* translators: %s: Plural label. */
+				__( 'Search %s', 'elementor' ),
+				$plural_label
+			),
+			'not_found' => sprintf(
+				/* translators: %s: Plural label. */
+				__( 'No %s found.', 'elementor' ),
+				strtolower( $plural_label )
+			),
+			'not_found_in_trash' => sprintf(
+				/* translators: %s: Plural label. */
+				__( 'No %s found in Trash.', 'elementor' ),
+				strtolower( $plural_label )
+			),
+			'parent_item_colon' => '',
+			'menu_name' => $plural_label,
+		];
+
+		return $labels;
+	}
+
 	/**
 	 * @since 2.0.0
 	 * @access public
@@ -193,6 +248,9 @@ abstract class PageBase extends Document {
 					'type' => Controls_Manager::TEXTAREA,
 					'default' => $document->post->post_excerpt,
 					'separator' => 'before',
+					'ai' => [
+						'type' => 'excerpt',
+					],
 				]
 			);
 		}
@@ -246,7 +304,7 @@ abstract class PageBase extends Document {
 	 *
 	 * @param array $data
 	 *
-	 * @throws \Exception
+	 * @throws \Exception If the post ID is not set.
 	 */
 	public function __construct( array $data = [] ) {
 		if ( $data ) {

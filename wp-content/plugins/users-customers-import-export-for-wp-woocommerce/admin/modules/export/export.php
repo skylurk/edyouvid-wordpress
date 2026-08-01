@@ -645,11 +645,10 @@ if (!class_exists('Wt_Import_Export_For_Woo_User_Basic_Export')) {
 			$file_as = (isset($this->allowed_export_file_type[$file_as]) ? $file_as : 'csv');
 
 
-			$generated_file_name = $this->to_export . '_export_' . gmdate('Y-m-d-h-i-s') . '.' . $file_as;
+			$generated_file_name = sanitize_file_name( $this->to_export . '-export-' . gmdate('Y-m-d-H-i-s') . '.' . $file_as );
 
-			if ($export_id == 0) //first batch then create a history entry
-			{
-				$file_name = ($file_name == "" ? $generated_file_name : sanitize_file_name($file_name . '.' . $file_as));
+			if ( 0 === (int) $export_id ) { //first batch then create a history entry.
+				$file_name = ( '' === $file_name ? $generated_file_name : sanitize_file_name( $file_name . '.' . $file_as ) );
 				$export_id = Wt_Import_Export_For_Woo_Basic_History::create_history_entry($file_name, $form_data, $this->to_export, $step);
 				$offset = 0;
 			} else {

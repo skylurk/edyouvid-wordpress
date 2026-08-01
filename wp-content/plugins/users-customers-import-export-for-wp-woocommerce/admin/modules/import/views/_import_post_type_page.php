@@ -4,6 +4,23 @@ if (!defined('ABSPATH')) {
 }
 ?>
 <div class="wt_iew_import_main">
+	<div class="wt-migrations-sequence-headsup" style="background: #E4F1FF;padding: 1px 12px;">
+		<p>
+			<?php
+				echo wp_kses_post(
+					sprintf(
+						/* translators: 1: html b. 2: html b close.*/
+						__(
+							'For a complete store migration, we recommend you to import the files in the following sequence: %1$s User/Customer > Product categories > Product tags > Product > Product Review > Coupon > Order > Subscription %2$s ',
+							'users-customers-import-export-for-wp-woocommerce'
+						),
+						'<b>',
+						'</b>'
+					)
+				);
+				?>
+		</p>
+	</div>
 	<p><?php echo esc_html($this->step_description); ?></p>
 	<div class="wt_iew_post-type-cards">
 		<?php

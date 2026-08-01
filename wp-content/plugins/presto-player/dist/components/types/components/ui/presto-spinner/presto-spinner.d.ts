@@ -1,3 +1,3 @@
 export declare class PrestoSpinner {
-  render(): any;
+    render(): any;
 }

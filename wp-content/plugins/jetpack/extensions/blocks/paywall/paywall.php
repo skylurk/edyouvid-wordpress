@@ -11,6 +11,10 @@ namespace Automattic\Jetpack\Extensions\Paywall;
 
 use Automattic\Jetpack\Blocks;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 const FEATURE_NAME      = 'paywall';
 const BLOCK_NAME        = 'jetpack/' . FEATURE_NAME;
 const BLOCK_HTML        = '<!-- wp:' . BLOCK_NAME . ' /-->';
@@ -30,7 +34,7 @@ function register_block() {
 	}
 
 	Blocks::jetpack_register_block(
-		BLOCK_NAME,
+		__DIR__,
 		array(
 			'render_callback' => __NAMESPACE__ . '\render_block',
 		)
@@ -61,6 +65,6 @@ function render_block() {
  * @return array The allowed blocks.
  */
 function excerpt_allowed_blocks( $allowed_blocks ) {
-	return array_merge( $allowed_blocks, array( BLOCK_NAME ) );
+	return array_merge( $allowed_blocks, array( Blocks::get_block_name( __DIR__ ) ) );
 }
 add_filter( 'excerpt_allowed_blocks', __NAMESPACE__ . '\excerpt_allowed_blocks' );

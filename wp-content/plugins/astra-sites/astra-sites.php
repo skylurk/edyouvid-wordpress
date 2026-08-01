@@ -3,7 +3,7 @@
  * Plugin Name: Starter Templates
  * Plugin URI: https://wpastra.com/
  * Description: Starter Templates is all in one solution for complete starter sites, single page templates, blocks & images. This plugin offers the premium library of ready templates & provides quick access to beautiful Pixabay images that can be imported in your website easily.
- * Version: 4.4.6
+ * Version: 4.6.3
  * Author: Brainstorm Force
  * Author URI: https://www.brainstormforce.com
  * Text Domain: astra-sites
@@ -19,6 +19,8 @@ if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
 
 /**
  * Display notice if PHP version is below 7.4
+ *
+ * @return void
  */
 function astra_sites_php_version_notice() {
 	$plugin_name = 'Starter Templates';
@@ -33,11 +35,11 @@ function astra_sites_php_version_notice() {
  * Set constants.
  */
 if ( ! defined( 'ASTRA_SITES_NAME' ) ) {
-	define( 'ASTRA_SITES_NAME', __( 'Starter Templates', 'astra-sites' ) );
+	define( 'ASTRA_SITES_NAME', 'Starter Templates' );
 }
 
 if ( ! defined( 'ASTRA_SITES_VER' ) ) {
-	define( 'ASTRA_SITES_VER', '4.4.6' );
+	define( 'ASTRA_SITES_VER', '4.6.3' );
 }
 
 if ( ! defined( 'ASTRA_SITES_FILE' ) ) {
@@ -56,6 +58,11 @@ if ( ! defined( 'ASTRA_SITES_URI' ) ) {
 	define( 'ASTRA_SITES_URI', plugins_url( '/', ASTRA_SITES_FILE ) );
 }
 
+// Load One Onboarding.
+if ( file_exists( ASTRA_SITES_DIR . 'inc/lib/one-onboarding/loader.php' ) ) {
+	require_once ASTRA_SITES_DIR . 'inc/lib/one-onboarding/loader.php';
+}
+
 // Load AI Builder.
 $ai_builder_path = ASTRA_SITES_DIR . 'inc/lib/ai-builder/ai-builder.php';
 if ( file_exists( $ai_builder_path ) ) {
@@ -68,12 +75,18 @@ if ( file_exists( $st_importer_path ) ) {
 	require_once $st_importer_path;
 }
 
+// Load Getting Started.
+if ( file_exists( ASTRA_SITES_DIR . 'inc/lib/getting-started/getting-started.php' ) ) {
+	require_once ASTRA_SITES_DIR . 'inc/lib/getting-started/getting-started.php';
+}
+
 if ( ! function_exists( 'astra_sites_setup' ) ) :
 
 	/**
 	 * Astra Sites Setup
 	 *
 	 * @since 1.0.5
+	 * @return void
 	 */
 	function astra_sites_setup() {
 		require_once ASTRA_SITES_DIR . 'inc/classes/class-astra-sites.php';
@@ -87,7 +100,7 @@ if ( ! function_exists( 'astra_sites_setup' ) ) :
 endif;
 
 // Astra Notices.
-require_once ASTRA_SITES_DIR . 'inc/lib/astra-notices/class-astra-notices.php';
+require_once ASTRA_SITES_DIR . 'inc/lib/astra-notices/class-bsf-admin-notices.php';
 
 // BSF Analytics Tracker.
 if ( ! class_exists( 'BSF_Analytics_Loader' ) ) {
@@ -99,18 +112,47 @@ if ( ! class_exists( 'BSF_Quick_Links' ) ) {
 	require_once ASTRA_SITES_DIR . 'inc/lib/bsf-quick-links/class-bsf-quick-links.php';
 }
 
-$bsf_analytics = BSF_Analytics_Loader::get_instance();
+add_action( 'init', 'astra_sites_init_bsf_analytics', 5 );
 
-$bsf_analytics->set_entity(
-	array(
-		'bsf' => array(
-			'product_name'    => __( 'Starter Templates', 'astra-sites' ),
-			'path'            => ASTRA_SITES_DIR . 'admin/bsf-analytics',
-			'author'          => 'Brainstorm Force',
-			'time_to_display' => '+24 hours',
-		),
-	)
-);
+/**
+ * Initializes BSF Analytics.
+ *
+ * @since 4.4.14
+ * @return void
+ */
+function astra_sites_init_bsf_analytics() {
+	if ( ! class_exists( 'BSF_Analytics_Loader' ) || ! is_callable( 'BSF_Analytics_Loader::get_instance' ) ) {
+		return;
+	}
+
+	$bsf_analytics = BSF_Analytics_Loader::get_instance();
+
+	$bsf_analytics->set_entity(
+		array(
+			'astra_sites' => array(
+				'product_name'        => __( 'Starter Templates', 'astra-sites' ),
+				'path'                => ASTRA_SITES_DIR . 'admin/bsf-analytics',
+				'author'              => 'Brainstorm Force',
+				'time_to_display'     => '+24 hours',
+				'deactivation_survey' => apply_filters(
+					'astra_sites_bsf_analytics_deactivation_survey_data',
+					array(
+						array(
+							'id'                => 'deactivation-survey-astra-sites',
+							'popup_logo'        => ASTRA_SITES_URI . 'inc/lib/onboarding/assets/images/logo.svg',
+							'plugin_slug'       => 'astra-sites',
+							'plugin_version'    => ASTRA_SITES_VER,
+							'popup_title'       => __( 'Quick Feedback', 'astra-sites' ),
+							'support_url'       => 'https://wpastra.com/starter-templates-support/',
+							'popup_description' => __( 'If you have a moment, please share why you are deactivating Starter Templates:', 'astra-sites' ),
+							'show_on_screens'   => array( 'plugins' ),
+						),
+					)
+				),
+			),
+		)
+	);
+}
 
 if ( ! function_exists( 'astra_sites_redirect_to_onboarding' ) ) :
 
@@ -127,7 +169,13 @@ if ( ! function_exists( 'astra_sites_redirect_to_onboarding' ) ) :
 
 		delete_option( 'st_start_onboarding' );
 		if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
-			wp_safe_redirect( admin_url( 'themes.php?page=starter-templates' ) );
+			
+			if ( ! class_exists( 'Astra_Sites' ) ) {
+				require_once ASTRA_SITES_DIR . '/inc/classes/class-astra-sites.php';
+			}
+			// Use helper function to get URL with appropriate ci parameter based on flags.
+			$redirect_url = Astra_Sites::get_starter_templates_url();
+			wp_safe_redirect( $redirect_url );
 			exit();
 		}
 	}
@@ -148,5 +196,29 @@ if ( ! function_exists( 'astra_pro_sites_activate' ) ) :
 		update_option( 'st_start_onboarding', true );
 	}
 	register_activation_hook( __FILE__, 'astra_pro_sites_activate' );
+
+endif;
+
+if ( ! function_exists( 'astra_sites_deactivate' ) ) :
+
+	/**
+	 * Clean up import state options on plugin deactivation.
+	 *
+	 * Prevents stale import flags from persisting in wp_options and
+	 * causing database conflicts during WP-Cron after deactivation.
+	 *
+	 * @since 4.5.4
+	 * @return void
+	 */
+	function astra_sites_deactivate() {
+		delete_option( 'astra_sites_batch_process_started' );
+		delete_option( 'astra_sites_batch_process_started_time' );
+		delete_option( 'astra_sites_batch_process_complete' );
+		delete_option( 'astra_sites_ai_import_started' );
+		delete_option( 'ast_ai_import_current_url' );
+		delete_option( 'astra_sites_import_started' );
+		delete_option( 'astra_sites_current_import_template_type' );
+	}
+	register_deactivation_hook( __FILE__, 'astra_sites_deactivate' );
 
 endif;

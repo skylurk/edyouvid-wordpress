@@ -6,21 +6,9 @@
  * @package automattic/jetpack
  */
 
-/**
- * Add Jetpack theme supports for Twenty Sixteen.
- */
-function twentysixteen_jetpack_setup() {
-	/**
-	 * Add theme support for Responsive Videos.
-	 */
-	add_theme_support( 'jetpack-responsive-videos' );
-
-	/**
-	 * Add theme support for geo-location.
-	 */
-	add_theme_support( 'jetpack-geo-location' );
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
 }
-add_action( 'after_setup_theme', 'twentysixteen_jetpack_setup' );
 
 /**
  * Enqueue Jetpack compat styles for Twenty Sixteen.
@@ -57,7 +45,7 @@ function twentysixteen_remove_share() {
 	if ( is_single() || is_archive() || is_home() ) {
 		remove_filter( 'the_excerpt', 'sharing_display', 19 );
 		if ( class_exists( 'Jetpack_Likes' ) ) {
-			remove_filter( 'the_excerpt', array( Jetpack_Likes::init(), 'post_likes' ), 30, 1 );
+			remove_filter( 'the_excerpt', array( Jetpack_Likes::init(), 'post_likes' ), 30 );
 		}
 	}
 }

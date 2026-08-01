@@ -3,8 +3,6 @@
  * Astra Theme Customizer Configuration Base.
  *
  * @package     Astra
- * @author      Astra
- * @copyright   Copyright (c) 2020, Astra
  * @link        https://wpastra.com/
  * @since       Astra 1.4.3
  */
@@ -25,7 +23,6 @@ if ( ! class_exists( 'Astra_Customizer_Control_Base' ) ) {
 	 * Customizer Sanitizes Initial setup
 	 */
 	class Astra_Customizer_Control_Base {
-
 		/**
 		 * Registered Controls.
 		 *
@@ -49,111 +46,111 @@ if ( ! class_exists( 'Astra_Customizer_Control_Base' ) ) {
 		 */
 		public function enqueue_scripts() {
 
-			$dir_name    = ( SCRIPT_DEBUG ) ? 'unminified' : 'minified';
-			$file_prefix = ( SCRIPT_DEBUG ) ? '' : '.min';
-			$file_rtl    = ( is_rtl() ) ? '-rtl' : '';
+			$dir_name    = SCRIPT_DEBUG ? 'unminified' : 'minified';
+			$file_prefix = SCRIPT_DEBUG ? '' : '.min';
+			$file_rtl    = is_rtl() ? '-rtl' : '';
 			$css_uri     = ASTRA_THEME_URI . 'inc/customizer/custom-controls/assets/css/' . $dir_name . '/';
 			$js_uri      = ASTRA_THEME_URI . 'inc/customizer/custom-controls/assets/js/' . $dir_name . '/';
 
 			wp_enqueue_style( 'astra-custom-control-style' . $file_rtl, $css_uri . 'custom-controls' . $file_prefix . $file_rtl . '.css', null, ASTRA_THEME_VERSION );
 
-			if ( ! SCRIPT_DEBUG ) {
+			// Enqueue Customizer Plain script.
+			$custom_controls_plain_deps = array(
+				'jquery',
+				'customize-base',
+				'jquery-ui-tabs',
+				'jquery-ui-sortable',
+			);
 
-				// Enqueue Customizer script.
-				$custom_controls_deps = array(
-					'jquery',
-					'customize-base',
-					'jquery-ui-tabs',
-					'jquery-ui-sortable',
-					'wp-i18n',
-					'wp-components',
-					'wp-element',
-					'wp-media-utils',
-					'wp-block-editor',
-				);
+			wp_enqueue_script( 'astra-custom-control-plain-script', $js_uri . 'custom-controls-plain' . $file_prefix . '.js', $custom_controls_plain_deps, ASTRA_THEME_VERSION, true );
 
-				wp_enqueue_script( 'astra-custom-control-script', $js_uri . 'custom-controls' . $file_prefix . '.js', $custom_controls_deps, ASTRA_THEME_VERSION, true );
+			// Enqueue Customizer React.JS script.
+			$custom_controls_react_deps = array(
+				'astra-custom-control-plain-script',
+				'astra-customizer-controls-js',
+				'wp-i18n',
+				'wp-components',
+				'wp-element',
+				'wp-media-utils',
+			);
 
-				$css_uri = ASTRA_THEME_URI . 'inc/customizer/custom-controls/typography/';
+			wp_enqueue_script( 'astra-custom-control-script', ASTRA_THEME_URI . 'inc/customizer/extend-custom-controls/build/index.js', $custom_controls_react_deps, ASTRA_THEME_VERSION, true );
+			wp_set_script_translations( 'astra-custom-control-script', 'astra' );
 
-				wp_enqueue_style( 'astra-select-woo-style', $css_uri . 'selectWoo.css', null, ASTRA_THEME_VERSION );
+			// Icon libraries (svgs.json ~1.3 MB, ast-social-icons.json ~1.3 MB) are lazy-loaded
+			// via fetch() in the JS icon-loader module instead of being bundled into the JS build.
+			wp_localize_script(
+				'astra-custom-control-script',
+				'astraIconsConfig',
+				array(
+					'svgUrl'    => ASTRA_THEME_URI . 'assets/svg/svgs.json',
+					'socialUrl' => ASTRA_THEME_URI . 'assets/svg/ast-social-icons.json',
+				)
+			);
 
-				$astra_typo_localize = array(
-					'100'       => __( 'Thin 100', 'astra' ),
-					'100italic' => __( '100 Italic', 'astra' ),
-					'200'       => __( 'Extra-Light 200', 'astra' ),
-					'200italic' => __( '200 Italic', 'astra' ),
-					'300'       => __( 'Light 300', 'astra' ),
-					'300italic' => __( '300 Italic', 'astra' ),
-					'400'       => __( 'Normal 400', 'astra' ),
-					'italic'    => __( '400 Italic', 'astra' ),
-					'500'       => __( 'Medium 500', 'astra' ),
-					'500italic' => __( '500 Italic', 'astra' ),
-					'600'       => __( 'Semi-Bold 600', 'astra' ),
-					'600italic' => __( '600 Italic', 'astra' ),
-					'700'       => __( 'Bold 700', 'astra' ),
-					'700italic' => __( '700 Italic', 'astra' ),
-					'800'       => __( 'Extra-Bold 800', 'astra' ),
-					'800italic' => __( '800 Italic', 'astra' ),
-					'900'       => __( 'Ultra-Bold 900', 'astra' ),
-					'900italic' => __( '900 Italic', 'astra' ),
-				);
+			/**
+			 * Had to go this route because the default context check
+			 * from the core was not working properly for advanced conditions in `inc/customizer/configurations/builder/header/configs/account.php`.
+			 *
+			 * @since 4.6.15
+			 */
+			wp_add_inline_script(
+				'astra-custom-control-script',
+				"
+				(function(){
+					window.addEventListener('load', function() {
 
-				wp_localize_script( 'astra-custom-control-script', 'astraTypo', $astra_typo_localize );
+						wp.customize.state('astra-customizer-tab')?.bind(function(state) {
 
-			} else {
+							if ( 'general' === state ) {
+								wp.customize.control('astra-settings[header-account-icon-size]')?.container.hide();
+								wp.customize.control('astra-settings[header-account-icon-color]')?.container.hide();
+								return;
+							}
 
-				// Enqueue Customizer Plain script.
-				$custom_controls_plain_deps = array(
-					'jquery',
-					'customize-base',
-					'jquery-ui-tabs',
-					'jquery-ui-sortable',
-				);
-				wp_enqueue_script( 'astra-custom-control-plain-script', $js_uri . 'custom-controls-plain' . $file_prefix . '.js', $custom_controls_plain_deps, ASTRA_THEME_VERSION, true );
+							var loginStyleIsText = 'text' === wp.customize('astra-settings[header-account-login-style]')?.get();
+							var logoutStyleIsText = 'text' === wp.customize('astra-settings[header-account-logout-style]')?.get();
 
-				// Enqueue Customizer React.JS script.
-				$custom_controls_react_deps = array(
-					'astra-custom-control-plain-script',
-					'wp-i18n',
-					'wp-components',
-					'wp-element',
-					'wp-media-utils',
-					'wp-block-editor',
-				);
+							var loginIsIconExtend = 'icon' === wp.customize('astra-settings[header-account-login-style-extend-text-profile-type]')?.get();
+							var logoutIsIconExtend = 'icon' === wp.customize('astra-settings[header-account-logout-style-extend-text-profile-type]')?.get();
 
-				$css_uri = ASTRA_THEME_URI . 'inc/customizer/custom-controls/typography/';
+							if ( ( loginStyleIsText && loginIsIconExtend ) || ( logoutStyleIsText && logoutIsIconExtend ) ) {
+								wp.customize.control('astra-settings[header-account-icon-size]').container.show();
+								wp.customize.control('astra-settings[header-account-icon-color]').container.show();
+							}
+						});
 
-				wp_enqueue_style( 'astra-select-woo-style', $css_uri . 'selectWoo.css', null, ASTRA_THEME_VERSION );
+					});
+				})();
+				"
+			);
 
-				wp_enqueue_script( 'astra-custom-control-react-script', ASTRA_THEME_URI . 'inc/customizer/extend-custom-controls/build/index.js', $custom_controls_react_deps, ASTRA_THEME_VERSION, true );
+			$astra_typo_localize = array(
+				'100'       => __( 'Thin 100', 'astra' ),
+				'100italic' => __( '100 Italic', 'astra' ),
+				'200'       => __( 'Extra-Light 200', 'astra' ),
+				'200italic' => __( '200 Italic', 'astra' ),
+				'300'       => __( 'Light 300', 'astra' ),
+				'300italic' => __( '300 Italic', 'astra' ),
+				'400'       => __( 'Normal 400', 'astra' ),
+				'normal'    => __( 'Normal 400', 'astra' ),
+				'italic'    => __( '400 Italic', 'astra' ),
+				'500'       => __( 'Medium 500', 'astra' ),
+				'500italic' => __( '500 Italic', 'astra' ),
+				'600'       => __( 'Semi-Bold 600', 'astra' ),
+				'600italic' => __( '600 Italic', 'astra' ),
+				'700'       => __( 'Bold 700', 'astra' ),
+				'700italic' => __( '700 Italic', 'astra' ),
+				'800'       => __( 'Extra-Bold 800', 'astra' ),
+				'800italic' => __( '800 Italic', 'astra' ),
+				'900'       => __( 'Ultra-Bold 900', 'astra' ),
+				'900italic' => __( '900 Italic', 'astra' ),
+			);
+			wp_localize_script( 'astra-custom-control-script', 'astraTypo', $astra_typo_localize );
 
-				$localize_array = array(
-					'colors' => astra_color_palette(),
-				);
+			$css_uri = ASTRA_THEME_URI . 'inc/customizer/custom-controls/typography/';
 
-				$astra_typo_localize = array(
-					'100'       => __( 'Thin 100', 'astra' ),
-					'100italic' => __( '100 Italic', 'astra' ),
-					'200'       => __( 'Extra-Light 200', 'astra' ),
-					'200italic' => __( '200 Italic', 'astra' ),
-					'300'       => __( 'Light 300', 'astra' ),
-					'300italic' => __( '300 Italic', 'astra' ),
-					'400'       => __( 'Normal 400', 'astra' ),
-					'italic'    => __( '400 Italic', 'astra' ),
-					'500'       => __( 'Medium 500', 'astra' ),
-					'500italic' => __( '500 Italic', 'astra' ),
-					'600'       => __( 'Semi-Bold 600', 'astra' ),
-					'600italic' => __( '600 Italic', 'astra' ),
-					'700'       => __( 'Bold 700', 'astra' ),
-					'700italic' => __( '700 Italic', 'astra' ),
-					'800'       => __( 'Extra-Bold 800', 'astra' ),
-					'800italic' => __( '800 Italic', 'astra' ),
-					'900'       => __( 'Ultra-Bold 900', 'astra' ),
-					'900italic' => __( '900 Italic', 'astra' ),
-				);
-				wp_localize_script( 'astra-custom-control-react-script', 'astraTypo', $astra_typo_localize );
-			}
+			wp_enqueue_style( 'astra-select-woo-style', $css_uri . 'selectWoo.css', null, ASTRA_THEME_VERSION );
 		}
 
 		/**

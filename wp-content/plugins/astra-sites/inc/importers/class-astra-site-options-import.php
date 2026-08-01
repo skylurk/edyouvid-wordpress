@@ -47,7 +47,7 @@ class Astra_Site_Options_Import {
 	 */
 	public function __construct() {
 		add_filter( 'st_importer_site_options', array( $this, 'classic_templates_options' ), 10, 1 );
-		add_action( 'st_importer_import_site_options', array( $this, 'import_classic_templates_options' ), 10, 2 );
+		add_action( 'st_importer_import_site_options', array( $this, 'import_classic_templates_options' ), 10, 1 );
 	}
 
 	/**
@@ -132,92 +132,99 @@ class Astra_Site_Options_Import {
 			'astra-color-palettes',
 			'astra-typography-presets',
 		);
-		$options = array_merge( $default_options, $classic_templates_options );
-		return $options; 
-		
+
+		return array_merge( $default_options, $classic_templates_options );
 	}
 
 	/**
 	 * Import Classic Templates Options.
 	 *
 	 * @since 4.3.0
-	 * 
+	 *
 	 * @param array<string, mixed> $options List of default options.
-	 * @param array<int, string>   $site_options List of site options.
-	 * 
+	 *
 	 * @return void
 	 */
-	public function import_classic_templates_options( $options, $site_options ) {
+	public function import_classic_templates_options( $options ) {
 
 		if ( ! isset( $options ) ) {
+			Astra_Sites_Importer_Log::add( 'No site options found to import.' );
 			return;
 		}
 
 		try {
+			Astra_Sites_Importer_Log::add( 'Processing site options import - Total options: ' . count( $options ) );
+
 			foreach ( $options as $option_name => $option_value ) {
 
 				// Is option exist in defined array site_options()?
 				if ( null !== $option_value ) {
 
-					// Is option exist in defined array site_options()?
-					if ( in_array( $option_name, $site_options, true ) ) {
+					switch ( $option_name ) {
 
-						switch ( $option_name ) {
+						// Set WooCommerce page ID by page Title.
+						case 'woocommerce_shop_page_title':
+						case 'woocommerce_cart_page_title':
+						case 'woocommerce_checkout_page_title':
+						case 'woocommerce_myaccount_page_title':
+						case 'woocommerce_edit_address_page_title':
+						case 'woocommerce_view_order_page_title':
+						case 'woocommerce_change_password_page_title':
+						case 'woocommerce_logout_page_title':
+								$this->update_woocommerce_page_id_by_option_value( $option_name, $option_value );
+							break;
 
-							// Set WooCommerce page ID by page Title.
-							case 'woocommerce_shop_page_title':
-							case 'woocommerce_cart_page_title':
-							case 'woocommerce_checkout_page_title':
-							case 'woocommerce_myaccount_page_title':
-							case 'woocommerce_edit_address_page_title':
-							case 'woocommerce_view_order_page_title':
-							case 'woocommerce_change_password_page_title':
-							case 'woocommerce_logout_page_title':
-									$this->update_woocommerce_page_id_by_option_value( $option_name, $option_value );
-								break;
+						case 'page_for_posts':
+						case 'page_on_front':
+								$this->update_page_id_by_option_value( $option_name, $option_value );
+							break;
 
-							case 'page_for_posts':
-							case 'page_on_front':
-									$this->update_page_id_by_option_value( $option_name, $option_value );
-								break;
+						// nav menu locations.
+						case 'nav_menu_locations':
+								$this->set_nav_menu_locations( $option_value );
+							break;
 
-							// nav menu locations.
-							case 'nav_menu_locations':
-									$this->set_nav_menu_locations( $option_value );
-								break;
+						// import WooCommerce category images.
+						case 'woocommerce_product_cat':
+								$this->set_woocommerce_product_cat( $option_value );
+							break;
 
-							// import WooCommerce category images.
-							case 'woocommerce_product_cat':
-									$this->set_woocommerce_product_cat( $option_value );
-								break;
+						// insert logo.
+						case 'custom_logo':
+								$this->insert_logo( $option_value );
+							break;
 
-							// insert logo.
-							case 'custom_logo':
-									$this->insert_logo( $option_value );
-								break;
+						case 'elementor_active_kit':
+							if ( '' !== $option_value ) {
+								$this->set_elementor_kit();
+							}
+							break;
 
-							case 'elementor_active_kit':
-								if ( '' !== $option_value ) {
-									$this->set_elementor_kit();
-								}
-								break;
-
-							case 'site_title':
+						case 'site_title':
+							try {
+								Astra_Sites_Importer_Log::add( 'Site title (blogname) updated successfully to ' . $option_value );
 								update_option( 'blogname', $option_value );
-								break;
+							} catch ( \Exception $e ) {
+								// Failed silently: sometimes Elementor throws exception as it hooks into `update_option_blogname`.
+								Astra_Sites_Importer_Log::add( 'Failed to update site title: ' . $e->getMessage(), 'warning' );
+								astra_sites_error_log( 'Silently handled exception while updating blogname: ' . $e->getMessage() );
+							}
+							break;
 
-							default:
-								update_option( $option_name, $option_value );
-								break;
-						}
+						default:
+							Astra_Sites_Importer_Log::add( 'Updated option: ' . $option_name, 'info', $option_value );
+							update_option( $option_name, $option_value );
+							break;
 					}
 				}
 			}
+
+			Astra_Sites_Importer_Log::add( 'Classic templates options import completed successfully', 'success' );
 		} catch ( Exception $e ) {
 			// Do nothing.
+			Astra_Sites_Importer_Log::add( 'Site options import exception: ' . $e->getMessage(), 'warning' );
 			astra_sites_error_log( 'Error while importing site options: ' . $e->getMessage() );
 		}
-
 	}
 
 	/**
@@ -228,6 +235,7 @@ class Astra_Site_Options_Import {
 	 * @return void
 	 */
 	private function set_elementor_kit() {
+		Astra_Sites_Importer_Log::add( 'Searching for Elementor kit to set as active' );
 
 		// Update Elementor Theme Kit Option.
 		$args = array(
@@ -248,7 +256,10 @@ class Astra_Site_Options_Import {
 
 		$query = get_posts( $args );
 		if ( ! empty( $query ) && isset( $query[0] ) && isset( $query[0]->ID ) ) {
+			Astra_Sites_Importer_Log::add( 'Elementor active kit set to ID: ' . $query[0]->ID );
 			update_option( 'elementor_active_kit', $query[0]->ID );
+		} else {
+			Astra_Sites_Importer_Log::add( 'No Elementor kit found to set as active', 'warning' );
 		}
 	}
 
@@ -293,14 +304,19 @@ class Astra_Site_Options_Import {
 	 * @return void
 	 */
 	private function update_page_id_by_option_value( $option_name, $option_value ) {
+		Astra_Sites_Importer_Log::add( 'Updating page ID for option: ' . $option_name . ' with value: ' . $option_value );
+
 		if ( empty( $option_value ) ) {
 			return;
 		}
 
 		$page = $this->get_page_by_title( $option_value, 'page' );
-		
+
 		if ( is_object( $page ) ) {
+			Astra_Sites_Importer_Log::add( 'Page ID updated for ' . $option_name . ': ' . $page->ID );
 			update_option( $option_name, $page->ID );
+		} else {
+			Astra_Sites_Importer_Log::add( 'Page not found for title: ' . $option_value );
 		}
 	}
 
@@ -314,6 +330,7 @@ class Astra_Site_Options_Import {
 	 * @return void
 	 */
 	private function update_woocommerce_page_id_by_option_value( $option_name, $option_value ) {
+		Astra_Sites_Importer_Log::add( 'Updating WooCommerce page ID for option: ' . $option_name . ' with value: ' . $option_value );
 		$option_name = str_replace( '_title', '_id', $option_name );
 		$this->update_page_id_by_option_value( $option_name, $option_value );
 	}
@@ -327,21 +344,22 @@ class Astra_Site_Options_Import {
 	 * @param array $nav_menu_locations Array of nav menu locations.
 	 */
 	private function set_nav_menu_locations( $nav_menu_locations = array() ) {
+		Astra_Sites_Importer_Log::add( 'Setting nav menu locations - Total menus: ' . count( $nav_menu_locations ) );
 
 		$menu_locations = array();
 
 		// Update menu locations.
 		if ( isset( $nav_menu_locations ) ) {
-
 			foreach ( $nav_menu_locations as $menu => $value ) {
-
 				$term = get_term_by( 'slug', $value, 'nav_menu' );
 
 				if ( is_object( $term ) ) {
+					Astra_Sites_Importer_Log::add( 'Menu location \'' . $menu . '\' set to term ID: ' . $term->term_id );
 					$menu_locations[ $menu ] = $term->term_id;
 				}
 			}
 
+			Astra_Sites_Importer_Log::add( 'Nav menu locations updated successfully', 'success' );
 			set_theme_mod( 'nav_menu_locations', $menu_locations );
 		}
 	}
@@ -354,13 +372,11 @@ class Astra_Site_Options_Import {
 	 * @param array $cats Array of categories.
 	 */
 	private function set_woocommerce_product_cat( $cats = array() ) {
+		Astra_Sites_Importer_Log::add( 'Processing WooCommerce product categories - Total: ' . count( $cats ) );
 
 		if ( isset( $cats ) ) {
-
 			foreach ( $cats as $key => $cat ) {
-
 				if ( ! empty( $cat['slug'] ) && ! empty( $cat['thumbnail_src'] ) ) {
-
 					$downloaded_image = ST_Image_Importer::get_instance()->import(
 						array(
 							'url' => $cat['thumbnail_src'],
@@ -369,15 +385,17 @@ class Astra_Site_Options_Import {
 					);
 
 					if ( $downloaded_image['id'] ) {
-
 						$term = get_term_by( 'slug', $cat['slug'], 'product_cat' );
 
 						if ( is_object( $term ) ) {
+							Astra_Sites_Importer_Log::add( 'WooCommerce category thumbnail set for: ' . $cat['slug'] );
 							update_term_meta( $term->term_id, 'thumbnail_id', $downloaded_image['id'] );
 						}
 					}
 				}
 			}
+
+			Astra_Sites_Importer_Log::add( 'WooCommerce product categories processed successfully', 'success' );
 		}
 	}
 
@@ -389,6 +407,7 @@ class Astra_Site_Options_Import {
 	 * @return void
 	 */
 	private function insert_logo( $image_url = '' ) {
+		Astra_Sites_Importer_Log::add( 'Inserting custom logo from URL: ' . $image_url );
 
 		$downloaded_image = ST_Image_Importer::get_instance()->import(
 			array(
@@ -398,12 +417,13 @@ class Astra_Site_Options_Import {
 		);
 
 		if ( $downloaded_image['id'] ) {
+			Astra_Sites_Importer_Log::add( 'Custom logo set successfully - ID: ' . $downloaded_image['id'], 'success' );
 			ST_Importer_Helper::track_post( $downloaded_image['id'] );
 			set_theme_mod( 'custom_logo', $downloaded_image['id'] );
+		} else {
+			Astra_Sites_Importer_Log::add( 'Failed to download logo image from: ' . $image_url, 'warning' );
 		}
-
 	}
-
 }
 
 /**

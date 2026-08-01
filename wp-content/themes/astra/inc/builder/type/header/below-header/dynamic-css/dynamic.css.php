@@ -26,7 +26,7 @@ add_filter( 'astra_dynamic_theme_css', 'astra_below_header_row_setting', 11 );
  */
 function astra_below_header_row_setting( $dynamic_css, $dynamic_css_filtered = '' ) {
 
-	if ( ! is_customize_preview() && ( ! Astra_Builder_helper::is_row_empty( 'below', 'header', 'desktop' ) && ! Astra_Builder_helper::is_row_empty( 'below', 'header', 'mobile' ) ) ) {
+	if ( ! is_customize_preview() && ( ! Astra_Builder_Helper::is_row_empty( 'below', 'header', 'desktop' ) && ! Astra_Builder_Helper::is_row_empty( 'below', 'header', 'mobile' ) ) ) {
 		return $dynamic_css;
 	}
 
@@ -38,16 +38,15 @@ function astra_below_header_row_setting( $dynamic_css, $dynamic_css_filtered = '
 	$hbb_border_color   = astra_get_option( 'hbb-header-bottom-border-color' );
 
 	// Header Height.
-	$hbb_header_height_desktop = ( isset( $hbb_header_height['desktop'] ) && ! empty( $hbb_header_height['desktop'] ) ) ? $hbb_header_height['desktop'] : '';
-	$hbb_header_height_tablet  = ( isset( $hbb_header_height['tablet'] ) && ! empty( $hbb_header_height['tablet'] ) ) ? $hbb_header_height['tablet'] : '';
-	$hbb_header_height_mobile  = ( isset( $hbb_header_height['mobile'] ) && ! empty( $hbb_header_height['mobile'] ) ) ? $hbb_header_height['mobile'] : '';
+	$hbb_header_height_desktop = isset( $hbb_header_height['desktop'] ) && ! empty( $hbb_header_height['desktop'] ) ? $hbb_header_height['desktop'] : '';
+	$hbb_header_height_tablet  = isset( $hbb_header_height['tablet'] ) && ! empty( $hbb_header_height['tablet'] ) ? $hbb_header_height['tablet'] : '';
+	$hbb_header_height_mobile  = isset( $hbb_header_height['mobile'] ) && ! empty( $hbb_header_height['mobile'] ) ? $hbb_header_height['mobile'] : '';
 
 	// Background CSS options.
 	$hbb_header_bg_obj  = astra_get_option( 'hbb-header-bg-obj-responsive' );
 	$desktop_background = isset( $hbb_header_bg_obj['desktop']['background-color'] ) ? $hbb_header_bg_obj['desktop']['background-color'] : '';
 	$tablet_background  = isset( $hbb_header_bg_obj['tablet']['background-color'] ) ? $hbb_header_bg_obj['tablet']['background-color'] : '';
 	$mobile_background  = isset( $hbb_header_bg_obj['mobile']['background-color'] ) ? $hbb_header_bg_obj['mobile']['background-color'] : '';
-
 
 	/**
 	 * Below Header General options
@@ -133,10 +132,9 @@ function astra_below_header_row_setting( $dynamic_css, $dynamic_css_filtered = '
 
 	$_section = 'section-below-header-builder';
 
-
 	$parent_selector = '.ast-below-header-bar.ast-below-header, .ast-header-break-point .ast-below-header-bar.ast-below-header';
 
-	$dynamic_css .= Astra_Builder_Base_Dynamic_CSS::prepare_advanced_margin_padding_css( $_section, $parent_selector );
+	$dynamic_css .= Astra_Extended_Base_Dynamic_CSS::prepare_advanced_margin_padding_css( $_section, $parent_selector );
 
 	$dynamic_css .= Astra_Builder_Base_Dynamic_CSS::prepare_visibility_css( $_section, '.ast-below-header-bar', 'block', 'grid' );
 

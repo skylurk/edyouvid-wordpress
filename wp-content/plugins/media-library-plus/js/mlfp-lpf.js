@@ -22,7 +22,7 @@ jQuery(document).ready(function(){
               jQuery.ajax({
                 type: "POST",
                 async: false,
-                data: { action: "mlfp_load_image", src: src, nonce: lpf_ajax.nonce },
+                data: { action: "mlfp_load_image", src: src, nonce: lpf_ajax.lin_nonce },
                 url: lpf_ajax.ajaxurl,
                 success: function (data) {
                   if(data.length > 0)

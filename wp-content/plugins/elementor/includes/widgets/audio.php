@@ -81,6 +81,14 @@ class Widget_Audio extends Widget_Base {
 		return [ 'audio', 'player', 'soundcloud', 'embed' ];
 	}
 
+	protected function is_dynamic_content(): bool {
+		return false;
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
+	}
+
 	/**
 	 * Register audio widget controls.
 	 *
@@ -246,7 +254,6 @@ class Widget_Audio extends Widget_Base {
 		);
 
 		$this->end_controls_section();
-
 	}
 
 	/**
@@ -335,4 +342,13 @@ class Widget_Audio extends Widget_Base {
 	 * @access protected
 	 */
 	protected function content_template() {}
+
+	public function render_markdown(): string {
+		$settings = $this->get_settings_for_display();
+		$url = $settings['link']['url'] ?? '';
+		if ( empty( $url ) ) {
+			return '';
+		}
+		return '[Audio](' . esc_url( $url ) . ')';
+	}
 }

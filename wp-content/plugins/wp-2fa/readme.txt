@@ -5,8 +5,8 @@ License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, 2-factor authentication, WordPress authentication, Google Authenticator
 Requires at least: 5.5
-Tested up to: 6.9
-Stable tag: 3.1.0
+Tested up to: 7.0
+Stable tag: 3.1.1.2
 Requires PHP: 7.4.0
 
 Get better WordPress login security; add two-factor authentication (2FA) for all your users with this easy-to-use plugin.
@@ -106,6 +106,9 @@ No, the plugin does not send any data to us whatsoever. The only data we receive
 = What 2FA methods are available with the plugin? =
 The free edition of WP 2FA includes the following 2FA methods: Authenticator app 2FA and code over email. This allows you to use Google Authenticator OTP The premium edition adds YubiKey, one-click email link, SMS 2FA, and Authy push notifications. 
 
+= How can I integrate two-factor authentication (2FA) into my custom login process or AJAX-based form? =
+WP 2FA includes a REST API that allows developers to enable and verify 2FA during custom authentication flows, such as AJAX-based login forms, mobile apps, or headless WordPress websites. Refer to the [REST API in WP 2FA documentation](https://melapress.com/support/kb/wp-2fa-rest-api/?utm_source=wp+repo&utm_medium=repo+link&utm_campaign=wordpress_org&utm_content=wp2fa) for more information.
+
 = How can I ensure I do not get locked out? =
 WP 2FA includes backup authentication methods so that if the primary authentication method fails, you and your users can still log in. The free version of the plugin includes backup codes, which can be configured during 2FA configuration or at any point after that from the profile page. The premium edition adds 2FA backup codes over email.
 
@@ -133,35 +136,22 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 1. The first-time install wizard allows you to set up 2FA on your website and for your users within seconds.
 2. The wizards make setting up 2FA very easy, so even non-technical users can set up 2FA without requiring help.
-3. You can require users to enable 2FA and also give them a grace period to do so.
-4. Users can also use one-time codes via email as a two-factor authentication method.
-5. You can use policies to require users to instantly set up and use 2FA, so the next time they log in, they will be prompted with this.
-6. You can give users a grace period until they configure 2FA. You can also specify what the plugin should do once the grace period is over.
-7. It is recommended for all users to also generate backup codes, in case they cannot access the primary device.
-8. In the user profile, users only have a few 2FA options, so it is not confusing for them, and everything is self-explanatory.
+3. Setting up Passkeys is also a straightforward in WP 2FA. The users just have to follow the step by step instructions.
+4. You can require users to enable 2FA and also give them a grace period to do so.
+5. Users can also use one-time codes via email as a two-factor authentication method.
+6. Users can configure and use Passkeys to log in to the website when using WP 2FA.
+7. Users can easily manage their Passkeys from their user profile page.
+8. You can use policies to require users to instantly set up and use 2FA, so the next time they log in, they will be prompted with this.
+9. You can give users a grace period until they configure 2FA. You can also specify what the plugin should do once the grace period is over.
+10. It is recommended for all users to also generate backup codes, in case they cannot access the primary device.
+11. In the user profile, users only have a few 2FA options, so it is not confusing for them, and everything is self-explanatory.
 
 == Changelog ==
 
-= 3.1.0 (2025-12-17) =
+= 3.1.1.2 (2026-02-25) =
 
- * **New features**
-	 * [Passkeys support](https://melapress.com/support/kb/wp-2fa-set-up-passkeys/) - allow users to use Passkeys, a cryptographic and secure passwordless solution.
-
- * **Plugin & functionality improvements**
-	 * Removed some redundant text from the Free edition first-time setup wizard.
-	 * Added a number of KB links to the admin notification email that is sent when a user bypasses 2FA due to lack of frontend configuration options.
-	 * Simplified the user flow in the wizard by removing some redundant steps when only one 2FA method is available.
-	 * Added the new tag {wp_admin_email} to be used in the email templates. This one retrieves the site administration email address. 
-	 * Added the final steps of the wizard, to the white labeling module, making it possible to white label all the wizards' slides.
-	 * Removed the plugin usage survey notice from the plugin.
-	 * Strengthened the authentication flow validation and improved the database query sanitization to prevent potential security vulnerabilities. These enhancements ensure more robust protection of user accounts and data integrity.
-	 * The 2FA setup wizard now automatically opens when users are redirected to the custom frontend 2FA configuration page after login, eliminating the need to click "Configure 2FA" to start the 2FA configuration process.
-	 * Improved the 2FA code page logic so it properly hides the "Log in" button and "Remember this device" options when When a 2FA method becomes unavailable, for example, due to service outage.
-
- * **Bug fixes**
-	 * Fixed: The [wp-2fa-setup-notice] shortcode now properly respects the configure_2fa_url set in the plugin settings.
-	 * Fixed: When using REST validation method, disabling the anti-brute force attack protection now works correctly.
-	 * Fixed: On WordPress multisite installations with WooCommerce active, users logging into a subsite's admin area are now correctly redirected to that subsite's admin dashboard after completing 2FA authentication.
-	 * Fixed: When using REST API validation method, users can now successfully authenticate through WordPress's interim login modal (session timeout re-login).
+ * **Improvements**
+	 * Added a check in the wizard for when a user is setting up 2FA over email, to restrict user to only use the email address on account if they are not allowed to use any other email address.
+	 * Improved the survey admin notice logic so that once acted upon, it does not reappear after plugin updates.
 	
 Refer to the complete [plugin changelog](https://melapress.com/support/kb/wp-2fa-plugin-changelog/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description) for more detailed information about what was new, improved and fixed in previous version updates of WP 2FA.

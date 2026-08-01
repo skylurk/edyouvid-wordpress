@@ -38,8 +38,8 @@ export default ({ clientId, isSelected }) => {
         onSelect={(video) =>
           insertBlock(
             createBlock("presto-player/playlist-list-item", {
-              id: video.id,
-              title: video.title?.raw,
+              id: video?.id,
+              title: video?.title,
             }),
             999999,
             clientId

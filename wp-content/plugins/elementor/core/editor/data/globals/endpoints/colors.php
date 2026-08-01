@@ -33,19 +33,19 @@ class Colors extends Base {
 			$id = $item['_id'];
 			$result[ $id ] = [
 				'id' => $id,
-				'title' => $item['title'],
-				'value' => $item['color'],
+				'title' => $item['title'] ?? '',
+				'value' => $item['color'] ?? '',
 			];
 		}
 
-		return $result;
+		return apply_filters( 'elementor/globals/colors/items', $result );
 	}
 
 	protected function convert_db_format( $item ) {
 		return [
 			'_id' => $item['id'],
-			'title' => $item['title'],
-			'color' => $item['value'],
+			'title' => sanitize_text_field( $item['title'] ?? '' ),
+			'color' => sanitize_text_field( $item['value'] ?? '' ),
 		];
 	}
 }

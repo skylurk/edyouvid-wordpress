@@ -27,7 +27,7 @@ class Introductions_Seen_Route implements Route_Interface {
 	 *
 	 * @var string
 	 */
-	const ROUTE_PREFIX = '/introductions/(?P<introduction_id>[\w-]+)/seen';
+	public const ROUTE_PREFIX = '/introductions/(?P<introduction_id>[\w-]+)/seen';
 
 	/**
 	 * Holds the introductions collector instance.
@@ -95,7 +95,7 @@ class Introductions_Seen_Route implements Route_Interface {
 						],
 					],
 				],
-			]
+			],
 		);
 	}
 
@@ -119,7 +119,7 @@ class Introductions_Seen_Route implements Route_Interface {
 				return new WP_Error(
 					'wpseo_introductions_seen_error',
 					$exception->getMessage(),
-					(object) []
+					(object) [],
 				);
 			}
 
@@ -129,7 +129,7 @@ class Introductions_Seen_Route implements Route_Interface {
 						'success' => $result,
 					],
 				],
-				( $result ) ? 200 : 400
+				( $result ) ? 200 : 400,
 			);
 		}
 		return new WP_REST_Response( [], 400 );

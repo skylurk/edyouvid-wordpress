@@ -189,11 +189,12 @@ class VIREDIS_Admin_Settings {
 		}
 		$categories = get_terms(
 			array(
+				'hide_empty' => false,
 				'taxonomy' => 'product_cat',
 				'orderby'  => 'name',
 				'order'    => 'ASC',
-				'search'   => $keyword,
-				'number'   => 100
+				'name__like' => $keyword,
+				'number'   => 1000
 			)
 		);
 		$items      = array();

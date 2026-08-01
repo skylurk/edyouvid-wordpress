@@ -4,7 +4,7 @@
  * @returns Cues fron the track
  */
 export declare const vttToJson: (track: any) => {
-  cues: any;
+    cues: any;
 };
 /**
  *

@@ -2919,3 +2919,26 @@ input.wpt-error {
     flex: auto;
     width: 100%;
 }
+#wpt_column_sortable .ca-fw-plugins-wrap.ca-fw-recommended-plugins {
+    display: block;
+    width: 100%;
+}
+
+#wpt_column_sortable .ca-fw-plugins-grid {
+    grid-template-columns: 1fr;
+    margin-right: 39px;
+}
+
+#wpt_column_sortable .ca-fw-plugins-header p {
+    display: none;
+}
+
+#wpt_column_sortable .ca-fw-plugins-header {
+    margin-bottom: 8px;
+}
+
+#wpt_column_sortable .ca-fw-plugins-grid h4{
+    background-color: transparent;
+    padding: 0;
+    margin: auto;
+}

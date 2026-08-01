@@ -66,10 +66,17 @@ if( isset( $this->topbar_sub_title ) && ! empty( $this->topbar_sub_title ) ){
             <div class="header-button-wrapper">
                 <?php if( ! $pro){ ?>
                     <a class="wpt-button reverse" 
+                        href="https://wpprincipal.xyz?demo=wpt" 
+                        title="View Pro Demo - Woo Product Table"
+                        target="_blank">
+                            Pro Demo
+                    </a>
+                    <a class="wpt-button reverse" 
                         href="https://wooproducttable.com/pricing/" 
+                        title="Get Premium Woo Product Table - Pricing Page"
                         target="_blank">
                         <i class="wpt-heart-filled"></i>
-                        Get Premium Offer
+                        Get Pro
                     </a>
                 <?php }else if( $license_direct && ! $lisence_page_bool ){ ?>
                     <a class="wpt-btn wpt-has-icon" 
@@ -82,7 +89,7 @@ if( isset( $this->topbar_sub_title ) && ! empty( $this->topbar_sub_title ) ){
                 <a class="wpt-button reset" 
                     href="https://wooproducttable.com/documentation/" 
                     target="_blank">
-                    <i class="wpt-note"></i>Documentation
+                    <i class="wpt-note"></i>Doc
                 </a>
                 
                 <!-- <button class="wpt-btn"><span><i class="wpt-cart"></i></span> Save Chabnge</button> -->

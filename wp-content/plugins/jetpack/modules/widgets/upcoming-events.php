@@ -7,6 +7,10 @@
  * @package automattic/jetpack
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 // phpcs:disable Universal.Files.SeparateFunctionsFromOO.Mixed -- TODO: Move classes to appropriately-named class files.
 
 /**
@@ -60,7 +64,7 @@ class Jetpack_Upcoming_Events_Widget extends WP_Widget {
 	 *
 	 * @param array $instance Instance configuration.
 	 *
-	 * @return void
+	 * @return string|void
 	 */
 	public function form( $instance ) {
 		$defaults = array(
@@ -85,7 +89,7 @@ class Jetpack_Upcoming_Events_Widget extends WP_Widget {
 		<label for="<?php echo esc_attr( $this->get_field_id( 'count' ) ); ?>"><?php esc_html_e( 'Items to show:', 'jetpack' ); ?></label>
 		<select id="<?php echo esc_attr( $this->get_field_id( 'count' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'count' ) ); ?>">
 			<?php for ( $i = 1; $i <= 10; $i++ ) { ?>
-				<option <?php selected( $instance['count'], $i ); ?>><?php echo (int) $i; ?></option>
+				<option <?php selected( $instance['count'], $i ); ?>><?php echo esc_html( (string) $i ); ?></option>
 			<?php } ?>
 			<option value="0" <?php selected( $instance['count'], 0 ); ?>><?php esc_html_e( 'All', 'jetpack' ); ?></option>
 		</select>
@@ -120,9 +124,12 @@ class Jetpack_Upcoming_Events_Widget extends WP_Widget {
 	public function widget( $args, $instance ) {
 		require_once JETPACK__PLUGIN_DIR . '/_inc/lib/icalendar-reader.php';
 
-		$ical           = new iCalendarReader();
-		$events         = $ical->get_events( $instance['feed-url'], $instance['count'] );
-		$events         = $this->apply_timezone_offset( $events );
+		$ical   = new iCalendarReader();
+		$events = array();
+		if ( ! empty( $instance['feed-url'] ) ) {
+			$events = $ical->get_events( $instance['feed-url'], $instance['count'] );
+			$events = $this->apply_timezone_offset( $events );
+		}
 		$ical->timezone = null;
 
 		echo $args['before_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -132,18 +139,24 @@ class Jetpack_Upcoming_Events_Widget extends WP_Widget {
 			echo $args['after_title']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
-		if ( ! $events ) : // nothing to display?
-			?>
-			<p><?php esc_html_e( 'No upcoming events', 'jetpack' ); ?></p>
-			<?php
-		else :
+		if ( empty( $instance['feed-url'] ) ) {
+			if ( current_user_can( 'manage_options' ) ) {
+				echo '<div class="error-message">';
+				esc_html_e( 'The events feed URL is not properly set up in this widget.', 'jetpack' );
+				echo '</div>';
+			}
+		} elseif ( ! $events ) {
+			echo '<p>';
+			esc_html_e( 'No upcoming events', 'jetpack' );
+			echo '</p>';
+		} else {
 			?>
 			<ul class="upcoming-events">
 				<?php foreach ( $events as $event ) : ?>
 				<li>
 					<strong class="event-summary">
 						<?php
-						echo $ical->escape( stripslashes( $event['SUMMARY'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- this method is built to escape.
+						echo $ical->escape( stripslashes( $event['SUMMARY'] ?? '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- this method is built to escape.
 						?>
 					</strong>
 					<span class="event-when"><?php echo esc_html( $ical->formatted_date( $event ) ); ?></span>
@@ -165,7 +178,7 @@ class Jetpack_Upcoming_Events_Widget extends WP_Widget {
 				<?php endforeach; ?>
 			</ul>
 			<?php
-		endif;
+		}
 
 		echo $args['after_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 

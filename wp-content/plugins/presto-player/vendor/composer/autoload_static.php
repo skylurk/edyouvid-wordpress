@@ -4,50 +4,50 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit3a04a26e59e96f3f3561c81bce6f53cf
+class ComposerStaticInitb92e9494a3fd3f06b5b1878cc9b08f00
 {
     public static $files = array (
         'b506a6b9998b6104a0eae10a34d50f61' => __DIR__ . '/../..' . '/inc/support.php',
     );
 
     public static $prefixLengthsPsr4 = array (
-        'T' => 
+        'T' =>
         array (
             'TypistTech\\Imposter\\Plugin\\' => 27,
             'TypistTech\\Imposter\\' => 20,
         ),
-        'P' => 
+        'P' =>
         array (
             'PrestoPlayer\\' => 13,
         ),
-        'D' => 
+        'D' =>
         array (
             'Dice\\' => 5,
         ),
-        'C' => 
+        'C' =>
         array (
             'Composer\\Installers\\' => 20,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'TypistTech\\Imposter\\Plugin\\' => 
+        'TypistTech\\Imposter\\Plugin\\' =>
         array (
             0 => __DIR__ . '/..' . '/typisttech/imposter-plugin/src',
         ),
-        'TypistTech\\Imposter\\' => 
+        'TypistTech\\Imposter\\' =>
         array (
             0 => __DIR__ . '/..' . '/typisttech/imposter/src',
         ),
-        'PrestoPlayer\\' => 
+        'PrestoPlayer\\' =>
         array (
             0 => __DIR__ . '/../..' . '/inc',
         ),
-        'Dice\\' => 
+        'Dice\\' =>
         array (
             0 => __DIR__ . '/..' . '/level-2/dice',
         ),
-        'Composer\\Installers\\' => 
+        'Composer\\Installers\\' =>
         array (
             0 => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers',
         ),
@@ -79,6 +79,7 @@ class ComposerStaticInit3a04a26e59e96f3f3561c81bce6f53cf
         'Composer\\Installers\\BaseInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/BaseInstaller.php',
         'Composer\\Installers\\BitrixInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/BitrixInstaller.php',
         'Composer\\Installers\\BonefishInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/BonefishInstaller.php',
+        'Composer\\Installers\\BotbleInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/BotbleInstaller.php',
         'Composer\\Installers\\CakePHPInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/CakePHPInstaller.php',
         'Composer\\Installers\\ChefInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/ChefInstaller.php',
         'Composer\\Installers\\CiviCrmInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/CiviCrmInstaller.php',
@@ -86,6 +87,7 @@ class ComposerStaticInit3a04a26e59e96f3f3561c81bce6f53cf
         'Composer\\Installers\\CockpitInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/CockpitInstaller.php',
         'Composer\\Installers\\CodeIgniterInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/CodeIgniterInstaller.php',
         'Composer\\Installers\\Concrete5Installer' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/Concrete5Installer.php',
+        'Composer\\Installers\\ConcreteCMSInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/ConcreteCMSInstaller.php',
         'Composer\\Installers\\CroogoInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/CroogoInstaller.php',
         'Composer\\Installers\\DecibelInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/DecibelInstaller.php',
         'Composer\\Installers\\DframeInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/DframeInstaller.php',
@@ -96,6 +98,7 @@ class ComposerStaticInit3a04a26e59e96f3f3561c81bce6f53cf
         'Composer\\Installers\\EliasisInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/EliasisInstaller.php',
         'Composer\\Installers\\ExpressionEngineInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/ExpressionEngineInstaller.php',
         'Composer\\Installers\\EzPlatformInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/EzPlatformInstaller.php',
+        'Composer\\Installers\\ForkCMSInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/ForkCMSInstaller.php',
         'Composer\\Installers\\FuelInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/FuelInstaller.php',
         'Composer\\Installers\\FuelphpInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/FuelphpInstaller.php',
         'Composer\\Installers\\GravInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/GravInstaller.php',
@@ -212,6 +215,10 @@ class ComposerStaticInit3a04a26e59e96f3f3561c81bce6f53cf
         'PrestoPlayer\\Bar\\A' => __DIR__ . '/..' . '/level-2/dice/tests/TestData/Namespace.php',
         'PrestoPlayer\\Bar\\B' => __DIR__ . '/..' . '/level-2/dice/tests/TestData/Namespace.php',
         'PrestoPlayer\\Blocks\\AudioBlock' => __DIR__ . '/../..' . '/inc/Blocks/AudioBlock.php',
+        'PrestoPlayer\\Blocks\\MediaHubBlock' => __DIR__ . '/../..' . '/inc/Blocks/MediaHubBlock.php',
+        'PrestoPlayer\\Blocks\\PopupBlock' => __DIR__ . '/../..' . '/inc/Blocks/PopupBlock.php',
+        'PrestoPlayer\\Blocks\\PopupMediaBlock' => __DIR__ . '/../..' . '/inc/Blocks/PopupMediaBlock.php',
+        'PrestoPlayer\\Blocks\\PopupTriggerBlock' => __DIR__ . '/../..' . '/inc/Blocks/PopupTriggerBlock.php',
         'PrestoPlayer\\Blocks\\ReusableEditBlock' => __DIR__ . '/../..' . '/inc/Blocks/ReusableEditBlock.php',
         'PrestoPlayer\\Blocks\\ReusableVideoBlock' => __DIR__ . '/../..' . '/inc/Blocks/ReusableVideoBlock.php',
         'PrestoPlayer\\Blocks\\SelfHostedBlock' => __DIR__ . '/../..' . '/inc/Blocks/SelfHostedBlock.php',
@@ -225,6 +232,8 @@ class ComposerStaticInit3a04a26e59e96f3f3561c81bce6f53cf
         'PrestoPlayer\\Database\\Migrations' => __DIR__ . '/../..' . '/inc/Database/Migrations.php',
         'PrestoPlayer\\Database\\Presets' => __DIR__ . '/../..' . '/inc/Database/Presets.php',
         'PrestoPlayer\\Database\\Table' => __DIR__ . '/../..' . '/inc/Database/Table.php',
+        'PrestoPlayer\\Database\\Upgrades\\BunnyWebhookUpgrade' => __DIR__ . '/../..' . '/inc/Database/Upgrades/BunnyWebhookUpgrade.php',
+        'PrestoPlayer\\Database\\Upgrades\\OnboardingBackfillUpgrade' => __DIR__ . '/../..' . '/inc/Database/Upgrades/OnboardingBackfillUpgrade.php',
         'PrestoPlayer\\Database\\Upgrades\\PerformanceUpgrade' => __DIR__ . '/../..' . '/inc/Database/Upgrades/PerformanceUpgrade.php',
         'PrestoPlayer\\Database\\Upgrades\\TransientsUpgrade' => __DIR__ . '/../..' . '/inc/Database/Upgrades/TransientsUpgrade.php',
         'PrestoPlayer\\Database\\Upgrades\\Upgrades' => __DIR__ . '/../..' . '/inc/Database/Upgrades/Upgrades.php',
@@ -257,7 +266,6 @@ class ComposerStaticInit3a04a26e59e96f3f3561c81bce6f53cf
         'PrestoPlayer\\Models\\Block' => __DIR__ . '/../..' . '/inc/Models/Block.php',
         'PrestoPlayer\\Models\\CurrentUser' => __DIR__ . '/../..' . '/inc/Models/CurrentUser.php',
         'PrestoPlayer\\Models\\EmailCollection' => __DIR__ . '/../..' . '/inc/Models/EmailCollection.php',
-        'PrestoPlayer\\Models\\LicensedProduct' => __DIR__ . '/../..' . '/inc/Models/LicensedProduct.php',
         'PrestoPlayer\\Models\\Model' => __DIR__ . '/../..' . '/inc/Models/Model.php',
         'PrestoPlayer\\Models\\ModelInterface' => __DIR__ . '/../..' . '/inc/Models/ModelInterface.php',
         'PrestoPlayer\\Models\\Player' => __DIR__ . '/../..' . '/inc/Models/Player.php',
@@ -267,7 +275,7 @@ class ComposerStaticInit3a04a26e59e96f3f3561c81bce6f53cf
         'PrestoPlayer\\Models\\Setting' => __DIR__ . '/../..' . '/inc/Models/Setting.php',
         'PrestoPlayer\\Models\\Video' => __DIR__ . '/../..' . '/inc/Models/Video.php',
         'PrestoPlayer\\Models\\Webhook' => __DIR__ . '/../..' . '/inc/Models/Webhook.php',
-        'PrestoPlayer\\Mundschenk\\WP_Requirements' => __DIR__ . '/..' . '/mundschenk-at/check-wp-requirements/class-wp-requirements.php',
+        'PrestoPlayer\\Mundschenk\\WP_Requirements' => __DIR__ . '/..' . '/mundschenk-at/check-wp-requirements/src/class-wp-requirements.php',
         'PrestoPlayer\\Playlist' => __DIR__ . '/../..' . '/inc/Playlist.php',
         'PrestoPlayer\\Plugin' => __DIR__ . '/../..' . '/inc/Plugin.php',
         'PrestoPlayer\\Requirements' => __DIR__ . '/../..' . '/inc/Requirements.php',
@@ -275,6 +283,10 @@ class ComposerStaticInit3a04a26e59e96f3f3561c81bce6f53cf
         'PrestoPlayer\\Seeds\\PresetSeeder' => __DIR__ . '/../..' . '/inc/Seeds/PresetSeeder.php',
         'PrestoPlayer\\Seeds\\Seeder' => __DIR__ . '/../..' . '/inc/Seeds/Seeder.php',
         'PrestoPlayer\\Services\\API\\RestAudioPresetsController' => __DIR__ . '/../..' . '/inc/Services/API/RestAudioPresetsController.php',
+        'PrestoPlayer\\Services\\API\\RestEmailSubmissionsController' => __DIR__ . '/../..' . '/inc/Services/API/RestEmailSubmissionsController.php',
+        'PrestoPlayer\\Services\\API\\RestLicenseController' => __DIR__ . '/../..' . '/inc/Services/API/RestLicenseController.php',
+        'PrestoPlayer\\Services\\API\\RestMediaListController' => __DIR__ . '/../..' . '/inc/Services/API/RestMediaListController.php',
+        'PrestoPlayer\\Services\\API\\RestMediaPostController' => __DIR__ . '/../..' . '/inc/Services/API/RestMediaPostController.php',
         'PrestoPlayer\\Services\\API\\RestPresetsController' => __DIR__ . '/../..' . '/inc/Services/API/RestPresetsController.php',
         'PrestoPlayer\\Services\\API\\RestSettingsController' => __DIR__ . '/../..' . '/inc/Services/API/RestSettingsController.php',
         'PrestoPlayer\\Services\\API\\RestVideosController' => __DIR__ . '/../..' . '/inc/Services/API/RestVideosController.php',
@@ -282,20 +294,28 @@ class ComposerStaticInit3a04a26e59e96f3f3561c81bce6f53cf
         'PrestoPlayer\\Services\\AdminNotices' => __DIR__ . '/../..' . '/inc/Services/AdminNotices.php',
         'PrestoPlayer\\Services\\AjaxActions' => __DIR__ . '/../..' . '/inc/Services/AjaxActions.php',
         'PrestoPlayer\\Services\\Blocks' => __DIR__ . '/../..' . '/inc/Services/Blocks.php',
+        'PrestoPlayer\\Services\\Blocks\\PopupTriggerService' => __DIR__ . '/../..' . '/inc/Services/Blocks/PopupTriggerService.php',
         'PrestoPlayer\\Services\\Blocks\\VimeoBlockService' => __DIR__ . '/../..' . '/inc/Services/Blocks/VimeoBlockService.php',
         'PrestoPlayer\\Services\\Blocks\\YoutubeBlockService' => __DIR__ . '/../..' . '/inc/Services/Blocks/YoutubeBlockService.php',
         'PrestoPlayer\\Services\\Compatibility' => __DIR__ . '/../..' . '/inc/Services/Compatibility.php',
-        'PrestoPlayer\\Services\\License\\AutoUpdate' => __DIR__ . '/../..' . '/inc/Services/License/AutoUpdate.php',
+        'PrestoPlayer\\Services\\Learn' => __DIR__ . '/../..' . '/inc/Services/Learn.php',
+        'PrestoPlayer\\Services\\License\\License' => __DIR__ . '/../..' . '/inc/Services/License/License.php',
         'PrestoPlayer\\Services\\Menu' => __DIR__ . '/../..' . '/inc/Services/Menu.php',
         'PrestoPlayer\\Services\\Migrations' => __DIR__ . '/../..' . '/inc/Services/Migrations.php',
+        'PrestoPlayer\\Services\\NpsSurvey' => __DIR__ . '/../..' . '/inc/Services/NpsSurvey.php',
+        'PrestoPlayer\\Services\\Onboarding' => __DIR__ . '/../..' . '/inc/Services/Onboarding.php',
         'PrestoPlayer\\Services\\Player' => __DIR__ . '/../..' . '/inc/Services/Player.php',
+        'PrestoPlayer\\Services\\PluginInstaller' => __DIR__ . '/../..' . '/inc/Services/PluginInstaller.php',
+        'PrestoPlayer\\Services\\PreloadService' => __DIR__ . '/../..' . '/inc/Services/PreloadService.php',
         'PrestoPlayer\\Services\\ProCompatibility' => __DIR__ . '/../..' . '/inc/Services/ProCompatibility.php',
         'PrestoPlayer\\Services\\ReusableVideos' => __DIR__ . '/../..' . '/inc/Services/ReusableVideos.php',
+        'PrestoPlayer\\Services\\RewriteRulesManager' => __DIR__ . '/../..' . '/inc/Services/RewriteRulesManager.php',
         'PrestoPlayer\\Services\\Scripts' => __DIR__ . '/../..' . '/inc/Services/Scripts.php',
         'PrestoPlayer\\Services\\Settings' => __DIR__ . '/../..' . '/inc/Services/Settings.php',
         'PrestoPlayer\\Services\\Shortcodes' => __DIR__ . '/../..' . '/inc/Services/Shortcodes.php',
         'PrestoPlayer\\Services\\Streamer' => __DIR__ . '/../..' . '/inc/Services/Streamer.php',
         'PrestoPlayer\\Services\\Translation' => __DIR__ . '/../..' . '/inc/Services/Translation.php',
+        'PrestoPlayer\\Services\\Usage' => __DIR__ . '/../..' . '/inc/Services/Usage.php',
         'PrestoPlayer\\Services\\VideoPostType' => __DIR__ . '/../..' . '/inc/Services/VideoPostType.php',
         'PrestoPlayer\\Support\\Block' => __DIR__ . '/../..' . '/inc/Support/Block.php',
         'PrestoPlayer\\Support\\BlockFinder' => __DIR__ . '/../..' . '/inc/Support/BlockFinder.php',
@@ -352,9 +372,9 @@ class ComposerStaticInit3a04a26e59e96f3f3561c81bce6f53cf
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit3a04a26e59e96f3f3561c81bce6f53cf::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit3a04a26e59e96f3f3561c81bce6f53cf::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit3a04a26e59e96f3f3561c81bce6f53cf::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitb92e9494a3fd3f06b5b1878cc9b08f00::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitb92e9494a3fd3f06b5b1878cc9b08f00::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitb92e9494a3fd3f06b5b1878cc9b08f00::$classMap;
 
         }, null, ClassLoader::class);
     }

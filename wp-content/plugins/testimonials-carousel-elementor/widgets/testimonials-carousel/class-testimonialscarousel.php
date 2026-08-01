@@ -6,10 +6,10 @@
  * @package    TestimonialsCarouselElementor
  * @subpackage WordPress
  * @author     UAPP GROUP
- * @copyright  2024 UAPP GROUP
+ * @copyright  2026 UAPP GROUP
  * @license    https://opensource.org/licenses/GPL-3.0 GPL-3.0-only
  * @link
- * @since      11.7.0
+ * @since      12.0.1
  * php version 7.4.1
  */
 
@@ -23,6 +23,7 @@ use Elementor\Repeater;
 use Elementor\Utils;
 use Elementor\Widget_Base;
 use Elementor\Controls_Manager;
+use TestimonialsCarouselElementor\Testimonials_Carousel_Assets;
 
 // Security Note: Blocks direct access to the plugin PHP files.
 defined('ABSPATH') || die();
@@ -30,40 +31,15 @@ defined('ABSPATH') || die();
 /**
  * TestimonialsCarousel widget class.
  *
- * @since 11.7.0
+ * @since 12.0.1
  */
 class TestimonialsCarousel extends Widget_Base
 {
   /**
-   * TestimonialsCarousel constructor.
-   *
-   * @param array $data
-   * @param null  $args
-   *
-   * @throws \Exception
-   */
-  public function __construct($data = [], $args = null)
-  {
-    parent::__construct($data, $args);
-    wp_register_style('swiper', plugins_url('/assets/css/swiper-bundle.min.css', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION);
-    wp_register_style('testimonials-carousel', plugins_url('/assets/css/testimonials-carousel.min.css', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION);
-
-    if (!function_exists('get_plugin_data')) {
-      require_once(ABSPATH . 'wp-admin/includes/plugin.php');
-    }
-
-    if (get_plugin_data(ELEMENTOR__FILE__)['Version'] >= "3.5.0") {
-      wp_register_script('testimonials-carousel-widget-handler', plugins_url('/assets/js/testimonials-carousel-widget-handler.min.js', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION, true);
-    } else {
-      wp_register_script('testimonials-carousel-widget-handler', plugins_url('/assets/js/testimonials-carousel-widget-old-elementor-handler.min.js', TESTIMONIALS_CAROUSEL_ELEMENTOR), [], TESTIMONIALS_VERSION, true);
-    }
-  }
-
-  /**
    * Retrieve the widget name.
    *
    * @return string Widget name.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -77,7 +53,7 @@ class TestimonialsCarousel extends Widget_Base
    * Retrieve the widget title.
    *
    * @return string Widget title.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -91,7 +67,7 @@ class TestimonialsCarousel extends Widget_Base
    * Retrieve the widget icon.
    *
    * @return string Widget icon.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -110,7 +86,7 @@ class TestimonialsCarousel extends Widget_Base
    * When multiple categories passed, Elementor uses the first one.
    *
    * @return array Widget categories.
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access public
    *
@@ -132,9 +108,7 @@ class TestimonialsCarousel extends Widget_Base
 
   public function get_script_depends()
   {
-    $scripts = ['swiper', 'testimonials-carousel-widget-handler'];
-
-    return $scripts;
+    return Testimonials_Carousel_Assets::get_widget_script_depends();
   }
 
   /**
@@ -160,7 +134,7 @@ class TestimonialsCarousel extends Widget_Base
    *
    * Adds different input fields to allow the user to change and customize the widget settings.
    *
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access protected
    */
@@ -1506,7 +1480,7 @@ class TestimonialsCarousel extends Widget_Base
     );
 
     $this->add_control(
-        'popup_border_width',
+        'popup_slide_block_border_width',
         [
             'label'     => esc_html__('Border width', 'testimonials-carousel-elementor'),
             'type'      => Controls_Manager::SLIDER,
@@ -1523,7 +1497,7 @@ class TestimonialsCarousel extends Widget_Base
     );
 
     $this->add_control(
-        'popup_border_color',
+        'popup_slide_block_border_color',
         [
             'label'     => esc_html__('Border color', 'testimonials-carousel-elementor'),
             'type'      => Controls_Manager::COLOR,
@@ -2082,7 +2056,7 @@ class TestimonialsCarousel extends Widget_Base
    *
    * Written in PHP and used to generate the final HTML.
    *
-   * @since  11.7.0
+   * @since  12.0.1
    *
    * @access protected
    */
@@ -2124,12 +2098,15 @@ class TestimonialsCarousel extends Widget_Base
       }
       ?>
 
-      <section class="swiper mySwiper myTestimonials <?php if (
-          esc_attr($settings['navigation']) === "dots"
-          || esc_attr($settings['navigation']) === "none"
-      ) {
-        echo esc_attr('slider-arrows-disabled');
-      } ?>">
+      <section
+          class="swiper mySwiper myTestimonials <?php if (
+              esc_attr($settings['navigation']) === "dots"
+              || esc_attr($settings['navigation']) === "none"
+          ) {
+            echo esc_attr('slider-arrows-disabled');
+          } ?>"
+          <?php \TestimonialsCarouselElementor\Testimonials_Carousel_Slider_Render::print_data_attributes($settings); ?>
+      >
         <ul class="swiper-wrapper" role="list">
           <?php foreach ($slide as $item) { ?>
             <li class="swiper-slide slider-container-background">

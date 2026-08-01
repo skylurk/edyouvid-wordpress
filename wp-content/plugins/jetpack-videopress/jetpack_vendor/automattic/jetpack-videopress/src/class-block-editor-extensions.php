@@ -110,7 +110,7 @@ class Block_Editor_Extensions {
 
 		$extensions_list = array_map(
 			function ( $extension ) {
-				return (array) array(
+				return array(
 					'name'      => $extension,
 					'isBeta'    => true,
 					'isEnabled' => 'beta' === self::$blocks_variation,
@@ -163,10 +163,10 @@ class Block_Editor_Extensions {
 			'playerBridgeUrl'             => plugins_url( '../build/lib/player-bridge.js', __FILE__ ),
 		);
 
-		// Expose initital state of site connection
-		wp_add_inline_script( self::$script_handle, Connection_Initial_State::render(), 'before' );
+		// Expose initial state of site connection
+		Connection_Initial_State::render_script( self::$script_handle );
 
-		// Expose initital state of videoPress editor
+		// Expose initial state of videoPress editor
 		wp_localize_script( self::$script_handle, 'videoPressEditorState', $videopress_editor_state );
 	}
 }

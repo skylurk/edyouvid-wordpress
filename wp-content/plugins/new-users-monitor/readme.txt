@@ -7,7 +7,7 @@ Tested up to: 6.9
 Requires PHP: 5.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Stable tag: 3.20
+Stable tag: 3.22
 
 Ext Security. Automatic scanning of the Users list, detect unauthorized addition. Informs immediately Admin by email. Informative Widget.
 
@@ -52,8 +52,17 @@ With the active Option: "Deny Login if User is not confirmed", you will sleep mu
 NA
 
 == Changelog ==
+= 3.22 =
+	2026.03.04
+	*Fix Debugger.
+	
+= 3.21 =
+	2026.02.26
+	* Tested to WP: 6.9.1
+	* Add Filter ('UsersLoginMonitor_widget_user_roles') for View Widget on Dashboard.
+	
 = 3.20 =
-	2025.01.27
+	2026.01.27
 	* Tested to WP: 6.9
 	* Tested to PHP: 8.4.17
 

@@ -40,6 +40,12 @@ if ( class_exists( 'WP_Background_Process' ) ) :
 			$process = $object['instance'];
 			$method  = $object['method'];
 
+			// Bail early if the instance was not unserialized as a valid object.
+			// This happens when safe_unserialize() blocks class instantiation.
+			if ( ! is_object( $process ) ) {
+				return false;
+			}
+
 			if ( 'import_page_builders' === $method ) {
 				astra_sites_error_log( '-------- Importing Page Builders --------' );
 				update_site_option( 'astra-sites-batch-status-string', 'Importing Page Builders' );
@@ -87,6 +93,7 @@ if ( class_exists( 'WP_Background_Process' ) ) :
 			astra_sites_error_log( esc_html__( 'All processes are complete', 'astra-sites' ) );
 			update_site_option( 'astra-sites-batch-status-string', 'All processes are complete' );
 			delete_site_option( 'astra-sites-batch-status' );
+			delete_site_option( 'astra-sites-current-page' );
 			update_site_option( 'astra-sites-batch-is-complete', 'yes' );
 
 			do_action( 'astra_sites_site_import_batch_complete' );

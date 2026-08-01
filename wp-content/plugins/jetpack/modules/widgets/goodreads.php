@@ -1,5 +1,9 @@
 <?php // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 // phpcs:disable Universal.Files.SeparateFunctionsFromOO.Mixed -- TODO: Move classes to appropriately-named class files.
 
 add_action( 'widgets_init', 'jetpack_goodreads_widget_init' );
@@ -35,6 +39,7 @@ class WPCOM_Widget_Goodreads extends WP_Widget {
 				'classname'                   => 'widget_goodreads',
 				'description'                 => __( 'Display your books from Goodreads', 'jetpack' ),
 				'customize_selective_refresh' => true,
+				'show_instance_in_rest'       => true,
 			)
 		);
 		// For user input sanitization and display.
@@ -44,9 +49,18 @@ class WPCOM_Widget_Goodreads extends WP_Widget {
 			'to-read'           => _x( 'To Read', 'my list of books to read', 'jetpack' ),
 		);
 
-		if ( is_active_widget( '', '', 'wpcom-goodreads' ) || is_customize_preview() ) {
-			add_action( 'wp_print_styles', array( $this, 'enqueue_style' ) );
-		}
+		add_filter( 'widget_types_to_hide_from_legacy_widget_block', array( $this, 'hide_widget_in_block_editor' ) );
+	}
+
+	/**
+	 * Remove the "Goodreads" widget from the Legacy Widget block
+	 *
+	 * @param array $widget_types List of widgets that are currently removed from the Legacy Widget block.
+	 * @return array $widget_types New list of widgets that will be removed.
+	 */
+	public function hide_widget_in_block_editor( $widget_types ) {
+		$widget_types[] = 'wpcom-goodreads';
+		return $widget_types;
 	}
 
 	/**
@@ -73,7 +87,7 @@ class WPCOM_Widget_Goodreads extends WP_Widget {
 		do_action( 'jetpack_stats_extra', 'widget_view', 'goodreads' );
 
 		/** This filter is documented in core/src/wp-includes/default-widgets.php */
-		$title = apply_filters( 'widget_title', isset( $instance['title'] ) ? $instance['title'] : '' );
+		$title = apply_filters( 'widget_title', $instance['title'] ?? '' );
 
 		if ( empty( $instance['user_id'] ) || 'invalid' === $instance['user_id'] ) {
 			if ( current_user_can( 'edit_theme_options' ) ) {
@@ -101,6 +115,9 @@ class WPCOM_Widget_Goodreads extends WP_Widget {
 			return;
 		}
 
+		// Enqueue front end assets.
+		$this->enqueue_style();
+
 		$instance['user_id'] = absint( $instance['user_id'] );
 
 		// Set widget ID based on shelf.
@@ -114,9 +131,9 @@ class WPCOM_Widget_Goodreads extends WP_Widget {
 		echo $args['before_widget'];  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $args['before_title'] . $title . $args['after_title']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
-		$goodreads_url = 'https://www.goodreads.com/review/custom_widget/' . rawurlencode( $instance['user_id'] ) . '.' . rawurlencode( $instance['title'] ) . ':%20' . rawurlencode( $instance['shelf'] ) . '?cover_position=&cover_size=small&num_books=5&order=d&shelf=' . rawurlencode( $instance['shelf'] ) . '&sort=date_added&widget_bg_transparent=&widget_id=' . rawurlencode( $this->goodreads_widget_id );
+		$goodreads_url = 'https://www.goodreads.com/review/custom_widget/' . rawurlencode( (string) $instance['user_id'] ) . '.' . rawurlencode( $instance['title'] ) . ':%20' . rawurlencode( $instance['shelf'] ) . '?cover_position=&cover_size=small&num_books=5&order=d&shelf=' . rawurlencode( $instance['shelf'] ) . '&sort=date_added&widget_bg_transparent=&widget_id=' . rawurlencode( $this->goodreads_widget_id );
 
-		echo '<div class="gr_custom_widget" id="gr_custom_widget_' . esc_attr( $this->goodreads_widget_id ) . '"></div>' . "\n";
+		echo '<div class="jetpack-goodreads-legacy-widget gr_custom_widget" id="gr_custom_widget_' . esc_attr( $this->goodreads_widget_id ) . '"></div>' . "\n";
 		echo '<script src="' . esc_url( $goodreads_url ) . '"></script>' . "\n"; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
 
 		echo $args['after_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -174,6 +191,7 @@ class WPCOM_Widget_Goodreads extends WP_Widget {
 	 * Outputs the widget settings form.
 	 *
 	 * @param array $instance Current settings.
+	 * @return string|void
 	 */
 	public function form( $instance ) {
 		// Defaults.

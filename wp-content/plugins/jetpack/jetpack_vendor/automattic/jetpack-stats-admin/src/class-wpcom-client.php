@@ -17,6 +17,13 @@ use WP_Error;
  */
 class WPCOM_Client {
 	/**
+	 * Transient prefix for caching REST API responses.
+	 *
+	 * @var string
+	 */
+	const CACHE_TRANSIENT_PREFIX = 'STATS_REST_RESP_';
+
+	/**
 	 * Query the WordPress.com REST API using the blog token cached.
 	 *
 	 * @param String $path The API endpoint relative path.
@@ -30,10 +37,10 @@ class WPCOM_Client {
 	 */
 	public static function request_as_blog_cached( $path, $version = '1.1', $args = array(), $body = null, $base_api_path = 'rest', $use_cache = true, $cache_key = null ) {
 		// Only allow caching GET requests.
-		$use_cache = $use_cache && ! ( isset( $args['method'] ) && strtoupper( $args['method'] ) !== 'GET' );
+		$use_cache = $use_cache && ! ( isset( $args['method'] ) && strtoupper( $args['method'] ) !== 'GET' ) && ! static::should_bypass_cache();
 
 		// Arrays are serialized without considering the order of objects, but it's okay atm.
-		$cache_key = $cache_key !== null ? $cache_key : 'STATS_REST_RESP_' . md5( implode( '|', array( $path, $version, wp_json_encode( $args ), wp_json_encode( $body ), $base_api_path ) ) );
+		$cache_key = $cache_key ?? self::CACHE_TRANSIENT_PREFIX . md5( implode( '|', array( $path, $version, wp_json_encode( $args, JSON_UNESCAPED_SLASHES ), wp_json_encode( $body, JSON_UNESCAPED_SLASHES ), $base_api_path ) ) );
 
 		if ( $use_cache ) {
 			$response_body_content = get_transient( $cache_key );
@@ -48,10 +55,8 @@ class WPCOM_Client {
 			return $response_body;
 		}
 
-		if ( $use_cache ) {
-			// Cache the successful JSON response for 5 minutes.
-			set_transient( $cache_key, wp_json_encode( $response_body ), 5 * MINUTE_IN_SECONDS );
-		}
+		// Cache the response for 5 minutes.
+		set_transient( $cache_key, wp_json_encode( $response_body, JSON_UNESCAPED_SLASHES ), 5 * MINUTE_IN_SECONDS );
 
 		return $response_body;
 	}
@@ -111,12 +116,26 @@ class WPCOM_Client {
 		if ( $error_code !== null || $response_code !== 200 ) {
 			return new WP_Error(
 				$error_code,
-				isset( $response_body['message'] ) ? $response_body['message'] : 'unknown remote error',
+				$response_body['message'] ?? 'unknown remote error',
 				array( 'status' => $response_code )
 			);
 		}
 
 		// No error.
 		return null;
+	}
+
+	/**
+	 * Check if the cache should be bypassed.
+	 *
+	 * @return bool
+	 */
+	protected static function should_bypass_cache() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return isset( $_GET['force_refresh'] ) || isset( $_GET['statsPurchaseSuccess'] ) ||
+			// phpcs:ignore WordPress.Arrays.ArrayKeySpacingRestrictions.SpacesAroundArrayKeys, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			( isset( $_SERVER[ 'HTTP_REFERER' ] ) && false !== strpos( $_SERVER[ 'HTTP_REFERER' ], 'force_refresh' ) ) ||
+			// phpcs:ignore WordPress.Arrays.ArrayKeySpacingRestrictions.SpacesAroundArrayKeys, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			( isset( $_SERVER[ 'HTTP_REFERER' ] ) && false !== strpos( $_SERVER[ 'HTTP_REFERER' ], 'statsPurchaseSuccess' ) );
 	}
 }

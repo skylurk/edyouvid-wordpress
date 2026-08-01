@@ -82,14 +82,15 @@ class Urls {
 	/**
 	 * Return URL with a normalized protocol.
 	 *
-	 * @param callable $callable Function to retrieve URL option.
-	 * @param string   $new_value URL Protocol to set URLs to.
+	 * @param string $callable Function name that was used to retrieve URL option.
+	 * @param string $new_value URL Protocol to set URLs to.
 	 * @return string Normalized URL.
 	 */
 	public static function get_protocol_normalized_url( $callable, $new_value ) {
 		$option_key = self::HTTPS_CHECK_OPTION_PREFIX . $callable;
 
 		$parsed_url = wp_parse_url( $new_value );
+
 		if ( ! $parsed_url ) {
 			return $new_value;
 		}
@@ -98,7 +99,12 @@ class Urls {
 		} else {
 			$scheme = '';
 		}
-		$scheme_history   = get_option( $option_key, array() );
+		$scheme_history = get_option( $option_key, array() );
+
+		if ( ! is_array( $scheme_history ) ) {
+			$scheme_history = array();
+		}
+
 		$scheme_history[] = $scheme;
 
 		// Limit length to self::HTTPS_CHECK_HISTORY.
@@ -184,4 +190,27 @@ class Urls {
 		return self::get_protocol_normalized_url( 'main_network_site_url', network_site_url() );
 	}
 
+	/**
+	 * Maybe add the origin_site_id query parameter to a URL.
+	 *
+	 * The parameter is only added for users who are members of the current blog.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $url The URL to add the query param to.
+	 * @return string The URL with the origin_site_id query parameter maybe added.
+	 */
+	public static function maybe_add_origin_site_id( $url ) {
+		$site_id = Manager::get_site_id();
+		if ( is_wp_error( $site_id ) ) {
+			return $url;
+		}
+
+		// Add query param to URL only for users who can access wp-admin.
+		if ( ! is_user_member_of_blog() ) {
+			return $url;
+		}
+
+		return add_query_arg( 'origin_site_id', $site_id, $url );
+	}
 }

@@ -119,17 +119,28 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 		 * @since  1.0.0
 		 */
 		private function __construct() {
+			add_action( 'wp_php_error_message', array( $this, 'memory_error' ), 10, 2 );
+			
 			if ( ! class_exists( 'XMLReader' ) ) {
 				add_action( 'admin_notices', array( $this, 'xml_reader_notice' ) );
 				add_filter( 'ai_builder_load_library', '__return_false' );
 				return;
 			}
 
+			// Only register the placeholder blocking filter when a batch import is actively running.
+			// This avoids unnecessary get_option() DB calls on every HTTP request.
+			if ( 'yes' === get_option( 'astra_sites_batch_process_started', 'no' )
+				&& 'yes' !== get_option( 'astra_sites_batch_process_complete', 'no' )
+			) {
+				add_filter( 'pre_http_request', array( $this, 'block_elementor_placeholder_requests' ), 10, 3 );
+			}
+
 			$this->set_api_url();
 			$this->includes();
 			add_action( 'plugin_action_links_' . ASTRA_SITES_BASE, array( $this, 'action_links' ) );
-			add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
+			add_action( 'init', array( $this, 'load_textdomain' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue' ), 99 );
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_menu_url_updater' ), 10 );
 			add_action( 'elementor/editor/footer', array( $this, 'insert_templates' ) );
 			add_action( 'admin_footer', array( $this, 'insert_image_templates' ) );
 			add_action( 'customize_controls_print_footer_scripts', array( $this, 'insert_image_templates' ) );
@@ -141,8 +152,10 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 			add_action( 'astra_notice_before_markup', array( $this, 'notice_assets' ) );
 			add_action( 'load-index.php', array( $this, 'admin_dashboard_notices' ) );
 			add_action( 'admin_notices', array( $this, 'check_filesystem_access_notice' ) );
-			add_filter( 'ai_builder_textdomain', array( $this, 'updat_ai_builder_textdomain' ), 10, 1 );
+			add_filter( 'ai_builder_textdomain', array( $this, 'get_astra_sites_textdomain' ), 10, 1 );
 			add_filter( 'ai_builder_languages_directory', array( $this, 'change_languages_directory' ), 10, 1 );
+			add_filter( 'one_onboarding_textdomain', array( $this, 'get_astra_sites_textdomain' ) );
+			add_filter( 'one_onboarding_languages_directory', array( $this, 'change_languages_directory' ) );
 
 			// AJAX.
 			$this->ajax = array(
@@ -158,6 +171,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 				'astra-sites-update-subscription' => 'update_subscription',
 				'astra-sites-update-analytics' => 'update_analytics',
 				'astra-sites-generate-analytics-lead' => 'push_to_import_analytics',
+				'astra-sites-get-import-log-url'      => 'get_import_log_url',
 			);
 
 			foreach ( $this->ajax as $ajax_hook => $ajax_callback ) {
@@ -173,16 +187,59 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 			add_filter( 'ast_block_templates_authorization_url_param', array( $this, 'add_auth_url_param' ) );
 			add_action( 'admin_head', array( $this, 'add_custom_admin_css' ) );
 			add_filter( 'zip_ai_modules', array( $this, 'enable_zip_ai_copilot' ), 20, 1 );
+			add_action( 'astra_sites_after_theme_activation', array( $this, 'theme_activation_utm_event' ) );
+			add_action( 'astra_sites_after_plugin_activation', array( $this, 'plugin_activation_utm_event' ), 10, 2 );
+			add_filter( 'plugins_api_args', array( $this, 'raise_memory_for_plugins_install' ), 1, 1 );
+			add_filter( 'wp_import_insert_term', array( $this, 'store_original_term_id' ), 10, 2 );
+			add_filter( 'getting_started_is_setup_wizard_showing', array( $this, 'maybe_setup_wizard_showing' ) );
+			add_filter( 'getting_started_logo_url', array( $this, 'starter_templates_logo_url' ) );
+
+			// Enable/disable templates force syncing.
+			add_action( 'ast_block_templates_enable_force_sync', array( __CLASS__, 'enable_force_sync' ) );
+			add_filter( 'ast_block_templates_disable_force_sync', 'astra_sites_has_import_started' );
 		}
 
 		/**
-		 * Set ai builder textdomain.
+		 * Store original term id.
+		 * 
+		 * @param int   $term_id Term ID.
+		 * @param array $data Term data.
+		 * @return int
+		 * @since 4.4.19
+		 */
+		public function store_original_term_id( $term_id, $data ) {
+			// Validate term_id.
+			if ( ! is_numeric( $term_id ) || $term_id <= 0 ) {
+				return $term_id;
+			}
+
+			// Validate data structure.
+			if ( ! is_array( $data ) ) {
+				return $term_id;
+			}
+
+			// Validate required data fields are not null.
+			if ( ! isset( $data['taxonomy'], $data['id'] ) || null === $data['taxonomy'] || null === $data['id'] ) {
+				return $term_id;
+			}
+
+			// Validate taxonomy exists.
+			if ( ! taxonomy_exists( $data['taxonomy'] ) ) {
+				return $term_id;
+			}
+
+			update_term_meta( $term_id, $data['taxonomy'] . '_id', $data['id'] );
+			return $term_id;
+		}
+
+		/**
+		 * Set textdomain as 'astra-sites'.
 		 * 
 		 * @param string $textdomain Textdomain.
 		 * @return string
-		 * @since  4.3.8
+		 * @since  4.4.37
 		 */
-		public function updat_ai_builder_textdomain( $textdomain ) {
+		public function get_astra_sites_textdomain( $textdomain ) {
 			return 'astra-sites';
 		}
 
@@ -251,6 +308,155 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 		}
 
 		/**
+		 * Theme product activation utm event.
+		 *
+		 * @param string $theme_slug Theme slug.
+		 * @return void
+		 *
+		 * @since 4.4.16
+		 */
+		public function theme_activation_utm_event( $theme_slug ) {
+			if ( ! $theme_slug && ! is_string( $theme_slug ) ) {
+				return;
+			}
+			if ( class_exists( 'BSF_UTM_Analytics' ) && is_callable( array( 'BSF_UTM_Analytics', 'update_referer' ) ) ) {
+				// If the plugin is found and the update_referer function is callable, update the referer with the corresponding product slug.
+				$page_builder = Astra_Sites_Page::get_instance()->get_setting( 'page_builder' );
+				// Set the referer to 'zipwp' for AI Builder and 'astra-sites' otherwise.
+				$referer = 'ai-builder' === $page_builder ? 'zipwp' : 'astra-sites';
+				BSF_UTM_Analytics::update_referer( $referer, 'astra' );
+			}
+		}
+
+		/**
+		 * Plugin product activation utm event.
+		 *
+		 * @param string $plugin_init plugin init file.
+		 * @param mixed  $data activation data.
+		 * @return void
+		 */
+		public function plugin_activation_utm_event( $plugin_init, $data = array() ) {
+			if ( ! isset( $data['plugin_slug'] ) || '' === $data['plugin_slug'] ) {
+				return;
+			}
+
+			// Update the referer only if the plugin was not active before template import.
+			if ( ! isset( $data['was_plugin_active'] ) || ! $data['was_plugin_active'] ) {
+				if ( class_exists( 'BSF_UTM_Analytics' ) && is_callable( array( 'BSF_UTM_Analytics', 'is_valid_bsf_product_slug' ) ) ) {
+					// Bail early if the product slug is invalid to avoid warnings from BSF_UTM_Analytics::update_referer().
+					if ( ! BSF_UTM_Analytics::is_valid_bsf_product_slug( $data['plugin_slug'] ) ) {
+						return;
+					}
+				}
+
+				if ( class_exists( 'BSF_UTM_Analytics' ) && is_callable( array( 'BSF_UTM_Analytics', 'update_referer' ) ) ) {
+					// If the plugin is found and the update_referer function is callable, update the referer with the corresponding product slug.
+					$page_builder = Astra_Sites_Page::get_instance()->get_setting( 'page_builder' );
+					// Set the referer to 'zipwp' for AI Builder and 'astra-sites' otherwise.
+					$referer = 'ai-builder' === $page_builder ? 'zipwp' : 'astra-sites';
+					BSF_UTM_Analytics::update_referer( $referer, $data['plugin_slug'] );
+
+					if ( 'sureforms' === $data['plugin_slug'] ) {
+						$this->update_sureforms_referer();
+					}
+				}
+			}
+		}
+
+		/**
+		 * Update Sureforms referer based on the imported template.
+		 *
+		 * This function checks if the imported template is one of the top templates and updates the referer for Sureforms accordingly.
+		 *
+		 * @return void
+		 * @since 4.4.50
+		 * @todo Remove this function after few releases after observations.
+		 */
+		public function update_sureforms_referer() {
+			$template_data = Astra_Sites_File_System::get_instance()->get_demo_content();
+
+			// Top templates -- All Elementor templates.
+			$top_templates_ids = array(
+				17988, // Brandstore!
+				58716, // Love Nature!
+				17534, // Digital Agency!
+				31992, // Organic Store!
+				19808, // Outdoor Adventure!
+				69715, // Planet Earth!
+				87989, // Clothing Store!
+				59264, // Personal Portfolio!
+				59455, // Construction Company!
+				46177, // Mountain!
+				71669, // Planet Earth Store!
+				54398, // Digital Agency!
+				88164, // Galatic!
+				58172, // Skin Cleanser Store!
+				83885, // Hope!
+			);
+
+			// Bail early if template ID is not set or if it's not in the list of top templates to avoid unnecessary referer updates.
+			if ( ! isset( $template_data['id'] ) || ! in_array( $template_data['id'], $top_templates_ids, true ) ) {
+				return;
+			}
+
+			$referer_option       = defined( 'BSF_UTM_ANALYTICS_REFERER' ) ? BSF_UTM_ANALYTICS_REFERER : 'bsf_product_referers';
+			$bsf_product_referers = get_option( $referer_option, array() );
+			if ( ! is_array( $bsf_product_referers ) ) {
+				$bsf_product_referers = array();
+			}
+	
+			// Set referer based on template slug if available, otherwise default to 'astra-sites'.
+			$template_slug = isset( $template_data['astra-site-url'] ) ? str_replace( array( 'https:', '//websitedemos.net/' ), '', $template_data['astra-site-url'] ) : '';
+			$referer       = $template_slug ? 'astra-sites-' . $template_slug : 'astra-sites';
+
+			$bsf_product_referers['sureforms'] = $referer;
+	
+			update_option( BSF_UTM_ANALYTICS_REFERER, $bsf_product_referers );
+		}
+
+		/**
+		 * Handle memory error share customized error message
+		 *
+		 * @since 4.4.12
+		 *
+		 * @param string   $message error message.
+		 * @param WP_ERROR $error error object.
+		 * @return mixed
+		 */
+		public function memory_error( $message, $error ) {
+			if (
+				strpos( $message, 'critical error' ) !== false &&
+				strpos( $error['message'], 'memory size' ) !== false &&
+				get_option( 'astra_sites_import_started' ) == 'yes'
+			) {
+				header( 'Content-type: application/json' );
+				return wp_json_encode(
+					array(
+						'data' => array(
+							'message' => __( "Import failed due to insufficient memory. Please increase the PHP memory_limit on your server and retry. If you're unsure how to do this, contact your hosting provider for assistance.", 'astra-sites' ),
+						),
+					)
+				);
+			}
+			return $message;
+		}
+
+		/**
+		 * Raise memory limit for plugins install
+		 *
+		 * @since 4.4.12
+		 *
+		 * @param array $args plugin array.
+		 * @return array 
+		 */
+		public function raise_memory_for_plugins_install( $args ) {
+			if ( 'yes' === get_option( 'astra_sites_import_started' ) ) {
+				wp_raise_memory_limit( 'admin' );
+			}
+			return $args;
+		}
+
+		/**
 		 * Enable ZipAI Copilot.
 		 *
 		 * @since 3.5.0
@@ -288,7 +494,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 			$icon = ASTRA_SITES_URI . 'inc/assets/images/vector-ai.svg';
 			?>
 			<style type="text/css">
-				.wp-submenu a[href="themes.php?page=starter-templates"]::after {
+				.wp-submenu a[href*="themes.php?page=starter-templates"]::after {
 					content: url("<?php echo esc_url( $icon ); ?>");
 					position: absolute;
 					margin-left: 5px;
@@ -350,6 +556,48 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 		 * @param array $data Post data.
 		 */
 		public function wp_slash_after_xml_import( $postdata, $data ) {
+			if ( 'ai' === get_option( 'astra_sites_current_import_template_type' ) ) {
+				return $postdata;
+			}
+
+			// Handle Spectra Blocks v3 content during template import.
+			// Goal:
+			// - If Spectra Blocks v3 is active in the demo template, we need to avoid wp_slash() on post content because it breaks block attributes.
+			// - Also, decode any Unicode sequences (\uXXXX) to UTF-8 characters.
+
+			// Get template/demo content if ST Importer is available.
+			$template_data = class_exists( '\STImporter\Importer\ST_Importer_File_System' )
+				? \STImporter\Importer\ST_Importer_File_System::get_instance()->get_demo_content()
+				: array();
+
+			if ( ! empty( $postdata['post_content'] ) && ! empty( $template_data ) && is_array( $template_data ) ) {
+
+				// Get the Spectra Blocks version info and class list.
+				$spectra_blocks_version = isset( $template_data['spectra-blocks-ver'] ) ? $template_data['spectra-blocks-ver'] : array();
+				$class_list             = isset( $template_data['class_list'] ) ? $template_data['class_list'] : array();
+
+				// Check if Spectra Blocks v3 is active in this template.
+				if ( ! empty( $spectra_blocks_version ) && in_array( 'spectra-blocks-ver-v3', $class_list, true ) ) {
+
+					// Define allowed symbols to decode.
+					$allowed = array( '-', '&', '<', '>' );
+
+					$postdata['post_content'] = preg_replace_callback(
+						'/(?:\s|\\\\)?u([0-9a-fA-F]{4})/',
+						function ( $matches ) use ( $allowed ) {
+							$char = mb_convert_encoding( pack( 'H*', $matches[1] ), 'UTF-8', 'UCS-2BE' );
+
+							// Return char only if in allowed list, else keep original escape.
+							return in_array( $char, $allowed, true ) ? $char : $matches[0];
+						},
+						$postdata['post_content']
+					);
+
+					// Return post data without wp_slash to preserve block JSON integrity.
+					return $postdata;
+				}
+			}
+
 			return wp_slash( $postdata );
 		}
 
@@ -434,7 +682,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 			$optin_answer = isset( $_POST['data'] ) ? sanitize_text_field( $_POST['data'] ) : 'no';
 			$optin_answer = 'yes' === $optin_answer ? 'yes' : 'no';
 
-			update_site_option( 'bsf_analytics_optin', $optin_answer );
+			update_site_option( 'astra_sites_usage_optin', $optin_answer );
 
 			wp_send_json_success();
 		}
@@ -450,7 +698,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 				wp_send_json_error( 'You are not allowed to perform this action', 'astra-sites' );
 			}
 
-			$arguments = isset( $_POST['data'] ) ? array_map( 'sanitize_text_field', json_decode( stripslashes( $_POST['data'] ), true ) ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Already sanitized using `array_map` and `sanitize_text_field`.
+			$arguments = isset( $_POST['data'] ) ? astra_sites_sanitize_recursive( json_decode( stripslashes( $_POST['data'] ), true ) ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Already sanitized using `array_map` and `sanitize_text_field`.
 
 			// Page Builder mapping.
 			$page_builder_mapping      = array(
@@ -461,7 +709,12 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 			);
 			$arguments['PAGE_BUILDER'] = isset( $page_builder_mapping[ $arguments['PAGE_BUILDER'] ] ) ? $page_builder_mapping[ $arguments['PAGE_BUILDER'] ] : '';
 
-			$url = apply_filters( 'astra_sites_subscription_url', $this->api_domain . 'wp-json/starter-templates/v1/subscribe/' );
+			$arguments['email']      = isset( $arguments['EMAIL'] ) ? $arguments['EMAIL'] : '';
+			$arguments['first_name'] = isset( $arguments['FIRSTNAME'] ) ? $arguments['FIRSTNAME'] : '';
+			$arguments['domain']     = site_url();
+			$arguments['source']     = 'astra-sites';
+
+			$url = apply_filters( 'astra_sites_subscription_url', self::get_metrics_api_domain() . 'wp-json/bsf-metrics-server/v1/subscribe' );
 
 			$args = array(
 				'timeout' => 30,
@@ -528,7 +781,8 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 				wp_send_json_error( 'You are not allowed to perform this action', 'astra-sites' );
 			}
 
-			$id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
+			// $id would be in string for AI templates and in number for classic templates.
+			$id = isset( $_POST['id'] ) ? sanitize_text_field( $_POST['id'] ) : 0;
 
 			if ( 0 === $id ) {
 				wp_send_json_error(
@@ -540,12 +794,19 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 				);
 			}
 
+			$error = isset( $_POST['error'] ) ? json_decode( stripslashes( sanitize_text_field( $_POST['error'] ) ), true ) : array();
+			
 			$data = array(
-				'id' => $id,
-				'import_attempts' => isset( $_POST['try-again-count'] ) ? absint( $_POST['try-again-count'] ) : 0,
-				'import_status' => isset( $_POST['status'] ) ? sanitize_text_field( $_POST['status'] ) : 'true',
-				'type' => isset( $_POST['type'] ) ? sanitize_text_field( $_POST['type'] ) : 'astra-sites',
-				'page_builder' => isset( $_POST['page-builder'] ) ? sanitize_text_field( $_POST['page-builder'] ) : 'gutenberg',
+				'id'                 => $id,
+				'import_attempts'    => isset( $_POST['try-again-count'] ) ? absint( $_POST['try-again-count'] ) : 0,
+				'import_status'      => isset( $_POST['status'] ) ? sanitize_text_field( $_POST['status'] ) : 'true',
+				'type'               => isset( $_POST['type'] ) ? sanitize_text_field( $_POST['type'] ) : 'astra-sites',
+				'page_builder'       => isset( $_POST['page_builder'] ) ? sanitize_text_field( $_POST['page_builder'] ) : 'gutenberg',
+				'template_type'      => isset( $_POST['template_type'] ) ? sanitize_text_field( $_POST['template_type'] ) : '',
+				'failure_reason'     => is_array( $error ) && isset( $error['primaryText'] ) ? sanitize_text_field( $error['primaryText'] ) : '',
+				'secondary_text'     => is_array( $error ) && isset( $error['secondaryText'] ) ? sanitize_text_field( $error['secondaryText'] ) : '',
+				'error_text'         => is_array( $error ) && isset( $error['errorText'] ) ? sanitize_text_field( $error['errorText'] ) : '',
+				'spectra_blocks_ver' => get_option( 'astra_sites_current_spectra_blocks_ver' ),
 			);
 
 			$result = Astra_Sites_Reporting::get_instance()->report( $data );
@@ -557,6 +818,29 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 			}
 
 			wp_send_json_error( $result['data'] );
+		}
+
+		/**
+		 * Return the URL of the most recent import log file.
+		 *
+		 * Used by the JS failure screen so the user can open the log directly.
+		 *
+		 * @since 4.6.1
+		 * @return void
+		 */
+		public function get_import_log_url() {
+			check_ajax_referer( 'astra-sites', '_ajax_nonce' );
+
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_send_json_error( __( 'You are not allowed to perform this action', 'astra-sites' ), 403 );
+				return;
+			}
+
+			wp_send_json_success(
+				array(
+					'import_log_url' => Astra_Sites_Importer_Log::get_log_file_url(),
+				)
+			);
 		}
 
 		/**
@@ -689,7 +973,15 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 				)
 			);
 
-			$api_url = add_query_arg( $api_args, trailingslashit( self::get_instance()->get_api_domain() ) . 'wp-json/wp/v2/' . $url );
+			/**
+			 * Filter to modify the API Request URL.
+			 *
+			 * @param string $api_url The complete API request URL.
+			 *
+			 * @since 4.4.43
+			 */
+			$api_url = apply_filters( 'astra_sites_api_request_' . $url, trailingslashit( self::get_instance()->get_api_domain() ) . 'wp-json/wp/v2/' . $url );
+			$api_url = add_query_arg( $api_args, $api_url );
 
 			if ( ! astra_sites_is_valid_url( $api_url ) ) {
 				wp_send_json_error(
@@ -740,8 +1032,40 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 			$demo_data = json_decode( wp_remote_retrieve_body( $request ), true );
 
 			if ( 200 === $code ) {
+				$class_list = isset( $demo_data['class_list'] ) ? $demo_data['class_list'] : array();
+				if ( in_array( 'astra-site-page-builder-gutenberg', $class_list, true ) ) {
+					$spectra_blocks_version = isset( $demo_data['spectra-blocks-ver'] ) ? $demo_data['spectra-blocks-ver'] : array();
+					$spectra_blocks_ver     = empty( $spectra_blocks_version ) || ! in_array( 'spectra-blocks-ver-v3', $class_list, true ) ? 'v2' : 'v3';
+					update_option( 'astra_sites_current_spectra_blocks_ver', $spectra_blocks_ver );
+
+					// For v3 templates, replace the `ultimate-addons-for-gutenberg` entry in
+					// required-plugins with `spectra-blocks` before the data is saved and sent.
+					// This ensures every downstream step — plugin status check, install, activate,
+					// and verify — works with the correct plugin without additional overrides.
+					if (
+						'v3' === $spectra_blocks_ver &&
+						isset( $demo_data['required-plugins'] ) &&
+						is_array( $demo_data['required-plugins'] )
+					) {
+						$demo_data['required-plugins'] = array_map(
+							function ( $plugin ) {
+								if ( isset( $plugin['init'] ) && 'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php' === $plugin['init'] ) {
+									$plugin['init'] = 'spectra-blocks/spectra-blocks.php';
+									$plugin['slug'] = 'spectra-blocks';
+									$plugin['name'] = 'Spectra Blocks';
+								}
+								return $plugin;
+							},
+							$demo_data['required-plugins']
+						);
+					}
+				} else {
+					delete_option( 'astra_sites_current_spectra_blocks_ver' );
+				}
+
 				Astra_Sites_File_System::get_instance()->update_json_file( 'astra_sites_import_data.json', $demo_data );
 				update_option( 'astra_sites_current_import_template_type', 'classic' );
+
 				wp_send_json_success( $demo_data );
 			}
 
@@ -1112,6 +1436,10 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 
 			$params = isset( $_POST['params'] ) ? array_map( 'sanitize_text_field', $_POST['params'] ) : array();
 
+			if ( empty( $this->pixabay_api_key ) ) {
+				wp_send_json_error( __( 'Pixabay API key is not configured. Set it via the astra_sites_pixabay_api_key filter or option.', 'astra-sites' ) );
+			}
+
 			$params['key'] = $this->pixabay_api_key;
 
 			$api_url = add_query_arg( $params, $this->pixabay_url );
@@ -1152,7 +1480,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 			$image  = '';
 			$result = array();
 
-			$name  = preg_replace( '/\.[^.]+$/', '', $name ) . '-' . $photo_id . '.jpg';
+			$name  = pathinfo( $name, PATHINFO_FILENAME ) . '-' . $photo_id . '.jpg';
 			$image = $this->create_image_from_url( $url, $name, $photo_id );
 
 			if ( is_wp_error( $image ) ) {
@@ -1171,7 +1499,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 					update_post_meta( $image, '_astra_sites_imported_post', true );
 				}
 			} else {
-				wp_send_json_error( __( 'Could not download the image.', 'astra-sites' ) );
+				wp_send_json_error( __( 'Failed to download the image. Please verify the URL and your network connection, then try again.', 'astra-sites' ) );
 			}
 
 			// Save downloaded image reference to an option.
@@ -1378,7 +1706,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 		 */
 		public function load_textdomain() {
 			// Default languages directory.
-			$lang_dir = ASTRA_PRO_SITES_DIR . 'languages/';
+			$lang_dir = ASTRA_SITES_DIR . 'languages/';
 
 			// Traditional WordPress plugin locale filter.
 			global $wp_version;
@@ -1422,16 +1750,23 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 		 * @return  array
 		 */
 		public function action_links( $links ) {
+			$astra_site_pro = 'https://wpastra.com/essential-toolkit-pricing/';
 
-			$arguments = array(
-				'page' => 'starter-templates',
-			);
-
-			$url = add_query_arg( $arguments, admin_url( 'themes.php' ) );
+			// Get the starter templates URL.
+			$url = esc_url( self::get_starter_templates_url() );
 
 			$action_links = array(
 				'settings' => '<a href="' . esc_url( $url ) . '" aria-label="' . esc_attr__( 'Get Started', 'astra-sites' ) . '">' . esc_html__( 'Get Started', 'astra-sites' ) . '</a>',
 			);
+
+			// Check if Premium Starter Templates plugin is not active.
+			if ( ! is_plugin_active( 'astra-pro-sites/astra-pro-sites.php' ) && ! file_exists( ASTRA_SITES_DIR . '../astra-pro-sites/astra-pro-sites.php' ) ) {
+				$action_links['pro-link'] = sprintf(
+					'<a href="%1$s" target="_blank" rel="noreferrer" class="astra-sites-plugins-go-pro" style="color: #dd4f93; text-shadow: 1px 1px 1px #eee; font-weight: bold;">%2$s</a>',
+					esc_url( $astra_site_pro ),
+					esc_html__( 'Get Premium Templates', 'astra-sites' )
+				);
+			}
 
 			return array_merge( $action_links, $links );
 		}
@@ -1448,6 +1783,17 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 		}
 
 		/**
+		 * Get the Metrics API URL.
+		 *
+		 * @since  4.4.37
+		 *
+		 * @return string
+		 */
+		public static function get_metrics_api_domain() {
+			return trailingslashit( defined( 'BSF_METRICS_REMOTE_URL' ) ? BSF_METRICS_REMOTE_URL : apply_filters( 'nps_survey_api_domain', 'https://metrics.brainstormforce.com/' ) );
+		}
+
+		/**
 		 * Setter for $api_url
 		 *
 		 * @since  1.0.0
@@ -1460,7 +1806,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 			$this->import_analytics_url = apply_filters( 'astra_sites_import_analytics_api_url', $this->api_domain . 'wp-json/analytics/v2/import/' );
 
 			$this->pixabay_url     = 'https://pixabay.com/api/';
-			$this->pixabay_api_key = '2727911-c4d7c1031949c7e0411d7e81e';
+			$this->pixabay_api_key = apply_filters( 'astra_sites_pixabay_api_key', get_option( 'astra_sites_pixabay_api_key', '' ) );
 		}
 
 		/**
@@ -1477,9 +1823,6 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 		/**
 		 * Enqueue admin scripts.
 		 *
-		 * @since  1.3.2    Added 'install-theme.js' to install and activate theme.
-		 * @since  1.0.5    Added 'getUpgradeText' and 'getUpgradeURL' localize variables.
-		 *
 		 * @since  1.0.0
 		 *
 		 * @param  string $hook Current hook name.
@@ -1487,33 +1830,19 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 		 */
 		public function admin_enqueue( $hook = '' ) {
 
-			// Avoid scripts from customizer.
-			if ( is_customize_preview() ) {
-				return;
-			}
-
-			if ( 'appearance_page_starter-templates' !== $hook ) {
+			// Avoid scripts for customizer preview and if it's not starter templates page.
+			if ( is_customize_preview() || 'appearance_page_starter-templates' !== $hook ) {
 				return;
 			}
 
 			global $is_IE, $is_edge;
-
 			if ( $is_IE || $is_edge ) {
 				wp_enqueue_script( 'astra-sites-eventsource', ASTRA_SITES_URI . 'inc/assets/js/eventsource.min.js', array( 'jquery', 'wp-util', 'updates' ), ASTRA_SITES_VER, true );
 			}
 
-			// Fetch.
-			wp_register_script( 'astra-sites-fetch', ASTRA_SITES_URI . 'inc/assets/js/fetch.umd.js', array( 'jquery' ), ASTRA_SITES_VER, true );
-
-			// History.
-			wp_register_script( 'astra-sites-history', ASTRA_SITES_URI . 'inc/assets/js/history.js', array( 'jquery' ), ASTRA_SITES_VER, true );
-
 			// Admin Page.
 			wp_enqueue_style( 'astra-sites-admin', ASTRA_SITES_URI . 'inc/assets/css/admin.css', ASTRA_SITES_VER, true );
-			wp_set_script_translations( 'astra-sites-admin', 'astra-sites' );
 			wp_style_add_data( 'astra-sites-admin', 'rtl', 'replace' );
-
-			$data = $this->get_local_vars();
 		}
 
 		/**
@@ -1616,7 +1945,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 
 			$remove_parameters = array( 'credit_token', 'token', 'email', 'ast_action', 'nonce' );
 			$credit_request_params = array(
-				'success_url' => isset( $_SERVER['REQUEST_URI'] ) ? urlencode( $this->remove_query_params( network_home_url() . $_SERVER['REQUEST_URI'], $remove_parameters ) . '&ast_action=credits' ) : '', // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				'success_url' => isset( $_SERVER['REQUEST_URI'] ) ? urlencode( $this->remove_query_params( network_home_url() . esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ), $remove_parameters ) . '&ast_action=credits' ) : '',
 			);
 
 			$credit_purchase_url = defined( 'ZIP_AI_CREDIT_TOPUP_URL' ) ? ZIP_AI_CREDIT_TOPUP_URL : 'https://app.zipwp.com/credits-pricing';
@@ -1648,15 +1977,15 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 					'requiredPlugins'                    => array(),
 					'syncLibraryStart'                   => '<span class="message">' . esc_html__( 'Syncing template library in the background. The process can take anywhere between 2 to 3 minutes. We will notify you once done.', 'astra-sites' ) . '</span>',
 					'xmlRequiredFilesMissing'            => __( 'Some of the files required during the import process are missing.<br/><br/>Please try again after some time.', 'astra-sites' ),
-					'importFailedMessageDueToDebug'      => __( '<p>WordPress debug mode is currently enabled on your website. This has interrupted the import process..</p><p>Kindly disable debug mode and try importing Starter Template again.</p><p>You can add the following code into the wp-config.php file to disable debug mode.</p><p><code>define(\'WP_DEBUG\', false);</code></p>', 'astra-sites' ),
+					'importFailedMessageDueToDebug'      => __( '<p>The import process was interrupted as Debug mode is currently enabled on your site.</p><p>Kindly disable debug mode and try importing Starter Template again.</p><p>You can add the following code into the wp-config.php file to disable debug mode.</p><p><code>define(\'WP_DEBUG\', false);</code></p>', 'astra-sites' ),
 					/* translators: %s is a documentation link. */
-					'importFailedMessage'                => sprintf( __( '<p>We are facing a temporary issue in importing this template.</p><p>Read <a href="%s" target="_blank">article</a> to resolve the issue and continue importing template.</p>', 'astra-sites' ), esc_url( 'https://wpastra.com/docs/fix-starter-template-importing-issues/' ) ),
+					'importFailedMessage'                => sprintf( __( '<p>Template import was interrupted due to a temporary error.</p><p>Read <a href="%s" target="_blank">article</a> to resolve the issue and continue importing template.</p>', 'astra-sites' ), esc_url( 'https://wpastra.com/docs/fix-starter-template-importing-issues/' ) ),
 					/* translators: %s is a documentation link. */
-					'importFailedRequiredPluginsMessage' => sprintf( __( '<p>We are facing a temporary issue in installing the required plugins for this template.</p><p>Read&nbsp;<a href="%s" target="_blank">article</a>&nbsp;to resolve the issue and continue importing template.</p>', 'astra-sites' ), esc_url( 'https://wpastra.com/docs/plugin-installation-failed-multisite/' ) ),
+					'importFailedRequiredPluginsMessage' => sprintf( __( '<p>Failed to install one or more required plugins.</p><p>Read&nbsp;<a href="%s" target="_blank">article</a>&nbsp;to resolve the issue and continue importing template.</p>', 'astra-sites' ), esc_url( 'https://wpastra.com/docs/plugin-installation-failed-multisite/' ) ),
 
 					'strings'                            => array(
 						/* translators: %s are white label strings. */
-						'warningBeforeCloseWindow' => sprintf( __( 'Warning! %1$s Import process is not complete. Don\'t close the window until import process complete. Do you still want to leave the window?', 'astra-sites' ), Astra_Sites_White_Label::get_instance()->get_white_label_name() ),
+						'warningBeforeCloseWindow' => sprintf( __( 'Warning! %1$s Closing this window will cancel the process. Do you still want to leave?', 'astra-sites' ), Astra_Sites_White_Label::get_instance()->get_white_label_name() ),
 						'viewSite'                 => __( 'Done! View Site', 'astra-sites' ),
 						'syncCompleteMessage'      => self::get_instance()->get_sync_complete_message(),
 						/* translators: %s is a template name */
@@ -1697,13 +2026,13 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 					'subscriptionSuccessMessage'         => esc_html__( 'We have sent you a surprise gift on your email address! Please check your inbox!', 'astra-sites' ),
 					'first_import_complete'              => get_option( 'astra_sites_import_complete' ),
 					'server_import_primary_error'        => __( 'Looks like the template you are importing is temporarily not available.', 'astra-sites' ),
-					'client_import_primary_error'        => __( 'We could not start the import process and this is the message from WordPress:', 'astra-sites' ),
+					'client_import_primary_error'        => __( "Couldn't start import process. WordPress returned:", 'astra-sites' ),
 					'cloudflare_import_primary_error'    => __( 'There was an error connecting to the Starter Templates API.', 'astra-sites' ),
 					'xml_import_interrupted_primary'     => __( 'There was an error while importing the content.', 'astra-sites' ),
 					'xml_import_interrupted_secondary'   => __( 'To import content, WordPress needs to store XML file in /wp-content/ folder. Please get in touch with your hosting provider.', 'astra-sites' ),
 					'xml_import_interrupted_error'       => __( 'Looks like your host probably could not store XML file in /wp-content/ folder.', 'astra-sites' ),
 					/* translators: %s HTML tags */
-					'ajax_request_failed_primary'        => sprintf( __( '%1$sWe could not start the import process due to failed AJAX request and this is the message from WordPress:%2$s', 'astra-sites' ), '<p>', '</p>' ),
+					'ajax_request_failed_primary'        => sprintf( __( '%1$sAJAX request failed. WordPress returned:%2$s', 'astra-sites' ), '<p>', '</p>' ),
 					/* translators: %s URL to document. */
 					'ajax_request_failed_secondary'      => sprintf( __( '%1$sRead&nbsp;<a href="%2$s" target="_blank">article</a>&nbsp;to resolve the issue and continue importing template.%3$s', 'astra-sites' ), '<p>', esc_url( 'https://wpastra.com/docs/internal-server-error-starter-templates/' ), '</p>' ),
 					'cta_links' => $this->get_cta_links(),
@@ -1714,14 +2043,14 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 					'cta_premium_popup_link' => $this->get_cta_link( 'get-premium-access-popup' ),
 
 					/* translators: %s URL to document. */
-					'process_failed_primary'        => sprintf( __( '%1$sWe could not complete the import process due to failed AJAX request and this is the message:%2$s', 'astra-sites' ), '<p>', '</p>' ),
+					'process_failed_primary'        => sprintf( __( '%1$sImport process interrupted due to an AJAX error:%2$s', 'astra-sites' ), '<p>', '</p>' ),
 					/* translators: %s URL to document. */
 					'process_failed_secondary'      => sprintf( __( '%1$sPlease report this <a href="%2$s" target="_blank">here</a>.%3$s', 'astra-sites' ), '<p>', esc_url( 'https://wpastra.com/starter-templates-support/?url=#DEMO_URL#&subject=#SUBJECT#' ), '</p>' ),
-					'st_page_url' => admin_url( 'themes.php?page=starter-templates' ),
+					'st_page_url' => esc_url( self::get_starter_templates_url() ),
 					'staging_connected' => apply_filters( 'astra_sites_staging_connected', '' ),
 					'isRTLEnabled' => is_rtl(),
 					/* translators: %s Anchor link to support URL. */
-					'support_text' => sprintf( __( 'Please report this error %1$shere%2$s, so we can fix it.', 'astra-sites' ), '<a href="https://wpastra.com/support/open-a-ticket/" target="_blank">', '</a>' ),
+					'support_text' => sprintf( __( 'Please report this error%1$s here %2$s, so we can fix it.', 'astra-sites' ), '<a href="https://wpastra.com/support/open-a-ticket/" target="_blank">', '</a>' ),
 					'surecart_store_exists' => isset( $surecart_store_exist ) ? $surecart_store_exist : false,
 					'default_ai_categories' => $this->get_default_ai_categories(),
 					'block_color_palette'     => $this->get_block_palette_colors(),
@@ -1730,15 +2059,83 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 					'zip_token_exists' => Astra_Sites_ZipWP_Helper::get_token() !== '' ? true : false,
 					'zip_plans' => ( $plans && isset( $plans['data'] ) ) ? $plans['data'] : array(),
 					'dashboard_url' => admin_url(),
+					'finish_setup_url' => admin_url( 'admin.php?page=getting-started' ),
 					'placeholder_images' => Helper::get_image_placeholders(),
 					'get_more_credits_url' => $credit_purchase_url,
 					'dismiss_ai_notice' => Astra_Sites_Page::get_instance()->get_setting( 'dismiss_ai_promotion' ),
 					'showClassicTemplates' => apply_filters( 'astra_sites_show_classic_templates', true ),
-					'bgSyncInProgress' => 'in-process' === get_site_option( 'astra-sites-batch-status', '' ),
+					'showAiBuilder'        => self::should_show_ai_builder(),
+					'customTemplateData'   => self::get_custom_template_data(),
+					'bgSyncInProgress'     => self::is_sync_in_progress(),
+					'userDetails'          => array(
+						'first_name' => get_user_meta( get_current_user_ID(), 'first_name', true ),
+						'last_name'  => get_user_meta( get_current_user_ID(), 'last_name', true ),
+						'email'      => wp_get_current_user()->user_email,
+					),
+
+					// Spectra Blocks Vars.
+					'spectraBlocks'        => apply_filters(
+						'astra_sites_spectra_blocks_vars',
+						array(
+							'selectorEnabled' => self::should_display_spectra_blocks_version_selector(),
+							'version'         => self::get_spectra_blocks_version(),
+						)
+					),
+					'isWPFreshSite'        => $this->is_wp_fresh_site(),
+					'priorityTemplates'    => $this->get_priority_templates_config(),
 				)
 			);
 
 			return $data;
+		}
+
+		/**
+		 * Check if the site is a fresh WordPress installation.
+		 * Detects if only default WordPress content exists (Hello World post, Sample Page, etc.).
+		 *
+		 * @since 4.4.46
+		 * @return bool True if site is fresh, false otherwise.
+		 */
+		public function is_wp_fresh_site() {
+			// Check if first import has already been completed.
+			if ( get_option( 'astra_sites_import_complete', false ) ) {
+				return false;
+			}
+
+			// Count published posts (excluding auto-drafts).
+			$post_count      = wp_count_posts( 'post' );
+			$published_posts = isset( $post_count->publish ) ? $post_count->publish : 0;
+
+			// Count published pages.
+			$page_count      = wp_count_posts( 'page' );
+			$published_pages = isset( $page_count->publish ) ? $page_count->publish : 0;
+
+			// Check if there are only default posts/pages (1 post "Hello World", 1-2 pages like "Sample Page", "Privacy Policy").
+			$has_default_content_only = $published_posts <= 1 && $published_pages <= 2;
+
+			// Check for media attachments (fresh site typically has 0-1 media items).
+			$media_count       = wp_count_posts( 'attachment' );
+			$total_media       = isset( $media_count->inherit ) ? $media_count->inherit : 0;
+			$has_minimal_media = $total_media <= 1;
+
+			// Check if any custom post types exist (excluding built-in ones).
+			$args                  = array(
+				'public'   => true,
+				'_builtin' => false,
+			);
+			$custom_post_types     = get_post_types( $args, 'names' );
+			$has_no_custom_content = true;
+
+			foreach ( $custom_post_types as $post_type ) {
+				$cpt_count = wp_count_posts( $post_type );
+				if ( isset( $cpt_count->publish ) && $cpt_count->publish > 0 ) {
+					$has_no_custom_content = false;
+					break;
+				}
+			}
+
+			// Site is considered fresh if it has default content, minimal media, and no custom content.
+			return $has_default_content_only && $has_minimal_media && $has_no_custom_content;
 		}
 
 		/**
@@ -1955,7 +2352,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 				'update-available'     => array(
 					'title'   => esc_html__( 'Update Plugin', 'astra-sites' ),
 					/* translators: %s update page link. */
-					'tooltip' => '<p>' . esc_html__( 'Updates are available for plugins used in this starter template.', 'astra-sites' ) . '</p>##LIST##<p>' . sprintf( __( 'Kindly <a href="%s" target="_blank">update</a> them for a successful import. Skipping this step might break the template design/feature.', 'astra-sites' ), esc_url( network_admin_url( 'update-core.php' ) ) ) . '</p>',
+					'tooltip' => '<p>' . esc_html__( 'Updates are available for one or more plugins used by this starter template.', 'astra-sites' ) . '</p>##LIST##<p>' . sprintf( __( 'Kindly <a href="%s" target="_blank">update</a> them for a successful import. Skipping this step might break the template design/feature.', 'astra-sites' ), esc_url( network_admin_url( 'update-core.php' ) ) ) . '</p>',
 				),
 				'third-party-required' => array(
 					'title'   => esc_html__( 'Required Plugins Missing', 'astra-sites' ),
@@ -1969,6 +2366,29 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 					'title'   => esc_html__( 'Enable Flexbox Container from Elementor', 'astra-sites' ),
 					/* translators: %s doc link. */
 					'tooltip' => '<p>' . esc_html__( 'The Flexbox Container widget is disabled on your website. With this disabled, the import process will be affected. Kindly enable it to continue importing the Starter Template.', 'astra-sites' ) . '</p><p>' . sprintf( __( 'Read an article <a href="%s" target="_blank">here</a> to resolve the issue.', 'astra-sites' ), 'https://wpastra.com/docs/enable-flexbox-container-from-elementor' ) . '</p>',
+				),
+				'install-plugin-permission'         => array(
+					'title'   => esc_html__( 'Missing plugin installation permission', 'astra-sites' ),
+					/* translators: %s doc link. */
+					'tooltip' => '<p>' . esc_html__( 'You do not have permission to install the required plugin. You must have install permissions to proceed with the required plugin.', 'astra-sites' ) . '</p>',
+				),
+				'activate-plugin-permission'         => array(
+					'title'   => esc_html__( 'Missing plugin activation permission', 'astra-sites' ),
+					/* translators: %s doc link. */
+					'tooltip' => '<p>' . esc_html__( 'You do not have permission to activate the required plugin. You must have activate permissions to proceed with the required plugin.', 'astra-sites' ) . '</p>',
+				),
+				'wp-memory-limit'         => array(
+					'title'   => esc_html__( 'Insufficient Memory Limit', 'astra-sites' ),
+					/* translators: %s doc link. */
+					'tooltip' => '<p>' . esc_html__( 'The memory limit of your site is below the recommended 256MB. While you can proceed, increasing the memory limit is advised for a seamless import experience.', 'astra-sites' ) . '</p>',
+				),
+				'max-execution-time'      => array(
+					'title'   => esc_html__( 'Low Max Execution Time', 'astra-sites' ),
+					'tooltip' => '<p>' . esc_html__( "Your server's max_execution_time is below the recommended 300 seconds. This may cause import timeouts. Please contact your hosting provider to increase it.", 'astra-sites' ) . '</p>',
+				),
+				'mysql-version'           => array(
+					'title'   => esc_html__( 'MySQL Version Too Old', 'astra-sites' ),
+					'tooltip' => '<p>' . esc_html__( 'Your MySQL version is below 5.7. Some templates require MySQL 5.7 or higher for full utf8mb4 collation support. Please upgrade your database server.', 'astra-sites' ) . '</p>',
 				),
 			);
 		}
@@ -2007,7 +2427,67 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 				$compatibilities['warnings']['flexbox-container'] = $data['flexbox-container'];
 			}
 
+			$memory_limit = $this->get_original_memory_limit();
+
+			// Convert memory limit to bytes for comparison.
+			$memory_limit_in_bytes = wp_convert_hr_to_bytes( $memory_limit );
+		
+			// 256MB in bytes.
+			$required_memory_limit = 256 * 1024 * 1024;
+
+			if ( $memory_limit_in_bytes < $required_memory_limit ) {
+				$compatibilities['warnings']['wp-memory-limit'] = $data['wp-memory-limit'];
+			}
+
+			$max_execution_time = (int) ini_get( 'max_execution_time' );
+			// 0 means unlimited — no warning needed.
+			if ( $max_execution_time > 0 && $max_execution_time < 300 ) {
+				$compatibilities['warnings']['max-execution-time'] = $data['max-execution-time'];
+			}
+
+			$mysql_version = get_transient( 'astra_sites_mysql_version' );
+			if ( false === $mysql_version ) {
+				global $wpdb;
+				$mysql_version = $wpdb->db_version();
+				set_transient( 'astra_sites_mysql_version', $mysql_version, WEEK_IN_SECONDS );
+			}
+			if ( version_compare( $mysql_version, '5.7', '<' ) ) {
+				$compatibilities['warnings']['mysql-version'] = $data['mysql-version'];
+			}
+
+			if ( ! current_user_can( 'install_plugins' ) ) {
+				$compatibilities['errors']['install-plugin-permission'] = $data['install-plugin-permission'];
+			}
+
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				$compatibilities['errors']['activate-plugin-permission'] = $data['activate-plugin-permission'];
+			}
+
 			return $compatibilities;
+		}
+
+
+		/**
+		 * Retrieves the original memory limit from the PHP configuration (php.ini) file.
+		 *
+		 * This is necessary because WordPress automatically increases the memory limit for admin requests,
+		 * so we need to fetch the original value from the PHP configuration file to check if it's sufficient.
+		 * 
+		 * @since 4.4.16
+		 */
+		public function get_original_memory_limit() {
+			// This will fetch the original memory_limit from the server (php.ini).
+			$memory_limit = false;
+			if ( function_exists( 'get_cfg_var' ) ) {
+				$memory_limit = get_cfg_var( 'memory_limit' );
+			}
+		
+			// If get_cfg_var() fails, try accessing PHP configuration directly.
+			if ( ! $memory_limit ) {
+				$memory_limit = ini_get( 'memory_limit' );
+			}
+		
+			return $memory_limit;
 		}
 
 		/**
@@ -2063,9 +2543,30 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 
 			$last_viewed_block_data = array();
 			// Retrieve the value of the 'blockID' parameter using filter_input().
-			$id = filter_input( INPUT_GET, 'blockID', FILTER_SANITIZE_STRING );
+			$id = filter_input( INPUT_GET, 'blockID', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			if ( ! empty( $id ) ) {
 				$last_viewed_block_data = get_option( 'astra_sites_import_elementor_data_' . $id ) !== false ? get_option( 'astra_sites_import_elementor_data_' . $id ) : array();
+			}
+
+			$all_blocks = $this->get_all_blocks();
+
+			// Collect category IDs that have at least one block.
+			$used_category_ids = array();
+			foreach ( $all_blocks as $block ) {
+				if ( ! empty( $block['category'] ) ) {
+					$used_category_ids[ (int) $block['category'] ] = true;
+				}
+			}
+
+			// Filter block categories to only include those with available blocks.
+			$all_categories      = Astra_Sites_File_System::get_instance()->get_json_file_content( 'astra-blocks-categories.json' );
+			$filtered_categories = array();
+			if ( is_array( $all_categories ) ) {
+				foreach ( $all_categories as $cat_id => $cat_data ) {
+					if ( isset( $cat_data['id'] ) && isset( $used_category_ids[ (int) $cat_data['id'] ] ) ) {
+						$filtered_categories[ $cat_id ] = $cat_data;
+					}
+				}
 			}
 
 			$data = apply_filters(
@@ -2078,7 +2579,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 					'page-builders'              => array(),
 					'categories'                 => array(),
 					'default_page_builder'       => 'elementor',
-					'astra_blocks'               => $this->get_all_blocks(),
+					'astra_blocks'               => $all_blocks,
 					'license_status'             => $license_status,
 					'ajaxurl'                    => esc_url( admin_url( 'admin-ajax.php' ) ),
 					'default_page_builder_sites' => Astra_Sites_Page::get_instance()->get_sites_by_page_builder( 'elementor' ),
@@ -2089,7 +2590,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 					'isWhiteLabeled'             => Astra_Sites_White_Label::get_instance()->is_white_labeled(),
 					'getProText'                 => __( 'Get Access!', 'astra-sites' ),
 					'getProURL'                  => esc_url( 'https://wpastra.com/starter-templates-plans/?utm_source=demo-import-panel&utm_campaign=astra-sites&utm_medium=wp-dashboard' ),
-					'astra_block_categories'     => Astra_Sites_File_System::get_instance()->get_json_file_content( 'astra-blocks-categories.json' ),
+					'astra_block_categories'     => $filtered_categories,
 					'siteURL'                    => site_url(),
 					'template'                   => esc_html__( 'Template', 'astra-sites' ),
 					'block'                      => esc_html__( 'Block', 'astra-sites' ),
@@ -2142,7 +2643,96 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 				}
 			}
 
-			return $sites_and_pages;
+			/**
+			 * Filter to modify all sites and pages data.
+			 *
+			 * @param array $sites_and_pages Array of all sites and pages.
+			 *
+			 * @since 4.4.43
+			 */
+			return apply_filters( 'astra_sites_get_all_sites', $sites_and_pages );
+		}
+
+		/**
+		 * Get priority templates configuration for category-based pinning.
+		 *
+		 * Scans all sites for templates that use SureCart (detected via required-plugins)
+		 * and belong to the ecommerce category. These template IDs are shipped to the
+		 * frontend so they can be pinned to the top of search results when the user
+		 * searches for ecommerce-related keywords.
+		 *
+		 * Gated by the {@see 'astra_sites_priority_templates_enabled'} filter (default true).
+		 *
+		 * @since 4.6.2
+		 * @return array {
+		 *     @type array $priorityTemplatesByCategory Category slug => array of template IDs.
+		 *     @type array $priorityCategoryKeywords    Category slug => array of trigger keywords.
+		 * }
+		 */
+		private function get_priority_templates_config() {
+			/**
+			 * Master switch for priority template pinning.
+			 *
+			 * @since 4.6.2
+			 * @param bool $enabled Whether priority pinning is enabled. Default true.
+			 */
+			$enabled = apply_filters( 'astra_sites_priority_templates_enabled', true );
+
+			if ( ! $enabled ) {
+				return array(
+					'priorityTemplatesByCategory' => array(),
+					'priorityCategoryKeywords'    => array(),
+				);
+			}
+
+			$all_sites    = $this->get_all_sites();
+			$priority_ids = array();
+
+			foreach ( $all_sites as $site_id => $site ) {
+				$required_plugins = isset( $site['required-plugins'] ) ? $site['required-plugins'] : array();
+				$plugin_slugs     = wp_list_pluck( $required_plugins, 'slug' );
+
+				if ( ! in_array( 'surecart', $plugin_slugs, true ) ) {
+					continue;
+				}
+
+				$categories = isset( $site['categories'] ) ? $site['categories'] : array();
+
+				if ( ! in_array( 'ecommerce', array_values( $categories ), true ) ) {
+					continue;
+				}
+
+				$priority_ids[] = str_replace( 'id-', '', $site_id );
+			}
+
+			$priority_by_category = array(
+				'ecommerce' => array_map( 'intval', $priority_ids ),
+			);
+
+			/**
+			 * Filter the priority templates map (category slug => template IDs).
+			 *
+			 * @since 4.6.2
+			 * @param array $priority_by_category Associative array of category slug to template ID arrays.
+			 */
+			$priority_by_category = apply_filters( 'astra_sites_priority_templates_by_category', $priority_by_category );
+
+			$keywords = array(
+				'ecommerce' => array( 'ecommerce', 'e-commerce', 'shop', 'store', 'online shopping', 'woocommerce', 'shopping' ),
+			);
+
+			/**
+			 * Filter the keywords that trigger priority pinning for each category.
+			 *
+			 * @since 4.6.2
+			 * @param array $keywords Associative array of category slug to keyword arrays.
+			 */
+			$keywords = apply_filters( 'astra_sites_priority_category_keywords', $keywords );
+
+			return array(
+				'priorityTemplatesByCategory' => $priority_by_category,
+				'priorityCategoryKeywords'    => $keywords,
+			);
 		}
 
 		/**
@@ -2190,7 +2780,6 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 			require_once ASTRA_SITES_DIR . 'inc/classes/compatibility/class-astra-sites-compatibility.php';
 
 			// classes 'inc/classes/class-astra-sites-'.
-			require_once ASTRA_SITES_DIR . 'inc/classes/class-astra-sites-update.php';
 			require_once ASTRA_SITES_DIR . 'inc/classes/class-astra-sites-utils.php';
 			require_once ASTRA_SITES_DIR . 'inc/classes/class-astra-sites-error-handler.php';
 			require_once ASTRA_SITES_DIR . 'inc/classes/class-astra-sites-white-label.php';
@@ -2201,6 +2790,11 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 			require_once ASTRA_SITES_DIR . 'inc/classes/class-astra-sites-wp-cli.php';
 			require_once ASTRA_SITES_DIR . 'inc/classes/class-astra-sites-file-system.php';
 			require_once ASTRA_SITES_DIR . 'inc/classes/class-astra-sites-nps-notice.php';
+			require_once ASTRA_SITES_DIR . 'inc/classes/class-astra-sites-analytics.php';
+			require_once ASTRA_SITES_DIR . 'inc/classes/class-astra-sites-update.php';
+
+			// Astra Onboarding Integration.
+			require_once ASTRA_SITES_DIR . 'inc/classes/class-astra-sites-astra-onboarding.php';
 
 			// libraries 'inc/lib/class-astra-sites-'.
 			require_once ASTRA_SITES_DIR . 'inc/lib/onboarding/class-onboarding.php';
@@ -2215,15 +2809,19 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 		 *
 		 * @since 2.0.0
 		 *
-		 * @param  string $plugin_init        Plugin Init File.
-		 * @param  array  $options            Site Options.
-		 * @param  array  $enabled_extensions Enabled Extensions.
+		 * @param  string               $plugin_init        Plugin Init File.
+		 * @param  array<string, mixed> $options            Site Options.
+		 * @param  array<string, mixed> $enabled_extensions Enabled Extensions.
+		 * @param  string               $plugin_slug        Plugin slug.
+		 * @param  bool                 $was_plugin_active  Flag indicating if the plugin was already active.
 		 * @return void
 		 */
-		public function after_plugin_activate( $plugin_init = '', $options = array(), $enabled_extensions = array() ) {
+		public function after_plugin_activate( $plugin_init = '', $options = array(), $enabled_extensions = array(), $plugin_slug = '', $was_plugin_active = false ) {
 			$data = array(
 				'astra_site_options' => $options,
 				'enabled_extensions' => $enabled_extensions,
+				'plugin_slug'        => $plugin_slug,
+				'was_plugin_active'  => $was_plugin_active,
 			);
 
 			do_action( 'astra_sites_after_plugin_activation', $plugin_init, $data );
@@ -2387,17 +2985,23 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 		}
 
 		/**
-		 * Get an instance of WP_Filesystem_Direct.
+		 * Get an instance of WP_Filesystem.
+		 *
+		 * Returns null when WP_Filesystem() fails to initialise (e.g. FTP method
+		 * selected without valid credentials), preventing fatal errors when callers
+		 * invoke filesystem methods on a partially initialised global.
 		 *
 		 * @since 2.0.0
-		 * @return mixed A WP_Filesystem_Direct instance.
+		 * @return \WP_Filesystem_Base|null Filesystem instance, or null on failure.
 		 */
 		public static function get_filesystem() {
 			global $wp_filesystem;
 
 			require_once ABSPATH . '/wp-admin/includes/file.php';
 
-			WP_Filesystem();
+			if ( ! WP_Filesystem() ) {
+				return null;
+			}
 
 			return $wp_filesystem;
 		}
@@ -2437,7 +3041,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 		 */
 		public function admin_welcome_notices() {
 			$first_import_status = get_option( 'astra_sites_import_complete', false );
-			Astra_Notices::add_notice(
+			BSF_Admin_Notices::add_notice(
 				array(
 					'id'      => 'astra-sites-welcome-notice',
 					'type'    => 'notice',
@@ -2454,7 +3058,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 								<h1 class="text-heading">' . __( 'Build Your Dream Site in Minutes With AI', 'astra-sites' ) . '</h1>
 								<p>' . __( 'Say goodbye to the days of spending weeks designing and building your website.<br/> You can now create professional-grade websites in minutes.', 'astra-sites' ) . '</p>
 								<div class="button-section">
-									<a href="' . home_url() . '/wp-admin/themes.php?page=starter-templates" class="text-button">' . __( 'Let’s Get Started', 'astra-sites' ) . '</a>
+									<a href="' . esc_url( self::get_starter_templates_url() ) . '" class="text-button">' . __( 'Let’s Get Started', 'astra-sites' ) . '</a>
 									<a href="javascript:void(0);" class="scratch-link astra-notice-close">' . __( 'I want to build this website from scratch', 'astra-sites' ) . '</a>
 								</div>
 							</div>
@@ -2463,6 +3067,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 							</div>
 						</div>'
 					),
+					'display-with-other-notices' => false,
 				)
 			);
 		}
@@ -2506,7 +3111,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 			$query = array();
 
 			if ( isset( $parts['query'] ) ) {
-				parse_str( $parts['query'], $query );
+				$query = wp_parse_args( $parts['query'] );
 			}
 
 			foreach ( $params as $param ) {
@@ -2528,6 +3133,387 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 			$parts['port']   = isset( $parts['port'] ) ? ':' . $parts['port'] : '';
 
 			return $parts['scheme'] . '://' . $parts['host'] . $parts['port'] . $parts['path'] . $query;
+		}
+
+		/**
+		 * Block HTTP requests for Elementor placeholder images during import
+		 *
+		 * @since 1.0.14
+		 * @param false|array|WP_Error $preempt A preemptive return value of an HTTP request.
+		 * @param array                $args    HTTP request arguments.
+		 * @param string               $url     The request URL.
+		 * @return false|array|WP_Error
+		 */
+		public function block_elementor_placeholder_requests( $preempt, $args, $url ) {
+			
+			// Only block during import processes.
+			if ( ! $this->is_import_process_active() ) {
+				return $preempt;
+			}
+
+			// Check if this is a request for an Elementor placeholder image.
+			if ( $this->is_elementor_placeholder_url( $url ) ) {
+				astra_sites_error_log( 'Blocking Elementor placeholder image request during import: ' . $url );
+				
+				// Return a WP_Error to prevent the download and import.
+				return new WP_Error( 
+					'blocked_placeholder', 
+					'Elementor placeholder image blocked from import',
+					array( 'url' => $url )
+				);
+			}
+
+			// Allow other requests to proceed normally.
+			return $preempt;
+		}
+
+		/**
+		 * Check if import process is currently active
+		 *
+		 * @since 1.0.14
+		 * @return bool True if import is active.
+		 */
+		private function is_import_process_active() {
+
+			// Check if visible import is complete but batch processing is not yet complete.
+			$import_complete        = get_option( 'astra_sites_import_complete', 'no' );
+			$batch_process_started  = get_option( 'astra_sites_batch_process_started', 'no' );
+			$batch_process_complete = get_option( 'astra_sites_batch_process_complete', 'no' );
+
+			// Hook should be active when:
+			// 1. Import is complete (visible import finished)
+			// 2. Batch process has started
+			// 3. Batch process is not yet complete.
+			if ( 'yes' === $import_complete && 'yes' === $batch_process_started && 'yes' !== $batch_process_complete ) {
+				// Safety: treat as inactive if batch flags are stale.
+				// No timestamp = flag predates the timestamp feature, guaranteed stale.
+				// Timestamp older than 6 hours = failed/interrupted import.
+				$started_time = (int) get_option( 'astra_sites_batch_process_started_time', 0 );
+				if ( 0 === $started_time || ( time() - $started_time ) > 6 * HOUR_IN_SECONDS ) {
+					delete_option( 'astra_sites_batch_process_started' );
+					delete_option( 'astra_sites_batch_process_started_time' );
+					return false;
+				}
+				return true;
+			}
+
+			return false;
+		}
+
+		/**
+		 * Check if URL is an Elementor placeholder image
+		 *
+		 * @since 1.0.14
+		 * @param string $url Image URL to check.
+		 * @return bool True if it's a placeholder image.
+		 */
+		private function is_elementor_placeholder_url( $url ) {
+			
+			if ( empty( $url ) ) {
+				return false;
+			}
+
+			// Check for Elementor placeholder patterns.
+			$placeholder_patterns = array(
+				'/elementor/assets/images/placeholder.png',
+				'/elementor/assets/images/placeholder.jpg',
+				'/elementor/assets/images/placeholder.jpeg',
+				'/elementor/assets/images/placeholder.gif',
+				'/elementor/assets/images/placeholder.svg',
+			);
+
+			foreach ( $placeholder_patterns as $pattern ) {
+				if ( strpos( $url, $pattern ) !== false ) {
+					return true;
+				}
+			}
+
+			// Check for generic placeholder in Elementor context.
+			if ( strpos( $url, 'placeholder' ) !== false && strpos( $url, 'elementor' ) !== false ) {
+				return true;
+			}
+
+			return false;
+		}
+
+		/**
+		 * Maybe Setup Wizard Showing
+		 *
+		 * @param  bool $showing Whether the wizard is showing.
+		 * @since 4.4.28
+		 *
+		 * @return bool
+		 */
+		public function maybe_setup_wizard_showing( $showing = false ) {
+			if ( $showing && 'yes' === get_option( 'astra_sites_import_complete', false ) ) {
+				return true;
+			}
+
+			return $showing;
+		}
+
+		/**
+		 * Get the logo URL for Finish Setup page.
+		 *
+		 * @since 4.4.31
+		 *
+		 * @return string
+		 */
+		public function starter_templates_logo_url() {
+			return ASTRA_SITES_URI . 'inc/lib/onboarding/assets/images/logo.svg';
+		}
+
+		/**
+		 * Check if sync is in progress.
+		 *
+		 * @since 4.4.33
+		 *
+		 * @return bool
+		 */
+		public static function is_sync_in_progress() {
+			// Early return if sync is explicitly marked in-progress.
+			if ( 'in-process' === get_site_option( 'astra-sites-batch-status', '' ) ) {
+				return true;
+			}
+
+			// If either batch or manual sync is completed, no sync in progress.
+			if (
+				'yes' === get_site_option( 'astra-sites-batch-is-complete', 'no' ) ||
+				'yes' === get_site_option( 'astra-sites-manual-sync-complete', 'no' )
+			) {
+				return false;
+			}
+
+			// If current page is set, assume sync is in progress.
+			return (bool) get_site_option( 'astra-sites-current-page' );
+		}
+
+		/**
+		 * Check if AI Builder step should be shown.
+		 *
+		 * @since 4.4.36
+		 * @return bool True if AI Builder step should be shown, false otherwise.
+		 */
+		public static function should_show_ai_builder() {
+			/**
+			 * Filter to show/hide AI Builder step.
+			 *
+			 * @since 4.4.36
+			 * @param bool $show_ai_builder Whether to show the AI Builder step. Default true.
+			 * @return bool
+			 */
+			return apply_filters( 'astra_sites_show_ai_builder', true );
+		}
+
+		/**
+		 * Get custom template data for Custom Templates step.
+		 *
+		 * @since 4.4.43
+		 * @return array Custom template data.
+		 */
+		public static function get_custom_template_data() {
+			/**
+			 * Filter to provide custom template data for Custom Templates step.
+			 *
+			 * @param array $custom_templates Array of custom template data.
+			 *
+			 * @since 4.4.43
+			 * @param array $custom_templates Array of custom template data.
+			 */
+			return apply_filters( 'astra_sites_show_custom_templates', array() );
+		}
+
+		/**
+		 * Determine the appropriate current index (ci) parameter based on page builder flags.
+		 *
+		 * Mirrors the step-skipping logic used in the site-type/index.js (JavaScript).
+		 *
+		 * @since 4.4.36
+		 * @return int The calculated ci value for the stepper.
+		 */
+		public static function get_onboarding_page_index() {
+			// Show AI Builder step if enabled.
+			if ( self::should_show_ai_builder() ) {
+				return 0; // Site Type Step.
+			}
+
+			// Check if builders are disabled.
+			$is_beaver_builder_disabled = get_option( 'st-beaver-builder-flag' ) || ! Intelligent_Starter_Templates_Loader::is_legacy_beaver_builder_enabled();
+			$is_elementor_disabled      = get_option( 'st-elementor-builder-flag' );
+
+			// Skip to templates if both builders are also disabled.
+			if ( $is_beaver_builder_disabled && $is_elementor_disabled ) {
+				return 2; // Skip to template list.
+			}
+
+			// Skip to the page builder selection.
+			return 1;
+		}
+
+		/**
+		 * Get starter templates URL with appropriate current index (ci) parameter
+		 *
+		 * @since 4.4.36
+		 * @return string The URL with appropriate ci parameter
+		 */
+		public static function get_starter_templates_url() {
+			$base_url = admin_url( 'themes.php?page=starter-templates' );
+			$ci       = self::get_onboarding_page_index();
+			if ( 0 === $ci ) {
+				return $base_url;
+			}
+
+			return add_query_arg( 'ci', $ci, $base_url );
+		}
+
+		/**
+		 * Enqueue admin menu URL updater script.
+		 *
+		 * @since 4.4.36
+		 *
+		 * @param string $hook Current hook name.
+		 * @return void
+		 */
+		public function enqueue_menu_url_updater( $hook = '' ) {
+			// Bail if not in admin area.
+			if ( ! is_admin() ) {
+				return;
+			}
+
+			// Bail if user lacks admin privileges.
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return;
+			}
+
+			// Bail if in customizer preview mode.
+			if ( is_customize_preview() ) {
+				return;
+			}
+
+			// Bail if handling AJAX request.
+			if ( wp_doing_ajax() ) {
+				return;
+			}
+
+			$dynamic_url = self::get_starter_templates_url();
+
+			// Bail if ci parameter is not present.
+			if ( strpos( $dynamic_url, 'ci=' ) === false ) {
+				return;
+			}
+
+			$script = <<<JS
+				// Safely update starter templates menu link after page load.
+				window.addEventListener( 'load', function() {
+					// Locate the starter templates menu item.
+					const menuItem = document.querySelector( '.wp-submenu a[href*="themes.php?page=starter-templates"]' );
+
+					// Verify element exists before modifying.
+					if ( menuItem ) {
+						menuItem.href = "$dynamic_url";
+					}
+				} );
+JS;
+
+			wp_add_inline_script( 'common', $script );
+		}
+
+		/**
+		 * Check if Spectra Legacy (UAG) plugin is installed.
+		 *
+		 * @since 4.6.3
+		 *
+		 * @return bool
+		 */
+		public static function is_spectra_legacy_installed() {
+			$plugin_file = 'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php';
+
+			if ( is_plugin_active( $plugin_file ) ) {
+				return true;
+			}
+
+			if ( ! function_exists( 'get_plugins' ) ) {
+				if ( ! defined( 'ABSPATH' ) ) {
+					return false;
+				}
+				require_once ABSPATH . '/wp-admin/includes/plugin.php';
+			}
+
+			$all_plugins = get_plugins();
+			return isset( $all_plugins[ $plugin_file ] );
+		}
+
+		/**
+		 * Should display Spectra Blocks version selector
+		 *
+		 * Display the selector when Spectra Legacy (UAG) is installed, regardless of
+		 * whether Spectra Blocks is also installed. Hide the selector when only
+		 * Spectra Blocks is installed or when neither plugin is installed.
+		 *
+		 * @since 4.4.41
+		 *
+		 * @return bool
+		 */
+		public static function should_display_spectra_blocks_version_selector() {
+			// Show selector only when spectra legacy is installed.
+			$flag = self::is_spectra_legacy_installed();
+
+			/**
+			 * Filter to modify the display of Spectra Blocks version selector.
+			 *
+			 * @param bool $flag Whether to display the version selector.
+			 *
+			 * @since 4.4.41
+			 */
+			return apply_filters( 'astra_sites_display_spectra_blocks_version_selector', $flag );
+		}
+
+		/**
+		 * Get Spectra Blocks Version
+		 *
+		 * Always returns 'v3'. The version selector (shown when Spectra Legacy is
+		 * installed) lets the user switch to v2 at runtime via the store.
+		 *
+		 * @since 4.4.41
+		 *
+		 * @return string 'v3'.
+		 */
+		public static function get_spectra_blocks_version() {
+			/**
+			 * Filter the Spectra Blocks version.
+			 *
+			 * @param string $version The Spectra Blocks version. Default 'v3'.
+			 *
+			 * @since 4.6.3
+			 */
+			return apply_filters( 'astra_sites_spectra_blocks_version', 'v3' );
+		}
+
+		/**
+		 * Get spectra blocks version for API requests.
+		 *
+		 * @since 4.4.41
+		 * @return string
+		 */
+		public static function get_rest_spectra_blocks_version() {
+			// Get spectra blocks version.
+			if ( self::should_display_spectra_blocks_version_selector() ) {
+				return 'v2,v3';
+			}
+ 
+			return self::get_spectra_blocks_version();
+		}
+
+		/**
+		 * Enable force sync
+		 *
+		 * Sets the site option to force sync templates.
+		 *
+		 * @since 4.4.44
+		 * @return void
+		 */
+		public static function enable_force_sync() {
+			update_site_option( 'astra-sites-force-sync', 'yes' );
 		}
 	}
 

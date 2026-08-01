@@ -2,7 +2,7 @@
 
 namespace PrestoPlayer\Contracts;
 
-interface Service
-{
-    public function register();
+interface Service {
+
+	public function register();
 }

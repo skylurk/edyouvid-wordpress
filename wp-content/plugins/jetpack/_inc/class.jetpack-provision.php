@@ -46,14 +46,14 @@ class Jetpack_Provision {
 		// If Jetpack is currently connected, and is not in Safe Mode already, kick off a sync of the current
 		// functions/callables so that we can test if this site is in IDC.
 		if ( Jetpack::is_connection_ready() && ! Identity_Crisis::validate_sync_error_idc_option() && Actions::sync_allowed() ) {
-			Actions::do_full_sync( array( 'functions' => true ) );
+			Actions::do_full_sync( array( 'functions' => true ), 'provision' );
 			Actions::$sender->do_full_sync();
 		}
 
 		if ( Identity_Crisis::validate_sync_error_idc_option() ) {
 			return new WP_Error(
 				'site_in_safe_mode',
-				__( 'Can not provision a plan while in safe mode. See: https://jetpack.com/support/safe-mode/', 'jetpack' )
+				__( 'Cannot provision a plan while in safe mode. See: https://jetpack.com/support/safe-mode/', 'jetpack' )
 			);
 		}
 
@@ -135,16 +135,8 @@ class Jetpack_Provision {
 			$request_body['plan'] = $named_args['plan'];
 		}
 
-		if ( isset( $named_args['onboarding'] ) && ! empty( $named_args['onboarding'] ) ) {
-			$request_body['onboarding'] = (int) $named_args['onboarding'];
-		}
-
 		if ( isset( $named_args['force_connect'] ) && ! empty( $named_args['force_connect'] ) ) {
 			$request_body['force_connect'] = (int) $named_args['force_connect'];
-		}
-
-		if ( isset( $request_body['onboarding'] ) && (bool) $request_body['onboarding'] ) {
-			Jetpack::create_onboarding_token();
 		}
 
 		return $request_body;
@@ -178,7 +170,7 @@ class Jetpack_Provision {
 			),
 			'timeout' => 60,
 			'method'  => 'POST',
-			'body'    => wp_json_encode( $request_body ),
+			'body'    => wp_json_encode( $request_body, JSON_UNESCAPED_SLASHES ),
 		);
 
 		$blog_id = Jetpack_Options::get_option( 'id' );
@@ -199,6 +191,7 @@ class Jetpack_Provision {
 			$url = add_query_arg( array( 'calypso_env' => $calypso_env ), $url );
 		}
 
+		// @phan-suppress-next-line PhanAccessMethodInternal -- Phan is correct, but the usage is intentional.
 		$result = Client::_wp_remote_request( $url, $request );
 
 		if ( is_wp_error( $result ) ) {
@@ -267,7 +260,7 @@ class Jetpack_Provision {
 	 *
 	 * @param string $access_token Access token.
 	 *
-	 * @return array|\Automattic\Jetpack\Connection\WP_Error|bool|WP_Error
+	 * @return array|bool|WP_Error
 	 */
 	private static function verify_token( $access_token ) {
 		$request = array(
@@ -280,7 +273,8 @@ class Jetpack_Provision {
 			'body'    => '',
 		);
 
-		$url    = sprintf( '%s/rest/v1.3/jpphp/partner-keys/verify', self::get_api_host() );
+		$url = sprintf( '%s/rest/v1.3/jpphp/partner-keys/verify', self::get_api_host() );
+		// @phan-suppress-next-line PhanAccessMethodInternal -- Phan is correct, but the usage is intentional.
 		$result = Client::_wp_remote_request( $url, $request );
 
 		if ( is_wp_error( $result ) ) {

@@ -664,13 +664,14 @@ if (!class_exists('Wt_Import_Export_For_Woo_User_Admin_Basic')) {
 			// List of classes to preserve
 			$preserve_classes = array(
 				'product_import_export_review_request',
-				'order_import_export_review_request', 
+				'order_import_export_review_request',
 				'user_import_export_review_request',
 				'woocommerce',
 				'wt_bfcm_twenty_twenty_five', // Preserve BFCM 2025 banner
+				'wbte_iew_history_banner', // History tab IES cross-promotion banner .
 			);
-	
-			foreach ( $notices_types as $type ) { 
+
+			foreach ( $notices_types as $type ) {
 				// Check if there are callbacks for this notice type.
 				if ( empty( $wp_filter[ $type ]->callbacks ) || ! is_array( $wp_filter[ $type ]->callbacks ) ) {
 					continue;

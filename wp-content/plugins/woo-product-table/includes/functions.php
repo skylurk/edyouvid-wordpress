@@ -19,7 +19,7 @@ if( ! function_exists('dd') ){
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0];
         $file = $backtrace['file'] ?? 'Unknown file';
         $line = $backtrace['line'] ?? 'Unknown line';
-        echo '<div style="background: #e1e1e1;border-left: 3px solid #888;padding: 15px;margin: 15px 0;margin-left: 170px;font-family: monospace;border-radius: 6px;overflow-x: auto;">';
+        echo '<div style="background: #e1e1e1;border-left: 3px solid #888;padding: 15px;margin: 15px 0;margin-left: 7px;font-family: monospace;border-radius: 6px;overflow-x: auto;">';
         echo '<div style="margin-bottom: 10px;color: #3F51B5;">';
         echo "🛠️ <strong>File:</strong> <span style='color:#8d8d8d;'>$file</span> on line <span style='color:#4b4b4b;'>$line</span>";
         echo '</div>';
@@ -53,6 +53,7 @@ function wpt_is_premium(){
  */
 function wpt_is_premium_installed(){
     if( defined( 'WPT_PRO_DEV_VERSION' ) ) return true;
+    return false;
 }
 
 /**
@@ -78,10 +79,10 @@ if( !function_exists( 'wpt_column_setting_for_tax_cf' ) ){
      * That Filter are situated in two place. In main function and another in shortcode_row_generator function.
      * To identity Old ShortCode system, such: cf_ [prefix] and tax_ [prefix] of custom field and taxonomy column
      * 
-     * @param type $column_settings
-     * @param type $table_ID
-     * @param type $enabled_column_array
-     * @return Array $column_settings Array, which is most important for Each Column and Items.
+     * @param array $column_settings
+     * @param int $table_ID
+     * @param array $enabled_column_array
+     * @return array $column_settings Array, which is most important for Each Column and Items.
      */
     function wpt_column_setting_for_tax_cf( $column_settings, $table_ID, $enabled_column_array ){
 
@@ -107,25 +108,37 @@ add_filter( 'wpto_column_settings', 'wpt_column_setting_for_tax_cf', 10, 3 );
 
 if( ! function_exists( 'wpt_detect_current_device' ) ){
 
-    function wpt_detect_current_device(){
-
-        $device = 'desktop';
-        $mobile_detect = new Mobile_Detect();
-        $is_tablet = $mobile_detect->isTablet();
-        $is_mobile = $mobile_detect->isMobile();
-        if( $is_tablet ){
-            $device = 'tablet';
-        }elseif( $is_mobile ){
-            $device = 'mobile';
-        }elseif( $is_tablet && !$is_mobile ){
-            $device = 'mobile';
+    function wpt_detect_current_device() {
+        static $device = null;
+        
+        if ( null !== $device ) {
+            return $device;
         }
-
+        
+        $detect = new Mobile_Detect();
+        if ( $detect->isTablet() ) {
+            $device = 'tablet';
+        } elseif ( $detect->isMobile() ) {
+            $device = 'mobile';
+        } else {
+            $device = 'desktop';
+        }
+        
         return $device;
     }
 }
 if( ! function_exists( 'wpt_extra_variation_title' ) ){
 
+    /**
+     * Add Extra Variation Title
+     * using Following Filter:
+     * apply_filters( 'wpto_variation_title_extra', $variation_title_extra, $product_type, $data );
+     * 
+     * @since 7.0.25
+     * @param string $product_type
+     * @param array $data
+     * @return string
+     */
     function wpt_extra_variation_title($product_type, $data){
         if( $product_type !== 'variation' ) return;
 
@@ -171,7 +184,7 @@ if( ! function_exists( 'wpt_enabled_column_array' ) ){
      * Actually based on detected device, foudedd column setting and 
      * getting final column settings
      * 
-     * @param int $ID/$table_ID Description
+     * @param int $table_ID Description
      * 
      * @return array
      */
@@ -195,9 +208,9 @@ if( ! function_exists( 'wpt_device_wise_class' ) ){
      * using Following Filter:
      * apply_filters( 'wpto_wrapper_tag_class_arr', $wrapper_class_arr, $table_ID, $args, $column_settings, $enabled_column_array, $column_array );
      * 
-     * @since 6.0.28
-     * @param type $enabled_column_array
-     * @return Array
+     * @since 2.7.0.36
+     * @param array $wrapper_class_arr
+     * @return array
      */
     function wpt_device_wise_class( $wrapper_class_arr ){
 
@@ -208,9 +221,9 @@ if( ! function_exists( 'wpt_device_wise_class' ) ){
    }
 }
 /**
- * Availabvle Variable in this Filters is:
+ * Available Variable in this Filters is:
  * $enabled_column_array, $table_ID, $atts, $column_settings, $column_array
- * Perpose is: Change/Edit/Customize to Enabled Column Array
+ * Purpose is: Change/Edit/Customize to Enabled Column Array
  */
 add_filter( 'wpto_wrapper_tag_class_arr', 'wpt_device_wise_class');
 add_filter( 'body_class', 'wpt_device_wise_class' );
@@ -222,9 +235,11 @@ if( ! function_exists( 'wpt_table_td_class' ) ){
      * using Following Filter:
      * apply_filters( 'wpto_td_class_arr', $td_class_arr, $keyword, $table_ID, $args, $column_settings, $table_column_keywords, $product )
      * 
-     * @since 7.0.25
-     * @param type $td_class_arr
-     * @return Array
+     * @since 2.7.0.36
+     * @param array $td_class_arr Array of TD class, which will apply in TD tag of each column
+     * @param string $keyword Column Keyword, such as: price, stock, etc. based on keyword, you can add class for specific column. and also you can use $column_settings and $table_ID for getting more information about column and table.
+     * @param int $table_ID Table ID
+     * @return array
      */
     function wpt_table_td_class( $td_class_arr, $keyword, $table_ID ){
 
@@ -256,9 +271,11 @@ if( ! function_exists( 'wpt_checkbox_validation' ) ){
      * using Following Filter:
      * $checkbox_validation = apply_filters( 'wpto_checkbox_validation', false, $enabled_column_array,$column_settings, $table_ID, $atts );
      * 
-     * @since 6.0.28
-     * @param type $enabled_column_array
-     * @return Array
+     * @since 2.8.5.3
+     * @param bool $bool This is default value, which is false. if you want to enable checkbox column, then you have to return true. otherwise, it will be false and checkbox column will be disable.
+     * @param array $enabled_column_array
+     * @param array $column_settings
+     * @return bool
      */
     function wpt_checkbox_validation( $bool, $enabled_column_array,$column_settings ){
 
@@ -277,9 +294,19 @@ add_filter( 'wpto_checkbox_validation', 'wpt_checkbox_validation', 10, 3);
 
 if( ! function_exists( 'wpt_product_title_column_add' ) ){
     
+    /**
+     * Add Extra Option in Product Title Column
+     * using Following Action:
+     * do_action( 'wpto_column_setting_form_product_title', $_device_name, $column_settings );
+     * 
+     * @since 3.2.0
+     * @param string $_device_name Detected Device Name, such as: desktop, mobile, tablet. based on this device name, you can add device wise option for title column.
+     * @param array $column_settings Column settings of product title column. you can use this setting for adding condition and also for getting current setting value.
+     * @return void
+     */
     function wpt_product_title_column_add( $_device_name, $column_settings ){
         
-        $title_variation = isset( $column_settings['title_variation']) ? $column_settings['title_variation'] : false;
+        $title_variation = isset( $column_settings['title_variation']) ? $column_settings['title_variation'] : 'link';
 
         
         $variation_in_title =  $column_settings['product_title']['variation_in_title'] ?? '';
@@ -298,8 +325,8 @@ if( ! function_exists( 'wpt_product_title_column_add' ) ){
         <div class="title_variation">
             <label for="link<?php echo esc_attr( $_device_name ); ?>"><input type="radio" id="link<?php echo esc_attr( $_device_name ); ?>" name="column_settings<?php echo esc_attr( $_device_name ); ?>[title_variation]" value="link" <?php echo !$title_variation || $title_variation == 'link' ? 'checked' : ''; ?>> <?php echo esc_html__( 'Link Enable', 'woo-product-table' ); ?></label>
             <label for="nolink<?php echo esc_attr( $_device_name ); ?>"><input type="radio" id="nolink<?php echo esc_attr( $_device_name ); ?>" name="column_settings<?php echo esc_attr( $_device_name ); ?>[title_variation]" value="nolink" <?php echo $title_variation == 'nolink' ? 'checked' : ''; ?>> <?php echo esc_html__( 'Link Disable', 'woo-product-table' ); ?></label>
-            <label for="ca_quick_view<?php echo esc_attr( $_device_name ); ?>" class="tooltip"><input type="radio" id="ca_quick_view<?php echo esc_attr( $_device_name ); ?>" name="column_settings<?php echo esc_attr( $_device_name ); ?>[title_variation]" value="ca_quick_view" <?php echo $title_variation == 'ca_quick_view' ? 'checked' : ''; ?>> <?php echo esc_html__( 'Link Disable + Quick View', 'woo-product-table' ); ?><span class="tooltip-hover down-arrow"><?php echo esc_html__( 'You have to install', 'woo-product-table' ); ?> <a href="https://wordpress.org/plugins/ca-quick-view/" target="_blank"><?php echo esc_html__( 'Quick View by Code Astrology', 'woo-product-table' ); ?></a></span></label>
-            <label for="yith<?php echo esc_attr( $_device_name ); ?>" style="opacity:0.4" class="tooltip"><input type="radio" id="yith<?php echo esc_attr( $_device_name ); ?>" name="column_settings<?php echo esc_attr( $_device_name ); ?>[title_variation]" value="yith" <?php echo $title_variation == 'yith' ? 'checked' : ''; ?>> <?php echo esc_html__( 'Link Disable + Quick View', 'woo-product-table' ); ?><span class="tooltip-hover down-arrow"><?php echo esc_html__( 'You have to install', 'woo-product-table' ); ?> <a href="https://wordpress.org/plugins/yith-woocommerce-quick-view/" target="_blank"><?php echo esc_html__( 'YITH WooCommerce Quick View', 'woo-product-table' ); ?></a></span></label>
+            <label for="ca_quick_view<?php echo esc_attr( $_device_name ); ?>" class="tooltip"><input type="radio" id="ca_quick_view<?php echo esc_attr( $_device_name ); ?>" name="column_settings<?php echo esc_attr( $_device_name ); ?>[title_variation]" value="ca_quick_view" <?php echo $title_variation == 'ca_quick_view' ? 'checked' : ''; ?>> <?php echo esc_html__( 'Quick View - BizzView', 'woo-product-table' ); ?><span class="tooltip-hover down-arrow"><?php echo esc_html__( 'You have to install', 'woo-product-table' ); ?> <a href="https://wordpress.org/plugins/ca-quick-view/" target="_blank"><?php echo esc_html__( 'BizzView - Quick View', 'woo-product-table' ); ?></a></span></label>
+            <label for="yith<?php echo esc_attr( $_device_name ); ?>" style="opacity:0.041" class="tooltip"><input type="radio" id="yith<?php echo esc_attr( $_device_name ); ?>" name="column_settings<?php echo esc_attr( $_device_name ); ?>[title_variation]" value="yith" <?php echo $title_variation == 'yith' ? 'checked' : ''; ?>> <?php echo esc_html__( 'Link Disable + Quick View', 'woo-product-table' ); ?><span class="tooltip-hover down-arrow"><?php echo esc_html__( 'You have to install', 'woo-product-table' ); ?> <a href="https://wordpress.org/plugins/yith-woocommerce-quick-view/" target="_blank"><?php echo esc_html__( 'YITH WooCommerce Quick View', 'woo-product-table' ); ?></a></span></label>
         </div>        
 
        <?php
@@ -310,9 +337,19 @@ add_action( 'wpto_column_setting_form_product_title', 'wpt_product_title_column_
 
 if( ! function_exists( 'wpt_thumbnails_column_add' ) ){
     
+    /**
+     * Add Extra Option in Thumbnails Column
+     * using Following Action:
+     * do_action( 'wpto_column_setting_form_thumbnails', $_device_name, $column_settings );
+     * 
+     * @since 3.1.2.3
+     * @param string $_device_name Detected Device Name, such as: desktop, mobile, tablet. based on this device name, you can add device wise option for thumbnail column.
+     * @param array $column_settings Column settings of thumbnail column. you can use this setting for adding condition and also for getting current setting value.
+     * @return void
+     */
     function wpt_thumbnails_column_add( $_device_name, $column_settings ){
 
-        $thumb_variation = isset( $column_settings['thumb_variation']) ? $column_settings['thumb_variation'] : false;
+        $thumb_variation = isset( $column_settings['thumb_variation']) ? $column_settings['thumb_variation'] : 'ca_quick_view';
         $img_url = WPT_BASE_URL . 'assets/images/pro-features/';
        ?>
         <?php if( ! wpt_is_pro() ){ ?>
@@ -325,12 +362,12 @@ if( ! function_exists( 'wpt_thumbnails_column_add' ) ){
             
         <?php }?>
         <div class="thumb_variation">
-            <label for="popup<?php echo esc_attr( $_device_name ); ?>"><input type="radio" id="popup<?php echo esc_attr( $_device_name ); ?>" name="column_settings<?php echo esc_attr( $_device_name ); ?>[thumb_variation]" value="popup" <?php echo !$thumb_variation || $thumb_variation == 'popup' ? 'checked' : ''; ?>> <?php echo esc_html__( 'Default Popup', 'woo-product-table' ); ?></label>
+            <label for="popup<?php echo esc_attr( $_device_name ); ?>"><input type="radio" id="popup<?php echo esc_attr( $_device_name ); ?>" name="column_settings<?php echo esc_attr( $_device_name ); ?>[thumb_variation]" value="popup" <?php echo !$thumb_variation || $thumb_variation == 'popup' ? 'checked' : ''; ?>> <?php echo esc_html__( 'Thumbs Popup', 'woo-product-table' ); ?></label>
             <label for="no_action<?php echo esc_attr( $_device_name ); ?>"><input type="radio" id="no_action<?php echo esc_attr( $_device_name ); ?>" name="column_settings<?php echo esc_attr( $_device_name ); ?>[thumb_variation]" value="no_action" <?php echo $thumb_variation == 'no_action' ? 'checked' : ''; ?>> <?php echo esc_html__( 'No Action', 'woo-product-table' ); ?></label>
             <label for="url<?php echo esc_attr( $_device_name ); ?>"><input type="radio" id="url<?php echo esc_attr( $_device_name ); ?>" name="column_settings<?php echo esc_attr( $_device_name ); ?>[thumb_variation]" value="url" <?php echo $thumb_variation == 'url' ? 'checked' : ''; ?>> <?php echo esc_html__( 'Product Link', 'woo-product-table' ); ?></label>
             
-            <label for="ca_quick_view_thumb<?php echo esc_attr( $_device_name ); ?>" class="tooltip"><input type="radio" id="ca_quick_view_thumb<?php echo esc_attr( $_device_name ); ?>" name="column_settings<?php echo esc_attr( $_device_name ); ?>[thumb_variation]" value="ca_quick_view" <?php echo $thumb_variation == 'ca_quick_view' ? 'checked' : ''; ?>> <?php echo esc_html__( 'Quick View', 'woo-product-table' ); ?><span class="tooltip-hover down-arrow"><?php echo esc_html__( 'You have to install', 'woo-product-table' ); ?> <a href="https://wordpress.org/plugins/ca-quick-view/" target="_blank"><?php echo esc_html__( 'YITH WooCommerce Quick View', 'woo-product-table' ); ?></a></span></label>
-            <label for="quick_view<?php echo esc_attr( $_device_name ); ?>" style="opacity:0.3;" class="tooltip"><input type="radio" id="quick_view<?php echo esc_attr( $_device_name ); ?>" name="column_settings<?php echo esc_attr( $_device_name ); ?>[thumb_variation]" value="quick_view" <?php echo $thumb_variation == 'quick_view' ? 'checked' : ''; ?>> <?php echo esc_html__( 'Quick View', 'woo-product-table' ); ?><span class="tooltip-hover down-arrow"><?php echo esc_html__( 'You have to install', 'woo-product-table' ); ?> <a href="https://wordpress.org/plugins/yith-woocommerce-quick-view/" target="_blank"><?php echo esc_html__( 'YITH WooCommerce Quick View', 'woo-product-table' ); ?></a></span></label>
+            <label for="ca_quick_view_thumb<?php echo esc_attr( $_device_name ); ?>" class="tooltip"><input type="radio" id="ca_quick_view_thumb<?php echo esc_attr( $_device_name ); ?>" name="column_settings<?php echo esc_attr( $_device_name ); ?>[thumb_variation]" value="ca_quick_view" <?php echo $thumb_variation == 'ca_quick_view' ? 'checked' : ''; ?>> <?php echo esc_html__( 'Quick View - BizzView', 'woo-product-table' ); ?><span class="tooltip-hover down-arrow"><?php echo esc_html__( 'You have to install', 'woo-product-table' ); ?> <a href="https://wordpress.org/plugins/ca-quick-view/" target="_blank"><?php echo esc_html__( 'BizzView - Quick View', 'woo-product-table' ); ?></a></span></label>
+            <label for="quick_view<?php echo esc_attr( $_device_name ); ?>" style="opacity:0.041;" class="tooltip"><input type="radio" id="quick_view<?php echo esc_attr( $_device_name ); ?>" name="column_settings<?php echo esc_attr( $_device_name ); ?>[thumb_variation]" value="quick_view" <?php echo $thumb_variation == 'quick_view' ? 'checked' : ''; ?>> <?php echo esc_html__( 'Quick View', 'woo-product-table' ); ?><span class="tooltip-hover down-arrow"><?php echo esc_html__( 'You have to install', 'woo-product-table' ); ?> <a href="https://wordpress.org/plugins/yith-woocommerce-quick-view/" target="_blank"><?php echo esc_html__( 'YITH WooCommerce Quick View', 'woo-product-table' ); ?></a></span></label>
         </div>
         
        <?php
@@ -485,6 +522,15 @@ add_action( 'wpto_column_setting_form', 'wpt_column_add_extra_items', 10, 7 );
 
 if( ! function_exists( 'wpt_add_extra_inside_items' ) ){
 
+    /**
+     * Add Extra Inside Items
+     * using Following Filter:
+     * apply_filters( 'wpto_inside_item_arr', $columns_array, $keyword, $column_settings, $post );
+     * 
+     * @since 3.1.5.1
+     * @param array $columns_array Array of columns, which is most important for Each Column and Items. based on this array, you can add extra items for select multiple inner items option.
+     * @return array    
+     */
     function wpt_add_extra_inside_items( $columns_array ){
 
         $columns_array['menu_order'] = esc_html__( "Menu Order", 'woo-product-table' );
@@ -507,7 +553,7 @@ if( ! function_exists( 'wpt_get_config' ) ){
      * 
      * 
      *
-     * @return Array it will return an Array
+     * @return array|string|null it will return an Array
      */
     function wpt_get_config( $config_key = false ){
         if( ! $config_key ) return wpt_get_config_value();
@@ -524,8 +570,8 @@ if( ! function_exists( 'wpt_get_config_value' ) ){
      * 
      * getting Config value. If get config value from post, then it will receive from post, Otherwise, will take data from Configuration value.
      * 
-     * @param type $table_ID Mainly post ID of wpt_product_table. That means: its post id of product table
-     * @return type Array
+     * @param int|false $table_ID Mainly post ID of wpt_product_table. That means: its post id of product table
+     * @return array It will return an Array, String, or Null
      */
     function wpt_get_config_value( $table_ID = false ){
         $root_option_key = $option_key = WPT_OPTION_KEY;
@@ -564,7 +610,7 @@ if( ! function_exists( 'wpt_get_config_value' ) ){
  * @since 3.3.5.2.loco 
  * @author Saiful Islam <codersaiful@gmail.com>
  * 
- * @param Array $config_value
+ * @param array $config_value
  * @param boolean|int|string $table_ID
  * @return array
  */
@@ -947,8 +993,8 @@ if( ! function_exists( 'wpt_paginate_links' ) ){
     /**
      * Generate paginated links based on Args.
      * 
-     * @param type $args Args of WP_Query's
-     * @return type String
+     * @param array|false $args Args of WP_Query's
+     * @return string|null  String of pagination links or false if args are not provided.
      */
     function wpt_paginate_links( $args = false ){
 
@@ -974,8 +1020,8 @@ if( ! function_exists( 'wpt_pagination_by_args' ) ){
     /**
      * Generate full pagination based on Args.
      * 
-     * @param type $args Args of WP_Query's
-     * @return type String
+     * @param array $args Args of WP_Query's
+     * @return string String
      */
     function wpt_pagination_by_args( $args = false, $temp_number = false, $whole_data = array() ){
         $whole_data = is_array( $whole_data ) ? $whole_data : array();
@@ -989,7 +1035,7 @@ if( ! function_exists( 'wpt_pagination_by_args' ) ){
          * @since 3.1.9.3
          */
 
-        if( $args ){
+        if( is_array( $args) ){
             $html .= "<div class='wpt_table_pagination' data-temp_number='{$temp_number}' data-whole_data='". esc_attr( wp_json_encode( $whole_data ) ) ."'>";
             $paginate = wpt_paginate_links( $args );
             $html .= $paginate; 
@@ -1004,8 +1050,8 @@ if( ! function_exists( 'wpt_additions_data_attribute' ) ){
     /**
      * Generate Product's Attribute
      * 
-     * @global type $product Default global product variable, it will only work inside loop
-     * @param type $attributes Array
+     * @global object $product Default global product variable, it will only work inside loop
+     * @param array|false $attributes Array of attributes
      * @return string 
      */
     function wpt_additions_data_attribute( $attributes = false ){
@@ -1055,9 +1101,9 @@ if( ! function_exists( 'wpt_check_sortOrder' ) ){
      * Checking Value for Select option tag
      * Used in shortcode.php file actually
      * 
-     * @param type $got_value
-     * @param type $this_value
-     * @return type String
+     * @param string|false $got_value
+     * @param string $this_value
+     * @return string
      */
     function wpt_check_sortOrder( $got_value = false, $this_value = 'nothing' ){
         return $got_value == $this_value ? 'selected' : ''; 
@@ -1069,7 +1115,7 @@ if( ! function_exists( 'wpt_default_columns_array' ) ){
     /**
      * To get Final Columns List as Array, where will unavailable default disable_column
      * 
-     * @return Array 
+     * @return array 
      */
     function wpt_default_columns_array(){
 
@@ -1091,7 +1137,7 @@ if( ! function_exists( 'wpt_default_columns_keys_array' ) ){
     /**
      * We used this function to get default keywords array from default columns array
      * 
-     * @return Array Only Keys of Column Array
+     * @return array Only Keys of Column Array
      * @since 3.6
      */
     function wpt_default_columns_keys_array(){
@@ -1104,7 +1150,7 @@ if( ! function_exists( 'wpt_default_columns_values_array' ) ){
     /**
      * We used this function to get default values array from default columns array
      * 
-     * @return Array Only values of Column Array
+     * @return array Only values of Column Array
      * @since 3.6
      */
     function wpt_default_columns_values_array(){
@@ -1208,9 +1254,9 @@ if( ! function_exists( 'wpt_generate_each_row_data' ) ){
      * both should be Array, Although I didn't used condition for $wpt_each_row Array to this function. 
      * So used: based on your own risk.
      * 
-     * @param Array $table_column_keywords
-     * @param Array $wpt_each_row
-     * @return String_Variable
+     * @param array $table_column_keywords
+     * @param array $wpt_each_row
+     * @return string
      */
     function wpt_generate_each_row_data($table_column_keywords = false, $wpt_each_row = false) {
 
@@ -1231,12 +1277,12 @@ if( ! function_exists( 'wpt_define_permitted_td_array' ) ){
      * 
      * @since 1.0.4
      * @date 27/04/2018
-     * @param Array $table_column_keywords
-     * @return Array/False
+     * @param array $table_column_keywords
+     * @return array|false
      */
     function wpt_define_permitted_td_array( $table_column_keywords = false ){
 
-        $wpt_permitted_td = false;
+        $wpt_permitted_td = array();
         if( $table_column_keywords && is_array( $table_column_keywords ) && count( $table_column_keywords ) > 0 ){
             foreach( $table_column_keywords as $each_keyword ){
                 $wpt_permitted_td[$each_keyword] = true;
@@ -1252,7 +1298,7 @@ if( ! function_exists( 'wpt_array_to_option_atrribute' ) ){
      * Generating <options>VAriation Atribute</option> for Product Variation
      * CAn be removed later.
      * 
-     * @param type $current_single_attribute
+     * @param array|false $current_single_attribute Array of attributes
      * @return string
      */
     function wpt_array_to_option_atrribute( $current_single_attribute = false ){
@@ -1277,9 +1323,9 @@ if( ! function_exists( 'wpt_variations_attribute_to_select' ) ){
      * 
      * @deprecated since 2.7.8 2.7.8.0
      * 
-     * @param   Array   $attributes
-     * @param   Int     $product_id
-     * @param   Int     $temp_number
+     * @param   array   $attributes Array of attributes
+     * @param   int|false|null     $product_id
+     * @param   int     $temp_number
      * @return  string  HTML Select tag will generate from Attribute
      */
     function wpt_variations_attribute_to_select( $attributes , $product_id = false, $default_attributes = false, $temp_number = false ){
@@ -1343,14 +1389,12 @@ if( ! function_exists( 'wpt_args_manipulation_frontend' ) ){
      * Args Manipulation for FrontEnd
      * By Useing following Filter
      * $args = apply_filters( 'wpto_table_query_args', $args, $table_ID, $atts, $column_settings, $enabled_column_array, $column_array );
-     * 
-     * @param type $args
-     * @param type $table_ID
-     * @param type $atts
-     * @param type $column_settings
-     * @param type $enabled_column_array
-     * @param type $column_array
-     * @return type
+     * $variables:
+     * array $args_product_in 
+     * @param array $args
+     * @param int $table_ID
+     * @param array $atts
+     * @return array
      */
     function wpt_args_manipulation_frontend( $args, $table_ID, $atts ){
         
@@ -1438,7 +1482,12 @@ function wpt_url_encode_array(array $data): string {
     }
     return $output;
 }
-
+/**
+ * Decode the custom URL-encoded string back into an associative array.
+ *
+ * @param string $input The encoded string to decode.
+ * @return array The decoded associative array.
+ */
 function wpt_tax_url_decode($input) {
     $result = [];
 
@@ -1489,8 +1538,9 @@ if( ! function_exists( 'wpt_args_manage_by_get_args' ) ){
      * using Supper Global $_GET
      * 
      * @since 2.8.9
-     * @param array $args
-     * @return Array
+     * @param array $args Query Args of Product Table, which will generate by default or by shortcode
+     * @param int $table_ID Table ID
+     * @return array
      */
     function wpt_args_manage_by_get_args( $args, $table_ID ){
 
@@ -1546,6 +1596,7 @@ if( ! function_exists( 'wpt_add_div_at_top' ) ){
      * @param Int $table_ID
      * @since 2.7.5.2
      * @date 11 Oct, 2020
+     * @return void
      */
     function wpt_add_div_at_top( $table_ID ){
     ?>
@@ -1574,11 +1625,10 @@ if( ! function_exists( 'wpt_item_manage_from_theme' ) ){
      * Suppose, Item name is price, than location/directory from theme will be:
      * [YourTheme]/woo-product-table/items/price.php
      * 
-     * @param type $file
-     * @param type $items_directory_2
-     * @param type $file_name
+     * @param string $file
+     * @param string $file_name
      * 
-     * @return type $file This Function will return $file Location of Items
+     * @return string $file This Function will return $file Location of Items
      */
     function wpt_item_manage_from_theme( $file, $file_name ){
 
@@ -1596,8 +1646,12 @@ if( ! function_exists( 'wpt_add_td_class' ) ){
     /**
      * Add Class on Td for Table
      * 
-     * @param type $class_arr
-     * @return Array
+     * @param array $class_arr
+     * @param string $keyword
+     * @param int $table_ID
+     * @param array $args
+     * @param array $column_settings
+     * @return array
      */
     function wpt_add_td_class( $class_arr, $keyword, $table_ID, $args, $column_settings ){
         if( isset( $column_settings[$keyword] ) && is_array( $column_settings[$keyword] ) ){
@@ -1620,7 +1674,7 @@ if( ! function_exists( 'wpt_search_box_validation_on_off' ) ){
      * 
      * @since 2.7.8.2
      * 
-     * @return Bool
+     * @return bool false for shop page and product taxonomy page, true for other pages
      */
     function wpt_search_box_validation_on_off(){
         
@@ -1658,7 +1712,7 @@ if( ! function_exists( 'wpt_shop_archive_sorting_args' ) ){
     /**
      * This function has fixed shop archive default sorting issue.
      * 
-     * @param type $args
+     * @param array $args
      * @return array $args
      */
     function wpt_shop_archive_sorting_args( $args ){
@@ -1739,6 +1793,7 @@ if( ! function_exists( 'wpt_ajax_on_first_load' ) ){
      * @date 8.2.2021 d.m.y
      * @by Saiful
      * @helped Mukul and Bari
+     * @return void
      */
     function wpt_ajax_on_first_load(){
 
@@ -1753,7 +1808,12 @@ if( ! function_exists( 'wpt_ajax_on_first_load' ) ){
 }
 //add_action( 'wp_footer', 'wpt_ajax_on_first_load', 100 );
 
-
+/**
+ * Preview template for product table
+ * 
+ * @param string $template_file
+ * @return string
+ */
 function wpt_product_table_preview_template( $template_file ){
 
     if( ! is_singular() ){
@@ -1785,8 +1845,8 @@ add_filter( 'template_include', 'wpt_product_table_preview_template' );
  * comment by saiful
  * kajti koreche mukul 
  * 
- * @param type $search_products
- * @return int
+ * @param array $search_products Product ID or array of Product IDs to search in the cart
+ * @return int Number of matched items in the cart
  */
 function wpt_matched_cart_items( $search_products ) {
     $count = 0; // Initializing
@@ -1845,6 +1905,8 @@ if( defined('B2BKING_DIR') && ! function_exists( 'wpt_b2bking_plugin_integration
      * @author Saiful Islam<codersaiful@gmail.com>
      * @author mlstolk https://github.com/mlstolk
      * @link https://github.com/codersaiful/woo-product-table/pull/136
+     * 
+     * @param array $args
      */
     function wpt_b2bking_plugin_integration( $args ){
 

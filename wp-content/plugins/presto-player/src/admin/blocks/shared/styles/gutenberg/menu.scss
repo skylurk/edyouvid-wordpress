@@ -1,3 +1,12 @@
+.edit-post-visual-editor {
+  transition: padding 0.5s ease;
+}
+.is-editing-pp-video-block {
+  .edit-post-visual-editor {
+    padding: 24px;
+  }
+}
+
 .presto-player {
   &__menu-content {
     padding: 0px 4px;

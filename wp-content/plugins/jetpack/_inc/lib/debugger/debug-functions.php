@@ -1,35 +1,41 @@
 <?php
 /**
- * WP Site Health functionality temporarily stored in this file until all of Jetpack is PHP 5.3+
+ * WP Site Health debugging functions.
  *
+ * @deprecated 15.9 Site Health integration is now handled by the connection package.
  * @package automattic/jetpack
  */
 
-use Automattic\Jetpack\Sync\Modules;
 /**
  * Test runner for Core's Site Health module.
  *
  * @since 7.3.0
+ * @deprecated 15.9 Use Automattic\Jetpack\Connection\Site_Health instead.
  */
 function jetpack_debugger_ajax_local_testing_suite() {
+	_deprecated_function( __FUNCTION__, 'jetpack-15.9' );
 	check_ajax_referer( 'health-check-site-status' );
 	if ( ! current_user_can( 'jetpack_manage_modules' ) ) {
-		wp_send_json_error();
+		// @phan-suppress-next-line PhanTypeMismatchArgumentProbablyReal -- It takes null, but its phpdoc only says int.
+		wp_send_json_error( null, null, JSON_UNESCAPED_SLASHES );
 	}
-	$tests = new Jetpack_Cxn_Tests();
-	wp_send_json_success( $tests->output_results_for_core_async_site_health() );
+	$tests = new Automattic\Jetpack\Connection\Connection_Health_Tests();
+	// @phan-suppress-next-line PhanTypeMismatchArgumentProbablyReal -- It takes null, but its phpdoc only says int.
+	wp_send_json_success( $tests->output_results_for_core_async_site_health(), null, JSON_UNESCAPED_SLASHES );
 }
 /**
  * Adds the Jetpack Local Testing Suite to the Core Site Health system.
  *
  * @since 7.3.0
+ * @deprecated 15.9 Use Automattic\Jetpack\Connection\Site_Health instead.
  *
  * @param array $core_tests Array of tests from Core's Site Health.
  *
  * @return array $core_tests Array of tests for Core's Site Health.
  */
 function jetpack_debugger_site_status_tests( $core_tests ) {
-	$cxn_tests = new Jetpack_Cxn_Tests();
+	_deprecated_function( __FUNCTION__, 'jetpack-15.9' );
+	$cxn_tests = new Automattic\Jetpack\Connection\Connection_Health_Tests();
 	$tests     = $cxn_tests->list_tests( 'direct' );
 	foreach ( $tests as $test ) {
 
@@ -38,8 +44,8 @@ function jetpack_debugger_site_status_tests( $core_tests ) {
 			/**
 			 * Callable for Core's Site Health system to execute.
 			 *
-			 * @param array $test A Jetpack Testing Suite test array.
-			 * @param Jetpack_Cxn_Tests $cxn_tests An instance of the Jetpack Test Suite.
+			 * @var array $test A Jetpack Testing Suite test array.
+			 * @var Automattic\Jetpack\Connection\Connection_Health_Tests $cxn_tests An instance of the connection test suite.
 			 *
 			 * @return array {
 			 *      A results array to match the format expected by WordPress Core.
@@ -116,78 +122,4 @@ function jetpack_debugger_site_status_tests( $core_tests ) {
 	);
 
 	return $core_tests;
-}
-
-/**
- * Loads site health scripts if we are on the site health page.
- *
- * @param string $hook The current admin page hook.
- */
-function jetpack_debugger_enqueue_site_health_scripts( $hook ) {
-	if ( 'site-health.php' === $hook ) {
-		$full_sync_module = Modules::get_module( 'full-sync' );
-		$progress_percent = $full_sync_module ? $full_sync_module->get_sync_progress_percentage() : false;
-
-		$ajax_nonce = wp_create_nonce( 'jetpack-site-health' );
-
-		$wp_scripts = wp_scripts();
-		wp_enqueue_script( 'jquery-ui-progressbar' );
-		wp_enqueue_script(
-			'jetpack_debug_site_health_script',
-			plugins_url( 'jetpack-debugger-site-health.js', __FILE__ ),
-			array( 'jquery', 'jquery-ui-progressbar' ),
-			JETPACK__VERSION,
-			false
-		);
-		wp_enqueue_style(
-			'jetpack_debug_site_health_styles',
-			plugins_url( 'jetpack-debugger-site-health.css', __FILE__ ),
-			false,
-			JETPACK__VERSION,
-			false
-		);
-		/* WordPress is not bundled with jquery UI styles - we need to grab them from the Google API. */
-		wp_enqueue_style(
-			'jetpack-jquery-ui-styles',
-			'https://code.jquery.com/ui/' . $wp_scripts->registered['jquery-ui-core']->ver . '/themes/smoothness/jquery-ui.min.css',
-			false,
-			JETPACK__VERSION,
-			false
-		);
-		wp_localize_script(
-			'jetpack_debug_site_health_script',
-			'jetpackSiteHealth',
-			array(
-				'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
-				'syncProgressHeading' => __( 'Jetpack is performing a sync of your site', 'jetpack' ),
-				'progressPercent'     => $progress_percent,
-				'fullSyncNonce'       => $ajax_nonce,
-			)
-		);
-	}
-}
-
-/**
- * Responds to ajax calls from the site health page. Echos a full sync percantage to update progress bar.
- */
-function jetpack_debugger_sync_progress_ajax() {
-	$full_sync_module = Modules::get_module( 'full-sync' );
-	$progress_percent = $full_sync_module ? $full_sync_module->get_sync_progress_percentage() : null;
-	if ( ! $progress_percent ) {
-		echo 'done';
-		wp_die();
-	}
-	echo (int) $progress_percent;
-	wp_die();
-}
-
-/**
- * Responds to ajax calls from the site health page. Triggers a Full Sync
- */
-function jetpack_debugger_full_sync_start() {
-	check_ajax_referer( 'jetpack-site-health', 'site-health-nonce' );
-	$full_sync_module = Modules::get_module( 'full-sync' );
-	$full_sync_module->start();
-	echo 'requested';
-	wp_die();
 }

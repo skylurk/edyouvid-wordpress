@@ -6,19 +6,29 @@
  * @since      7.3.0
  */
 
-use Automattic\Jetpack\Connection\Client;
+use Automattic\Jetpack\Connection\Traits\WPCOM_REST_API_Proxy_Request;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 /**
  * Class WPCOM_REST_API_V2_Endpoint_Memberships
  * This introduces V2 endpoints.
+ *
+ * @phan-constructor-used-for-side-effects
  */
 class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
+
+	use WPCOM_REST_API_Proxy_Request;
 
 	/**
 	 * WPCOM_REST_API_V2_Endpoint_Memberships constructor.
 	 */
 	public function __construct() {
-		$this->namespace                       = 'wpcom/v2';
+		$this->base_api_path                   = 'wpcom';
+		$this->version                         = 'v2';
+		$this->namespace                       = $this->base_api_path . '/' . $this->version;
 		$this->rest_base                       = 'memberships';
 		$this->wpcom_is_wpcom_only_endpoint    = true;
 		$this->wpcom_is_site_specific_endpoint = true;
@@ -58,6 +68,7 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 										'gutenberg',
 										'gutenberg-wpcom',
 										'launchpad',
+										'import-paid-subscribers',
 									),
 									true
 								);
@@ -85,7 +96,7 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 							'required' => true,
 						),
 						'price'                   => array(
-							'type'     => 'float',
+							'type'     => 'number',
 							'required' => true,
 						),
 						'currency'                => array(
@@ -119,6 +130,20 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'create_products' ),
 					'permission_callback' => array( $this, 'can_modify_products_permission_check' ),
+					'args'                => array(
+						'currency'    => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+						'type'        => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+						'is_editable' => array(
+							'type'     => 'boolean',
+							'required' => false,
+						),
+					),
 				),
 				array(
 					'methods'             => WP_REST_Server::READABLE,
@@ -141,7 +166,7 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 							'required' => true,
 						),
 						'price'                   => array(
-							'type'     => 'float',
+							'type'     => 'number',
 							'required' => true,
 						),
 						'currency'                => array(
@@ -169,6 +194,12 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::DELETABLE,
 					'callback'            => array( $this, 'delete_product' ),
 					'permission_callback' => array( $this, 'can_modify_products_permission_check' ),
+					'args'                => array(
+						'cancel_subscriptions' => array(
+							'type'     => 'boolean',
+							'required' => false,
+						),
+					),
 				),
 			)
 		);
@@ -204,6 +235,7 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 
 		if ( $this->is_wpcom() ) {
 			require_lib( 'memberships' );
+			Memberships_Store_Sandbox::get_instance()->init( true );
 
 			$result = Memberships_Product::generate_default_products( get_current_blog_id(), $request['type'], $request['currency'], $is_editable );
 
@@ -213,37 +245,7 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 			}
 			return $result;
 		} else {
-			$payload = array(
-				'type'     => $request['type'],
-				'currency' => $request['currency'],
-			);
-
-			// If we pass directly is_editable as null, it would break API argument validation.
-			if ( null !== $is_editable ) {
-				$payload['is_editable'] = $is_editable;
-			}
-
-			$blog_id  = Jetpack_Options::get_option( 'id' );
-			$response = Client::wpcom_json_api_request_as_user(
-				"/sites/$blog_id/{$this->rest_base}/products",
-				'v2',
-				array(
-					'method' => 'POST',
-				),
-				$payload
-			);
-			if ( is_wp_error( $response ) ) {
-				if ( $response->get_error_code() === 'missing_token' ) {
-					return new WP_Error( 'missing_token', __( 'Please connect your user account to WordPress.com', 'jetpack' ), 404 );
-				}
-				return new WP_Error( 'wpcom_connection_error', __( 'Could not connect to WordPress.com', 'jetpack' ), 404 );
-			}
-			$data = isset( $response['body'] ) ? json_decode( $response['body'], true ) : null;
-			// If endpoint returned error, we have to detect it.
-			if ( 200 !== $response['response']['code'] && $data['code'] ) {
-				return new WP_Error( $data['code'], $data['message'] ? $data['message'] : '', 401 );
-			}
-			return $data;
+			return $this->proxy_request_to_wpcom_as_user( $request, 'products' );
 		}
 
 		return $request;
@@ -258,7 +260,7 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 	 */
 	public function list_products( WP_REST_Request $request ) {
 		$is_editable = isset( $request['is_editable'] ) ? (bool) $request['is_editable'] : null;
-		$type        = isset( $request['type'] ) ? $request['type'] : null;
+		$type        = $request['type'] ?? null;
 
 		if ( ( defined( 'IS_WPCOM' ) && IS_WPCOM ) ) {
 			require_lib( 'memberships' );
@@ -269,17 +271,8 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 				return array( 'error' => $e->getMessage() );
 			}
 		} else {
-			$query_parts = array();
-			if ( $type !== null ) {
-				$query_parts[] = 'type=' . $type;
-			}
-			if ( $is_editable !== null ) {
-				$query_parts[] = 'is_editable=' . $is_editable;
-			}
-			if ( ! empty( $query_parts ) ) {
-				$query = '?' . implode( '&', $query_parts );
-			}
-			return $this->proxy_request_to_wpcom( "products$query", 'GET' );
+
+			return $this->proxy_request_to_wpcom_as_user( $request, 'products' );
 		}
 	}
 
@@ -293,6 +286,10 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 	public function create_product( WP_REST_Request $request ) {
 		$payload = $this->get_payload_for_product( $request );
 
+		if ( is_wp_error( $payload ) ) {
+			return $payload;
+		}
+
 		if ( $this->is_wpcom() ) {
 			require_lib( 'memberships' );
 			try {
@@ -301,7 +298,7 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 				return array( 'error' => $e->getMessage() );
 			}
 		} else {
-			return $this->proxy_request_to_wpcom( 'product', 'POST', $payload );
+			return $this->proxy_request_to_wpcom_as_user( $request, 'product' );
 		}
 	}
 
@@ -316,6 +313,10 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 		$product_id = $request->get_param( 'product_id' );
 		$payload    = $this->get_payload_for_product( $request );
 
+		if ( is_wp_error( $payload ) ) {
+			return $payload;
+		}
+
 		if ( $this->is_wpcom() ) {
 			require_lib( 'memberships' );
 			try {
@@ -324,7 +325,7 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 				return array( 'error' => $e->getMessage() );
 			}
 		} else {
-			return $this->proxy_request_to_wpcom( "product/$product_id", 'POST', $payload );
+			return $this->proxy_request_to_wpcom_as_user( $request, "product/$product_id" );
 		}
 	}
 
@@ -336,17 +337,18 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 	 * @return array|WP_Error
 	 */
 	public function delete_product( \WP_REST_Request $request ) {
-		$product_id = $request->get_param( 'product_id' );
+		$product_id           = $request->get_param( 'product_id' );
+		$cancel_subscriptions = $request->get_param( 'cancel_subscriptions' );
 		if ( $this->is_wpcom() ) {
 			require_lib( 'memberships' );
 			try {
-				$this->delete_product_from_wpcom( $product_id );
+				$this->delete_product_from_wpcom( $product_id, $cancel_subscriptions );
 				return array( 'deleted' => true );
 			} catch ( \Exception $e ) {
 				return array( 'error' => $e->getMessage() );
 			}
 		} else {
-			return $this->proxy_request_to_wpcom( "product/$product_id", 'DELETE' );
+			return $this->proxy_request_to_wpcom_as_user( $request, "product/$product_id" );
 		}
 	}
 
@@ -359,85 +361,46 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 	 */
 	public function get_status( \WP_REST_Request $request ) {
 		$product_type = $request['type'];
-		$source       = $request['source'];
-		$is_editable  = ! isset( $request['is_editable'] ) ? null : (bool) $request['is_editable'];
+
+		if ( ! empty( $request['source'] ) ) {
+			$source = sanitize_text_field( wp_unslash( $request['source'] ) );
+		} else {
+			$source = 'gutenberg';
+		}
+
+		$is_editable = ! isset( $request['is_editable'] ) ? null : (bool) $request['is_editable'];
 
 		if ( $this->is_wpcom() ) {
 			require_lib( 'memberships' );
-			$blog_id = get_current_blog_id();
-			return (array) get_memberships_settings_for_site( $blog_id, $product_type, $is_editable, $source );
-		} else {
-			$payload = array(
-				'type'   => $request['type'],
-				'source' => $source,
-			);
+			Memberships_Store_Sandbox::get_instance()->init( true );
+			$blog_id             = get_current_blog_id();
+			$membership_settings = get_memberships_settings_for_site( $blog_id, $product_type, $is_editable, $source );
 
-			// If we pass directly is_editable as null, it would break API argument validation.
-			// This also needs to be converted to int because boolean false is ignored by add_query_arg.
-			if ( null !== $is_editable ) {
-				$payload['is_editable'] = (int) $is_editable;
-			}
+			if ( is_wp_error( $membership_settings ) ) {
+				// Get error messages from the $membership_settings.
+				$error_codes    = $membership_settings->get_error_codes();
+				$error_messages = array();
 
-			$blog_id = Jetpack_Options::get_option( 'id' );
-			$path    = "/sites/$blog_id/{$this->rest_base}/status";
-			if ( $product_type ) {
-				$path = add_query_arg(
-					$payload,
-					$path
-				);
-			}
-			$response = Client::wpcom_json_api_request_as_user( $path, 'v2' );
-			if ( is_wp_error( $response ) ) {
-				if ( $response->get_error_code() === 'missing_token' ) {
-					return new WP_Error( 'missing_token', __( 'Please connect your user account to WordPress.com', 'jetpack' ), 404 );
+				foreach ( $error_codes as $code ) {
+					$messages = $membership_settings->get_error_messages( $code );
+					foreach ( $messages as $message ) {
+						// Sanitize error message
+						$error_messages[] = esc_html( $message );
+					}
 				}
-				return new WP_Error( 'wpcom_connection_error', __( 'Could not connect to WordPress.com', 'jetpack' ), 404 );
+
+				$error_messages_string = implode( ' ', $error_messages );
+				// translators: %s is a list of error messages.
+				$base_message = __( 'Could not get the membership settings due to the following error(s): %s', 'jetpack' );
+				$full_message = sprintf( $base_message, $error_messages_string );
+
+				return new WP_Error( 'membership_settings_error', $full_message, array( 'status' => 404 ) );
 			}
-			$data = isset( $response['body'] ) ? json_decode( $response['body'], true ) : null;
-			if ( 200 !== $response['response']['code'] && $data['code'] && $data['message'] ) {
-				return new WP_Error( $data['code'], $data['message'], 401 );
-			}
-			return $data;
+
+			return (array) $membership_settings;
+		} else {
+			return $this->proxy_request_to_wpcom_as_user( $request, 'status' );
 		}
-	}
-
-	/**
-	 * Proxy a request to WPCOM, look for errors and return a response or a WP_Error.
-	 *
-	 * @param string     $uri Whatever would go at the end of the url after /sites/$blog_id/$this->rest_base/. This is usually `product`, `products`, or `product/$product_id`.
-	 * @param string     $method The HTTP method being used.
-	 * @param array|null $payload An optional payload to be sent with the request.
-	 * @return string    The response from WPCOM
-	 */
-	private function proxy_request_to_wpcom( $uri, $method, $payload = null ) {
-		// get blog id
-		$blog_id = Jetpack_Options::get_option( 'id' );
-
-		// proxy request to wpcom
-		$response = Client::wpcom_json_api_request_as_user(
-			"/sites/$blog_id/{$this->rest_base}/$uri",
-			'v2',
-			array(
-				'method' => strtoupper( $method ),
-			),
-			$payload
-		);
-		if ( is_wp_error( $response ) ) {
-			if ( $response->get_error_code() === 'missing_token' ) {
-				return new WP_Error( 'missing_token', __( 'Please connect your user account to WordPress.com', 'jetpack' ), 404 );
-			}
-			return new WP_Error( 'wpcom_connection_error', __( 'Could not connect to WordPress.com', 'jetpack' ), 404 );
-		}
-
-		// decode response
-		$data = isset( $response['body'] ) ? json_decode( $response['body'], true ) : null;
-		// If endpoint returned error, we have to detect it.
-		if ( 200 !== $response['response']['code'] && $data['code'] && $data['message'] ) {
-			return new WP_Error( $data['code'], $data['message'], 401 );
-		}
-
-		// return response
-		return $data;
 	}
 
 	/**
@@ -457,12 +420,13 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request $request The request for this endpoint.
 	 * @param ?string         $type The type of the products to list.
-	 * @param ?string         $is_editable This string will be interpreted as a bool to determine if we are looking for editable or non-editable products.
+	 * @param ?bool           $is_editable If we are looking for editable or non-editable products.
 	 * @throws \Exception If blog is not known or if there is an error getting products.
 	 * @return array List of products.
 	 */
 	private function list_products_from_wpcom( WP_REST_Request $request, $type, $is_editable ) {
 		$this->prevent_running_outside_of_wpcom();
+		Memberships_Store_Sandbox::get_instance()->init( true );
 		$blog_id = $request->get_param( 'blog_id' );
 		if ( is_wp_error( $blog_id ) ) {
 			throw new \Exception( 'Unknown blog' );
@@ -483,6 +447,7 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 	 */
 	private function find_product_from_wpcom( $product_id ) {
 		$this->prevent_running_outside_of_wpcom();
+		Memberships_Store_Sandbox::get_instance()->init( true );
 		$product = Memberships_Product::get_from_post( get_current_blog_id(), $product_id );
 		if ( is_wp_error( $product ) ) {
 			throw new \Exception( $product->get_error_message() );
@@ -498,10 +463,11 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 	 *
 	 * @param array $payload The request payload which contains details about the product.
 	 * @throws \Exception When the product failed to be created.
-	 * @return object The newly created product.
+	 * @return array The newly created product.
 	 */
 	private function create_product_from_wpcom( $payload ) {
 		$this->prevent_running_outside_of_wpcom();
+		Memberships_Store_Sandbox::get_instance()->init( true );
 		$product = Memberships_Product::create( get_current_blog_id(), $payload );
 		if ( is_wp_error( $product ) ) {
 			throw new \Exception( __( 'Creating product has failed.', 'jetpack' ) );
@@ -518,6 +484,7 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 	 * @return object The newly updated product.
 	 */
 	private function update_product_from_wpcom( $product_id, $payload ) {
+		Memberships_Store_Sandbox::get_instance()->init( true );
 		$product         = $this->find_product_from_wpcom( $product_id ); // prevents running outside of wpcom
 		$updated_product = $product->update( $payload );
 		if ( is_wp_error( $updated_product ) ) {
@@ -530,12 +497,14 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 	 * Delete a product via the WPCOM-specific Memberships_Product class.
 	 *
 	 * @param string|int $product_id The ID of the product being deleted.
+	 * @param bool       $cancel_subscriptions Whether to cancel subscriptions to the product as well.
 	 * @throws \Exception When there is a problem deleting the product.
 	 * @return void
 	 */
-	private function delete_product_from_wpcom( $product_id ) {
+	private function delete_product_from_wpcom( $product_id, $cancel_subscriptions = false ) {
+		Memberships_Store_Sandbox::get_instance()->init( true );
 		$product = $this->find_product_from_wpcom( $product_id ); // prevents running outside of wpcom
-		$result  = $product->delete();
+		$result  = $product->delete( $cancel_subscriptions ? Memberships_Product::CANCEL_SUBSCRIPTIONS : Memberships_Product::KEEP_SUBSCRIPTIONS );
 		if ( is_wp_error( $result ) ) {
 			throw new \Exception( $result->get_error_message() );
 		}
@@ -545,20 +514,27 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 	 * Get a payload for creating or updating products by parsing the request.
 	 *
 	 * @param WP_REST_Request $request The request for this endpoint, containing the details needed to build the payload.
-	 * @return array The built payload.
+	 * @return array|WP_Error The built payload or WP_Error on validation failure.
 	 */
 	private function get_payload_for_product( WP_REST_Request $request ) {
 		$is_editable             = isset( $request['is_editable'] ) ? (bool) $request['is_editable'] : null;
-		$type                    = isset( $request['type'] ) ? $request['type'] : null;
-		$tier                    = isset( $request['tier'] ) ? $request['tier'] : null;
+		$type                    = $request['type'] ?? null;
+		$tier                    = $request['tier'] ?? null;
 		$buyer_can_change_amount = isset( $request['buyer_can_change_amount'] ) && (bool) $request['buyer_can_change_amount'];
+		$interval                = $request['interval'];
+
+		// Validate tier field usage.
+		$tier_validation = $this->validate_tier_field( $request, $tier, $type, $interval );
+		if ( is_wp_error( $tier_validation ) ) {
+			return $tier_validation;
+		}
 
 		$payload = array(
 			'title'                        => $request['title'],
 			'price'                        => $request['price'],
 			'currency'                     => $request['currency'],
 			'buyer_can_change_amount'      => $buyer_can_change_amount,
-			'interval'                     => $request['interval'],
+			'interval'                     => $interval,
 			'type'                         => $type,
 			'welcome_email_content'        => $request['welcome_email_content'],
 			'subscribe_as_site_subscriber' => $request['subscribe_as_site_subscriber'],
@@ -573,7 +549,111 @@ class WPCOM_REST_API_V2_Endpoint_Memberships extends WP_REST_Controller {
 		if ( null !== $is_editable ) {
 			$payload['is_editable'] = $is_editable;
 		}
+
 		return $payload;
+	}
+
+	/**
+	 * Validate tier field usage for newsletter plans.
+	 *
+	 * @param WP_REST_Request $request  The request object.
+	 * @param string|null     $tier     The tier value to validate.
+	 * @param string|null     $type     The product type.
+	 * @param string          $interval The product interval.
+	 * @return WP_Error|null  Error object if validation fails, null if successful.
+	 */
+	private function validate_tier_field( WP_REST_Request $request, $tier, $type, $interval ) {
+		// Only apply tier validation for newsletter plans with type 'tier'.
+		if ( null === $tier || 'tier' !== $type ) {
+			return null;
+		}
+
+		// Monthly plans should not have a tier field.
+		if ( '1 month' === $interval ) {
+			return new WP_Error( 'invalid_tier_usage', __( 'Monthly plans should not have a tier field. The tier field is only used to link yearly plans to their corresponding monthly plans.', 'jetpack' ), array( 'status' => 400 ) );
+		}
+
+		// Yearly plans must have a valid tier that points to a monthly plan.
+		if ( '1 year' === $interval ) {
+			return $this->validate_yearly_tier( $request, $tier );
+		}
+
+		return null;
+	}
+
+	/**
+	 * Validate yearly tier requirements.
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 * @param string|int      $tier    The tier value to validate.
+	 * @return WP_Error|null  Error object if validation fails, null if successful.
+	 */
+	private function validate_yearly_tier( WP_REST_Request $request, $tier ) {
+		if ( ! is_numeric( $tier ) || $tier <= 0 ) {
+			return new WP_Error( 'invalid_tier_id', __( 'Yearly plans must have a valid tier ID that points to an existing monthly plan.', 'jetpack' ), array( 'status' => 400 ) );
+		}
+
+		if ( ! $this->is_wpcom() ) {
+			return null; // Validation will happen on WPCOM side.
+		}
+
+		return $this->validate_tier_references( $request, $tier );
+	}
+
+	/**
+	 * Validate that the tier references a valid monthly plan and check for duplicates.
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 * @param string|int      $tier    The tier value to validate.
+	 * @return WP_Error|null  Error object if validation fails, null if successful.
+	 */
+	private function validate_tier_references( WP_REST_Request $request, $tier ) {
+		require_lib( 'memberships' );
+		Memberships_Store_Sandbox::get_instance()->init( true );
+
+		// Check if the referenced monthly plan exists and is actually a monthly plan.
+		$monthly_plan = Memberships_Product::get_from_post( get_current_blog_id(), $tier );
+		if ( is_wp_error( $monthly_plan ) || ! $monthly_plan ) {
+			return new WP_Error( 'tier_not_found', __( 'The specified tier ID does not correspond to an existing monthly plan.', 'jetpack' ), array( 'status' => 400 ) );
+		}
+
+		$monthly_plan_data = $monthly_plan->to_array();
+		if ( '1 month' !== $monthly_plan_data['interval'] ) {
+			return new WP_Error( 'invalid_tier_interval', __( 'The specified tier ID must point to a monthly plan (1 month interval).', 'jetpack' ), array( 'status' => 400 ) );
+		}
+
+		return $this->check_duplicate_tier_references( $request, $tier );
+	}
+
+	/**
+	 * Check for duplicate tier references.
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 * @param string|int      $tier    The tier value to check.
+	 * @return WP_Error|null  Error object if duplicate found, null if successful.
+	 */
+	private function check_duplicate_tier_references( WP_REST_Request $request, $tier ) {
+		$existing_yearly_plans = Memberships_Product::get_product_list( get_current_blog_id(), 'tier', null, false );
+		if ( is_wp_error( $existing_yearly_plans ) ) {
+			return new WP_Error( 'product_list_error', __( 'Could not retrieve existing products to check for duplicate tier references.', 'jetpack' ), array( 'status' => 500 ) );
+		}
+
+		// Ensure the result is iterable before foreach.
+		if ( ! is_array( $existing_yearly_plans ) && ! $existing_yearly_plans instanceof Traversable ) {
+			return new WP_Error( 'invalid_product_list', __( 'Unexpected error: product list is not iterable.', 'jetpack' ), array( 'status' => 500 ) );
+		}
+
+		foreach ( $existing_yearly_plans as $existing_plan ) {
+			if ( isset( $existing_plan['tier'] ) && (string) $existing_plan['tier'] === (string) $tier && '1 year' === $existing_plan['interval'] ) {
+				// If this is an update, allow it to reference itself.
+				$product_id = $request->get_param( 'product_id' );
+				if ( ! $product_id || (string) $existing_plan['id'] !== (string) $product_id ) {
+					return new WP_Error( 'duplicate_tier_reference', __( 'Another yearly plan already references this monthly plan. Each monthly plan can only have one corresponding yearly plan.', 'jetpack' ), array( 'status' => 400 ) );
+				}
+			}
+		}
+
+		return null;
 	}
 
 	/**

@@ -130,6 +130,18 @@ body.wpt_table_body .wpt-wrap .wpt-table-tag .wpt-tbody-tag .wpt-tr-tag .button.
 body.wpt_table_body .wpt-wrap.wpt-tr-tag.visible_row.wpt_row .wpt-td-tag a.wpt_woo_add_cart_button.disabled {
   color: var(--wpt_text_light) !important;
 }
-
-
+.wpt-new-footer-cart {
+    background: var(--wpt_thead_bg) !important;
+}
+div.red_wrapper.wpt-wrap .wpt_action input.input-text.qty.text, 
+div.red_wrapper.wpt-wrap .qib-button-wrapper .quantity input.input-text.qty.text, 
+div.red_wrapper.wpt-wrap .wpt_quantity input.input-text.qty.text, 
+div.red_wrapper.wpt-wrap .wpt_quick_qty input.input-text.qty.text{
+ border: 1px solid var(--wpt_sorted_head_bg);
+ background: var(--wpt_table_tr_odd);
+ color: var(--wpt_white);
+}
   
+div.red_wrapper.wpt-wrap .stock.in-stock {
+    color: var(--wpt_warning) !important;
+}

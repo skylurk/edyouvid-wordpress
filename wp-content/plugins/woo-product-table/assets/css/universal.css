@@ -23,7 +23,7 @@ a.wpt_empty_cart_btn.button{
 }
 /*******For All Table*********/
 
-.wpt-tr-tag.wpt-row.wpt-added-to-cart{
+.wpt-table-tag .wpt-tr-tag.wpt-row{
  position: relative;
 }
 
@@ -1697,10 +1697,18 @@ flex-grow: 1;
  flex: 1 100%;
 }
 
-.wpt_product_title .item_inside_cell{
- display: flex;
- flex-direction: column;
- gap: 10px;
+.inner-available .item_inside_cell,
+.wpt_product_title .item_inside_cell {
+    display: block;
+    /* flex-direction: row; */
+    /* gap: 10px; */
+    width: 100%;
+    /* flex-wrap: nowrap; */
+    white-space: nowrap;
+    margin-bottom: 8px;
+}
+.wpt_product_title .item_inside_cell {
+    white-space: normal;
 }
 .wpt-td-tag.wpt-replace-td-in-.wpt-tr-tag div.td_or_cell.wpt_check{
  position: absolute !important;
@@ -1848,4 +1856,84 @@ body[class^="wpt-"]:before, body[class*=" wpt-"]:before{
  width: 20px;
  padding: 0px;
  margin: 0;
+}
+
+/*
+Layout CSS end here
+*/
+div.wpt-wrap.layout-left-sidebar {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 18px;
+}
+div.wpt-wrap.layout-right-sidebar {
+    display: grid !important;
+    grid-template-columns: 1fr 250px;
+    gap: 24px;
+    grid-template-rows: auto 1fr;
+}
+.layout-right-sidebar .search_box_fixer>.search_box_label,
+.layout-left-sidebar .search_box_fixer>.search_box_label {
+    text-align: left;
+}
+div.wpt-wrap .tables_cart_message_box {
+    grid-column: 1/-1;
+}
+
+.wpt_edit_table {
+    grid-column: 1/-1;
+}
+
+.sidebar-table-part {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+}
+
+.main-content-table-part {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    flex: 1 100%;
+    overflow: auto;
+}
+
+.layout-left-sidebar .sidebar-table-part{
+    grid-column: 1;
+}
+.layout-left-sidebar .main-content-table-part {
+    grid-column: 2;
+}
+.layout-right-sidebar .sidebar-table-part{
+    grid-column: 2;
+    grid-row: 2;
+}
+.layout-right-sidebar .main-content-table-part {
+    grid-column: 1;
+    grid-row: 2;
+}
+div.wpt-wrap.layout-right-sidebar .wpt-search-full-wrapper>div,
+div.wpt-wrap.layout-left-sidebar .wpt-search-full-wrapper>div {
+    flex: initial;
+}
+.layout-right-sidebar .wpt_search_box .search_box_wrapper .keyword-s-wrapper.search_single_direct,
+.layout-left-sidebar .wpt_search_box .search_box_wrapper .keyword-s-wrapper.search_single_direct {
+    align-items: flex-end;
+    gap: 8px;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+}
+
+/* layout grid remove for tablet and mobile */
+@media only screen and (max-width: 991px){
+ div.wpt-wrap.layout-left-sidebar,
+ div.wpt-wrap.layout-right-sidebar{
+  display: flex !important;
+  flex-direction: column;
+ }
+ .sidebar-table-part,
+ .main-content-table-part{
+  grid-column: unset !important;
+  grid-row: unset !important;
+ }
 }

@@ -1,4 +1,4 @@
 export declare class PrestoActionBarUi {
-  open?: boolean;
-  render(): any;
+    open?: boolean;
+    render(): any;
 }

@@ -2,8 +2,65 @@ import { Fragment, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import DropdownList from './dropdown-list';
+import { classNames } from '../helpers';
 
-const imageDir = aiBuilderVars.imageDir;
+const {
+	imageDir,
+	isBeaverBuilderDisabled,
+	isElementorDisabled,
+	supportedPageBuilders = [],
+} = aiBuilderVars;
+
+/**
+ * Get the list of supported page builders for the select template page.
+ * Shared by SelectTemplatePageBuilderDropdown and the design page pill filters.
+ *
+ * @return {Array} List of builder objects with id, title, and image.
+ */
+export const getBuildersList = () => {
+	const buildersList = [
+		{
+			id: 'spectra',
+			title: __( 'Block Editor', 'ai-builder' ),
+			image: `${ imageDir }block-editor.svg`,
+		},
+	];
+
+	if (
+		! isElementorDisabled &&
+		supportedPageBuilders?.length &&
+		supportedPageBuilders.includes( 'elementor' )
+	) {
+		buildersList.push( {
+			id: 'elementor',
+			title: __( 'Elementor', 'ai-builder' ),
+			image: `${ imageDir }elementor.svg`,
+		} );
+	}
+
+	// Filter and order by supported page builders.
+	if ( supportedPageBuilders?.length ) {
+		// Map 'spectra' to 'block-editor' for comparison with supportedPageBuilders.
+		const mapBuilderId = ( id ) =>
+			id === 'spectra' ? 'block-editor' : id;
+
+		buildersList.splice(
+			0,
+			buildersList.length,
+			...buildersList
+				.filter( ( builder ) =>
+					supportedPageBuilders.includes( mapBuilderId( builder.id ) )
+				)
+				.sort(
+					( a, b ) =>
+						supportedPageBuilders.indexOf( mapBuilderId( a.id ) ) -
+						supportedPageBuilders.indexOf( mapBuilderId( b.id ) )
+				)
+		);
+	}
+
+	return buildersList;
+};
 
 const PageBuilderDropdown = () => {
 	const buildersList = [
@@ -12,22 +69,30 @@ const PageBuilderDropdown = () => {
 			title: __( 'Block Editor', 'ai-builder' ),
 			image: `${ imageDir }block-editor.svg`,
 		},
-		{
+	];
+
+	if ( ! isElementorDisabled ) {
+		buildersList.push( {
 			id: 'elementor',
 			title: __( 'Elementor', 'ai-builder' ),
 			image: `${ imageDir }elementor.svg`,
-		},
-		{
+		} );
+	}
+
+	if ( ! isBeaverBuilderDisabled ) {
+		buildersList.push( {
 			id: 'beaver-builder',
 			title: __( 'Beaver Builder', 'ai-builder' ),
 			image: `${ imageDir }beaver-builder.svg`,
-		},
-		{
-			id: 'ai-builder',
-			title: __( 'AI Website Builder', 'ai-builder' ),
-			image: `${ imageDir }ai-builder.svg`,
-		},
-	];
+		} );
+	}
+
+	buildersList.push( {
+		id: 'ai-builder',
+		title: __( 'AI Website Builder', 'ai-builder' ),
+		image: `${ imageDir }ai-builder.svg`,
+	} );
+
 	const [ selectedBuilder, setSelectedBuilder ] = useState(
 		buildersList.at( -1 )
 	);
@@ -58,7 +123,7 @@ const PageBuilderDropdown = () => {
 					</div>
 					<ChevronDownIcon className="w-5 h-5 text-zip-body-text" />
 				</DropdownList.Button>
-				<DropdownList.Options className="mt-0 p-0 rounded-t-none bg-white shadow-[1px_2px_5px_1px_rgba(0,0,0,0.15)]">
+				<DropdownList.Options className="mt-0.5 p-0 rounded-t-none bg-white shadow-[1px_2px_5px_1px_rgba(0,0,0,0.15)]">
 					{ buildersList.map( ( builder ) => (
 						<DropdownList.Option
 							key={ builder.id }
@@ -79,6 +144,89 @@ const PageBuilderDropdown = () => {
 				</DropdownList.Options>
 			</div>
 		</DropdownList>
+	);
+};
+
+export const SelectTemplatePageBuilderDropdown = ( {
+	selectedBuilder,
+	onChange,
+} ) => {
+	const buildersList = getBuildersList();
+
+	return (
+		<>
+			<DropdownList
+				by="id"
+				value={ buildersList.find(
+					( builder ) => builder.id === selectedBuilder
+				) }
+				onChange={ onChange }
+			>
+				<div className="relative">
+					<DropdownList.Button
+						className={ classNames(
+							'w-[200px] h-12 border-none right-0 shadow-none  justify-between flex rounded-none items-center pl-4 pr-3 text-sm font-semibold leading-5  hover:bg-[#F4F7FB] rounded-l-md cursor-pointer'
+						) }
+					>
+						<div className="flex items-center gap-2">
+							<img
+								className="w-5 h-5"
+								src={
+									buildersList.find(
+										( builder ) =>
+											builder.id === selectedBuilder
+									)?.image
+								}
+								alt={
+									buildersList.find(
+										( builder ) =>
+											builder.id === selectedBuilder
+									)?.title
+								}
+							/>
+							<span className="truncate">
+								{
+									buildersList.find(
+										( builder ) =>
+											builder.id === selectedBuilder
+									)?.title
+								}
+							</span>
+						</div>
+						<ChevronDownIcon className="w-5 h-5 text-zip-body-text" />
+					</DropdownList.Button>
+					<DropdownList.Options className="py-2 px-3 gap-2 space-y-1 w-[200px]">
+						{ buildersList.map( ( builder ) => (
+							<DropdownList.Option
+								key={ builder.id }
+								as={ Fragment }
+								value={ builder }
+								className={
+									'p-2 hover:bg-[#F9FAFB] cursor-pointer'
+								}
+							>
+								<div className="flex items-center gap-2 text-sm font-normal">
+									<img
+										className="w-5 h-5"
+										src={ builder.image }
+										alt={ builder.title }
+									/>
+									<span
+										className={
+											selectedBuilder === builder.id
+												? 'text-app-heading font-semibold'
+												: 'text-app-text group-hover:text-app-heading'
+										}
+									>
+										{ builder.title }
+									</span>
+								</div>
+							</DropdownList.Option>
+						) ) }
+					</DropdownList.Options>
+				</div>
+			</DropdownList>
+		</>
 	);
 };
 

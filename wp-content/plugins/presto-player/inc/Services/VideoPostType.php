@@ -1,338 +1,806 @@
 <?php
+/**
+ * Video Post Type Service
+ *
+ * @package PrestoPlayer
+ * @since 1.0.0
+ */
 
 namespace PrestoPlayer\Services;
 
-class VideoPostType
-{
-    protected $post_type = 'pp_video_block';
+use PrestoPlayer\Models\ReusableVideo;
+use PrestoPlayer\Models\Video;
 
-    public function register()
-    {
-        global $wp_version;
+/**
+ * Class VideoPostType
+ *
+ * Handles the registration and management of the custom post type for video blocks
+ * in the Presto Player plugin. This includes setting up custom columns, managing
+ * post type UI, and handling various actions and filters related to video posts.
+ */
+class VideoPostType {
 
-        add_action('init', [$this, 'init']);
+	/**
+	 * The custom post type identifier for video blocks.
+	 *
+	 * @var string
+	 */
+	protected $post_type = 'pp_video_block';
 
-        if (version_compare($wp_version, '5.8', ">=")) {
-            add_filter("allowed_block_types_all", [$this, 'allowedTypes'], 10, 2);
-        } else {
-            add_filter("allowed_block_types", [$this, 'allowedTypesDeprecated'], 10, 2);
-        }
+	/**
+	 * Register all hooks and filters for the video post type.
+	 *
+	 * @return void
+	 */
+	public function register() {
+		global $wp_version;
 
-        add_filter('enter_title_here', [$this, 'videoTitle']);
+		add_action( 'init', array( $this, 'init' ) );
+		add_action( 'init', array( $this, 'registerMetaSettings' ) );
 
-        // post type ui
-        add_filter("manage_{$this->post_type}_posts_columns", [$this, 'postTypeColumns'], 1);
-        add_action("manage_{$this->post_type}_posts_custom_column", [$this, 'postTypeContent'], 10, 2);
+		if ( version_compare( $wp_version, '5.8', '>=' ) ) {
+			add_filter( 'allowed_block_types_all', array( $this, 'allowedTypes' ), 10, 2 );
+		} else {
+			add_filter( 'allowed_block_types', array( $this, 'allowedTypesDeprecated' ), 10, 2 );
+		}
 
-        // filter by tags
-        add_action('restrict_manage_posts', [$this, 'tagFilter']);
-        add_action('parse_query', [$this, 'tagQuery']);
+		add_filter( 'enter_title_here', array( $this, 'videoTitle' ) );
 
-        // force gutenberg here
-        add_action('use_block_editor_for_post', [$this, 'forceGutenberg'], 999, 2);
+		// post type ui.
+		add_filter( "manage_{$this->post_type}_posts_columns", array( $this, 'postTypeColumns' ), 1 );
+		add_action( "manage_{$this->post_type}_posts_custom_column", array( $this, 'postTypeColumnContent' ), 10, 2 );
 
-        // limit media hub posts
-        add_filter('pre_get_posts', [$this, 'limitMediaHubPosts']);
+		// filter by tags.
+		add_action( 'restrict_manage_posts', array( $this, 'tagFilter' ) );
+		add_action( 'parse_query', array( $this, 'tagQuery' ) );
 
-        add_action('transition_post_status', [$this, 'set_title_on_publish_only'], 10, 3);
+		// force gutenberg here.
+		add_action( 'use_block_editor_for_post', array( $this, 'forceGutenberg' ), 999, 2 );
 
-        add_filter('post_thumbnail_id', [$this, 'attach_poster_image_url'], 10, 2);
-    }
+		// limit media hub posts.
+		add_filter( 'pre_get_posts', array( $this, 'limitMediaHubPosts' ) );
 
-    /**
-     * Limit media hub posts by author if cannot edit others posts
-     *  
-     * @param \WP_Query $query
-     * @return \WP_Query
-     */
-    public function limitMediaHubPosts($query)
-    {
-        global $pagenow, $typenow;
+		// redirect to 404 if instant video page not published.
+		add_action( 'template_redirect', array( $this, 'maybeRedirectTo404' ) );
 
-        if ('edit.php' != $pagenow || !$query->is_admin || 'pp_video_block' !== $typenow) {
-            return $query;
-        }
+		// filter the single template.
+		add_filter( 'single_template', array( $this, 'singleTemplate' ) );
 
-        if (!current_user_can('edit_others_posts')) {
-            $query->set('author', get_current_user_id());
-        }
+		// script for instant video page dropdown on editor toolbar.
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueueEditorToolbarScript' ) );
 
-        return $query;
-    }
+		add_filter( 'post_thumbnail_id', array( $this, 'attachPoster' ), 10, 2 );
 
-    /**
-     * Force gutenberg in case of classic editor
-     */
-    public function forceGutenberg($use, $post)
-    {
-        if ($this->post_type === $post->post_type) {
-            return true;
-        }
+		add_filter( 'the_title', array( $this, 'filterVideoTitle' ), 10, 2 );
 
-        return $use;
-    }
+		add_filter( 'rest_prepare_' . $this->post_type, array( $this, 'addTitleField' ), 10, 3 );
 
-    /**
-     * Columns on all posts page
-     *
-     * @param array $defaults
-     * @return array
-     */
-    public function postTypeColumns($defaults)
-    {
-        $columns = array_merge($defaults, array(
-            'title' => $defaults['title'],
-            'shortcode' => __('Shortcode', 'presto-player'),
-            'php_function' => __('PHP Function', 'presto-player'),
-        ));
+		add_action( 'transition_post_status', array( $this, 'set_post_title' ), 10, 3 );
 
-        $v = $columns['taxonomy-pp_video_tag'];
-        unset($columns['taxonomy-pp_video_tag']);
-        $columns['taxonomy-pp_video_tag'] = $v;
+		add_filter( 'posts_where', array( $this, 'exclude_disabled_media_from_search' ), 10, 2 );
 
-        $v = $columns['date'];
-        unset($columns['date']);
-        $columns['date'] = $v;
-        return $columns;
-    }
+		// Redirect legacy CPT list table to the new dashboard Media Hub tab.
+		// Gutenberg's editor "Back" arrow natively links to edit.php?post_type=<cpt>,
+		// so this redirect is still load-bearing even though no UI in this plugin
+		// links to the legacy URL directly.
+		add_action( 'load-edit.php', array( $this, 'redirectLegacyListToDashboard' ) );
+	}
 
-    public function postTypeContent($column_name, $post_ID)
-    {
-        if ('shortcode' === $column_name) {
-            echo '<code>[presto_player id=' . (int) $post_ID . ']</code>';
-        }
-        if ('php_function' === $column_name) {
-            echo '<code>presto_player(' . (int) $post_ID . ')</code>';
-        }
-        if ('video_tags' === $column_name) {
-            $tags = get_the_terms($post_ID, 'pp_video_tag');
-            if (is_array($tags)) {
-                foreach ($tags as $key => $tag) {
-                    $tags[$key] = '<a href="?post_type=pp_video_block&pp_video_tag=' . $tag->term_id . '">' . $tag->name . '</a>';
-                }
-                echo implode(', ', $tags);
-            }
-        }
-    }
+	/**
+	 * Redirect legacy edit.php?post_type=pp_video_block requests to the new
+	 * dashboard Media Hub tab. Catches Gutenberg's editor back-arrow, the
+	 * admin bar's "All Posts" link, and any direct bookmarks.
+	 *
+	 * @return void
+	 */
+	public function redirectLegacyListToDashboard() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$post_type = isset( $_GET['post_type'] ) ? sanitize_key( wp_unslash( $_GET['post_type'] ) ) : '';
+		if ( $this->post_type !== $post_type ) {
+			return;
+		}
 
-    public function videoTitle($title)
-    {
-        $screen = get_current_screen();
-        if ($this->post_type == $screen->post_type) {
-            $title = __('Enter a title...', 'presto-player');
-        }
-        return $title;
-    }
+		$target = admin_url( 'admin.php?page=presto-dashboard&tab=MediaHub' );
 
-    /**
-     * Allowed block types
-     *
-     * @param array $allowed_block_types
-     * @param object $block_editor_content
-     * @return void
-     */
-    public function allowedTypes($allowed_block_types, $block_editor_content)
-    {
-        if (!empty($block_editor_content->post->post_type)) {
-            if ($block_editor_content->post->post_type === $this->post_type) {
-                return [
-                    'presto-player/reusable',
-                    'presto-player/self-hosted',
-                    'presto-player/youtube',
-                    'presto-player/vimeo',
-                    'presto-player/bunny',
-                    'presto-player/audio'
-                ];
-            }
-        }
+		/**
+		 * Filter whether to redirect the legacy CPT list table to the new dashboard.
+		 *
+		 * Return false to short-circuit the redirect — useful for integrators that
+		 * still rely on the native list UI, or for internal tests that need to
+		 * assert on the legacy screen.
+		 *
+		 * @param bool   $should_redirect Whether to perform the redirect. Default true.
+		 * @param string $target          The resolved redirect URL.
+		 */
+		if ( ! apply_filters( 'presto_player_redirect_legacy_media_list', true, $target ) ) {
+			return;
+		}
 
-        return $allowed_block_types;
-    }
+		wp_safe_redirect( $target );
+		exit;
+	}
 
-    public function allowedTypesDeprecated($allowed_block_types, $post)
-    {
-        if ($post->post_type !== $this->post_type) {
-            return $allowed_block_types;
-        }
+	/**
+	 * Filter the WHERE clause to exclude pp_video_block posts with instant video page disabled.
+	 *
+	 * @param  string    $where The WHERE clause of the query.
+	 * @param  \WP_Query $query The WP_Query instance.
+	 * @return string Modified WHERE clause.
+	 */
+	public function exclude_disabled_media_from_search( $where, $query ) {
+		global $wpdb;
 
-        return [
-            'presto-player/reusable',
-            'presto-player/self-hosted',
-            'presto-player/youtube',
-            'presto-player/vimeo',
-            'presto-player/bunny',
-            'presto-player/audio'
-        ];
-    }
+		// Only apply to main search queries on the frontend.
+		if ( ! is_admin() && $query->is_main_query() && $query->is_search() ) {
+			// Exclude pp_video_block posts that don't have instant video pages enabled.
+			$where .= $wpdb->prepare(
+				" AND (
+					{$wpdb->posts}.post_type != %s
+					OR EXISTS (
+						SELECT 1 FROM {$wpdb->postmeta}
+						WHERE {$wpdb->postmeta}.post_id = {$wpdb->posts}.ID
+						AND {$wpdb->postmeta}.meta_key = %s
+						AND {$wpdb->postmeta}.meta_value = %s
+					)
+				)",
+				$this->post_type,
+				'presto_player_instant_video_pages_enabled',
+				'1'
+			);
+		}
 
-    /**
-     * Register post type
-     *
-     * @return void
-     */
-    public function init()
-    {
-        register_taxonomy('pp_video_tag', 'pp_video_block', [
-            'labels'                => array(
-                'name'                     => _x('Media Tags', 'post type general name'),
-                'singular_name'            => _x('Media Tag', 'post type singular name'),
-                'search_items'             => _x('Search Media Tags', 'admin menu'),
-                'popular_items'            => _x('Popular Media Tags', 'add new on admin bar'),
-            ),
-            'label' => __('Tag', 'presto-player'),
-            'public' => false,
-            'show_ui' => true,
-            'show_in_rest' => true,
-            'show_admin_column' => true,
-        ]);
+		return $where;
+	}
 
-        register_post_type(
-            'pp_video_block',
-            array(
-                'labels'                => array(
-                    'name'                     => _x('Media Hub', 'post type general name', 'presto-player'),
-                    'singular_name'            => _x('Media', 'post type singular name', 'presto-player'),
-                    'menu_name'                => _x('Media', 'admin menu', 'presto-player'),
-                    'name_admin_bar'           => _x('Video', 'add new on admin bar', 'presto-player'),
-                    'add_new'                  => _x('Add New', 'Video', 'presto-player'),
-                    'add_new_item'             => __('Add New Video', 'presto-player'),
-                    'new_item'                 => __('New Video', 'presto-player'),
-                    'edit_item'                => __('Edit Video', 'presto-player'),
-                    'view_item'                => __('View Video', 'presto-player'),
-                    'all_items'                => __('All Videos', 'presto-player'),
-                    'search_items'             => __('Search Media', 'presto-player'),
-                    'not_found'                => __('No Videos found.', 'presto-player'),
-                    'not_found_in_trash'       => __('No Videos found in Trash.', 'presto-player'),
-                    'filter_items_list'        => __('Filter Videos list', 'presto-player'),
-                    'items_list_navigation'    => __('Videos list navigation', 'presto-player'),
-                    'items_list'               => __('Videos list', 'presto-player'),
-                    'item_published'           => __('Video published.', 'presto-player'),
-                    'item_published_privately' => __('Video published privately.', 'presto-player'),
-                    'item_reverted_to_draft'   => __('Video reverted to draft.', 'presto-player'),
-                    'item_scheduled'           => __('Video scheduled.', 'presto-player'),
-                    'item_updated'             => __('Video updated.', 'presto-player'),
-                ),
-                'public'                => false,
-                'show_ui'               => true,
-                'show_in_menu'          => false,
-                'rewrite'               => false,
-                'show_in_rest'          => true,
-                'rest_base'             => 'presto-videos',
-                'rest_controller_class' => 'WP_REST_Blocks_Controller',
-                'map_meta_cap'          => true,
-                'supports'              => [
-                    'title',
-                    'editor',
-                ],
-                'taxonomies' => ['pp_video_tag'],
-                'template' => [
-                    ['presto-player/reusable-edit']
-                ],
-                'template_lock' => 'all'
-            )
-        );
-    }
+	/**
+	 * Limit media hub posts by author if cannot edit others posts
+	 *
+	 * @param  \WP_Query $query The WP_Query instance.
+	 * @return \WP_Query
+	 */
+	public function limitMediaHubPosts( $query ) {
+		global $pagenow, $typenow;
 
-    /**
-     * Adds a tag filter dropdown
-     *
-     * @return void
-     */
-    public function tagFilter()
-    {
-        global $typenow;
+		if ( 'edit.php' != $pagenow || ! $query->is_admin || $this->post_type !== $typenow ) {
+			return $query;
+		}
 
-        $post_type = 'pp_video_block';
-        $taxonomy  = 'pp_video_tag';
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
+			$query->set( 'author', get_current_user_id() );
+		}
 
-        if ($typenow !== $post_type) {
-            return;
-        }
+		return $query;
+	}
 
-        $selected      = isset($_GET[$taxonomy]) ? $_GET[$taxonomy] : '';
-        $info_taxonomy = get_taxonomy($taxonomy);
+	/**
+	 * Force gutenberg in case of classic editor.
+	 *
+	 * @param bool   $use Whether to use the block editor.
+	 * @param object $post The post object.
+	 *
+	 * @return bool Whether to use the block editor.
+	 */
+	public function forceGutenberg( $use, $post ) {
+		if ( $this->post_type === $post->post_type ) {
+			return true;
+		}
 
-        wp_dropdown_categories(array(
-            'show_option_all' => sprintf(__('Show all %s', 'textdomain'), $info_taxonomy->label),
-            'taxonomy'        => $taxonomy,
-            'name'            => $taxonomy,
-            'orderby'         => 'name',
-            'selected'        => $selected,
-            'show_count'      => true,
-            'hide_empty'      => true,
-        ));
-    }
+		return $use;
+	}
 
-    /**
-     * Modify admin query for tag
-     *
-     * @param \WP_Query $query
-     * @return void
-     */
-    public function tagQuery($query)
-    {
-        global $pagenow;
+	/**
+	 * Columns on all posts page.
+	 *
+	 * @param  array $defaults The default columns.
+	 * @return array The columns.
+	 */
+	public function postTypeColumns( $defaults ) {
+		$columns = array_merge(
+			$defaults,
+			array(
+				'poster'    => esc_html__( 'Poster', 'presto-player' ),
+				'title'     => $defaults['title'],
+				'shortcode' => esc_html__( 'Shortcode', 'presto-player' ),
+			)
+		);
 
-        $post_type = 'pp_video_block';
-        $taxonomy  = 'pp_video_tag';
+		$v = $columns['taxonomy-pp_video_tag'];
+		unset( $columns['taxonomy-pp_video_tag'] );
+		$columns['taxonomy-pp_video_tag'] = $v;
 
-        $q_vars    = &$query->query_vars;
-        if ($pagenow == 'edit.php' && isset($q_vars['post_type']) && $q_vars['post_type'] == $post_type && isset($q_vars[$taxonomy]) && is_numeric($q_vars[$taxonomy]) && $q_vars[$taxonomy] != 0) {
-            $term = get_term_by('id', $q_vars[$taxonomy], $taxonomy);
-            $q_vars[$taxonomy] = $term->slug;
-        }
-    }
+		$v = $columns['poster'];
+		unset( $columns['poster'] );
+		$columns['poster'] = $v;
 
-    /**
-     * Set media hub video title when kept empty before publish.
-     */
-    public function set_title_on_publish_only($new_status, $old_status, $post)
-    {
-        if (('publish' === $new_status && 'publish' !== $old_status)
-            && 'pp_video_block' === $post->post_type
-        ) {
+		$v = $columns['date'];
+		unset( $columns['date'] );
+		$columns['date'] = $v;
 
-            if (empty($post->post_title)) {
-                $new_title = "Presto Player #" . $post->ID;
+		// return re-arranged columns.
+		return array(
+			'cb'         => $columns['cb'],
+			'title'      => $columns['title'],
+			'poster'     => $columns['poster'],
+			'video_tags' => $columns['taxonomy-pp_video_tag'],
+			'shortcode'  => $columns['shortcode'],
+			'date'       => $columns['date'],
+		);
+	}
 
-                $post_update = array(
-                    'ID'         => $post->ID,
-                    'post_title' => $new_title
-                );
+	/**
+	 * Renders column content for custom post types.
+	 *
+	 * @param string $column_name The name of the column to render content for.
+	 * @param int    $post_ID    The ID of the post for which to render the column content.
+	 */
+	public function postTypeColumnContent( $column_name, $post_ID ) {
+		$output = '';
+		switch ( $column_name ) {
+			case 'shortcode':
+				$output = $this->renderShortcodeColumn( $post_ID );
+				break;
+			case 'video_tags':
+				$output = $this->renderVideoTagsColumn( $post_ID );
+				break;
+			case 'poster':
+				$output = $this->renderTitleWithPosterColumn( $post_ID );
+				break;
+		}
+		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Output is pre-escaped HTML from helper methods above.
+	}
 
-                wp_update_post($post_update);
-            }
-        }
-    }
+	/**
+	 * Renders the shortcode column content.
+	 *
+	 * @param int $post_ID The ID of the post for which to render the shortcode.
+	 */
+	public function renderShortcodeColumn( $post_ID ) {
+		ob_start();
+		?>
+		<code>[presto_player id=<?php echo (int) $post_ID; ?>]</code>
+		<?php
+		return ob_get_clean();
+	}
 
-    /**
-     * Attach the poster image URL to the video post.
-     *
-     * @param int   $id   Current thumbnail ID.
-     * @param WP_Post $post Post object.
-     * @return int Attachment ID or original thumbnail ID.
-     */
-    public function attach_poster_image_url($id, $post)
-    {
-        if ('pp_video_block' !== $post->post_type) {
-            return $id;
-        }
-        $block = $this->get_media_hub_block($post);
-        $poster = isset($block) && isset($block['attrs']['poster']) ? $block['attrs']['poster'] : '';
-        $attachment_id = attachment_url_to_postid($poster);
-        return $attachment_id ? $attachment_id : $id;
-    }
+	/**
+	 * Renders the video tags column content.
+	 *
+	 * @param int $post_ID The ID of the post for which to render the video tags.
+	 * @return string buffer output string.
+	 */
+	public function renderVideoTagsColumn( $post_ID ) {
+		ob_start();
+		$tags = get_the_terms( $post_ID, 'pp_video_tag' );
+		if ( is_array( $tags ) ) {
+			foreach ( $tags as $key => $tag ) {
+				// Escape tag name to prevent XSS, use esc_url and absint for defense-in-depth.
+				$tags[ $key ] = '<a href="' . esc_url( '?post_type=pp_video_block&pp_video_tag=' . absint( $tag->term_id ) ) . '">' . esc_html( $tag->name ) . '</a>';
+			}
+			// Each tag link is already individually escaped above.
+			echo wp_kses_post( implode( ', ', $tags ) );
+		}
+		return ob_get_clean();
+	}
 
-    /**
-     * Get the media hub block.
-     *
-     * @param WP_Post $post Post object.
-     * @return array|bool The media hub block array or false if block not found.
-     */
-    public function get_media_hub_block($post)
-    {
-        $blocks = parse_blocks($post->post_content);
-        $first_block = wp_get_first_block($blocks, 'presto-player/reusable-edit');
-        return isset($first_block['innerBlocks'][0]) ? $first_block['innerBlocks'][0] : false;
-    }
+	/**
+	 * Renders the title with poster column content.
+	 *
+	 * @param int $post_ID The ID of the post for which to render the title with poster.
+	 * @return string buffer output string.
+	 */
+	public function renderTitleWithPosterColumn( $post_ID ) {
+		ob_start();
+		$thumbnail = get_the_post_thumbnail(
+			$post_ID,
+			'',
+			array(
+				'style' => 'width: 75px; height: auto; aspect-ratio: 16/9; object-fit: cover; border-radius: 2px;',
+			)
+		);
+		?>
+		<div class='pp-container' style="display: flex; justify-content: flex-start;">
+			<?php if ( '' !== $thumbnail ) : ?>
+				<div class='pp-container__media-icon pp-container__media-icon--image'><?php echo $thumbnail; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Output is pre-escaped HTML from get_the_post_thumbnail(). ?></div>
+			<?php else : ?>
+				<div class='pp-container__media-icon pp-container__media-icon--image' style="
+					width: 75px;
+					aspect-ratio: 16/9;
+					box-sizing: border-box;
+					background-color: #b8b8b8;
+					border-radius: 2px;
+					display: flex;
+					justify-content: center;
+					align-items: center;">
+					<?php
+					$svg_content = file_get_contents( PRESTO_PLAYER_PLUGIN_DIR . '/img/icon-white.svg' );
+
+					// Define allowed SVG elements and attributes.
+					$svg_args = array(
+						'svg'  => array(
+							'width'   => true,
+							'height'  => true,
+							'viewbox' => true,
+							'fill'    => true,
+							'xmlns'   => true,
+							'style'   => true,
+						),
+						'path' => array(
+							'd'            => true,
+							'fill'         => true,
+							'fill-opacity' => true,
+						),
+					);
+
+					// Merge the default allowed HTML tags with the SVG arguments.
+					$allowed_tags = array_merge( wp_kses_allowed_html( 'post' ), $svg_args );
+
+					// Initialize the WP_HTML_Tag_Processor.
+					$processor = new \WP_HTML_Tag_Processor( $svg_content );
+
+					// Find the SVG tag and set the width and height attributes.
+					if ( $processor->next_tag( 'svg' ) ) {
+						$processor->set_attribute( 'width', '20px' );
+						$processor->set_attribute( 'height', 'auto' );
+					}
+
+					echo wp_kses( $processor->get_updated_html(), $allowed_tags );
+					?>
+				</div>
+			<?php endif; ?>
+		</div>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Modifies the default title placeholder text
+	 *
+	 * @param string $title The title placeholder text.
+	 * @return string Modified title text
+	 */
+	public function videoTitle( $title ) {
+		$screen = get_current_screen();
+		if ( $this->post_type == $screen->post_type ) {
+			$title = __( 'Enter a title...', 'presto-player' );
+		}
+		return $title;
+	}
+
+	/**
+	 * Allowed block types.
+	 *
+	 * @param array  $allowed_block_types   Array of allowed block types.
+	 * @param object $block_editor_content  Block editor context.
+	 * @return array
+	 */
+	public function allowedTypes( $allowed_block_types, $block_editor_content ) {
+		if ( ! empty( $block_editor_content->post->post_type ) ) {
+			if ( $block_editor_content->post->post_type === $this->post_type ) {
+				return array(
+					'presto-player/reusable',
+					'presto-player/self-hosted',
+					'presto-player/youtube',
+					'presto-player/vimeo',
+					'presto-player/bunny',
+					'presto-player/audio',
+				);
+			}
+		}
+
+		return $allowed_block_types;
+	}
+
+	/**
+	 * Filter allowed block types for deprecated WordPress versions.
+	 *
+	 * @param array    $allowed_block_types Array of allowed block types.
+	 * @param \WP_Post $post                Post being loaded.
+	 * @return array Filtered block types.
+	 */
+	public function allowedTypesDeprecated( $allowed_block_types, $post ) {
+		if ( $post->post_type !== $this->post_type ) {
+			return $allowed_block_types;
+		}
+
+		return array(
+			'presto-player/reusable',
+			'presto-player/self-hosted',
+			'presto-player/youtube',
+			'presto-player/vimeo',
+			'presto-player/bunny',
+			'presto-player/audio',
+		);
+	}
+
+	/**
+	 * Register post type
+	 *
+	 * @return void
+	 */
+	public function init() {
+		register_taxonomy(
+			'pp_video_tag',
+			$this->post_type,
+			array(
+				'labels'            => array(
+					'name'          => _x( 'Media Tags', 'post type general name', 'presto-player' ),
+					'singular_name' => _x( 'Media Tag', 'post type singular name', 'presto-player' ),
+					'search_items'  => _x( 'Search Media Tags', 'admin menu', 'presto-player' ),
+					'popular_items' => _x( 'Popular Media Tags', 'add new on admin bar', 'presto-player' ),
+				),
+				'label'             => __( 'Tag', 'presto-player' ),
+				'public'            => false,
+				'show_ui'           => true,
+				'show_in_rest'      => true,
+				'show_admin_column' => true,
+			)
+		);
+
+		register_post_type(
+			$this->post_type,
+			array(
+				'labels'                => array(
+					'name'                     => _x( 'Media Hub', 'post type general name', 'presto-player' ),
+					'singular_name'            => _x( 'Media', 'post type singular name', 'presto-player' ),
+					'menu_name'                => _x( 'Media', 'admin menu', 'presto-player' ),
+					'name_admin_bar'           => _x( 'Presto Media', 'add new on admin bar', 'presto-player' ),
+					'add_new'                  => _x( 'Add New', 'Media', 'presto-player' ),
+					'add_new_item'             => __( 'Add New Media', 'presto-player' ),
+					'new_item'                 => __( 'New Media', 'presto-player' ),
+					'edit_item'                => __( 'Edit Media', 'presto-player' ),
+					'view_item'                => __( 'View Media', 'presto-player' ),
+					'all_items'                => __( 'Media Hub', 'presto-player' ),
+					'search_items'             => __( 'Search Media', 'presto-player' ),
+					'not_found'                => __( 'No Media found.', 'presto-player' ),
+					'not_found_in_trash'       => __( 'No Media found in Trash.', 'presto-player' ),
+					'filter_items_list'        => __( 'Filter Media list', 'presto-player' ),
+					'items_list_navigation'    => __( 'Media list navigation', 'presto-player' ),
+					'items_list'               => __( 'Media list', 'presto-player' ),
+					'item_published'           => __( 'Media published.', 'presto-player' ),
+					'item_published_privately' => __( 'Media published privately.', 'presto-player' ),
+					'item_reverted_to_draft'   => __( 'Media reverted to draft.', 'presto-player' ),
+					'item_scheduled'           => __( 'Media scheduled.', 'presto-player' ),
+					'item_updated'             => __( 'Media updated.', 'presto-player' ),
+				),
+				'public'                => true,
+				'show_ui'               => true,
+				'show_in_menu'          => false,
+				'show_in_admin_bar'     => true,
+				'rewrite'               => array(
+					'slug'       => 'media',
+					'with_front' => false,
+				),
+				'show_in_rest'          => true,
+				'rest_base'             => 'presto-videos',
+				'rest_controller_class' => 'WP_REST_Posts_Controller',
+				'map_meta_cap'          => true,
+				'supports'              => array(
+					'title',
+					'editor',
+					'custom-fields',
+				),
+				'taxonomies'            => array( 'pp_video_tag' ),
+				'template'              => array(
+					array( 'presto-player/reusable-edit' ),
+				),
+				'template_lock'         => 'all',
+			)
+		);
+	}
+
+	/**
+	 * Adds a tag filter dropdown
+	 *
+	 * @return void
+	 */
+	public function tagFilter() {
+		global $typenow;
+
+		$post_type = 'pp_video_block';
+		$taxonomy  = 'pp_video_tag';
+
+		if ( $typenow !== $post_type ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin list-table filter; core admin filters use GET without a nonce.
+		$selected      = isset( $_GET[ $taxonomy ] ) ? absint( $_GET[ $taxonomy ] ) : '';
+		$info_taxonomy = get_taxonomy( $taxonomy );
+
+		ob_start();
+		wp_dropdown_categories(
+			array(
+				/* translators: %s: taxonomy label */
+				'show_option_all' => sprintf( __( 'Show all %s', 'presto-player' ), $info_taxonomy->label ),
+				'taxonomy'        => $taxonomy,
+				'name'            => $taxonomy,
+				'orderby'         => 'name',
+				'selected'        => $selected,
+				'show_count'      => true,
+				'hide_empty'      => true,
+			)
+		);
+		$dropdown = ob_get_clean();
+
+		$allowed_html = array(
+			'select' => array(
+				'name'  => true,
+				'id'    => true,
+				'class' => true,
+			),
+			'option' => array(
+				'class'    => true,
+				'value'    => true,
+				'selected' => true,
+			),
+		);
+		echo wp_kses( $dropdown, $allowed_html );
+	}
+
+	/**
+	 * Modify admin query for tag.
+	 *
+	 * @param \WP_Query $query Query being modified.
+	 * @return void
+	 */
+	public function tagQuery( $query ) {
+		global $pagenow;
+
+		$post_type = $this->post_type;
+		$taxonomy  = 'pp_video_tag';
+
+		$q_vars = &$query->query_vars;
+		if ( 'edit.php' === $pagenow && isset( $q_vars['post_type'] ) && $q_vars['post_type'] === $post_type && isset( $q_vars[ $taxonomy ] ) && is_numeric( $q_vars[ $taxonomy ] ) && 0 !== (int) $q_vars[ $taxonomy ] ) {
+			$term                = get_term_by( 'id', $q_vars[ $taxonomy ], $taxonomy );
+			$q_vars[ $taxonomy ] = $term->slug;
+		}
+	}
+
+	/**
+	 * Retrieves the video title from a media hub block for a given post ID.
+	 *
+	 * @param int $post_id The ID of the post from which to retrieve the video title.
+	 *
+	 * @return string|null The video title if found, null otherwise.
+	 */
+	public function getVideoTitleFromBlock( $post_id ) {
+		$block = $this->getMediaHubBlock( get_post( $post_id ) );
+		if ( isset( $block['attrs']['id'] ) ) {
+			$video         = new Video( $block['attrs']['id'] );
+			$attachment_id = $video->getAttachmentID();
+			if ( ! empty( $attachment_id ) ) {
+				$attachment_title = $video->getAttachmentPostTitle( $attachment_id );
+				if ( ! empty( $attachment_title ) ) {
+					return $attachment_title;
+				}
+			}
+			$video_title = $video->getTitle();
+			if ( ! empty( $video_title ) ) {
+				return $video_title;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Get the the title fallback.
+	 *
+	 * @param string $title   The title.
+	 * @param int    $post_id The ID of the post.
+	 *
+	 * @return string The title fallback.
+	 */
+	public function getTitleFallback( $title, $post_id ) {
+		if ( ! isset( $post_id ) ) {
+			return $title;
+		}
+		// Include the translated block name in title if available.
+		$block = ( new ReusableVideo( $post_id ) )->getAttributes();
+		if ( $block ) {
+			if ( ! empty( $block['name'] ) ) {
+				$title = ( $block['name'] ?? '' ) . ' #' . $post_id;
+			}
+		}
+		return $title;
+	}
+
+	/**
+	 * Register the meta settings for the video block
+	 *
+	 * @return void
+	 */
+	public function registerMetaSettings() {
+		register_post_meta(
+			$this->post_type,
+			'presto_player_instant_video_pages_enabled',
+			array(
+				'single'       => true,
+				'type'         => 'boolean',
+				'description'  => 'Enable Instant Video Pages',
+				'show_in_rest' => true,
+			)
+		);
+	}
+
+	/**
+	 * Redirect to 404 if the instant video page is disabled
+	 *
+	 * @return void
+	 */
+	public function maybeRedirectTo404() {
+		global $post;
+		if ( ! isset( $post ) ) {
+			return;
+		}
+		if ( $this->post_type !== $post->post_type ) {
+			return;
+		}
+		// If this is a search request, don't redirect to 404.
+		if ( is_search() ) {
+			return;
+		}
+		if ( current_user_can( 'edit_post', $post->ID ) ) {
+			return;
+		}
+		$media_hub_video = new ReusableVideo( $post->ID );
+		if ( ! empty( $media_hub_video ) && empty( $media_hub_video->instantVideoPageEnabled() ) ) {
+			global $wp_query;
+			$wp_query->set_404();
+			status_header( 404 );
+			get_template_part( 404 );
+			exit();
+		}
+	}
+
+	/**
+	 * Attach the poster image URL to the video post.
+	 *
+	 * @param int     $id   The attachment ID.
+	 * @param WP_Post $post The post object.
+	 *
+	 * @return int The attachment ID.
+	 */
+	public function attachPoster( $id, $post ) {
+		if ( $this->post_type !== $post->post_type ) {
+			return $id;
+		}
+		$block  = $this->getMediaHubBlock( $post );
+		$poster = ( ! empty( $block ) ) && isset( $block['attrs']['poster'] ) ? $block['attrs']['poster'] : '';
+		// No URL → nothing to resolve. Skips a wasted attachment_url_to_postid()
+		// DB query on every get_post_thumbnail_id() call for posts whose block
+		// doesn't define a poster (most YouTube / Vimeo / audio sources).
+		if ( '' === $poster ) {
+			return $id;
+		}
+		$attachment_id = attachment_url_to_postid( $poster );
+		return $attachment_id ? $attachment_id : $id;
+	}
+
+	/**
+	 * Get the single template for the video block
+	 *
+	 * @param string $template The template file.
+	 *
+	 * @return string The template file
+	 */
+	public function singleTemplate( $template ) {
+		global $post;
+
+		if ( $this->post_type !== $post->post_type ) {
+			return $template;
+		}
+
+		$theme_template = locate_template( array( 'single-presto-media.php' ) );
+		if ( $theme_template ) {
+			return $theme_template;
+		}
+
+		return PRESTO_PLAYER_PLUGIN_DIR . 'templates/single-presto-media.php';
+	}
+
+	/**
+	 * Get the media hub block.
+	 *
+	 * @param WP_Post $post Post object.
+	 *
+	 * @return array|bool The media hub block array or false if block not found.
+	 */
+	public function getMediaHubBlock( $post ) {
+		$blocks      = parse_blocks( $post->post_content );
+		$first_block = wp_get_first_block( $blocks, 'presto-player/reusable-edit' );
+		return isset( $first_block['innerBlocks'][0] ) ? $first_block['innerBlocks'][0] : false;
+	}
+
+	/**
+	 * Register the editor toolbar script for
+	 * instant video page dropdown on the editor toolbar.
+	 *
+	 * @return void
+	 */
+	public function enqueueEditorToolbarScript() {
+		global $post_type;
+
+		if ( $this->post_type !== $post_type ) {
+			return;
+		}
+
+		$assets = include trailingslashit( PRESTO_PLAYER_PLUGIN_DIR ) . 'dist/toolbar.asset.php';
+		wp_enqueue_script(
+			'presto-player/toolbar/admin',
+			trailingslashit( PRESTO_PLAYER_PLUGIN_URL ) . 'dist/toolbar.js',
+			array_merge( array( 'jquery', 'regenerator-runtime' ), $assets['dependencies'] ?? array() ),
+			$assets['version'],
+			true
+		);
+	}
+
+	/**
+	 * Modify title for response.
+	 *
+	 * @param WP_REST_Response $response Response object.
+	 * @param WP_Post          $post     Post object.
+	 * @param WP_REST_Request  $request  Request object.
+	 *
+	 * @return WP_REST_Response Response object with title property modified.
+	 */
+	public function addTitleField( $response, $post, $request ) {
+		if ( $post->post_type !== $this->post_type ) {
+			return $response;
+		}
+		if ( ! isset( $response->data['title'] ) ) {
+			return $response;
+		}
+		if ( ! is_array( $response->data['title'] ) ) {
+			return $response;
+		}
+		$response->data['title'] = get_the_title( $post->ID );
+		return $response;
+	}
+
+	/**
+	 * Update the post title to the video title on publish.
+	 *
+	 * @param string  $new_status new status of the post.
+	 * @param string  $old_status old status of the post.
+	 * @param WP_Post $post       Post object.
+	 *
+	 * @return void
+	 */
+	public function set_post_title( $new_status, $old_status, $post ) {
+		if ( 'pp_video_block' !== $post->post_type ) {
+			return;
+		}
+		if ( ! empty( $post->post_title ) ) {
+			return;
+		}
+		$post_title = $this->getVideoTitleFromBlock( $post->ID );
+		if ( empty( $post_title ) ) {
+			return;
+		}
+		wp_update_post(
+			array(
+				'ID'         => $post->ID,
+				'post_title' => $post_title,
+			)
+		);
+	}
+
+	/**
+	 * Filters video post title to use the video's title
+	 *
+	 * @param string $title   The current title of the post.
+	 * @param int    $post_id The ID of the post.
+	 *
+	 * @return string The filtered title, either the original title or the video's title if the original is empty.
+	 */
+	public function filterVideoTitle( $title, $post_id = 0 ) {
+		if ( get_post_type( $post_id ) !== $this->post_type ) {
+			return $title;
+		}
+		if ( ! empty( $title ) ) {
+			return $title;
+		}
+		$video_title = $this->getVideoTitleFromBlock( $post_id );
+		return $video_title ?? $this->getTitleFallback( $title, $post_id );
+	}
 }

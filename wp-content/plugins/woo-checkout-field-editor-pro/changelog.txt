@@ -1,4 +1,16 @@
 == Changelog ==
+= 2.1.9 =
+* Added new Block Checkout field types: **Number, URL, Email, Paragraph, Textarea, and Heading** .
+* Added WooCommerce 10.8 compatibility.
+* Added WordPress 7.0 compatibility.
+
+= 2.1.8 =
+* Security: Fixed a Stored XSS vulnerability affecting custom  fields submitted through the WooCommerce Store API checkout endpoint reported by Dmitrii Ignatyev.
+* Added WooCommerce 10.5 compatibility.
+
+= 2.1.7 =
+* Fixed incorrect use of translation function in paragraph field.
+
 = 2.1.6 =
 * Added compatiblity for Archiva for WooCommerce.
 * Improved dynamic string translation for WPML.

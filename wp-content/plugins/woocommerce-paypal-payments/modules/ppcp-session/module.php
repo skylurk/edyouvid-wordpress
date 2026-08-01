@@ -1,16 +1,13 @@
 <?php
+
 /**
  * The session module.
  *
  * @package WooCommerce\PayPalCommerce\Session
  */
-
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace WooCommerce\PayPalCommerce\Session;
 
-use WooCommerce\PayPalCommerce\Vendor\Dhii\Modular\Module\ModuleInterface;
-
-return function (): ModuleInterface {
-	return new SessionModule();
+return function (): \WooCommerce\PayPalCommerce\Session\SessionModule {
+    return new \WooCommerce\PayPalCommerce\Session\SessionModule();
 };

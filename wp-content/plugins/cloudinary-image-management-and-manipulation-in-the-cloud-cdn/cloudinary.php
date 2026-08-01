@@ -3,7 +3,7 @@
  * Plugin Name: Cloudinary
  * Plugin URI: https://cloudinary.com/documentation/wordpress_integration
  * Description: With the Cloudinary plugin, you can upload and manage your media assets in the cloud, then deliver them to your users through a fast content delivery network, improving your website’s loading speed and overall user experience. Apply multiple transformations and take advantage of a full digital asset management solution without leaving WordPress.
- * Version: 3.3.1
+ * Version: 3.3.4
  * Author:  Cloudinary Ltd., XWP
  * Author URI: https://cloudinary.com/
  * License: GPLv2+
@@ -36,7 +36,7 @@ use WP_CLI;
 define( 'CLDN_CORE', __FILE__ );
 define( 'CLDN_PATH', plugin_dir_path( __FILE__ ) );
 
-if ( version_compare( phpversion(), '5.6', '>=' ) ) {
+if ( version_compare( phpversion(), '7.4', '>=' ) ) {
 	require_once __DIR__ . '/instance.php';
 	register_activation_hook( __FILE__, array( 'Cloudinary\Utils', 'install' ) );
 } else { // phpcs:ignore Universal.ControlStructures.DisallowLonelyIf.Found
@@ -60,5 +60,5 @@ function php_version_error() {
  * @return string
  */
 function php_version_text() {
-	return __( 'Cloudinary plugin error: Your version of PHP is too old to run this plugin. You must be running PHP 5.6 or higher.', 'cloudinary' );
+	return __( 'Cloudinary plugin error: Your version of PHP is too old to run this plugin. You must be running PHP 7.4 or higher.', 'cloudinary' );
 }

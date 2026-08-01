@@ -55,7 +55,7 @@ const NavigationButtons = ( {
 	return (
 		<div
 			className={ classNames(
-				'w-full flex items-center gap-4 flex-wrap md:flex-nowrap',
+				'w-full flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-wrap md:flex-nowrap',
 				className
 			) }
 		>
@@ -63,7 +63,7 @@ const NavigationButtons = ( {
 				{ ! hideContinue && (
 					<Button
 						type="submit"
-						className="relative !pl-[18px] !pr-[18px]"
+						className="relative !pl-4 !pr-4 py-2.5 h-[40px] font-normal gap-1.5"
 						onClick={ handleOnClickContinue }
 						variant="primary"
 						disabled={ disableContinue }
@@ -93,7 +93,7 @@ const NavigationButtons = ( {
 				{ typeof onClickPrevious === 'function' && (
 					<Button
 						type="button"
-						className="!pl-[18px] !pr-[18px]"
+						className="!pl-3 !pr-3 py-2.5"
 						onClick={ handleOnClickPrevious }
 						variant="white"
 					>
@@ -106,7 +106,7 @@ const NavigationButtons = ( {
 			{ typeof onClickSkip === 'function' && (
 				<Button
 					type="button"
-					className="mr-auto ml-0 md:mr-0 md:ml-auto text-secondary-text"
+					className="ml-0 md:mr-0 sm:ml-auto text-secondary-text !px-0 py-0 sm:py-3"
 					onClick={ handleOnClickSkip }
 					variant="blank"
 				>

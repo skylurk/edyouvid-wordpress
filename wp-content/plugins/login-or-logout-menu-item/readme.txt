@@ -2,8 +2,8 @@
 Contributors: cartpauj
 Tags: login, logout, menu, menu item, dynamic
 Requires at least: 6.0
-Tested up to: 6.8
-Stable tag: 1.3.0
+Tested up to: 7.0
+Stable tag: 1.3.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -71,6 +71,11 @@ You can also manually type `#lolmiloginout#` as the URL if you prefer.
 2. Login or Logout Menu Item - Settings
 
 == Changelog ==
+= 1.3.2 =
+* Ensure WP 7.0 Compatibility
+
+= 1.3.1 =
+* Removed translations in-plugin, these can be managed at wordpress.org
 
 = 1.3.0 =
 * Added support for the block editor Navigation block

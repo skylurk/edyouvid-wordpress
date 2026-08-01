@@ -12,6 +12,7 @@ body.wpt-zero-body #wpcontent {
     margin: 30px;
 }
 body.edit-php.post-type-wpt_product_table .wrap,
+body.post-new-php.post-type-wpt_product_table .wrap,
 body.post-php.post-type-wpt_product_table .wrap{
     margin: 0 !important;
 }

@@ -74,6 +74,24 @@ class Widget_Accordion extends Widget_Base {
 		return [ 'accordion', 'tabs', 'toggle' ];
 	}
 
+	protected function is_dynamic_content(): bool {
+		return false;
+	}
+
+	/**
+	 * Get style dependencies.
+	 *
+	 * Retrieve the list of style dependencies the widget requires.
+	 *
+	 * @since 3.24.0
+	 * @access public
+	 *
+	 * @return array Widget style dependencies.
+	 */
+	public function get_style_depends(): array {
+		return [ 'widget-accordion' ];
+	}
+
 	/**
 	 * Hide widget from panel.
 	 *
@@ -83,7 +101,11 @@ class Widget_Accordion extends Widget_Base {
 	 * @return bool
 	 */
 	public function show_in_panel(): bool {
-		return ! Plugin::$instance->experiments->is_feature_active( 'nested-elements' );
+		return ! Plugin::$instance->experiments->is_feature_active( 'nested-elements', true );
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
 	}
 
 	/**
@@ -282,8 +304,8 @@ class Widget_Accordion extends Widget_Base {
 				'type' => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .elementor-accordion-item' => 'border-color: {{VALUE}};',
-					'{{WRAPPER}} .elementor-accordion-item .elementor-tab-content' => 'border-top-color: {{VALUE}};',
-					'{{WRAPPER}} .elementor-accordion-item .elementor-tab-title.elementor-active' => 'border-bottom-color: {{VALUE}};',
+					'{{WRAPPER}} .elementor-accordion-item .elementor-tab-content' => 'border-block-start-color: {{VALUE}};',
+					'{{WRAPPER}} .elementor-accordion-item .elementor-tab-title.elementor-active' => 'border-block-end-color: {{VALUE}};',
 				],
 			]
 		);
@@ -453,8 +475,7 @@ class Widget_Accordion extends Widget_Base {
 					],
 				],
 				'selectors' => [
-					'{{WRAPPER}} .elementor-accordion-icon.elementor-accordion-icon-left' => 'margin-right: {{SIZE}}{{UNIT}};',
-					'{{WRAPPER}} .elementor-accordion-icon.elementor-accordion-icon-right' => 'margin-left: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .elementor-accordion-icon' => 'margin-inline-end: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
@@ -637,6 +658,35 @@ class Widget_Accordion extends Widget_Base {
 	 * @since 2.9.0
 	 * @access protected
 	 */
+	public function render_markdown(): string {
+		$settings = $this->get_settings_for_display();
+
+		if ( empty( $settings['tabs'] ) ) {
+			return '';
+		}
+
+		$sections = [];
+
+		foreach ( $settings['tabs'] as $item ) {
+			$title = Utils::html_to_plain_text( $item['tab_title'] ?? '' );
+			$content = \Elementor\Modules\MarkdownRender\Html_To_Markdown::convert( $item['tab_content'] ?? '' );
+
+			if ( empty( $title ) && empty( $content ) ) {
+				continue;
+			}
+
+			$section = '### ' . $title;
+
+			if ( ! empty( $content ) ) {
+				$section .= "\n\n" . $content;
+			}
+
+			$sections[] = $section;
+		}
+
+		return implode( "\n\n", $sections );
+	}
+
 	protected function content_template() {
 		?>
 		<div class="elementor-accordion">

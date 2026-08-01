@@ -5,6 +5,10 @@
  * @package WP-Background-Processing
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'Astra_WP_Async_Request' ) ) {
 
 	/**
@@ -20,7 +24,6 @@ if ( ! class_exists( 'Astra_WP_Async_Request' ) ) {
 		 * (default value: 'wp')
 		 *
 		 * @var string
-		 * @access protected
 		 */
 		protected $prefix = 'wp';
 
@@ -30,7 +33,6 @@ if ( ! class_exists( 'Astra_WP_Async_Request' ) ) {
 		 * (default value: 'async_request')
 		 *
 		 * @var string
-		 * @access protected
 		 */
 		protected $action = 'async_request';
 
@@ -38,7 +40,6 @@ if ( ! class_exists( 'Astra_WP_Async_Request' ) ) {
 		 * Identifier
 		 *
 		 * @var mixed
-		 * @access protected
 		 */
 		protected $identifier;
 
@@ -48,7 +49,6 @@ if ( ! class_exists( 'Astra_WP_Async_Request' ) ) {
 		 * (default value: array())
 		 *
 		 * @var array
-		 * @access protected
 		 */
 		protected $data = array();
 
@@ -59,7 +59,6 @@ if ( ! class_exists( 'Astra_WP_Async_Request' ) ) {
 			$this->identifier = $this->prefix . '_' . $this->action;
 
 			add_action( 'wp_ajax_' . $this->identifier, array( $this, 'maybe_handle' ) );
-			add_action( 'wp_ajax_nopriv_' . $this->identifier, array( $this, 'maybe_handle' ) );
 		}
 
 		/**

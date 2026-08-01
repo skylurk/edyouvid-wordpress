@@ -2,9 +2,9 @@
 Contributors: @brainstormforce
 Tags: elementor, elementor addons, elementor widgets, elementor template, header footer builder
 Requires at least: 5.0  
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 7.4  
-Stable tag: 2.8.3
+Stable tag: 2.8.8
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -310,6 +310,29 @@ You can report the issue through our [Bug Bounty Program](https://brainstormforc
 ---
 
 == Changelog ==
+= 2.8.8 =
+- Improvement: Compatibility with latest Elementor and Elementor Pro 4.1 version.
+- Improvement: Updated translations for German, Spanish, French, and Dutch locales.
+- Fix: WPML - Widget link fields not recognized as translatable links in the Advanced Translation Editor.
+- Fix: WPML - Site Logo default link now points to the correct language-specific homepage URL.
+- Fix: Search Button - Removed incorrect ARIA tablist role from the search form for better screen reader compatibility.
+- Fix: Atomic widget styles now load correctly in header, footer, and before-footer templates on the frontend.
+
+= 2.8.7 =
+- Improvement: WordPress 7.0 compatibility.
+- Improvement: Updated Internal libraries to improve stability and compatibility.
+
+= 2.8.6 =
+- Improvement: Compatibility with latest Elementor and Elementor Pro 4.0 version.
+- Improvement: Updated Internal libraries to improve stability and compatibility.
+- Fix: UAE icon in Elementor editor redirected to incorrect URL on staging and subdirectory WordPress installations.
+
+= 2.8.5 =
+- Improvement: Strengthened plugin security and updated required package dependencies.
+
+= 2.8.4 =
+- New: Introduced a Learn tab with step-by-step guides to help users master website customization and configuration.
+
 = 2.8.3 =
 - Improvement: Compatibility with latest Elementor and Elementor Pro 3.35 version.
 
@@ -350,7 +373,6 @@ You can report the issue through our [Bug Bounty Program](https://brainstormforc
 - Improvement: Compatibility with latest Elementor and Elementor Pro 3.32 version.
 - Fix: This update addressed a security bug. Props to Willow from WP Scan for reporting it responsibly to our team.
 - Fix: Navigation Menu - Alignment now works for last menu item as button.
-
 
 = 2.4.9 =
 - Fix: Navigation Menu - Resolved accessibility issue with the expandable menu layout.

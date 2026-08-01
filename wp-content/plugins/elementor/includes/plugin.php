@@ -1,4 +1,5 @@
 <?php
+
 namespace Elementor;
 
 use Elementor\Core\Admin\Menu\Admin_Menu_Manager;
@@ -14,7 +15,6 @@ use Elementor\Core\Editor\Editor;
 use Elementor\Core\Files\Manager as Files_Manager;
 use Elementor\Core\Files\Assets\Manager as Assets_Manager;
 use Elementor\Core\Modules_Manager;
-use Elementor\Core\Schemes\Manager as Schemes_Manager;
 use Elementor\Core\Settings\Manager as Settings_Manager;
 use Elementor\Core\Settings\Page\Manager as Page_Settings_Manager;
 use Elementor\Modules\History\Revisions_Manager;
@@ -24,8 +24,8 @@ use Elementor\Core\Page_Assets\Loader as Assets_Loader;
 use Elementor\Modules\System_Info\Module as System_Info_Module;
 use Elementor\Data\Manager as Data_Manager;
 use Elementor\Data\V2\Manager as Data_Manager_V2;
-use Elementor\Core\Common\Modules\DevTools\Module as Dev_Tools;
-use Elementor\Core\Files\Uploads_Manager as Uploads_Manager;
+use Elementor\Core\Files\Uploads_Manager;
+use WP_REST_Request;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -40,7 +40,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 1.0.0
  */
 class Plugin {
+
 	const ELEMENTOR_DEFAULT_POST_TYPES = [ 'page', 'post' ];
+
+	private const SANITIZABLE_META_KEYS = [
+		'_elementor_data',
+		'_elementor_page_settings',
+		'_elementor_global_class_data',
+	];
 
 	/**
 	 * Instance.
@@ -92,19 +99,6 @@ class Plugin {
 	 * @var Documents_Manager
 	 */
 	public $documents;
-
-	/**
-	 * Schemes manager.
-	 *
-	 * Holds the plugin schemes manager.
-	 *
-	 * @since 1.0.0
-	 * @access public
-	 * @deprecated 3.0.0
-	 *
-	 * @var Schemes_Manager
-	 */
-	public $schemes_manager;
 
 	/**
 	 * Elements manager.
@@ -438,17 +432,6 @@ class Plugin {
 	public $logger;
 
 	/**
-	 * Dev tools.
-	 *
-	 * Holds the plugin dev tools.
-	 *
-	 * @access private
-	 *
-	 * @var Dev_Tools
-	 */
-	private $dev_tools;
-
-	/**
 	 * Upgrade manager.
 	 *
 	 * Holds the plugin upgrade manager.
@@ -713,7 +696,6 @@ class Plugin {
 		$this->controls_manager = new Controls_Manager();
 		$this->documents = new Documents_Manager();
 		$this->kits_manager = new Kits_Manager();
-		$this->schemes_manager = new Schemes_Manager();
 		$this->elements_manager = new Elements_Manager();
 		$this->widgets_manager = new Widgets_Manager();
 		$this->skins_manager = new Skins_Manager();
@@ -741,6 +723,7 @@ class Plugin {
 		$this->admin_menu_manager->register_actions();
 
 		User::init();
+		User_Data::init();
 		Api::init();
 		Tracker::init();
 
@@ -803,14 +786,14 @@ class Plugin {
 	}
 
 	/**
-	 * Plugin Magic Getter
+	 * Magic getter for accessing certain properties.
 	 *
 	 * @since 3.1.0
 	 * @access public
 	 *
-	 * @param $property
-	 * @return mixed
-	 * @throws \Exception
+	 * @param string $property The property name.
+	 * @return mixed The property value or null if not found.
+	 * @throws \Exception If trying to access a private property.
 	 */
 	public function __get( $property ) {
 		if ( 'posts_css_manager' === $property ) {
@@ -849,10 +832,44 @@ class Plugin {
 
 		add_action( 'init', [ $this, 'init' ], 0 );
 		add_action( 'rest_api_init', [ $this, 'on_rest_api_init' ], 9 );
+		add_filter( 'rest_pre_insert_post', [ $this, 'sanitize_post_data' ], 10, 2 );
 	}
 
 	final public static function get_title() {
 		return esc_html__( 'Elementor', 'elementor' );
+	}
+
+	public function sanitize_post_data( $post, WP_REST_Request $request ) {
+		if ( current_user_can( 'unfiltered_html' ) ) {
+			return $post;
+		}
+
+		$meta = $request->get_param( 'meta' );
+		if ( empty( $meta ) || ! is_array( $meta ) ) {
+			return $post;
+		}
+
+		foreach ( self::SANITIZABLE_META_KEYS as $meta_key ) {
+			$elementor_data = $meta[ $meta_key ] ?? null;
+			if ( is_null( $elementor_data ) ) {
+				continue;
+			}
+			if ( is_string( $elementor_data ) ) {
+				$elementor_data = json_decode( $elementor_data, true );
+			}
+			if ( empty( $elementor_data ) ) {
+				continue;
+			}
+
+			$elementor_data = map_deep($elementor_data, function ( $value ) {
+				return is_bool( $value ) || is_null( $value ) ? $value : wp_kses_post( $value );
+			});
+
+			$meta[ $meta_key ] = wp_json_encode( $elementor_data );
+		}
+
+		$request->set_param( 'meta', $meta );
+		return $post;
 	}
 }
 

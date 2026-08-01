@@ -1264,6 +1264,126 @@ class WPvivid_Staging_Free
         }
     }
 
+    private function wpvivid_normalize_delete_path($path, $use_realpath = true)
+    {
+        if (empty($path) || !is_string($path)) {
+            return false;
+        }
+
+        $path = wp_normalize_path($path);
+        $path = untrailingslashit($path);
+        if ($use_realpath) {
+            $real_path = realpath($path);
+            if ($real_path !== false) {
+                $path = wp_normalize_path($real_path);
+                $path = untrailingslashit($path);
+            }
+        }
+
+        if ((defined('PHP_OS_FAMILY') && PHP_OS_FAMILY === 'Windows') || DIRECTORY_SEPARATOR === '\\') {
+            $path = strtolower($path);
+        }
+
+        return $path;
+    }
+
+    private function wpvivid_get_cancel_staging_cleanup($site_path)
+    {
+        $normalized_path = $this->wpvivid_normalize_delete_path($site_path, false);
+        if ($normalized_path === false) {
+            return false;
+        }
+
+        $cleanup = get_transient('wpvivid_cancel_staging_cleanup_' . md5($normalized_path));
+        if (!is_array($cleanup) || empty($cleanup['staging_path'])) {
+            return false;
+        }
+
+        $cleanup_path = $this->wpvivid_normalize_delete_path($cleanup['staging_path'], false);
+        $delete_path = $this->wpvivid_normalize_delete_path($site_path, false);
+        if ($cleanup_path === false || $delete_path === false || $cleanup_path !== $delete_path) {
+            return false;
+        }
+
+        return $cleanup;
+    }
+
+    private function wpvivid_is_allowed_staging_delete_path($site_path)
+    {
+        if (empty($site_path) || !is_string($site_path)) {
+            return false;
+        }
+
+        if (!file_exists($site_path) || !is_dir($site_path)) {
+            return false;
+        }
+
+        $real_site_path = $this->wpvivid_normalize_delete_path($site_path, true);
+        if ($real_site_path === false) {
+            return false;
+        }
+
+        $real_site_path = wp_normalize_path(untrailingslashit($real_site_path));
+
+        $protected_paths = array(
+            ABSPATH,
+            WP_CONTENT_DIR,
+            WP_PLUGIN_DIR,
+            get_theme_root(),
+            ABSPATH . 'wp-admin',
+            ABSPATH . 'wp-includes'
+        );
+
+        $upload_dir = wp_get_upload_dir();
+        if (!empty($upload_dir['basedir'])) {
+            $protected_paths[] = $upload_dir['basedir'];
+        }
+
+        foreach ($protected_paths as $protected_path) {
+            $real_protected_path = $this->wpvivid_normalize_delete_path($protected_path, true);
+            if ($real_protected_path === false) {
+                continue;
+            }
+
+            if ($real_site_path === $real_protected_path) {
+                return false;
+            }
+
+            if (strpos($real_protected_path . '/', $real_site_path . '/') === 0) {
+                return false;
+            }
+        }
+
+        $tasks = get_option('wpvivid_staging_task_list', array());
+        if (is_array($tasks)) {
+            foreach ($tasks as $task) {
+                $allowed_paths = array();
+
+                if (!empty($task['path']['des_path'])) {
+                    $allowed_paths[] = $task['path']['des_path'];
+                }
+
+                if (!empty($task['site']['path'])) {
+                    $allowed_paths[] = $task['site']['path'];
+                }
+
+                foreach ($allowed_paths as $allowed_path) {
+                    $real_allowed_path = $this->wpvivid_normalize_delete_path($allowed_path, true);
+                    if ($real_allowed_path !== false && $real_site_path === $real_allowed_path) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        $cleanup = $this->wpvivid_get_cancel_staging_cleanup($site_path);
+        if ($cleanup !== false) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function delete_cancel_staging_site(){
         global $wpvivid_plugin;
         check_ajax_referer( 'wpvivid_ajax', 'nonce' );
@@ -1285,9 +1405,18 @@ class WPvivid_Staging_Free
                 $db_name = $staging_site_info['staging_additional_db_name'];
                 $db_host = $staging_site_info['staging_additional_db_host'];
                 if (!empty($site_path)) {
-                    $home_path = untrailingslashit(ABSPATH);
-                    if ($home_path != $site_path) {
-                        if (file_exists($site_path)) {
+                    if (file_exists($site_path)) {
+                        if (!$this->wpvivid_is_allowed_staging_delete_path($site_path)) {
+                            echo wp_json_encode(array(
+                                'result' => 'failed',
+                                'error'  => 'Invalid staging path.'
+                            ));
+                            die();
+                        }
+
+                        $home_path = untrailingslashit(ABSPATH);
+                        if ($home_path != $site_path) {
+
                             if (!class_exists('WP_Filesystem_Base')) include_once(ABSPATH . '/wp-admin/includes/class-wp-filesystem-base.php');
                             if (!class_exists('WP_Filesystem_Direct')) include_once(ABSPATH . '/wp-admin/includes/class-wp-filesystem-direct.php');
 
@@ -1309,6 +1438,11 @@ class WPvivid_Staging_Free
                             $db->query("DROP TABLE IF EXISTS {$table_name}");
                         }
                     }
+                }
+
+                $normalized_path = $this->wpvivid_normalize_delete_path($site_path, false);
+                if ($normalized_path !== false) {
+                    delete_transient('wpvivid_cancel_staging_cleanup_' . md5($normalized_path));
                 }
 
                 $ret['result'] = 'success';
@@ -1751,6 +1885,27 @@ class WPvivid_Staging_Free
                         $ret['staging_table_prefix']=$value['db_connect']['new_prefix'];
                     }
                 }
+
+                if (!empty($ret['staging_path'])) {
+                    $normalized_cleanup_path = $this->wpvivid_normalize_delete_path($ret['staging_path'], false);
+
+                    if ($normalized_cleanup_path !== false) {
+                        set_transient(
+                            'wpvivid_cancel_staging_cleanup_' . md5($normalized_cleanup_path),
+                            array(
+                                'staging_path' => $ret['staging_path'],
+                                'staging_table_prefix' => isset($ret['staging_table_prefix']) ? $ret['staging_table_prefix'] : '',
+                                'staging_additional_db' => isset($ret['staging_additional_db']) ? $ret['staging_additional_db'] : 0,
+                                'staging_additional_db_user' => isset($ret['staging_additional_db_user']) ? $ret['staging_additional_db_user'] : '',
+                                'staging_additional_db_pass' => isset($ret['staging_additional_db_pass']) ? $ret['staging_additional_db_pass'] : '',
+                                'staging_additional_db_name' => isset($ret['staging_additional_db_name']) ? $ret['staging_additional_db_name'] : '',
+                                'staging_additional_db_host' => isset($ret['staging_additional_db_host']) ? $ret['staging_additional_db_host'] : ''
+                            ),
+                            10 * MINUTE_IN_SECONDS
+                        );
+                    }
+                }
+
                 update_option('wpvivid_staging_task_cancel', false, 'no');
                 $b_delete=true;
             }

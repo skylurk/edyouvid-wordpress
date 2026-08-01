@@ -18,9 +18,13 @@ const { selectedImages } = getFromSessionStorage( SESSION_STORAGE_KEY, {} );
 export const defaultOnboardingAIState = {
 	stepData: {
 		tokenExists: aiBuilderVars?.zip_token_exists || '',
-		businessType: '',
+		businessType: aiBuilderVars?.default_business_type,
 		siteLanguage: aiBuilderVars?.default_website_language,
 		businessName: '',
+		siteGoals: [],
+		siteGoalsOther: '',
+		siteTone: 'balanced',
+		userKeywords: [],
 		businessDetails: '',
 		keywords: [],
 		selectedImages: [],
@@ -40,12 +44,13 @@ export const defaultOnboardingAIState = {
 			currentPage: 0,
 		},
 		siteFeatures: [],
-		sitesFeaturesData: {},
+		siteFeaturesData: { ecommerce_type: 'surecart' },
 		siteLogo: siteLogoDefault,
 		siteTitleVisible: true,
 		activeColorPalette: null,
 		activeTypography: null,
 		defaultColorPalette: null,
+		pageBuilder: '',
 	},
 	websiteInfo: aiStepValues?.websiteInfo || {},
 	websiteVersionList: [],
@@ -56,6 +61,15 @@ export const defaultOnboardingAIState = {
 		open: false,
 	},
 	continueProgressModal: {
+		open: false,
+	},
+	confirmationStartOverModal: {
+		open: false,
+	},
+	signupLoginModal: {
+		open: false,
+	},
+	reconnectModal: {
 		open: false,
 	},
 	planInformationModal: {
@@ -108,10 +122,16 @@ updatedInitialValue = {
 	...updatedInitialValue,
 	stepData: {
 		tokenExists: aiBuilderVars?.zip_token_exists || '',
-		businessType: aiStepValues?.business_category_name || '',
+		businessType:
+			aiStepValues?.business_category_name ||
+			aiBuilderVars?.default_business_type,
 		siteLanguage:
 			aiStepValues?.language || aiBuilderVars?.default_website_language,
 		businessName: aiStepValues?.business_name || '',
+		siteGoals: aiStepValues?.site_goals || [],
+		siteGoalsOther: aiStepValues?.site_goals_other || '',
+		siteTone: aiStepValues?.site_tone || 'balanced',
+		userKeywords: aiStepValues?.user_keywords || [],
 		businessDetails: aiStepValues?.business_description || '',
 		keywords: aiStepValues?.image_keyword || [],
 		selectedImages: !! selectedImages?.length
@@ -136,7 +156,7 @@ updatedInitialValue = {
 			currentPage: 0,
 		},
 		siteFeatures: [],
-		siteFeaturesData: {},
+		siteFeaturesData: { ecommerce_type: 'surecart' },
 		siteLogo: siteLogoDefault,
 		siteTitleVisible: true,
 		activeColorPalette: null,
@@ -202,6 +222,21 @@ const reducer = ( state = initialState, action ) => {
 				...state,
 				continueProgressModal: action.payload,
 			};
+		case actionTypes.SET_CONFIRMATION_START_OVER_MODAL:
+			return {
+				...state,
+				confirmationStartOverModal: action.payload,
+			};
+		case actionTypes.SET_SIGNUP_LOGIN_MODAL:
+			return {
+				...state,
+				signupLoginModal: action.payload,
+			};
+		case actionTypes.SET_RECONNECT_MODAL:
+			return {
+				...state,
+				reconnectModal: action.payload,
+			};
 		case actionTypes.SET_WEBSITE_TYPE_AI_STEP:
 			return {
 				...state,
@@ -232,6 +267,31 @@ const reducer = ( state = initialState, action ) => {
 				stepData: {
 					...state.stepData,
 					businessName: action.payload,
+				},
+			};
+		case actionTypes.SET_SITE_GOALS_AI_STEP:
+			return {
+				...state,
+				stepData: {
+					...state.stepData,
+					siteGoals: action.payload.siteGoals,
+					siteGoalsOther: action.payload.siteGoalsOther,
+				},
+			};
+		case actionTypes.SET_SITE_TONE_AI_STEP:
+			return {
+				...state,
+				stepData: {
+					...state.stepData,
+					siteTone: action.payload,
+				},
+			};
+		case actionTypes.SET_USER_KEYWORDS_AI_STEP:
+			return {
+				...state,
+				stepData: {
+					...state.stepData,
+					userKeywords: action.payload,
 				},
 			};
 		case actionTypes.SET_WEBSITE_DETAILS_AI_STEP:
@@ -384,9 +444,9 @@ const reducer = ( state = initialState, action ) => {
 								templateData?.features?.[ feature.id ] ===
 								'yes';
 							return {
-								...feature,
 								enabled: defaultValue,
 								compulsory: defaultValue,
+								...feature,
 							};
 						} )
 					),
@@ -408,6 +468,17 @@ const reducer = ( state = initialState, action ) => {
 							return item;
 						}
 					),
+				},
+			};
+		case actionTypes.SET_ECOMMERCE_TYPE:
+			return {
+				...state,
+				stepData: {
+					...state.stepData,
+					siteFeaturesData: {
+						...state.stepData.siteFeaturesData,
+						ecommerce_type: action.payload,
+					},
 				},
 			};
 		case actionTypes.SET_WEBSITE_TEMPLATE_KEYWORDS:
@@ -481,6 +552,14 @@ const reducer = ( state = initialState, action ) => {
 			return {
 				...state,
 				stepData: { ...action.payload.stepData },
+			};
+		case actionTypes.SET_SELECTED_PAGE_BUILDER:
+			return {
+				...state,
+				stepData: {
+					...state.stepData,
+					pageBuilder: action.payload,
+				},
 			};
 		default:
 			return state;

@@ -27,7 +27,13 @@ class THWCFD_Admin_Form_Block_Field extends THWCFD_Admin_Form{
 			'text' => 'Text', 
 			'checkbox' => 'Checkbox',
 			'select' => 'Select', 
-			'radio' => 'Radio',			
+			'radio' => 'Radio',
+			'number' => 'Number',
+			'url' => 'URL',
+			'email' => 'Email',	
+			'paragraph' => 'Paragraph',
+			'heading' => 'Heading',
+			'textarea' => 'Textarea',
 		);
 	}
 
@@ -53,6 +59,15 @@ class THWCFD_Admin_Form_Block_Field extends THWCFD_Admin_Form{
 				$validations[$vname] = $validator['label'];
 			}
 		}
+			
+		$html_text_tags = array(
+			'h1' => 'H1',
+			'h2' => 'H2',
+			'h3' => 'H3',
+			'h4' => 'H4',
+			'h5' => 'H5',
+			'h6' => 'H6',
+		);
 		
 		return array(
 			'name' 		  => array('type'=>'text', 'name'=>'name', 'label'=>'Name', 'required'=>1, 'hint_text'=>'The field name is considered its unique identifier. Ensure it is not repeated across different sections.'),
@@ -76,8 +91,9 @@ class THWCFD_Admin_Form_Block_Field extends THWCFD_Admin_Form{
 			'show_in_thank_you_page' => array('type'=>'checkbox', 'name'=>'show_in_thank_you_page', 'label'=>'Display in Customer Order Details', 'value'=>'yes', 'checked'=>1),
 			'show_in_my_account_page' => array('type'=>'checkbox', 'name'=>'show_in_my_account_page', 'label'=>'Display in My Account Page', 'value'=>'yes', 'checked'=>0),
 			
-			'title'          => array('type'=>'text', 'name'=>'title', 'label'=>'Label', 'required'=>1),
+			'title'          => array('type'=>'text', 'name'=>'title', 'label'=>'Label', 'required'=>0),
 			'title_class'    => array('type'=>'text', 'name'=>'title_class', 'label'=>'Label Class', 'placeholder'=>'Separate classes with comma'),
+			'title_type'     => array('type'=>'select', 'name'=>'title_type', 'label'=>'Title Type', 'value'=>'h3', 'options'=>$html_text_tags),
 			
 			'autocomplete' 	=> array('type'=>'text', 'name'=>'autocomplete', 'label'=>'Autocomplete'),
 			'country_field' => array('type'=>'text', 'name'=>'country_field', 'label'=>'Country Field Name'),
@@ -281,6 +297,12 @@ class THWCFD_Admin_Form_Block_Field extends THWCFD_Admin_Form{
 		$this->render_form_field_select($section );		
 		$this->render_form_field_radio($section);
 		$this->render_form_field_checkbox( $section );
+		$this->render_form_field_number($section);
+		$this->render_form_field_url($section);
+		$this->render_form_field_email($section);
+		$this->render_form_field_paragraph($section);
+		$this->render_form_field_heading($section);
+		$this->render_form_field_textarea($section);
 	
 		$this->render_form_field_default();
 	
@@ -306,17 +328,17 @@ class THWCFD_Admin_Form_Block_Field extends THWCFD_Admin_Form{
         <?php   
 	}
 
-	private function render_form_field_email(){
+	private function render_form_field_email( $section = ''){
 		?>
         <table id="thwcfd_field_form_id_email" class="thwcfd_field_form_table" width="100%" style="display:none;">
             <?php
 			$this->render_form_elm_row($this->field_props['title']);
-			$this->render_form_elm_row($this->field_props['description']);
+			// $this->render_form_elm_row($this->field_props['description']);
 			if( $section != 'address' ){
 				$this->render_form_elm_row($this->field_props['value']);
 			}
 			//$this->render_form_elm_row($this->field_props['placeholder']);
-			$this->render_form_elm_row($this->field_props['maxlength']);
+			// $this->render_form_elm_row($this->field_props['maxlength']);
 			$this->render_form_elm_row($this->field_props['validate']);
 
 			$this->render_form_elm_row_cb($this->field_props['required']);
@@ -440,7 +462,87 @@ class THWCFD_Admin_Form_Block_Field extends THWCFD_Admin_Form{
         </table>
         <?php   
 	}
+
+	private function render_form_field_number( $section = '' ){
+		?>
+        <table id="thwcfd_field_form_id_number" class="thwcfd_field_form_table" width="100%" style="display:none;">
+            <?php
+			$this->render_form_elm_row($this->field_props['title']);
+			$this->render_form_elm_row($this->field_props['value']);
+
+			$this->render_form_elm_row_cb($this->field_props['required']);
+			$this->render_form_elm_row_cb($this->field_props['enabled']);
+
+			$this->render_form_elm_row_cb($this->field_props['order_meta']);
+			$this->render_form_elm_row_cb($this->field_props['user_meta']);
+			?>    
+        </table>
+        <?php   
+	}
+
+	private function render_form_field_url( $section = '' ){
+		?>
+		<table id="thwcfd_field_form_id_url" class="thwcfd_field_form_table" width="100%" style="display:none;">
+			<?php
+			$this->render_form_elm_row($this->field_props['title']);
+			$this->render_form_elm_row($this->field_props['value']);
+
+			$this->render_form_elm_row_cb($this->field_props['required']);
+			$this->render_form_elm_row_cb($this->field_props['enabled']);
+
+			$this->render_form_elm_row_cb($this->field_props['order_meta']);
+			$this->render_form_elm_row_cb($this->field_props['user_meta']);
+			?>    
+		</table>
+		<?php   
+	}
+
+	private function render_form_field_paragraph( $section = '' ){
+		$label_props = $this->field_props['title'];
+		$label_props['label'] = 'Content';
+		?>
+		<table id="thwcfd_field_form_id_paragraph" class="thwcfd_field_form_table" width="100%" style="display:none;">
+			<?php
+			$this->render_form_elm_row($label_props);
 	
+			$this->render_form_elm_row_cb($this->field_props['enabled']);
+			?>    
+		</table>
+		<?php   
+	}
+
+	private function render_form_field_heading( $section = '' ){
+		?>
+		<table id="thwcfd_field_form_id_heading" class="thwcfd_field_form_table" width="100%" style="display:none;">
+			<?php
+			$this->render_form_elm_row($this->field_props['title']);
+			$this->render_form_elm_row($this->field_props['title_type']);
+	
+			$this->render_form_elm_row_cb($this->field_props['enabled']);
+			?>    
+		</table>
+		<?php   
+	}
+
+	private function render_form_field_textarea( $section = '' ){
+		$value_props = $this->field_props['value'];
+		$value_props['type'] = 'textarea';
+		?>
+		<table id="thwcfd_field_form_id_textarea" class="thwcfd_field_form_table" width="100%" style="display:none;">
+			<?php
+			$this->render_form_elm_row($this->field_props['title']);
+			$this->render_form_elm_row($value_props);
+
+			$this->render_form_elm_row_cb($this->field_props['required']);
+			$this->render_form_elm_row_cb($this->field_props['enabled']);
+
+			$this->render_form_elm_row_cb($this->field_props['order_meta']);
+			$this->render_form_elm_row_cb($this->field_props['user_meta']);
+			?>    
+		</table>
+		<?php   
+	}
+
 	private function render_form_field_default(){
 		?>
         <table id="thwcfd_field_form_id_default" class="thwcfd_field_form_table" width="100%" style="display:none;">

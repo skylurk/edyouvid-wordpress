@@ -193,8 +193,8 @@ const ImportLoader = () => {
 						</div>
 						<div className="import-done-text">
 							<Button
-								className="view-website-btn import-done-button"
-								after
+								className="view-website-btn import-done-button gap-2"
+								after={ true }
 								onClick={ () => {
 									window.open( siteUrl, '_blank' );
 								} }
@@ -203,9 +203,9 @@ const ImportLoader = () => {
 							</Button>
 							<a
 								className="view-dashboard-link"
-								href={ astraSitesVars.dashboard_url }
+								href={ astraSitesVars?.finish_setup_url }
 							>
-								{ __( 'Visit Dashboard', 'astra-sites' ) }
+								{ __( 'Finish Setup', 'astra-sites' ) }
 							</a>
 						</div>
 					</div>

@@ -15,8 +15,17 @@ class Wt_Import_Export_For_Woo_User_Basic_User_Import {
     public $user_base_fields = array();
     public $user_meta_fields = array();
     public $current_user = array();
+    /** @var \WP_User|false|null */
+    private $current_user_object = null;
     public $skip_guest_user = false;
-         
+
+    /**
+     * Cached get_option() values for the current batch.
+     *
+     * @var array<string, mixed>
+     */
+    private $cached_options = array();
+
     
     var $merge;
     
@@ -49,6 +58,43 @@ class Wt_Import_Export_For_Woo_User_Basic_User_Import {
     public function hf_log_data_change($content = 'review-csv-import', $data = '') {
         Wt_Import_Export_For_Woo_Basic_Logwriter::write_log($this->parent_module->module_base, 'import', $data);
     }
+
+    /**
+     * Loads options used during import into $this->cached_options to avoid repeated get_option() calls per user.
+     */
+    private function load_cached_options() {
+        $this->cached_options = array(
+            'default_role' => get_option( 'default_role', 'subscriber' ),
+        );
+    }
+
+    /**
+     * Gets editable roles, cached per request.
+     *
+     * @return array<string, array>
+     */
+    private function get_editable_roles_cached() {
+        static $roles = null;
+        if ( null === $roles ) {
+            if ( ! function_exists( 'get_editable_roles' ) ) {
+                require_once ABSPATH . 'wp-admin/includes/user.php';
+            }
+            $roles = get_editable_roles();
+        }
+        return $roles;
+    }
+
+    /**
+     * Gets the logged-in user's WP_User object, cached per request.
+     *
+     * @return \WP_User|false
+     */
+    private function get_current_user_object() {
+        if ( null === $this->current_user_object ) {
+            $this->current_user_object = $this->current_user ? get_userdata( $this->current_user ) : false;
+        }
+        return $this->current_user_object;
+    }
     
     public function prepare_data_to_import($import_data,$form_data, $batch_offset, $is_last_batch){
 
@@ -58,7 +104,8 @@ class Wt_Import_Export_For_Woo_User_Basic_User_Import {
         wp_defer_term_counting(true);
         wp_defer_comment_counting(true);
         wp_suspend_cache_invalidation(true);
-        
+        $this->load_cached_options();
+
         Wt_Import_Export_For_Woo_Basic_Logwriter::write_log($this->parent_module->module_base, 'import', "Preparing for import.");
         
         $success = 0;
@@ -273,8 +320,7 @@ class Wt_Import_Export_For_Woo_User_Basic_User_Import {
             $new_added = false;
 
             if ($user_id && $this->merge) {
-                $current_user = $this->current_user;
-                if ($current_user == $user_id) {
+                if ( (int) $this->current_user === (int) $user_id ) {
                     // translators: %s is the user ID.
                     $this->hf_log_data_change('user-csv-import', sprintf(__('> &#8220;%s&#8221; This user is currently logged in hence we cannot update.', 'users-customers-import-export-for-wp-woocommerce'), $user_id), true);
                     unset($post);
@@ -285,15 +331,15 @@ class Wt_Import_Export_For_Woo_User_Basic_User_Import {
                 $roles = $user->roles;
                 $only_update_admin_with_admin = apply_filters('wt_ier_update_admin_only_by_admin_user', true);
                 if(in_array('administrator', $roles) && $only_update_admin_with_admin ){
-                    $current_user = get_userdata($current_user);
-                    $current_roles = $current_user->roles;
+                    $current_user_obj = $this->get_current_user_object();
+                    $current_roles = $current_user_obj ? $current_user_obj->roles : array();
                     if(!in_array('administrator', $current_roles)){
                         // translators: %s is the user ID.
                         return new WP_Error( 'parse-error',sprintf(__('> &#8220;%s&#8221; Only a user with an Administrator role has the capability to update a user with an Administrator role.', 'users-customers-import-export-for-wp-woocommerce'), $user_id)); 
                     }
                 }
 
-                $user_id = $this->hf_update_customer($user_id, $post);
+                $user_id = $this->hf_update_customer($user_id, $post, $user);
             } else {
 
                 $user_id = $this->hf_create_customer($post);
@@ -416,14 +462,11 @@ class Wt_Import_Export_For_Woo_User_Basic_User_Import {
             if (!is_wp_error($found_customer)) {
                 wp_insert_user($user_data);
                 $wp_user_object = new WP_User($found_customer);
-                if ( ! function_exists( 'get_editable_roles' ) ) {
-                    require_once ABSPATH . 'wp-admin/includes/user.php';
-                }
-                $roles = get_editable_roles();
+                $roles = $this->get_editable_roles_cached();
                 $new_roles_str = isset($data['user_details']['roles']) ? $data['user_details']['roles'] : '';
 
                 if(empty($new_roles_str)){
-                    $new_roles_str = get_option('default_role');
+                    $new_roles_str = $this->cached_options['default_role'];
                 }
 
                 $new_roles = array_map('trim', explode(',', $new_roles_str));
@@ -502,14 +545,11 @@ class Wt_Import_Export_For_Woo_User_Basic_User_Import {
         return apply_filters('xa_user_impexp_alter_user_meta', $found_customer, $this->user_meta_fields, $meta_array);
     }
 
-    public function hf_update_customer($found_customer, $data) { 
+    public function hf_update_customer($found_customer, $data, $wp_user_object = null) { 
         $meta_array = array();
         if ($found_customer) {
-            $wp_user_object = new WP_User($found_customer);
-            if ( ! function_exists( 'get_editable_roles' ) ) {
-                require_once ABSPATH . 'wp-admin/includes/user.php';
-            }                                    
-            $roles = get_editable_roles();
+            $wp_user_object = $wp_user_object ? $wp_user_object : new WP_User($found_customer);
+            $roles = $this->get_editable_roles_cached();
 			$new_roles_str = isset($data['user_details']['roles']) ? $data['user_details']['roles'] : '';
             $new_roles = array_map('trim', explode(',', $new_roles_str));
             $new_roles = array_intersect($new_roles, array_keys($roles));

@@ -231,6 +231,23 @@ const ICONS = {
 			/>{ ' ' }
 		</svg>
 	),
+	arrowRightDisabled: (
+		<svg
+			width="14"
+			height="9"
+			viewBox="0 0 14 9"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+		>
+			{ ' ' }
+			<path
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M-0.000488281 4.50001C-0.000488281 4.3674 0.0521901 4.24022 0.145958 4.14645C0.239726 4.05268 0.366903 4.00001 0.499512 4.00001H12.2925L9.14551 0.854006C9.05162 0.760119 8.99888 0.632782 8.99888 0.500006C8.99888 0.36723 9.05162 0.239893 9.14551 0.146006C9.2394 0.0521192 9.36674 -0.000625607 9.49951 -0.00062561C9.63229 -0.000625613 9.75963 0.0521192 9.85351 0.146006L13.8535 4.14601C13.9001 4.19245 13.937 4.24763 13.9622 4.30837C13.9874 4.36912 14.0004 4.43424 14.0004 4.50001C14.0004 4.56577 13.9874 4.63089 13.9622 4.69164C13.937 4.75238 13.9001 4.80756 13.8535 4.85401L9.85351 8.85401C9.75963 8.94789 9.63229 9.00064 9.49951 9.00064C9.36674 9.00064 9.2394 8.94789 9.14551 8.85401C9.05162 8.76012 8.99888 8.63278 8.99888 8.50001C8.99888 8.36723 9.05162 8.23989 9.14551 8.14601L12.2925 5.00001H0.499512C0.366903 5.00001 0.239726 4.94733 0.145958 4.85356C0.0521901 4.75979 -0.000488281 4.63261 -0.000488281 4.50001V4.50001Z"
+				fill="white"
+			/>{ ' ' }
+		</svg>
+	),
 	questionMarkNoFill: (
 		<svg
 			width="18"
@@ -243,20 +260,20 @@ const ICONS = {
 			<path
 				d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
 				stroke="#09090B"
-				stroke-linecap="round"
-				stroke-linejoin="round"
+				strokeLinecap="round"
+				strokeLinejoin="round"
 			/>
 			<path
 				d="M9.08984 9C9.32495 8.33167 9.789 7.7681 10.3998 7.40913C11.0106 7.05016 11.7287 6.91894 12.427 7.03871C13.1253 7.15848 13.7587 7.52152 14.2149 8.06353C14.6712 8.60553 14.9209 9.29152 14.9198 10C14.9198 12 11.9198 13 11.9198 13"
 				stroke="#09090B"
-				stroke-linecap="round"
-				stroke-linejoin="round"
+				strokeLinecap="round"
+				strokeLinejoin="round"
 			/>
 			<path
 				d="M12 17H12.01"
 				stroke="#09090B"
-				stroke-linecap="round"
-				stroke-linejoin="round"
+				strokeLinecap="round"
+				strokeLinejoin="round"
 			/>{ ' ' }
 		</svg>
 	),
@@ -399,6 +416,239 @@ const ICONS = {
 					<rect width="18" height="18" fill="white" />
 				</clipPath>
 			</defs>
+		</svg>
+	),
+	signatureIcon: (
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="20"
+			height="20"
+			viewBox="0 0 27 27"
+			fill="none"
+		>
+			<circle
+				cx="13.5"
+				cy="13.5"
+				r="13.5"
+				fill="url(#paint0_linear_6_4)"
+			/>
+			<mask
+				id="mask0_6_4"
+				maskUnits="userSpaceOnUse"
+				x="8"
+				y="13"
+				width="6"
+				height="9"
+			>
+				<path
+					d="M8.45253 13.1124L13.1737 21.9088V13.1124H8.45253Z"
+					fill="white"
+				/>
+			</mask>
+			<g mask="url(#mask0_6_4)">
+				<path
+					d="M13.1737 13.1124H8.45253V21.9088H13.1737V13.1124Z"
+					fill="white"
+				/>
+			</g>
+			<mask
+				id="mask1_6_4"
+				maskUnits="userSpaceOnUse"
+				x="4"
+				y="13"
+				width="9"
+				height="9"
+			>
+				<path
+					d="M4.51796 13.1124L12.0278 21.1529L7.71256 13.1124H4.51796Z"
+					fill="white"
+				/>
+			</mask>
+			<g mask="url(#mask1_6_4)">
+				<path
+					d="M12.0278 13.1124H4.51796V21.1529H12.0278V13.1124Z"
+					fill="white"
+				/>
+			</g>
+			<mask
+				id="mask2_6_4"
+				maskUnits="userSpaceOnUse"
+				x="4"
+				y="8"
+				width="6"
+				height="5"
+			>
+				<path
+					d="M9.45087 8.64623H7.93509L4.50002 12.4588H7.69907L9.45087 8.64623Z"
+					fill="white"
+				/>
+			</mask>
+			<g mask="url(#mask2_6_4)">
+				<path
+					d="M9.45087 8.64623H4.50002V12.4588H9.45087V8.64623Z"
+					fill="white"
+				/>
+			</g>
+			<mask
+				id="mask3_6_4"
+				maskUnits="userSpaceOnUse"
+				x="8"
+				y="8"
+				width="6"
+				height="5"
+			>
+				<path
+					d="M13.1735 8.64622H10.1671L8.41516 12.4588H13.1735V8.64622Z"
+					fill="white"
+				/>
+			</mask>
+			<g mask="url(#mask3_6_4)">
+				<path
+					d="M13.1735 8.64622H8.41516V12.4588H13.1735V8.64622Z"
+					fill="white"
+				/>
+			</g>
+			<mask
+				id="mask4_6_4"
+				maskUnits="userSpaceOnUse"
+				x="13"
+				y="13"
+				width="6"
+				height="9"
+			>
+				<path
+					d="M13.8267 21.9088L18.5476 13.1124H13.8267V21.9088Z"
+					fill="white"
+				/>
+			</mask>
+			<g mask="url(#mask4_6_4)">
+				<path
+					d="M18.5475 13.1124H13.8267V21.9088H18.5475V13.1124Z"
+					fill="white"
+				/>
+			</g>
+			<mask
+				id="mask5_6_4"
+				maskUnits="userSpaceOnUse"
+				x="14"
+				y="13"
+				width="9"
+				height="9"
+			>
+				<path
+					d="M19.288 13.1124L14.9725 21.1529L22.4822 13.1124H19.288Z"
+					fill="white"
+				/>
+			</mask>
+			<g mask="url(#mask5_6_4)">
+				<path
+					d="M22.482 13.1124H14.9725V21.1529H22.482V13.1124Z"
+					fill="white"
+				/>
+			</g>
+			<mask
+				id="mask6_6_4"
+				maskUnits="userSpaceOnUse"
+				x="13"
+				y="8"
+				width="6"
+				height="5"
+			>
+				<path
+					d="M18.5848 12.4588L16.8328 8.64622H13.8267V12.4588H18.5848Z"
+					fill="white"
+				/>
+			</mask>
+			<g mask="url(#mask6_6_4)">
+				<path
+					d="M18.5848 8.64622H13.8267V12.4588H18.5848V8.64622Z"
+					fill="white"
+				/>
+			</g>
+			<mask
+				id="mask7_6_4"
+				maskUnits="userSpaceOnUse"
+				x="17"
+				y="8"
+				width="6"
+				height="5"
+			>
+				<path
+					d="M17.5496 8.64622L19.3012 12.4588H22.5002L19.0655 8.64622H17.5496Z"
+					fill="white"
+				/>
+			</mask>
+			<g mask="url(#mask7_6_4)">
+				<path
+					d="M22.5002 8.64622H17.5496V12.4588H22.5002V8.64622Z"
+					fill="white"
+				/>
+			</g>
+			<defs>
+				<linearGradient
+					id="paint0_linear_6_4"
+					x1="25.5"
+					y1="1.875"
+					x2="-1.125"
+					y2="24"
+					gradientUnits="userSpaceOnUse"
+				>
+					<stop stop-color="#AD38E2" />
+					<stop offset="1" stop-color="#492CDD" />
+				</linearGradient>
+			</defs>
+		</svg>
+	),
+	reloadIcon: (
+		<svg
+			width="20"
+			height="20"
+			viewBox="0 0 20 20"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+		>
+			<path
+				d="M17.5 1.6665V6.6665H12.5"
+				stroke="#2563EB"
+				strokeWidth="2"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+			<path
+				d="M2.5 10C2.50132 8.55277 2.92133 7.13682 3.70938 5.92295C4.49743 4.70909 5.61985 3.74914 6.94126 3.15891C8.26267 2.56868 9.72662 2.37338 11.1566 2.59655C12.5865 2.81973 13.9213 3.45185 15 4.41667L17.5 6.66667"
+				stroke="#2563EB"
+				strokeWidth="2"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+			<path
+				d="M2.5 18.3335V13.3335H7.5"
+				stroke="#2563EB"
+				strokeWidth="2"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+			<path
+				d="M17.5 10C17.4987 11.4472 17.0787 12.8632 16.2906 14.0771C15.5026 15.2909 14.3802 16.2509 13.0587 16.8411C11.7373 17.4313 10.2734 17.6266 8.84345 17.4035C7.41352 17.1803 6.07871 16.5482 5 15.5833L2.5 13.3333"
+				stroke="#2563EB"
+				strokeWidth="2"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+		</svg>
+	),
+	options: (
+		<svg
+			width="14"
+			height="14"
+			viewBox="0 0 14 14"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+		>
+			<path
+				d="M5.80488 1.70732C6.08775 1.70732 6.31707 1.93664 6.31707 2.21951V7.68293H11.7805C12.0398 7.68293 12.2541 7.87565 12.288 8.1256L12.2927 8.19512C12.2927 11.5897 9.5409 14 6.14634 14C2.75181 14 0 11.2482 0 7.85366C0 4.45913 2.41035 1.70732 5.80488 1.70732ZM7.85366 0C11.2482 0 14 2.75181 14 6.14634C14 6.42921 13.7707 6.65854 13.4878 6.65854H7.85366C7.57079 6.65854 7.34146 6.42921 7.34146 6.14634V0.512195C7.34146 0.22932 7.57079 0 7.85366 0Z"
+				fill="#6B7280"
+			/>
 		</svg>
 	),
 };

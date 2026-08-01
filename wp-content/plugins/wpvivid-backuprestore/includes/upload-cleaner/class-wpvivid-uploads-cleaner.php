@@ -1073,7 +1073,7 @@ class WPvivid_Uploads_Cleaner
                 <div style="margin-top: 10px;margin-bottom: 10px;">
                     <?php esc_html_e('Media path: ', 'wpvivid-backuprestore'); ?><a><?php echo esc_html($path)?></a>
                 </div>
-                <input class="button-primary" style="width: 200px; height: 50px; font-size: 20px;" id="wpvivid_start_scan" type="submit" value="<?php esc_attr_e('Scan', 'wpvivid-backuprestore'); ?>">
+                <input class="button-primary" style="width: 200px; font-size: 20px;" id="wpvivid_start_scan" type="submit" value="<?php esc_attr_e('Scan', 'wpvivid-backuprestore'); ?>">
                 <div style="clear: both;"></div>
                 <div style="margin-top: 10px">
                     <span>

@@ -62,8 +62,14 @@ class Data_Table extends Widget_Base {
         if( Plugin::$instance->editor->is_edit_mode() ) {
             return false;
         }
-		
-        $table_rows = $this->get_settings('eael_data_table_content_rows');
+
+        $settings = $this->get_data( 'settings' );
+
+        if ( empty( $settings ) || ! is_array( $settings ) ) {
+            return false;
+        }
+
+        $table_rows         = $settings['eael_data_table_content_rows'] ?? [];
 		$is_dynamic_content = false;
 
 		if( ! empty( $table_rows ) ){
@@ -1467,7 +1473,7 @@ class Data_Table extends Widget_Base {
 													if ( Helper::is_elementor_publish_template( $table_td[ $j ]['template'] ) ) {
 														// WPML Compatibility
 														if ( ! is_array( $table_td[ $j ]['template'] ) ) {
-															$table_td[ $j ]['template'] = apply_filters( 'wpml_object_id', $table_td[ $j ]['template'], 'wp_template', true );
+															$table_td[ $j ]['template'] = apply_filters( 'wpml_object_id', $table_td[ $j ]['template'], 'wp_template', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 														}
 
 														Helper::eael_onpage_edit_template_markup( get_the_ID(), $table_td[ $j ]['template'] );
@@ -1481,7 +1487,9 @@ class Data_Table extends Widget_Base {
 										<?php else: ?>
 											<td <?php $this->print_render_attribute_string('table_inside_td'.$i.$j); ?>>
 												<div class="td-content-wrapper"><div <?php $this->print_render_attribute_string('td_content'); ?>>
-													<?php echo wp_kses( $this->parse_text_editor( $table_td[$j]['title'] ), Helper::eael_allowed_tags() ); ?>
+													<?php 
+													// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+													echo $this->parse_text_editor( wp_kses( $table_td[$j]['title'], Helper::eael_allowed_tags() ) ); ?>
 												</div></div>
 											</td>
 										<?php endif; ?>

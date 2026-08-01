@@ -12,6 +12,10 @@ namespace Automattic\Jetpack\Extensions\GoogleDocsEmbed;
 use Automattic\Jetpack\Blocks;
 use Jetpack_Gutenberg;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Registers the blocks for use in Gutenberg
  * This is done via an action so that we can disable
@@ -35,20 +39,19 @@ add_action( 'init', __NAMESPACE__ . '\register_blocks' );
  * @return string
  */
 function render_callback( $attributes ) {
-
 	Jetpack_Gutenberg::load_assets_as_required( __DIR__ );
 	wp_localize_script(
 		'jetpack-block-' . sanitize_title_with_dashes( Blocks::get_block_feature( __DIR__ ) ),
 		'Jetpack_Google_Docs',
 		array(
-			'error_msg' => __( 'This document is private. To view the document, login to a Google account that the document has been shared with and then refresh this page.', 'jetpack' ),
+			'error_msg' => __( 'This document is private. To view the document, log in to a Google account that the document has been shared with and then refresh this page.', 'jetpack' ),
 		)
 	);
 
 	$url          = empty( $attributes['url'] ) ? '' : map_gsuite_url( $attributes['url'] );
 	$aspect_ratio = empty( $attributes['aspectRatio'] ) ? '' : $attributes['aspectRatio'];
 
-	switch ( $attributes['variation'] ) {
+	switch ( str_replace( 'jetpack/', '', $attributes['variation'] ?? 'google-docs' ) ) {
 		case 'google-docs':
 		default:
 			$pattern = '/^http[s]?:\/\/((?:www\.)?docs\.google\.com(?:.*)?(?:document)\/[a-z0-9\/\?=_\-\.\,&%$#\@\!\+]*)\/preview/i';
@@ -65,7 +68,7 @@ function render_callback( $attributes ) {
 		return '';
 	}
 
-	if ( $pattern && ! preg_match( $pattern, $url ) ) {
+	if ( ! preg_match( $pattern, $url ) ) {
 		return '';
 	}
 
@@ -75,15 +78,15 @@ function render_callback( $attributes ) {
 	$amp_markup     = '';
 
 	if (
-		false !== strpos( $url, '/document/d/' ) ||
-		false !== strpos( $url, '/spreadsheets/d/' ) ||
-		false !== strpos( $url, '/presentation/d/' )
+		str_contains( $url, '/document/d/' ) ||
+		str_contains( $url, '/spreadsheets/d/' ) ||
+		str_contains( $url, '/presentation/d/' )
 	) {
 		if ( function_exists( 'amp_is_request' ) && amp_is_request() ) {
 
-			$type = false !== strpos( $url, '/document/d/' ) ? __( 'Google Docs', 'jetpack' ) : '';
-			$type = empty( $type ) && false !== strpos( $url, '/spreadsheets/d/' ) ? __( 'Google Sheets', 'jetpack' ) : $type;
-			$type = empty( $type ) && false !== strpos( $url, '/presentation/d/' ) ? __( 'Google Slides', 'jetpack' ) : $type;
+			$type = str_contains( $url, '/document/d/' ) ? __( 'Google Docs', 'jetpack' ) : '';
+			$type = empty( $type ) && str_contains( $url, '/spreadsheets/d/' ) ? __( 'Google Sheets', 'jetpack' ) : $type;
+			$type = empty( $type ) && str_contains( $url, '/presentation/d/' ) ? __( 'Google Slides', 'jetpack' ) : $type;
 
 			$iframe_markup = '';
 

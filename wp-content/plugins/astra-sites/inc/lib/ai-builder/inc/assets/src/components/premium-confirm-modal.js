@@ -8,9 +8,15 @@ import Button from './button';
 const PremiumConfirmModal = ( { open, setOpen } ) => {
 	const handleStartBuilding = () => {
 		window.open(
-			`https://app.zipwp.com/founders-deal?source=${ wpApiSettings?.zipwp_auth?.source }`,
+			`https://app.zipwp.com/st-pricing?source=${ wpApiSettings?.zipwp_auth?.source }`,
 			'_blank'
 		);
+	};
+
+	const handleSelectDifferentDesign = () => {
+		setOpen( false );
+		window.location.hash = '/design';
+		window.dispatchEvent( new Event( 'hashchange' ) );
 	};
 	return (
 		<Modal open={ open } setOpen={ setOpen } className="sm:w-[27.5rem]">
@@ -45,9 +51,9 @@ const PremiumConfirmModal = ( { open, setOpen } ) => {
 				<Button
 					className="w-fit px-2 py-0 mx-auto text-accent-st"
 					variant="blank"
-					onClick={ () => setOpen( false ) }
+					onClick={ handleSelectDifferentDesign }
 				>
-					{ __( 'Back', 'ai-builder' ) }
+					{ __( 'Select Different Design', 'ai-builder' ) }
 				</Button>
 			</div>
 		</Modal>

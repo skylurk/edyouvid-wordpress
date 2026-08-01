@@ -13,6 +13,10 @@
 
 use Automattic\Jetpack\Redirect;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  *  VaultPress (stub) support link.
  */
@@ -241,26 +245,6 @@ function jetpack_subscriptions_more_info() {
 add_action( 'jetpack_module_more_info_subscriptions', 'jetpack_subscriptions_more_info' );
 
 /**
- * Enhanced Distribution support link.
- */
-function jetpack_enhanced_distribution_more_link() {
-	echo esc_url( Redirect::get_url( 'jetpack-support-enhanced-distribution' ) );
-}
-add_action( 'jetpack_learn_more_button_enhanced-distribution', 'jetpack_enhanced_distribution_more_link' );
-
-/**
- * Enhanced Distribution description.
- */
-function jetpack_enhanced_distribution_more_info() {
-	esc_html_e(
-		'Jetpack will automatically take your great published content and share it instantly with third-party services
-		like search engines, increasing your reach and traffic.',
-		'jetpack'
-	);
-}
-add_action( 'jetpack_module_more_info_enhanced-distribution', 'jetpack_enhanced_distribution_more_info' );
-
-/**
  * Protect support link.
  */
 function jetpack_protect_more_link() {
@@ -361,46 +345,6 @@ function jetpack_carousel_more_info() {
 	);
 }
 add_action( 'jetpack_module_more_info_carousel', 'jetpack_carousel_more_info' );
-
-/**
- * Custom CSS support link.
- */
-function jetpack_custom_css_more_button() {
-	echo esc_url( Redirect::get_url( 'jetpack-support-custom-css' ) );
-}
-add_action( 'jetpack_learn_more_button_custom-css', 'jetpack_custom_css_more_button' );
-
-/**
- * Custom CSS description.
- */
-function jetpack_custom_css_more_info() {
-	esc_html_e(
-		"Add to or replace your theme's CSS including mobile styles, LESS, and SaSS.
-		Includes syntax coloring, auto-indentation, and immediate CSS validation.",
-		'jetpack'
-	);
-}
-add_action( 'jetpack_module_more_info_custom-css', 'jetpack_custom_css_more_info' );
-
-/**
- * Masterbar support link.
- */
-function jetpack_masterbar_more_link() {
-	echo esc_url( Redirect::get_url( 'jetpack-support-masterbar' ) );
-}
-add_action( 'jetpack_learn_more_button_masterbar', 'jetpack_masterbar_more_link' );
-
-/**
- * Masterbar description.
- */
-function jetpack_masterbar_more_info() {
-	esc_html_e(
-		'Quickly access your Stats, Notifications, Posts and more on WordPress.com.
-		The Toolbar is displayed for any user on the site that is connected to WordPress.com.',
-		'jetpack'
-	);
-}
-add_action( 'jetpack_module_more_info_masterbar', 'jetpack_masterbar_more_info' );
 
 /**
  * Infinite Scroll support link.
@@ -889,6 +833,22 @@ function jetpack_more_info_google_fonts() {
 add_action( 'jetpack_module_more_info_google-fonts', 'jetpack_more_info_google_fonts' );
 
 /**
+ * Account Protection support link.
+ */
+function jetpack_account_protection_more_link() {
+	echo esc_url( Redirect::get_url( 'jetpack-account-protection' ) );
+}
+add_action( 'jetpack_learn_more_button_account-protection', 'jetpack_account_protection_more_link' );
+
+/**
+ * Account Protection description.
+ */
+function jetpack_more_info_account_protection() {
+	esc_html_e( 'Enabling this setting enhances account security by detecting compromised passwords and enforcing additional verification when needed.', 'jetpack' );
+}
+add_action( 'jetpack_module_more_info_account-protection', 'jetpack_more_info_account_protection' );
+
+/**
  * WAF support link.
  */
 function jetpack_waf_more_link() {
@@ -919,3 +879,19 @@ function jetpack_more_info_blaze() {
 	esc_html_e( 'Grow your audience by promoting your content across Tumblr and WordPress.com.', 'jetpack' );
 }
 add_action( 'jetpack_module_more_info_blaze', 'jetpack_more_info_blaze' );
+
+/**
+ * WordPress.com Reader support link.
+ */
+function jetpack_wpcom_reader_more_link() {
+	echo esc_url( Redirect::get_url( 'jetpack-support-reader' ) );
+}
+add_action( 'jetpack_learn_more_button_wpcom-reader', 'jetpack_wpcom_reader_more_link' );
+
+/**
+ * WordPress.com Reader description.
+ */
+function jetpack_more_info_wpcom_reader() {
+	esc_html_e( 'Quickly access the WordPress.com Reader from your site’s admin bar.', 'jetpack' );
+}
+add_action( 'jetpack_module_more_info_wpcom-reader', 'jetpack_more_info_wpcom_reader' );

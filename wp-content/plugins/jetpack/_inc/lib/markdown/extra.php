@@ -12,6 +12,9 @@
 #
 # Tweaked to remove WordPress interface
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 define( 'MARKDOWN_VERSION',  "1.0.2" ); # 29 Nov 2013
 define( 'MARKDOWNEXTRA_VERSION',  "1.2.8" ); # 29 Nov 2013
@@ -1588,6 +1591,20 @@ class MarkdownExtra_Parser extends Markdown_Parser {
 	# Predefined abbreviations.
 	public $predef_abbr = array();
 
+	/**
+	 * Reference attribute.
+	 *
+	 * @var array
+	 */
+	public $ref_attr;
+
+	/**
+	 * Parsing mode.
+	 *
+	 * @var string
+	 */
+	public $mode;
+
 
 	### Parser Implementation ###
 
@@ -2608,6 +2625,7 @@ class MarkdownExtra_Parser extends Markdown_Parser {
 
 		# Reading alignement from header underline.
 		$separators	= preg_split('/ *[|] */', $underline);
+		$attr = array();
 		foreach ($separators as $n => $s) {
 			if (preg_match('/^ *-+: *$/', $s))		$attr[$n] = ' align="right"';
 			else if (preg_match('/^ *:-+: *$/', $s))$attr[$n] = ' align="center"';
@@ -2992,7 +3010,7 @@ class MarkdownExtra_Parser extends Markdown_Parser {
 				$footnote = preg_replace_callback('{F\x1Afn:(.*?)\x1A:}',
 					array(&$this, '_appendFootnotes_callback'), $footnote);
 
-				$attr = str_replace("%%", ++$num, $attr);
+				$attr = str_replace("%%", (string) ++$num, $attr);
 				$note_id = $this->encodeAttribute($note_id);
 
 				# Prepare backlink, multiple backlinks if multiple references

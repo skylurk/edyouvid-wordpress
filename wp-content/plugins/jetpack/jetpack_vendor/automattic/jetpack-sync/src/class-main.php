@@ -21,6 +21,9 @@ class Main {
 	 * @action plugins_loaded
 	 */
 	public static function configure() {
+		// Activity Log custom events must register even when Sync is disabled, e.g. on WordPress.com Simple sites.
+		Activity_Log_Event::init();
+
 		if ( Actions::sync_allowed() ) {
 			add_action( 'plugins_loaded', array( __CLASS__, 'on_plugins_loaded_early' ), 5 );
 			add_action( 'plugins_loaded', array( __CLASS__, 'on_plugins_loaded_late' ), 90 );
@@ -40,6 +43,30 @@ class Main {
 
 		// Set up package version hook.
 		add_filter( 'jetpack_package_versions', __NAMESPACE__ . '\Package_Version::send_package_version_to_tracker' );
+
+		// Add the custom capabilities for managing modules
+		add_filter( 'map_meta_cap', array( __CLASS__, 'module_custom_caps' ), 10, 2 );
+	}
+
+	/**
+	 * Sets the Module custom capabilities.
+	 *
+	 * @param  string[] $caps Array of the user's capabilities.
+	 * @param  string   $cap  Capability name.
+	 * @return string[] The user's capabilities, adjusted as necessary.
+	 */
+	public static function module_custom_caps( $caps, $cap ) {
+		switch ( $cap ) {
+			case 'jetpack_manage_modules':
+			case 'jetpack_activate_modules':
+			case 'jetpack_deactivate_modules':
+				$caps = array( 'manage_options' );
+				break;
+			case 'jetpack_configure_modules':
+				$caps = array( 'manage_options' );
+				break;
+		}
+		return $caps;
 	}
 
 	/**

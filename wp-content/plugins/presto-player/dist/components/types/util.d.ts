@@ -3,9 +3,9 @@
  * @returns boolean
  */
 export declare function timePassed({ current, duration, showAfter }: {
-  current: number;
-  duration: number;
-  showAfter: number;
+    current: number;
+    duration: number;
+    showAfter: number;
 }): boolean;
 export declare function lightOrDark(color: string): "light" | "dark";
 export declare function timeToSeconds(time: any): number;

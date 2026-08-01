@@ -74,7 +74,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 		public function show_pointers( $hook ) {
 			/*
-			 Get admin pointers for the current admin page.
+			Get admin pointers for the current admin page.
 			 *
 			 * @since 0.9.6
 			 *
@@ -134,8 +134,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$is_new_user = get_transient( self::IS_NEW_LABEL_USER );
 			if ( false === $is_new_user ) {
 				global $wpdb;
-				$query       = "SELECT meta_key FROM {$wpdb->postmeta} WHERE meta_key = 'wc_connect_labels' LIMIT 1";
-				$results     = $wpdb->get_results( $query );
+
+				$results     = $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT meta_key FROM {$wpdb->postmeta} WHERE meta_key = %s LIMIT 1",
+						'wc_connect_labels'
+					)
+				);
 				$is_new_user = 0 === count( $results ) ? 'yes' : 'no';
 				set_transient( self::IS_NEW_LABEL_USER, $is_new_user );
 			}
@@ -221,7 +226,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			/*
-			 The NUX Flow:
+			The NUX Flow:
 			- Case 1: Jetpack not connected (with TOS or no TOS accepted):
 				1. show_banner_before_connection()
 				2. connect to JP
@@ -250,6 +255,15 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						&& $status['can_accept_tos']
 					) {
 						return 'tos_only_banner';
+					}
+
+					// TOS not accepted, but current user is not the connection owner.
+					// Show an informational banner directing them to the connection owner.
+					if (
+						isset( $status['tos_accepted'] )
+						&& ! $status['tos_accepted']
+					) {
+						return 'tos_informational_banner';
 					}
 
 					return false;
@@ -330,28 +344,19 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function get_feature_list_for_country( $country ) {
-			$feature_list    = false;
-			$supports_taxes  = $this->is_taxjar_supported_country( $country );
-			$supports_labels = ( 'US' === $country );
+			$feature_list   = false;
+			$supports_taxes = $this->is_taxjar_supported_country( $country );
 
 			$is_ppec_active    = is_plugin_active( 'woocommerce-gateway-paypal-express-checkout/woocommerce-gateway-paypal-express-checkout.php' );
 			$ppec_settings     = get_option( 'woocommerce_ppec_paypal_settings', array() );
 			$supports_payments = $is_ppec_active && ( ! isset( $ppec_settings['enabled'] ) || 'yes' === $ppec_settings['enabled'] );
 
-			if ( $supports_payments && $supports_taxes && $supports_labels ) {
-				$feature_list = __( 'automated tax calculation, shipping label printing, and smoother payment setup', 'woocommerce-services' );
-			} elseif ( $supports_payments && $supports_taxes ) {
+			if ( $supports_payments && $supports_taxes ) {
 				$feature_list = __( 'automated tax calculation and smoother payment setup', 'woocommerce-services' );
-			} elseif ( $supports_taxes && $supports_labels ) {
-				$feature_list = __( 'automated tax calculation and shipping label printing', 'woocommerce-services' );
-			} elseif ( $supports_payments && $supports_labels ) {
-				$feature_list = __( 'shipping label printing and smoother payment setup', 'woocommerce-services' );
 			} elseif ( $supports_payments ) {
 				$feature_list = __( 'smoother payment setup', 'woocommerce-services' );
 			} elseif ( $supports_taxes ) {
 				$feature_list = __( 'automated tax calculation', 'woocommerce-services' );
-			} elseif ( $supports_labels ) {
-				$feature_list = __( 'shipping label printing', 'woocommerce-services' );
 			}
 
 			return $feature_list;
@@ -403,6 +408,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
 					break;
+				case 'tos_informational_banner':
+					wp_enqueue_style( 'wc_connect_banner' );
+					add_action( 'admin_notices', array( $this, 'show_tos_informational_banner' ) );
+					break;
 			}
 
 			add_action( 'wp_ajax_wc_connect_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
@@ -432,13 +441,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$country = WC()->countries->get_base_country();
 			/* translators: %s: list of features, potentially comma separated */
-			$description_base = __( "WooCommerce Shipping & Tax is almost ready to go! Once you connect your site to WordPress.com you'll have access to %s.", 'woocommerce-services' );
+			$description_base = __( "WooCommerce Tax is almost ready to go! Once you connect your site to WordPress.com you'll have access to %s.", 'woocommerce-services' );
 			$feature_list     = $this->get_feature_list_for_country( $country );
 			$banner_content   = array(
-				'title'             => __( 'Connect your site to activate WooCommerce Shipping & Tax', 'woocommerce-services' ),
+				'title'             => __( 'Connect your site to activate WooCommerce Tax', 'woocommerce-services' ),
 				'description'       => sprintf( $description_base, $feature_list ),
 				'button_text'       => __( 'Connect', 'woocommerce-services' ),
-				'image_url'         => plugins_url( 'images/wcs-notice.png', dirname( __FILE__ ) ),
+				'image_url'         => plugins_url( 'images/wcs-notice.png', __DIR__ ),
 				'should_show_terms' => true,
 			);
 
@@ -484,7 +493,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					),
 					'image_url'         => plugins_url(
 						'images/wcs-notice.png',
-						dirname( __FILE__ )
+						__DIR__
 					),
 					'should_show_terms' => false,
 				)
@@ -511,12 +520,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$country = WC()->countries->get_base_country();
 			/* translators: %s: list of features, potentially comma separated */
-			$description_base = __( "WooCommerce Shipping & Tax is almost ready to go! Once you connect your site to WordPress.com you'll have access to %s.", 'woocommerce-services' );
+			$description_base = __( "WooCommerce Tax is almost ready to go! Once you connect your site to WordPress.com you'll have access to %s.", 'woocommerce-services' );
 			$feature_list     = $this->get_feature_list_for_country( $country );
 
 			$this->show_nux_banner(
 				array(
-					'title'             => __( 'Connect your site to activate WooCommerce Shipping & Tax', 'woocommerce-services' ),
+					'title'             => __( 'Connect your site to activate WooCommerce Tax', 'woocommerce-services' ),
 					'description'       => esc_html( sprintf( $description_base, $feature_list ) ),
 					'button_text'       => __( 'Connect', 'woocommerce-services' ),
 					'button_link'       => add_query_arg(
@@ -526,9 +535,36 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					),
 					'image_url'         => plugins_url(
 						'images/wcs-notice.png',
-						dirname( __FILE__ )
+						__DIR__
 					),
 					'should_show_terms' => true,
+				)
+			);
+		}
+
+		public function show_tos_informational_banner() {
+			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
+				return;
+			}
+
+			if ( ! $this->should_display_nux_notice_on_screen( get_current_screen() ) ) {
+				return;
+			}
+
+			$connection_owner = WC_Connect_Jetpack::get_connection_owner();
+			if ( $connection_owner ) {
+				/* translators: %s: display name of the Jetpack connection owner */
+				$description = sprintf( __( 'The Jetpack connection owner (%s) needs to accept the Terms of Service to activate WooCommerce Tax features.', 'woocommerce-services' ), $connection_owner->display_name );
+			} else {
+				$description = __( 'The Jetpack connection owner needs to accept the Terms of Service to activate WooCommerce Tax features.', 'woocommerce-services' );
+			}
+
+			$this->show_nux_banner(
+				array(
+					'title'             => __( 'WooCommerce Tax requires Terms of Service acceptance', 'woocommerce-services' ),
+					'description'       => $description,
+					'image_url'         => plugins_url( 'images/wcs-notice.png', __DIR__ ),
+					'should_show_terms' => false,
 				)
 			);
 		}
@@ -570,18 +606,19 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 							?>
 						</p>
 					<?php endif; ?>
-					<?php if ( isset( $content['button_link'] ) ) : ?>
+					<?php if ( isset( $content['button_text'] ) ) : ?>
+						<?php if ( isset( $content['button_link'] ) ) : ?>
 						<a
 							class="wcs-nux__notice-content-button button button-primary"
 							href="<?php echo esc_url( $content['button_link'] ); ?>"
 						>
 							<?php echo esc_html( $content['button_text'] ); ?>
 						</a>
-					<?php else : ?>
+						<?php else : ?>
 						<form action="<?php echo esc_attr( admin_url( 'admin-post.php' ) ); ?>" method="post">
 							<input type="hidden" name="action" value="register_woocommerce_services_jetpack"/>
 							<input type="hidden" name="redirect_url"
-								   value="<?php echo esc_url( $this->get_jetpack_redirect_url() ); ?>"/>
+									value="<?php echo esc_url( $this->get_jetpack_redirect_url() ); ?>"/>
 							<?php wp_nonce_field( 'wcs_nux_notice' ); ?>
 							<button
 								type="submit"
@@ -590,6 +627,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 								<?php echo esc_html( $content['button_text'] ); ?>
 							</button>
 						</form>
+						<?php endif; ?>
 					<?php endif; ?>
 				</div>
 			</div>

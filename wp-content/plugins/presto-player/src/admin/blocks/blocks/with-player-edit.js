@@ -3,6 +3,7 @@
  */
 const { createHigherOrderComponent } = wp.compose;
 const { useEffect, useState } = wp.element;
+const { __ } = wp.i18n;
 import { usePrevious } from "@/admin/blocks/util";
 import apiFetch from "@/shared/services/fetch";
 
@@ -25,7 +26,7 @@ export default () =>
       } = props;
       const [presetData, setPresetData] = useState({});
       const [count, setCount] = useState(1);
-      let { poster, chapters } = attributes;
+      let { poster, chapters, ratio } = attributes;
 
       // don't allow selection if there is an override
       useEffect(() => {
@@ -54,7 +55,7 @@ export default () =>
       // re-render the player if presetdata, poster or chapters change
       useEffect(() => {
         onUpdate();
-      }, [poster, presetData, chapters, branding.logo]);
+      }, [poster, presetData, chapters, branding.logo, ratio]);
 
       // increment update key
       const onUpdate = () => {
@@ -107,7 +108,7 @@ export default () =>
       };
 
       function onRemoveSrc() {
-        let r = confirm("Remove this video?");
+        let r = confirm(__("Remove this video?", "presto-player"));
         if (r) {
           setAttributes({
             src: "",
@@ -126,17 +127,17 @@ export default () =>
       }
 
       return (
-        <WrappedComponent
-          {...props}
-          lockSave={lock}
-          unlockSave={unlock}
-          createVideo={createVideo}
-          onUpdate={onUpdate}
-          onRemoveSrc={onRemoveSrc}
-          presetData={presetData}
-          setPresetData={setPresetData}
-          renderKey={count}
-        />
+          <WrappedComponent
+            {...props}
+            lockSave={lock}
+            unlockSave={unlock}
+            createVideo={createVideo}
+            onUpdate={onUpdate}
+            onRemoveSrc={onRemoveSrc}
+            presetData={presetData}
+            setPresetData={setPresetData}
+            renderKey={count}
+          />
       );
     },
     "withPlayerEdit"

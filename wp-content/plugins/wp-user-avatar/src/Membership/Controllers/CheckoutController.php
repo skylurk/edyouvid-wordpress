@@ -8,6 +8,7 @@ use ProfilePress\Core\Membership\Emails\SubscriptionExpiredNotification;
 use ProfilePress\Core\Membership\Models\Coupon\CouponFactory;
 use ProfilePress\Core\Membership\Models\Customer\CustomerFactory;
 use ProfilePress\Core\Membership\Models\Group\GroupFactory;
+use ProfilePress\Core\Membership\Models\Order\OrderEntity;
 use ProfilePress\Core\Membership\Models\Order\OrderFactory;
 use ProfilePress\Core\Membership\Models\Order\OrderType;
 use ProfilePress\Core\Membership\Models\Plan\PlanEntity;
@@ -42,7 +43,6 @@ class CheckoutController extends BaseController
 
         add_action('wp_ajax_ppress_contextual_state_field', [$this, 'contextual_state_field']);
         add_action('wp_ajax_nopriv_ppress_contextual_state_field', [$this, 'contextual_state_field']);
-
 
         add_action('wp', [$this, 'validate_checkout_coupon']);
         add_action('wp', [$this, 'redirect_to_referrer_after_checkout']);
@@ -230,7 +230,17 @@ class CheckoutController extends BaseController
                 throw new \Exception(esc_html__('Error processing checkout. Nonce failed', 'wp-user-avatar'));
             }
 
+            $GLOBALS['ppress_checkout_post_data'] = $_POST;
+
             $_POST = $this->cleanup_posted_data($_POST);
+
+            if ( ! isset($_POST['_ppress_timestamp']) || intval($_POST['_ppress_timestamp']) > (time() - 2)) {
+                throw new \Exception('spam');
+            }
+
+            if ( ! isset($_POST['_ppress_honeypot']) || ! empty($_POST['_ppress_honeypot'])) {
+                throw new \Exception('spam');
+            }
 
             $plan_id = (int)$_POST['plan_id'];
 
@@ -245,14 +255,6 @@ class CheckoutController extends BaseController
                 }
             }
 
-            if ( ! isset($_POST['_ppress_timestamp']) || intval($_POST['_ppress_timestamp']) > (time() - 2)) {
-                throw new \Exception('spam');
-            }
-
-            if ( ! isset($_POST['_ppress_honeypot']) || ! empty($_POST['_ppress_honeypot'])) {
-                throw new \Exception('spam');
-            }
-
             $checkout_errors = apply_filters('ppress_checkout_validation', new \WP_Error(), $plan_id, $_POST);
 
             if (is_wp_error($checkout_errors) && $checkout_errors->get_error_code() != '') {
@@ -263,6 +265,12 @@ class CheckoutController extends BaseController
                 throw new \Exception(
                     esc_html__('Please read and accept the terms and conditions to proceed with your order.', 'wp-user-avatar')
                 );
+            }
+
+            $changePlanSub = SubscriptionFactory::fromId($change_plan_sub_id);
+
+            if ( ! empty($change_plan_sub_id) && ! $changePlanSub->exists()) {
+                throw new \Exception(esc_html__('Invalid subscription ID provided for plan change.', 'wp-user-avatar'));
             }
 
             $cart_vars = OrderService::init()->checkout_order_calculation([
@@ -300,6 +308,14 @@ class CheckoutController extends BaseController
                 throw new \Exception(json_encode($customer_id->get_error_messages()));
             }
 
+            if (
+                $changePlanSub->exists() &&
+                $customer_id !== $changePlanSub->get_customer_id()) {
+                throw new \Exception(
+                    esc_html__('You are not allowed to switch from this plan.', 'wp-user-avatar')
+                );
+            }
+
             $order_id = $this->create_order($customer_id, $cart_vars);
 
             if (is_wp_error($order_id)) {
@@ -331,19 +347,17 @@ class CheckoutController extends BaseController
 
             } else {
 
-                $sub = SubscriptionFactory::fromId($change_plan_sub_id);
-
-                if ($sub->exists()) {
+                if ($changePlanSub->exists() && $changePlanSub->get_customer_id() == $customer_id) {
 
                     // do not send subscription cancelled email
-                    remove_action('ppress_subscription_cancelled', [SubscriptionCancelledNotification::init(), 'dispatch_email'], 10);
-                    remove_action('ppress_subscription_expired', [SubscriptionExpiredNotification::init(), 'dispatch_email'], 10);
+                    remove_action('ppress_subscription_cancelled', [SubscriptionCancelledNotification::init(), 'dispatch_email']);
+                    remove_action('ppress_subscription_expired', [SubscriptionExpiredNotification::init(), 'dispatch_email']);
 
-                    $sub->cancel(true);
-                    $sub->expire();
+                    $changePlanSub->cancel(true);
+                    $changePlanSub->expire();
 
-                    SubscriptionFactory::fromId($subscription_id)->update_meta('_upgraded_from_sub_id', $sub->get_id());
-                    $sub->update_meta('_upgraded_to_sub_id', $subscription_id);
+                    SubscriptionFactory::fromId($subscription_id)->update_meta('_upgraded_from_sub_id', $changePlanSub->get_id());
+                    $changePlanSub->update_meta('_upgraded_to_sub_id', $subscription_id);
                 }
 
                 /** @var CheckoutResponse $process_payment */
@@ -471,6 +485,8 @@ class CheckoutController extends BaseController
 
             parse_str($_POST['post_data'], $post_data);
 
+            $GLOBALS['ppress_checkout_post_data'] = $post_data;
+
             $planObj = ppress_get_plan(absint($_POST['plan_id']));
 
             $groupObj = GroupFactory::fromId(absint(ppress_var($post_data, 'group_id', 0)));
@@ -540,7 +556,10 @@ class CheckoutController extends BaseController
                 $checkout_payment_methods_html = ob_get_clean();
 
                 ob_start();
-                ppress_render_view('checkout/form-checkout-submit-btn', ['order_total' => $cart_vars->total, 'plan' => $planObj]);
+                ppress_render_view('checkout/form-checkout-submit-btn', [
+                    'order_total' => $cart_vars->total,
+                    'plan'        => $planObj
+                ]);
                 $checkout_submit_btn = ob_get_clean();
 
                 $fragments = [

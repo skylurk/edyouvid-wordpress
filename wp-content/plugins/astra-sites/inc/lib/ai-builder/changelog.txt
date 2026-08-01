@@ -1,3 +1,265 @@
+v1.2.81 - 23th June 2026
+- New: Added Spectra Blocks plugin compatibility for AI Builder template imports.
+
+v1.2.80 - 16th June 2026
+- Improvement: Template imports are now more reliable on slower or shared hosting — key import steps will automatically retry if the server takes too long to respond, instead of failing immediately.
+- Fix: Show a dedicated reconnect prompt when the connected ZipWP organization is no longer found.
+- Fix: Prevent Spectra onboarding redirect after activation during import process.
+
+v1.2.79 - 19th May 2026
+- Fix: Template cards now load with their default color palette instead of a random one; shuffle only applies on button click.
+- Fix: Temporarily reverted popup-based ZipWP authentication to same-tab redirect to resolve environment-specific issues.
+
+v1.2.78 - 13th May 2026
+- Fix: Logo and other customizer images are now correctly replaced with media library URLs after template import.
+
+v1.2.77 - 7th May 2026
+- Improvement: Allow AI site creation to proceed past plan limit when the account is eligible for auto-charge overage.
+- Improvement: Added Freepik image support for Russian users with ZipWP connection prompt for image access.
+- Fix: Resolved blank organization and plan name in the Limit Reached modal when connecting ZipWP account mid-flow.
+- Fix: Resolved a crash on the contact details step caused by invalid saved social media data.
+- Fix: Custom color palette selection no longer crashes the design step when the default palette has not yet been hydrated.
+
+v1.2.76 - 30th April 2026
+- Security: Hardened ZipWP auth postMessage handling by validating origin and source window to prevent CSRF-based credential overwrite (CWE-352).
+- Fix: Clean up stale batch import options (batch_process_started_time, batch_process_complete) in delete_related_transient.
+
+v1.2.75 - 20th April 2026
+- Fix: Reverted safe unserialize that was stripping serialized objects during template import.
+- Fix: Content duplication on retry after failed site import.
+
+v1.2.74 - 3rd April 2026
+- Improvement: Upgraded preview browser frame to a realistic Chrome-style design.
+- Improvement: Tightened safe unserialize by class whitelisting.
+
+v1.2.73 - 31st March 2026
+- New: Added site goals selection and content tone customization for more personalized AI-generated content.
+- New: Added shuffle colors feature and image selection hint on design and images screens.
+- Improvement: ZipWP authentication now opens in a popup window, keeping users on the builder page instead of redirecting away.
+- Fix: Resolved `__PHP_Incomplete_Class` issues after secure unserialize by converting them to arrays.
+
+v1.2.72 - 18th March 2026
+- Security: Hardened deserialization to prevent object injection (CWE-502).
+
+v1.2.71 - 3rd March 2026
+- Improvement: Introduced filter option to templates listing to list premium, most used and newest templates.
+
+v1.2.70 - 3rd February 2026
+- Improvement: Improved import process logging for better traceability.
+- Improvement: Added automatic image selection when skipping image selection to import business relevent images.
+
+v1.2.69 - 13th January 2026
+- Fix: Resolved a plugin activation error for Modern Cart for WooCommerce by ensuring it loads after WooCommerce is activated.
+
+v1.2.68 - 06th January 2026
+- Improvement: Added Sales Funnels option for WooCommerce enabled AI templates.
+
+v1.2.67 - 16th December 2025
+- New: Added confirmation modal when proceeding without selecting images in the select-images step.
+- Improvement: Enhanced page builder selection to respect and order builders based on supported page builders filter.
+- Improvement: Added specific handling for unauthorized ZipWP API responses with user-friendly error messages and filter to customize the message.
+- Fix: Resolved an issue where empty or invalid error messages were displayed in error modals.
+
+v1.2.66 - 5th December 2025
+- New: Added switch team and disconnect AI links in the Zip Plan info modal.
+- Fix: Resolved an issue where the search box stopped working after clearing the keyword and searching again.
+
+v1.2.65 - 27th November 2025
+- Fix: Prevented potential fatal errors related to logging when running CLI import processes.
+- Fix: Resolved UI issue affecting visibility of Footer CTAs.
+
+v1.2.64 - 26th November 2025
+- Misc: Added UI Improvements.
+
+v1.2.63 - 25th November 2025
+- New: Added multisite-compatible import permission checks to ensure subsite admins can import AI templates.
+- Fix: Resolved widget import error in CLI import.
+
+v1.2.62 - 14th November 2025
+- Fix: Resolved "folder already exists" error during Astra theme installation by gracefully handling existing theme folders.
+
+v1.2.61 - 13th November 2025
+- Improvement: Sunsetting the Checkout Plugins - Stripe for Woocommerce plugin compatibility.
+- Fix: Prevented potential fatal errors when updating the site options if an exception occurs from Elementor.
+- Fix: Resolved an issue where the ai-builder route was incorrectly replaced with the text domain of the integrated product, causing access errors on certain devices.
+
+v1.2.60 - 31th October 2025
+- Improvement: Image service updated to detect client browsers located in Russia and serve images via Unsplash to avoid blocked requests.
+
+v1.2.59 - 14th October 2025
+- Improvement: Automatically use Unsplash image engine for Russian users as Pexels is blocked in Russia.
+
+v1.2.58 - 26th September 2025
+- Improvement: Fixed page creation conflict with SureCart plugin during import.
+
+v1.2.57 - 18-September-2025
+- Improvement: Added import compatibility in multisite environment for classic builder templates.
+- Improvement: Enhanced import error handling to minimize failure rates.
+
+v1.2.56 - 12th September 2025
+- Fix: Reverted the translation of the `Done` string to resolve the issue where imports were getting stuck.
+
+v1.2.55 - 8th September 2025
+- Improvement: Added locale support to the /sites/features/ endpoint for translated feature text from ZipWP.
+
+v1.2.54 - 3rd September 2025
+- Improvement: Enhanced URL validation pattern to support tilde (~) symbols in site URLs.
+- Improvement: Applied internationalization to missing translatable string in site creation status messages.
+
+v1.2.53 - 13th August 2025
+- Improvement:
+    - Added "Finish Setup" redirection link to the import success page.
+
+v1.2.52 - 5th August 2025
+- Improvement: Improved UI for plugin installation notice.
+- Improvement: Misc enhancements aligned with recent updates to the WooPayments.
+
+v1.2.51 - 29th July 2025
+- Fix: Prevent UAELite from redirecting during Elementor page and block imports.
+
+v1.2.50 - 24th July 2025
+- Improvement: Added UTM parameters to ZipWP login and signup links.
+
+v1.2.49 - 24th July 2025
+- Fixed: Added default features data when "Skip & Start Building" is selected, ensuring correct plugin installation count via ST.
+
+v1.2.48 - 16th July 2025
+- Improvement: Introduced a filter to customize the support site link.
+- Improvement: Enhanced error display with improved modal presentation.
+
+v1.2.47 - 14th July 2025
+- New: Added compatibility with the Elementor plugin.
+
+v1.2.46 - 11th July 2025
+- Improvement: Added a confirmation popup for credit usage when clicking "Start Building".
+- Improvement: Refine the plugin installation notice UI.
+
+v1.2.45 - 07-July-2025
+- Improvement: Added a clear plugin installation notice in the feature selection step to improve transparency.
+
+v1.2.44 - 03-July-2025
+- New: Added SureRank plugin compatibility in AI onboarding.
+
+v1.2.43 - 27-June-2025
+- Improvement: Improved code for better readability and performance.
+- Improvement: Updated UI to align with ZipWP Onboarding for a consistent user experience.
+- Fix: Resolved WooCommerce-dependent plugin activation logic to reduce import failures.
+
+v1.2.42 - 17-June-2025
+- Fix: Removed unintended premium badge for the White Label AI Builder.
+
+v1.2.41 - 17-June-2025
+- Improvement: Added a filter to hide the credits usage warning modal.
+
+v1.2.40 - 17-June-2025
+- New: Added a filter to support selection of supported page builders.
+- Fix: Resolved an issue where features data was not correctly transmitted.
+
+v1.2.39 - 13-June-2025
+- Improvement: Enhanced error handling to include full error details in reports.
+- Improvement: Added a confirmation modal to warn users that starting over resets the session and consumes an additional AI credit.
+- Improvement: Premium notice now shown without the “Unlock Access” button; CTA changed to “Select Different Design.”
+
+v1.2.38 - 09-June-2025
+- Improvement: Refactored the logic for displaying the WooPayments banner notice and appending the referral URL based on setup conditions.
+
+v1.2.37 - 02-June-2025
+- New: Added compatibility with WooPayments plugin.
+- New: Added compatibility with Ultimate Addons for Elementor Lite and Pro plugins.
+
+v1.2.36 - 29-May-2025
+- Improvement: Added improvement in the pricing flow.
+- Improvement: Renamed builder type from `ai-builder` to `ai_builder`.
+
+v1.2.35 - 26-May-2025
+- New: Added support for sending import status events to the website demos site server.
+- Fix: Resolved an issue where the premium access box was not displaying correctly for disconnected ZipWP users.
+
+v1.2.34 - 13-May-2025
+- Improvement: Optimized API for templates loading functionality in batches.
+
+v1.2.33 - 14-April-2025
+- Fixed: Elementor previews were limited or not loading as expected.
+- Fixed: Redirection conflict when CartFlows is activated.
+
+v1.2.32 - 11-April-2025
+- New: Added support for AI generated Elementor templates.
+- Improvement: Increased the Business Description character limit.
+- Improvement: Migrated ZIPWP Auth screen at the end of AI onboarding flow. 
+
+v1.2.31 - 27-March-2025
+- New: Added PHPInsights to improve code quality
+- Improvement: Optimized UX with responsive UI
+
+v1.2.30 - 21-March-2025
+- New: Added Latepoint plugin compatibility in AI onboarding.
+
+v1.2.29 - 19-March-2025
+- New: Introducing a new action hook `astra_sites_after_theme_activation`.
+
+v1.2.28 - 06-March-2025
+- New: Deprecated Beaver Builder starter templates, enable with `astra_sites_enable_legacy_beaver_builder_support` filter to continue using them.
+
+v1.2.27 - 27-February-2025
+- New: Added a filter to toggle the “Visit Dashboard” button.
+
+v1.2.26 - 24-February-2025
+- New: Added SureMail plugin compatibility in AI onboarding.
+
+v1.2.25 - 29-January-2025
+- Fix: Removed unnecessary API request headers to improve compatibility.
+
+v1.2.24 - 20-January-2025
+- New: Added filter to update the default business type.
+
+v1.2.23 - 16-January-2025
+- Improvement: Improved Translation support to the Business Category API.
+
+v1.2.22 - 16-January-2025
+- Improvement: Improved condition based translation support to the Business Category API.
+
+v1.2.21 - 16-January-2025
+- Improvement: Added condition based translation support to the Business Category API.
+
+v1.2.20 - 16-January-2025
+- New: Added translation support to the Business Category API.
+
+v1.2.19 - 15-January-2025
+- Improvement: Integrated UTM tracking data for import actions to enhance analytics.
+
+v1.2.18 - 02-December-2024
+- Improvement: Improved error handling by displaying actual server error messages in toaster
+
+v1.2.17 - 02-December-2024
+- Improvement: Handled displaying "Internal server error" in toaster.
+
+v1.2.16 - 28-November-2024
+- Fix: Fixed import process stuck issue.
+
+v1.2.15 - 28-November-2024
+- Improvement: Added import success action to trigger custom actions after successful site import.
+
+v1.2.14 - 19-November-2024
+- Improvement: Enhanced error handling in the import process with clearer error messages.
+- Improvement: Upgrade plan popup UI enhancements for a better user experience.
+
+v1.2.13 - 13-November-2024
+- Fix: Resolved an issue causing the import process to fail due to unexpected SureForm plugin redirection upon activation.
+
+v1.2.12 - 13-November-2024
+- Fix: This update addressed a security bug. Props to Patchstack for privately reporting it.
+
+v1.2.11 - 05-November-2024
+- Improvement: Hidding ecommerce templates if ecommerce feature is hidden.
+
+v1.2.10 - 31-October-2024
+- New: Added a filter to hide specified features on the selection screen.
+
+v1.2.9 - 24-October-2024
+- Improvement: Prompted users for detailed business descriptions to enhance content generation.
+- Improvement: Creating a SureCart merchant account when selected from the feature screen.
+- Improvement: Added compatibility for SureForms templates.
+
 v1.2.8 - 15-October-2024
 - Improvement: Corrected typos and applied minor CSS enhancements.
 

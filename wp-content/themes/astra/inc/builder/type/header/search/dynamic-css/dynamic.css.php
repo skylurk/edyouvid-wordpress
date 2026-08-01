@@ -30,15 +30,19 @@ function astra_hb_search_dynamic_css( $dynamic_css, $dynamic_css_filtered = '' )
 		return $dynamic_css;
 	}
 
-	$_section  = 'section-header-search';
-	$selector  = '.ast-header-search';
-	$icon_size = astra_get_option( 'header-search-icon-space' );
+	$_section                = 'section-header-search';
+	$selector                = '.ast-header-search';
+	$icon_size               = astra_get_option( 'header-search-icon-space' );
+	$search_width            = astra_get_option( 'header-search-width' );
+	$search_type             = astra_get_option( 'header-search-box-type' );
+	$live_search             = astra_get_option( 'live-search' );
+	$search_width_applicable = ! defined( 'ASTRA_EXT_VER' ) || ( defined( 'ASTRA_EXT_VER' ) && ( 'slide-search' === $search_type || 'search-box' === $search_type ) ) ? true : false;
 
-	$icon_size_desktop = ( isset( $icon_size ) && isset( $icon_size['desktop'] ) && ! empty( $icon_size['desktop'] ) ) ? $icon_size['desktop'] : 20;
-	
-	$icon_size_tablet = ( isset( $icon_size ) && isset( $icon_size['tablet'] ) && ! empty( $icon_size['tablet'] ) ) ? $icon_size['tablet'] : 20;
+	$icon_size_desktop = isset( $icon_size ) && isset( $icon_size['desktop'] ) && ! empty( $icon_size['desktop'] ) ? $icon_size['desktop'] : 20;
 
-	$icon_size_mobile = ( isset( $icon_size ) && isset( $icon_size['mobile'] ) && ! empty( $icon_size['mobile'] ) ) ? $icon_size['mobile'] : 20;
+	$icon_size_tablet = isset( $icon_size ) && isset( $icon_size['tablet'] ) && ! empty( $icon_size['tablet'] ) ? $icon_size['tablet'] : 20;
+
+	$icon_size_mobile = isset( $icon_size ) && isset( $icon_size['mobile'] ) && ! empty( $icon_size['mobile'] ) ? $icon_size['mobile'] : 20;
 
 	$icon_color_desktop = astra_get_prop( astra_get_option( 'header-search-icon-color' ), 'desktop' );
 	$icon_color_tablet  = astra_get_prop( astra_get_option( 'header-search-icon-color' ), 'tablet' );
@@ -46,7 +50,7 @@ function astra_hb_search_dynamic_css( $dynamic_css, $dynamic_css_filtered = '' )
 
 	$margin          = astra_get_option( $_section . '-margin' );
 	$margin_selector = '.ast-hfb-header .site-header-section > .ast-header-search, .ast-hfb-header .ast-header-search';
-	
+
 	/**
 	 * Search CSS.
 	 */
@@ -69,9 +73,6 @@ function astra_hb_search_dynamic_css( $dynamic_css, $dynamic_css_filtered = '' )
 		$selector . ' .search-field::placeholder,' . $selector . ' .ast-icon' => array(
 			'color' => esc_attr( $icon_color_desktop ),
 		),
-		$selector . ' .ast-search-menu-icon.ast-dropdown-active .search-field' => array(
-			'margin-right' => astra_get_css_value( $icon_size_desktop - 10, 'px' ),
-		),
 		$margin_selector                                => array(
 			// Margin CSS.
 			'margin-top'    => astra_responsive_spacing( $margin, 'top', 'desktop' ),
@@ -81,19 +82,28 @@ function astra_hb_search_dynamic_css( $dynamic_css, $dynamic_css_filtered = '' )
 		),
 	);
 
+	if ( $search_width_applicable ) {
+		$css_output_desktop[ $selector . ' form.search-form .search-field, ' . $selector . ' .ast-dropdown-active.ast-search-menu-icon.slide-search input.search-field' ] = array(
+			'width' => astra_get_css_value( astra_get_prop( $search_width, 'desktop' ), 'px' ),
+		);
+	}
+
+	if ( $live_search && Astra_Builder_Helper::is_component_loaded( 'search', 'header' ) && ! is_customize_preview() && apply_filters( 'astra_increased_search_icon_zindex', true ) ) {
+		$css_output_desktop['.ast-search-menu-icon'] = array(
+			'z-index' => '5', // To fix search results container overlapping issue with menu (AST-3605).
+		);
+	}
+
 	$css_output_tablet = array(
 
-		$selector . ' .astra-search-icon'         => array(
+		$selector . ' .astra-search-icon' => array(
 			'color'     => esc_attr( $icon_color_tablet ),
 			'font-size' => astra_get_css_value( $icon_size_tablet, 'px' ),
 		),
-		$selector . ' .search-field::placeholder' => array(
+		$selector . ' .search-field::placeholder,' . $selector . ' .ast-icon' => array(
 			'color' => esc_attr( $icon_color_tablet ),
 		),
-		$selector . ' .ast-search-menu-icon.ast-dropdown-active .search-field' => array(
-			'margin-right' => astra_get_css_value( $icon_size_tablet - 10, 'px' ),
-		),
-		$margin_selector                          => array(
+		$margin_selector                  => array(
 			// Margin CSS.
 			'margin-top'    => astra_responsive_spacing( $margin, 'top', 'tablet' ),
 			'margin-bottom' => astra_responsive_spacing( $margin, 'bottom', 'tablet' ),
@@ -102,19 +112,28 @@ function astra_hb_search_dynamic_css( $dynamic_css, $dynamic_css_filtered = '' )
 		),
 	);
 
+	if ( $search_width_applicable ) {
+		$css_output_tablet[ $selector . ' form.search-form .search-field, ' . $selector . ' .ast-dropdown-active.ast-search-menu-icon.slide-search input.search-field, .ast-mobile-header-content .ast-search-menu-icon .search-form' ] = array(
+			'width' => astra_get_css_value( astra_get_prop( $search_width, 'tablet' ), 'px' ),
+		);
+	}
+
+	if ( $live_search && Astra_Builder_Helper::is_component_loaded( 'search', 'header', 'mobile' ) ) {
+		$css_output_tablet['.ast-mobile-header-content .ast-header-search .ast-search-menu-icon .search-form'] = array(
+			'overflow' => 'visible', // To fix search results container should overflow inside offcanvas (AST-3604).
+		);
+	}
+
 	$css_output_mobile = array(
 
-		$selector . ' .astra-search-icon'         => array(
+		$selector . ' .astra-search-icon' => array(
 			'color'     => esc_attr( $icon_color_mobile ),
 			'font-size' => astra_get_css_value( $icon_size_mobile, 'px' ),
 		),
-		$selector . ' .search-field::placeholder' => array(
+		$selector . ' .search-field::placeholder,' . $selector . ' .ast-icon' => array(
 			'color' => esc_attr( $icon_color_mobile ),
 		),
-		$selector . ' .ast-search-menu-icon.ast-dropdown-active .search-field' => array(
-			'margin-right' => astra_get_css_value( $icon_size_mobile - 10, 'px' ),
-		),
-		$margin_selector                          => array(
+		$margin_selector                  => array(
 			// Margin CSS.
 			'margin-top'    => astra_responsive_spacing( $margin, 'top', 'mobile' ),
 			'margin-bottom' => astra_responsive_spacing( $margin, 'bottom', 'mobile' ),
@@ -122,6 +141,12 @@ function astra_hb_search_dynamic_css( $dynamic_css, $dynamic_css_filtered = '' )
 			'margin-right'  => astra_responsive_spacing( $margin, 'right', 'mobile' ),
 		),
 	);
+
+	if ( $search_width_applicable ) {
+		$css_output_mobile[ $selector . ' form.search-form .search-field, ' . $selector . ' .ast-dropdown-active.ast-search-menu-icon.slide-search input.search-field, .ast-mobile-header-content .ast-search-menu-icon .search-form' ] = array(
+			'width' => astra_get_css_value( astra_get_prop( $search_width, 'mobile' ), 'px' ),
+		);
+	}
 
 	/* Parse CSS from array() */
 	$css_output  = astra_search_static_css();
@@ -134,148 +159,4 @@ function astra_hb_search_dynamic_css( $dynamic_css, $dynamic_css_filtered = '' )
 	$dynamic_css .= Astra_Builder_Base_Dynamic_CSS::prepare_visibility_css( $_section, $selector );
 
 	return $dynamic_css;
-}
-
-/**
- * Search Component static CSS.
- * 
- * @return string
- * @since 3.5.0
- */
-function astra_search_static_css() {
-	$search_css = '
-	
-	.main-header-bar .main-header-bar-navigation .ast-search-icon {
-		display: block;
-		z-index: 4;
-		position: relative;
-	}
-	  
-	.ast-search-icon {
-		z-index: 4;
-		position: relative;
-		line-height: normal;
-	}
-	.main-header-bar .ast-search-menu-icon .search-form {
-		background-color: #ffffff;
-	}
-	.ast-search-menu-icon.ast-dropdown-active.slide-search .search-form {
-		visibility: visible;
-		opacity: 1;
-	}
-	.ast-search-menu-icon .search-form {
-		border: 1px solid #e7e7e7;
-		line-height: normal;
-		padding: 0 3em 0 0;
-		border-radius: 2px;
-		display: inline-block;
-		-webkit-backface-visibility: hidden;
-		backface-visibility: hidden;
-		position: relative;
-		color: inherit;
-		background-color: #fff;
-	}
-	.ast-search-menu-icon .astra-search-icon {
-		-js-display: flex;
-		display: flex;
-		line-height: normal;
-	}
-	.ast-search-menu-icon .astra-search-icon:focus {
-		outline: none;
-	}
-	.ast-search-menu-icon .search-field {
-		border: none;
-		background-color: transparent;
-		transition: width .2s;
-		border-radius: inherit;
-		color: inherit;
-		font-size: inherit;
-		width: 0;
-		color: #757575;
-	}
-	.ast-search-menu-icon .search-submit {
-		display: none;
-		background: none;
-		border: none;
-		font-size: 1.3em;
-		color: #757575;
-	}
-	.ast-search-menu-icon.ast-dropdown-active {
-		visibility: visible;
-		opacity: 1;
-		position: relative;
-	}
-	  
-	.ast-search-menu-icon.ast-dropdown-active .search-field {
-		width: 235px;
-	}
-	.ast-header-search .ast-search-menu-icon.slide-search .search-form, .ast-header-search .ast-search-menu-icon.ast-inline-search .search-form {
-		-js-display: flex;
-		display: flex;
-		align-items: center;
-	}';
-
-	if ( is_rtl() ) {
-		$search_css .= '
-		.ast-search-menu-icon.ast-inline-search .search-field {
-			width : 100%;
-			padding : 0.60em;
-			padding-left : 5.5em;
-		}
-		.site-header-section-left .ast-search-menu-icon.slide-search .search-form {
-			padding-right: 3em;
-			padding-left: unset;
-			right: -1em;
-			left: unset;
-		}
-		  
-		.site-header-section-left .ast-search-menu-icon.slide-search .search-form .search-field {
-			margin-left: unset;
-			margin-right: 10px;
-		}
-		.ast-search-menu-icon.slide-search .search-form {
-			-webkit-backface-visibility: visible;
-			backface-visibility: visible;
-			visibility: hidden;
-			opacity: 0;
-			transition: all .2s;
-			position: absolute;
-			z-index: 3;
-			left: -1em;
-			top: 50%;
-			transform: translateY(-50%);
-		}';
-	} else {
-		$search_css .= '
-		.ast-search-menu-icon.ast-inline-search .search-field {
-			width : 100%;
-			padding : 0.60em;
-			padding-right : 5.5em;
-		}
-		.site-header-section-left .ast-search-menu-icon.slide-search .search-form {
-			padding-left: 3em;
-			padding-right: unset;
-			left: -1em;
-			right: unset;
-		}
-		  
-		.site-header-section-left .ast-search-menu-icon.slide-search .search-form .search-field {
-			margin-right: unset;
-			margin-left: 10px;
-		}
-		.ast-search-menu-icon.slide-search .search-form {
-			-webkit-backface-visibility: visible;
-			backface-visibility: visible;
-			visibility: hidden;
-			opacity: 0;
-			transition: all .2s;
-			position: absolute;
-			z-index: 3;
-			right: -1em;
-			top: 50%;
-			transform: translateY(-50%);
-		}';
-	}
-
-	return Astra_Enqueue_Scripts::trim_css( $search_css );
 }

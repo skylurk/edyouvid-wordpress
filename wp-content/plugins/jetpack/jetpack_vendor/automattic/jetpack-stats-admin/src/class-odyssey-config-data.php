@@ -7,6 +7,7 @@
 
 namespace Automattic\Jetpack\Stats_Admin;
 
+use Automattic\Jetpack\Blaze;
 use Automattic\Jetpack\Current_Plan as Jetpack_Plan;
 use Automattic\Jetpack\Modules;
 use Automattic\Jetpack\Status\Host;
@@ -27,7 +28,8 @@ class Odyssey_Config_Data {
 	 */
 	public function get_js_config_data( $config_variable_name = 'configData', $config_data = null ) {
 		return "window.{$config_variable_name} = " . wp_json_encode(
-			$config_data === null ? $this->get_data() : $config_data
+			$config_data === null ? $this->get_data() : $config_data,
+			JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP
 		) . ';';
 	}
 
@@ -40,6 +42,8 @@ class Odyssey_Config_Data {
 		$blog_id = Jetpack_Options::get_option( 'id' );
 		$host    = new Host();
 
+		$can_blaze = class_exists( 'Automattic\Jetpack\Blaze' ) && Blaze::should_initialize()['can_init'];
+
 		return array(
 			'admin_page_base'                => $this->get_admin_path(),
 			'api_root'                       => esc_url_raw( rest_url() ),
@@ -50,14 +54,16 @@ class Odyssey_Config_Data {
 			'google_maps_and_places_api_key' => '',
 			'hostname'                       => wp_parse_url( get_site_url(), PHP_URL_HOST ),
 			'i18n_default_locale_slug'       => 'en',
-			'i18n_locale_slug'               => $this->get_site_locale(),
+			'i18n_locale_slug'               => $this->get_user_locale(),
 			'mc_analytics_enabled'           => false,
 			'meta'                           => array(),
 			'nonce'                          => wp_create_nonce( 'wp_rest' ),
 			'site_name'                      => \get_bloginfo( 'name' ),
 			'sections'                       => array(),
 			// Features are inlined @see https://github.com/Automattic/wp-calypso/pull/70122
-			'features'                       => array(),
+			'features'                       => array(
+				'is_running_in_jetpack_site' => ! $host->is_wpcom_simple(),
+			),
 			// Intended for apps that do not use redux.
 			'gmt_offset'                     => $this->get_gmt_offset(),
 			'odyssey_stats_base_url'         => admin_url( 'admin.php?page=stats' ),
@@ -77,7 +83,8 @@ class Odyssey_Config_Data {
 						"$blog_id" => array(
 							'ID'           => $blog_id,
 							'URL'          => site_url(),
-							'jetpack'      => true,
+							// Atomic and jetpack sites should return true.
+							'jetpack'      => ! $host->is_wpcom_simple(),
 							'visible'      => true,
 							'capabilities' => $this->get_current_user_capabilities(),
 							'products'     => Jetpack_Plan::get_products(),
@@ -88,10 +95,12 @@ class Odyssey_Config_Data {
 								'gmt_offset'            => $this->get_gmt_offset(),
 								'is_automated_transfer' => $this->is_automated_transfer( $blog_id ),
 								'is_wpcom_atomic'       => $host->is_woa_site(),
+								'is_wpcom_simple'       => $host->is_wpcom_simple(),
 								'is_vip'                => $host->is_vip_site(),
 								'jetpack_version'       => defined( 'JETPACK__VERSION' ) ? JETPACK__VERSION : '',
 								'stats_admin_version'   => Main::VERSION,
 								'software_version'      => $wp_version,
+								'can_blaze'             => $can_blaze,
 							),
 						),
 					),
@@ -154,13 +163,13 @@ class Odyssey_Config_Data {
 	/**
 	 * Get locale acceptable by Calypso.
 	 */
-	protected function get_site_locale() {
+	protected function get_user_locale() {
 		/**
 		 * In WP, locales are formatted as LANGUAGE_REGION, for example `en`, `en_US`, `es_AR`,
 		 * but Calypso expects language-region, e.g. `en-us`, `en`,  `es-ar`. So we need to convert
 		 * them to lower case and replace the underscore with a dash.
 		 */
-		$locale = strtolower( get_locale() );
+		$locale = strtolower( get_user_locale() );
 		$locale = str_replace( '_', '-', $locale );
 
 		return $locale;
@@ -215,16 +224,6 @@ class Odyssey_Config_Data {
 			'delete_users'        => current_user_can( 'delete_users' ),
 			'remove_users'        => current_user_can( 'remove_users' ),
 			'own_site'            => current_user_can( 'manage_options' ), // Administrators are considered owners on site.
-			/**
-			 * Filter whether the Hosting section in Calypso should be available for site.
-			 *
-			 * @module json-api
-			 *
-			 * @since 8.2.0
-			 *
-			 * @param bool $view_hosting Can site access Hosting section. Default to false.
-			 */
-			'view_hosting'        => apply_filters( 'jetpack_json_api_site_can_view_hosting', false ),
 			'view_stats'          => current_user_can( 'view_stats' ),
 			'activate_plugins'    => current_user_can( 'activate_plugins' ),
 		);

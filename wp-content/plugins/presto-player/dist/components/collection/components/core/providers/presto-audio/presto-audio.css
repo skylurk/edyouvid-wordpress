@@ -201,7 +201,7 @@
     padding: calc(var(--plyr-control-spacing, 10px) * 2) calc(var(--plyr-control-spacing, 10px) * 2) 0 calc(var(--plyr-control-spacing, 10px) * 2);
   }
   .presto-sticky-audio .presto-audio__poster-wrapper,
-.presto-sticky-audio .presto-audio__title {
+  .presto-sticky-audio .presto-audio__title {
     display: none;
   }
   .presto-sticky-audio .presto-audio__wrapper {

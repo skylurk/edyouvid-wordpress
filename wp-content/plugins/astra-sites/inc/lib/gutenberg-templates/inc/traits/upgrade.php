@@ -10,6 +10,10 @@ namespace Gutenberg_Templates\Inc\Traits;
 
 use Gutenberg_Templates\Inc\Traits\Instance;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Trait Instance.
  */
@@ -26,6 +30,8 @@ class Upgrade {
 
 	/**
 	 * Activate Plugin
+	 *
+	 * @return void
 	 */
 	public function skip_spectra_pro_onboarding() {
 

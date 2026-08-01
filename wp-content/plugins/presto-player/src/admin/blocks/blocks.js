@@ -10,6 +10,9 @@ import store from "./store/player";
 
 import "@/admin/blocks/shared/styles/gutenberg/index.scss";
 import ProUpgradeModal from "./shared/ProUpgradeModal";
+import "./hooks/apply-popup-preview-toggle";
+import "./hooks/apply-popup-image-trigger-placeholder";
+import "./hooks/apply-popup-button-trigger-ui";
 
 /**
  * No-op function for use as a default argument value.
@@ -127,24 +130,15 @@ render(<ProUpgradeModal />, document.getElementById("presto-plugin-app"));
 // fetch settings
 dispatch("presto-player/player").fetchOptions();
 
-let saving = false;
-// save the settings on post save, just in case they miss the button
+// Manage the is-editing-pp-video-block class for styling/functionality
 wp.data.subscribe(function () {
-  var isSavingPost = wp.data.select("core/editor").isSavingPost();
-  var isAutosavingPost = wp.data.select("core/editor").isAutosavingPost();
-
-  if (isSavingPost && !isAutosavingPost) {
-    if (saving) {
-      return;
-    }
-    saving = true;
-    let { brandingReducer } = store.getState();
-    dispatch("presto-player/player")
-      .saveOptions({
-        branding: brandingReducer,
-      })
-      .then(() => {
-        saving = false;
-      });
+  const settings = wp.data.select("core/editor").getEditorSettings();
+  if (
+    !!settings?.onNavigateToPreviousEntityRecord &&
+    wp.data.select("core/editor").getCurrentPostType() === "pp_video_block"
+  ) {
+    document.body.classList.add("is-editing-pp-video-block");
+  } else {
+    document.body.classList.remove("is-editing-pp-video-block");
   }
 });

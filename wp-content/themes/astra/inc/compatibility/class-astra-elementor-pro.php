@@ -5,18 +5,18 @@
  * @package Astra
  */
 
-namespace Elementor; // phpcs:ignore PHPCompatibility.Keywords.NewKeywords.t_namespaceFound
+// phpcs:disable PHPCompatibility.Keywords.NewKeywords.t_namespaceFound, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedNamespaceFound
+
+namespace Elementor;
 
 // If plugin - 'Elementor' not exist then return.
 if ( ! class_exists( '\Elementor\Plugin' ) || ! class_exists( 'ElementorPro\Modules\ThemeBuilder\Module' ) ) {
 	return;
 }
 
-namespace ElementorPro\Modules\ThemeBuilder\ThemeSupport; // phpcs:ignore PHPCompatibility.Keywords.NewKeywords.t_namespaceFound, PHPCompatibility.LanguageConstructs.NewLanguageConstructs.t_ns_separatorFound
+namespace ElementorPro\Modules\ThemeBuilder\ThemeSupport;
 
 // @codingStandardsIgnoreStart PHPCompatibility.Keywords.NewKeywords.t_useFound
-use Elementor\TemplateLibrary\Source_Local;
-use ElementorPro\Modules\ThemeBuilder\Classes\Locations_Manager;
 use ElementorPro\Modules\ThemeBuilder\Module;
 // @codingStandardsIgnoreEnd PHPCompatibility.Keywords.NewKeywords.t_useFound
 
@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Astra Elementor Compatibility
  */
-if ( ! class_exists( 'Astra_Elementor_Pro' ) ) :
+if ( ! class_exists( 'Astra_Elementor_Pro' ) ) {
 
 	/**
 	 * Astra Elementor Compatibility
@@ -35,7 +35,6 @@ if ( ! class_exists( 'Astra_Elementor_Pro' ) ) :
 	 * @since 1.2.7
 	 */
 	class Astra_Elementor_Pro {
-
 		/**
 		 * Member Variable
 		 *
@@ -75,6 +74,138 @@ if ( ! class_exists( 'Astra_Elementor_Pro' ) ) :
 			add_filter( 'post_class', array( $this, 'render_post_class' ), 99 );
 			// Override post meta.
 			add_action( 'wp', array( $this, 'override_meta' ), 0 );
+
+			/**
+			 * Compatibility for Elementor Pro's upcoming WooCommerce widget.
+			 *
+			 * @since  3.7.5
+			 */
+			add_filter( 'astra_theme_woocommerce_dynamic_css', array( $this, 'elementor_wc_widgets_compatibility_styles' ) );
+
+			if ( $this->is_elementor_editor() && class_exists( 'WooCommerce' ) && astra_check_elementor_pro_3_5_version() ) {
+				add_action( 'init', array( $this, 'update_woocommerce_checkout' ) );
+			}
+
+			add_filter( 'astra_shop_add_to_cart_js_localize', array( $this, 'astra_shop_add_to_cart_js_localize' ), 10, 1 );
+		}
+
+		/**
+		 * Append Elementor preview status.
+		 *
+		 * @param Array $localize_data
+		 *
+		 * @since 4.1.6
+		 * @return Array
+		 */
+		public function astra_shop_add_to_cart_js_localize( $localize_data ) {
+			$elementor_preview_active = false;
+
+			if ( class_exists( 'Elementor\Plugin' ) ) {
+				$elementor_preview_active = \Elementor\Plugin::$instance->preview->is_preview_mode();
+
+			}
+
+			$localize_data['elementor_preview_active'] = $elementor_preview_active;
+
+			return $localize_data;
+		}
+
+		/**
+		 * Check if Elementor Editor is open.
+		 *
+		 * @since  3.8.0
+		 *
+		 * @return bool true iF Elementor Editor is loaded, false If Elementor Editor is not loaded.
+		 */
+		public function is_elementor_editor() {
+			// Only trust Elementor editor request parameters for authenticated users with editing capabilities.
+			if ( is_user_logged_in() && current_user_can( 'edit_posts' ) ) {
+				if ( ( isset( $_REQUEST['action'] ) && 'elementor' === $_REQUEST['action'] ) || isset( $_REQUEST['elementor-preview'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Remove actions of WooCommerce for shipping form fields, as it needs only in 'col-1'.
+		 *
+		 * Case: Theme's 'woocommerce_checkout' action conflicting with Elementor Pro's checkout widget. On frontend billing + shipping details wrapper comes under col-1 div because of theme's above action. But in Elementor editor, billing + shipping wrappers comes in two different cols, i.e. col-1 & col-2. Due to this, styling looks inappropriate in editor only.
+		 *
+		 * @since 3.8.0
+		 * @return void
+		 */
+		public function update_woocommerce_checkout() {
+			if ( ! apply_filters( 'astra_woo_shop_product_structure_override', false ) ) {
+				add_action( 'woocommerce_checkout_billing', array( WC()->checkout(), 'checkout_form_shipping' ) );
+			}
+			remove_action( 'woocommerce_checkout_shipping', array( WC()->checkout(), 'checkout_form_shipping' ) );
+		}
+
+		/**
+		 * Compatibility CSS for Elementor Pro's WooCommerce widgets releasing in their v3.6.0
+		 *
+		 * @param  string $css_output CSS stylesheet.
+		 * @return string $css_output CSS stylesheet.
+		 *
+		 * @since  3.7.5
+		 */
+		public function elementor_wc_widgets_compatibility_styles( $css_output ) {
+
+			if ( ! astra_check_elementor_pro_3_5_version() ) {
+				return $css_output;
+			}
+
+			$woo_widgets_desktop_css = array(
+				'.woocommerce.woocommerce-checkout .elementor-widget-woocommerce-checkout-page #customer_details.col2-set, .woocommerce-page.woocommerce-checkout .elementor-widget-woocommerce-checkout-page #customer_details.col2-set' => array(
+					'width' => '100%',
+				),
+				'.woocommerce.woocommerce-checkout .elementor-widget-woocommerce-checkout-page #order_review, .woocommerce.woocommerce-checkout .elementor-widget-woocommerce-checkout-page #order_review_heading, .woocommerce-page.woocommerce-checkout .elementor-widget-woocommerce-checkout-page #order_review, .woocommerce-page.woocommerce-checkout .elementor-widget-woocommerce-checkout-page #order_review_heading' => array(
+					'width' => '100%',
+					'float' => 'inherit',
+				),
+				'.elementor-widget-woocommerce-checkout-page .select2-container .select2-selection--single, .elementor-widget-woocommerce-cart .select2-container .select2-selection--single' => array(
+					'padding' => '0',
+				),
+				'.elementor-widget-woocommerce-checkout-page .woocommerce form .woocommerce-additional-fields, .elementor-widget-woocommerce-checkout-page .woocommerce form .shipping_address, .elementor-widget-woocommerce-my-account .woocommerce-MyAccount-navigation-link, .elementor-widget-woocommerce-cart .woocommerce a.remove' => array(
+					'border' => 'none',
+				),
+				'.elementor-widget-woocommerce-cart .cart-collaterals .cart_totals > h2' => array(
+					'background-color' => 'inherit',
+					'border-bottom'    => '0px',
+					'margin'           => '0px',
+				),
+				'.elementor-widget-woocommerce-cart .cart-collaterals .cart_totals' => array(
+					'padding'       => '0',
+					'border-color'  => 'inherit',
+					'border-radius' => '0',
+					'margin-bottom' => '0px',
+					'border-width'  => '0px',
+				),
+				'.elementor-widget-woocommerce-cart .woocommerce-cart-form .e-apply-coupon' => array(
+					'line-height' => 'initial',
+				),
+				'.elementor-widget-woocommerce-my-account .woocommerce-MyAccount-content .woocommerce-Address-title h3' => array(
+					'margin-bottom' => 'var(--myaccount-section-title-spacing, 0px)',
+				),
+				'.elementor-widget-woocommerce-my-account .woocommerce-Addresses .woocommerce-Address-title, .elementor-widget-woocommerce-my-account table.shop_table thead, .elementor-widget-woocommerce-my-account .woocommerce-page table.shop_table thead, .elementor-widget-woocommerce-cart table.shop_table thead' => array(
+					'background' => 'inherit',
+				),
+				'.elementor-widget-woocommerce-cart .e-apply-coupon, .elementor-widget-woocommerce-cart #coupon_code, .elementor-widget-woocommerce-checkout-page .e-apply-coupon, .elementor-widget-woocommerce-checkout-page #coupon_code' => array(
+					'height' => '100%',
+				),
+				'.elementor-widget-woocommerce-cart td.product-name dl.variation dt' => array(
+					'font-weight' => 'inherit',
+				),
+				'.elementor-element.elementor-widget-woocommerce-checkout-page .e-checkout__container #customer_details .col-1'  => array(
+					'margin-bottom' => '0',
+				),
+			);
+
+			$css_output .= astra_parse_css( $woo_widgets_desktop_css );
+
+			return $css_output;
 		}
 
 		/**
@@ -149,7 +280,7 @@ if ( ! class_exists( 'Astra_Elementor_Pro' ) ) :
 		public function override_meta() {
 
 			// don't override meta for `elementor_library` post type.
-			if ( 'elementor_library' == get_post_type() ) {
+			if ( 'elementor_library' === get_post_type() ) {
 				return;
 			}
 
@@ -174,7 +305,7 @@ if ( ! class_exists( 'Astra_Elementor_Pro' ) ) :
 		 * Override sidebar, title etc with post meta
 		 *
 		 * @since 1.2.7
-		 * @param  integer $post_id  Post ID.
+		 * @param  int $post_id  Post ID.
 		 * @return void
 		 */
 		public function override_with_post_meta( $post_id = 0 ) {
@@ -201,7 +332,7 @@ if ( ! class_exists( 'Astra_Elementor_Pro' ) ) :
 			if ( 'default' !== $sidebar ) {
 				add_filter(
 					'astra_page_layout',
-					function( $page_layout ) use ( $sidebar ) {
+					static function( $page_layout ) use ( $sidebar ) {
 						return $sidebar;
 					}
 				);
@@ -216,7 +347,7 @@ if ( ! class_exists( 'Astra_Elementor_Pro' ) ) :
 			if ( 'default' !== $content_layout ) {
 				add_filter(
 					'astra_get_content_layout',
-					function( $layout ) use ( $content_layout ) {
+					static function( $layout ) use ( $content_layout ) {
 						return $content_layout;
 					}
 				);
@@ -230,8 +361,8 @@ if ( ! class_exists( 'Astra_Elementor_Pro' ) ) :
 
 			if ( 'disabled' === $footer_layout ) {
 				add_filter(
-					'ast_footer_sml_layout',
-					function( $is_footer ) {
+					'astra_footer_sml_layout',
+					static function( $is_footer ) {
 						return 'disabled';
 					}
 				);
@@ -246,7 +377,7 @@ if ( ! class_exists( 'Astra_Elementor_Pro' ) ) :
 			if ( 'disabled' === $footer_widgets ) {
 				add_filter(
 					'astra_advanced_footer_disable',
-					function() {
+					static function() {
 						return true;
 					}
 				);
@@ -261,8 +392,8 @@ if ( ! class_exists( 'Astra_Elementor_Pro' ) ) :
 			if ( 'disabled' === $main_header_display ) {
 				remove_action( 'astra_masthead', 'astra_masthead_primary_template' );
 				add_filter(
-					'ast_main_header_display',
-					function( $display_header ) {
+					'astra_main_header_display',
+					static function( $display_header ) {
 						return 'disabled';
 					}
 				);
@@ -427,4 +558,4 @@ if ( ! class_exists( 'Astra_Elementor_Pro' ) ) :
 	 */
 	Astra_Elementor_Pro::get_instance();
 
-endif;
+}

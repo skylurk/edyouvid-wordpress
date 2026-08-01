@@ -3,8 +3,6 @@
  * Breadcrumbs for Astra theme.
  *
  * @package     Astra
- * @author      Brainstorm Force
- * @copyright   Copyright (c) 2020, Brainstorm Force
  * @link        https://www.brainstormforce.com
  * @since       Astra 1.7.0
  */
@@ -24,11 +22,10 @@ if ( ! class_exists( 'Astra_Breadcrumbs' ) ) {
 	 * @since 1.7.0
 	 */
 	class Astra_Breadcrumbs {
-
 		/**
 		 * Member Variable
 		 *
-		 * @var instance
+		 * @var object instance
 		 */
 		private static $instance;
 
@@ -91,6 +88,10 @@ if ( ! class_exists( 'Astra_Breadcrumbs' ) ) {
 
 			if ( function_exists( 'rank_math_the_breadcrumbs' ) ) {
 				$options['rank-math'] = 'Rank Math';
+			}
+
+			if ( function_exists( 'seopress_display_breadcrumbs' ) ) {
+				$options['seopress'] = 'SEOPress';
 			}
 
 			return $options;

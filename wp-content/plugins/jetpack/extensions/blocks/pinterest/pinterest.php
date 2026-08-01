@@ -2,6 +2,10 @@
 /**
  * Pinterest Block.
  *
+ * Note: this block is no longer available to be added to new posts.
+ * It is only kept available for existing posts with Pinterest blocks.
+ * You can still embed Pinterest content using the embed method provided by WordPress itself.
+ *
  * @since 8.0.0
  *
  * @package automattic/jetpack
@@ -10,7 +14,12 @@
 namespace Automattic\Jetpack\Extensions\Pinterest;
 
 use Automattic\Jetpack\Blocks;
+use Automattic\Jetpack\Status\Request;
 use WP_Error;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 const URL_PATTERN = '#^https?://(?:www\.)?(?:[a-z]{2}\.)?pinterest\.[a-z.]+/pin/(?P<pin_id>[^/]+)/?#i'; // Taken from AMP plugin, originally from Jetpack.
 // This is the validate Pinterest URLs, converted from URL_REGEX in extensions/blocks/pinterest/index.js.
@@ -24,7 +33,7 @@ const REMAINING_URL_PATH_WITH_SUBPATH_REGEX = '/^\/([^\/]+)\/([^\/]+)\/?$/';
  * Determines the Pinterest embed type from the URL.
  *
  * @param string $url the URL to check.
- * @returns {string} The pin type. Empty string if it isn't a valid Pinterest URL.
+ * @return string The pin type. Empty string if it isn't a valid Pinterest URL.
  */
 function pin_type( $url ) {
 	if ( null === $url || ! preg_match( PINTEREST_URL_REGEX, $url ) ) {
@@ -37,7 +46,7 @@ function pin_type( $url ) {
 		return '';
 	}
 
-	if ( substr( $path, 0, 5 ) === '/pin/' ) {
+	if ( str_starts_with( $path, '/pin/' ) ) {
 		return 'embedPin';
 	}
 
@@ -138,8 +147,8 @@ function render_amp_pin( $attr ) {
 
 	if ( is_array( $info ) ) {
 		$image       = $info['images']['237x'];
-		$title       = isset( $info['rich_metadata']['title'] ) ? $info['rich_metadata']['title'] : null;
-		$description = isset( $info['rich_metadata']['description'] ) ? $info['rich_metadata']['description'] : null;
+		$title       = $info['rich_metadata']['title'] ?? null;
+		$description = $info['rich_metadata']['description'] ?? null;
 
 		// This placeholder will appear while waiting for the amp-pinterest component to initialize (or if it fails to initialize due to JS being disabled).
 		$placeholder = sprintf(
@@ -216,9 +225,10 @@ function render_amp_pin( $attr ) {
  * @return string
  */
 function load_assets( $attr, $content ) {
-	if ( ! jetpack_is_frontend() ) {
+	if ( ! Request::is_frontend() ) {
 		return $content;
 	}
+	$attr['url'] = $attr['url'] ?? '';
 	if ( Blocks::is_amp_request() ) {
 		return render_amp_pin( $attr );
 	} else {

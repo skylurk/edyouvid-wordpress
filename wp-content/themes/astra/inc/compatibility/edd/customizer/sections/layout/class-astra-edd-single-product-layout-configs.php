@@ -3,8 +3,6 @@
  * Easy Digital Downloads Options for Astra Theme.
  *
  * @package     Astra
- * @author      Astra
- * @copyright   Copyright (c) 2020, Astra
  * @link        https://wpastra.com/
  * @since       Astra 1.5.5
  */
@@ -15,12 +13,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! class_exists( 'Astra_Edd_Single_Product_Layout_Configs' ) ) {
 
-
 	/**
 	 * Customizer Sanitizes Initial setup
 	 */
 	class Astra_Edd_Single_Product_Layout_Configs extends Astra_Customizer_Config_Base {
-
 		/**
 		 * Register Astra-Easy Digital Downloads Shop Cart Layout Customizer Configurations.
 		 *
@@ -43,11 +39,15 @@ if ( ! class_exists( 'Astra_Edd_Single_Product_Layout_Configs' ) ) {
 					'control'  => 'ast-toggle-control',
 					'default'  => astra_get_option( 'disable-edd-single-product-nav' ),
 					'title'    => __( 'Disable Product Navigation', 'astra' ),
+					'divider'  => array( 'ast_class' => 'ast-top-section-divider' ),
 					'priority' => 10,
-					'divider'  => array( 'ast_class' => 'ast-bottom-divider' ),
-
 				),
 			);
+
+			// Upgrade nudge if Astra Pro is not activated.
+			if ( astra_showcase_upgrade_notices() ) {
+				$_configs[] = Astra_Customizer_Register_Edd_Section::get_upgrade_nudge_config( 'ast-edd-single-pro-items', 'section-edd-single' );
+			}
 
 			return array_merge( $configurations, $_configs );
 		}

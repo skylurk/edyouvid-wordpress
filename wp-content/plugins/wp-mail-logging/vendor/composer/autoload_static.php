@@ -7,7 +7,7 @@ namespace Composer\Autoload;
 class ComposerStaticInit31f994310b2c7d6f9759f25f664a2dcc
 {
     public static $prefixLengthsPsr4 = array (
-        'N' => 
+        'N' =>
         array (
             'No3x\\WPML\\Tests\\Helper\\' => 23,
             'No3x\\WPML\\Tests\\' => 16,
@@ -18,23 +18,23 @@ class ComposerStaticInit31f994310b2c7d6f9759f25f664a2dcc
     );
 
     public static $prefixDirsPsr4 = array (
-        'No3x\\WPML\\Tests\\Helper\\' => 
+        'No3x\\WPML\\Tests\\Helper\\' =>
         array (
             0 => __DIR__ . '/../..' . '/tests/helper',
         ),
-        'No3x\\WPML\\Tests\\' => 
+        'No3x\\WPML\\Tests\\' =>
         array (
             0 => __DIR__ . '/../..' . '/tests/phpunit/tests',
         ),
-        'No3x\\WPML\\Migration\\' => 
+        'No3x\\WPML\\Migration\\' =>
         array (
             0 => __DIR__ . '/../..' . '/src/inc/Migration',
         ),
-        'No3x\\WPML\\Helpers\\' => 
+        'No3x\\WPML\\Helpers\\' =>
         array (
             0 => __DIR__ . '/../..' . '/src/inc/Helpers',
         ),
-        'No3x\\WPML\\Admin\\' => 
+        'No3x\\WPML\\Admin\\' =>
         array (
             0 => __DIR__ . '/../..' . '/src/inc/Admin',
         ),

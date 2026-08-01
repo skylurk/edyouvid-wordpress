@@ -35,6 +35,7 @@ if ( ! class_exists( 'Astra_Sites_Page' ) ) {
 		/**
 		 * Initiator
 		 *
+		 * @return self
 		 * @since 1.3.0
 		 */
 		public static function get_instance() {
@@ -55,9 +56,42 @@ if ( ! class_exists( 'Astra_Sites_Page' ) ) {
 				return;
 			}
 
+			add_action( 'wp_ajax_astra-sites-show-other-builders', array( $this, 'enable_other_builders' ) );
 			add_action( 'wp_ajax_astra-sites-change-page-builder', array( $this, 'save_page_builder_on_ajax' ) );
 			add_action( 'wp_ajax_astra-sites-dismiss-ai-promotion', array( $this, 'dismiss_ai_promotion' ) );
 			add_action( 'admin_init', array( $this, 'getting_started' ) );
+			add_filter( 'getting_started_menu_priority', array( $this, 'get_gs_menu_priority' ) );
+		}
+
+		/**
+		 * Enable Other Builders via AJAX
+		 *
+		 * @since 4.4.21
+		 * @return void
+		 */
+		public function enable_other_builders() {
+			// Verify the AJAX nonce to ensure the request is legitimate.
+			check_ajax_referer( 'astra-sites', '_ajax_nonce' );
+
+			// Check if the current user has the capability to manage options.
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_send_json_error( __( 'You are not allowed to perform this action', 'astra-sites' ) );
+			}
+
+			// Array of page builder keys to update.
+			$page_builders = array(
+				'st-elementor-builder-flag', // Elementor.
+				'st-beaver-builder-flag', // Beaver Builder.
+				// Add other page builder keys as needed.
+			);
+
+			// Loop through each page builder key and update the option.
+			foreach ( $page_builders as $builder_key ) {
+				delete_option( $builder_key );
+			}
+
+			// Send a success response back to the AJAX request.
+			wp_send_json_success();
 		}
 
 		/**
@@ -84,11 +118,8 @@ if ( ! class_exists( 'Astra_Sites_Page' ) ) {
 					return;
 				}
 
-				$arguments = array(
-					'page' => 'starter-templates',
-				);
-
-				$url = add_query_arg( $arguments, admin_url( 'themes.php' ) );
+				// Get the starter templates URL.
+				$url = esc_url( Astra_Sites::get_starter_templates_url() );
 
 				?>
 				<div class="notice notice-info is-dismissible astra-sites-notice astra-sites-getting-started-notice">
@@ -98,6 +129,17 @@ if ( ! class_exists( 'Astra_Sites_Page' ) ) {
 				<?php
 			}
 
+		}
+
+		/**
+		 * Getting Started Menu Priority
+		 *
+		 * @since 4.4.35
+		 * @param float $default_priority Default menu priority.
+		 * @return float Menu priority.
+		 */
+		public function get_gs_menu_priority( $default_priority ) {
+			return 2.00001;
 		}
 
 		/**

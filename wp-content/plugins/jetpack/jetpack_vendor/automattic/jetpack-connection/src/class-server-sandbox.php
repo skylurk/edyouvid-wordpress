@@ -68,7 +68,7 @@ class Server_Sandbox {
 			case 'jetpack.wordpress.com':
 			case 'jetpack.com':
 			case 'dashboard.wordpress.com':
-				$host         = isset( $headers['Host'] ) ? $headers['Host'] : $url_host;
+				$host         = $headers['Host'] ?? $url_host;
 				$original_url = $url;
 				$url          = preg_replace(
 					'@^(https?://)' . preg_quote( $url_host, '@' ) . '(?=[/?#].*|$)@',
@@ -223,7 +223,7 @@ class Server_Sandbox {
 	 *
 	 * Attached to the `admin_bar_menu` action.
 	 *
-	 * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+	 * @param \WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
 	 */
 	public function admin_bar_add_sandbox_item( $wp_admin_bar ) {
 		if ( ! Constants::get_constant( 'JETPACK__SANDBOX_DOMAIN' ) ) {

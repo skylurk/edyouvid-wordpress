@@ -43,7 +43,7 @@ function wpvivid_schedule_settings()
                                 <?php
                                 $time = '00:00:00';
                                 $utime_1 = strtotime($time);
-                                $time = '00:00:15';
+                                $time = '00:00:30';
                                 $utime_2 = strtotime($time);
                                 echo '<p>1) '.'Backup schedule will start at a random time between '.esc_html(gmdate('H:i:s', $utime_1)).' and '.esc_html(gmdate('H:i:s', $utime_2)).' <strong>UTC</strong> to prevent possible server overload from simultaneous backups of many sites.</p>';
                                 echo '<p>2) ';

@@ -5,23 +5,23 @@ import { decodeEntities } from '@wordpress/html-entities';
 import { STEPS } from '../steps/util';
 
 export const whiteLabelEnabled = () => {
-	return astraSitesVars.isWhiteLabeled ? true : false;
+	return astraSitesVars?.isWhiteLabeled ? true : false;
 };
 
 export const getWhileLabelName = () => {
-	return astraSitesVars.whiteLabelName;
+	return astraSitesVars?.whiteLabelName;
 };
 
 export const getWhiteLabelAuthorUrl = () => {
-	return astraSitesVars.whiteLabelUrl;
+	return astraSitesVars?.whiteLabelUrl;
 };
 
 export const isPro = () => {
-	return astraSitesVars.isPro;
+	return astraSitesVars?.isPro;
 };
 
 export const getProUrl = () => {
-	return astraSitesVars.getProURL;
+	return astraSitesVars?.getProURL;
 };
 
 export const sendPostMessage = ( data ) => {
@@ -58,6 +58,10 @@ export const getDataUri = ( url, callback ) => {
 };
 
 export const storeCurrentState = ( currentState ) => {
+	// Remove allSitesData from currentState before storing to localStorage to reduce storage usage.
+	// if ( currentState && currentState.allSitesData ) {
+	// delete currentState.allSitesData;
+	// }
 	try {
 		localStorage.setItem(
 			'starter-templates-onboarding',
@@ -80,7 +84,7 @@ export const getDefaultColorPalette = ( demo ) => {
 		if ( customizerData ) {
 			const globalPalette =
 				customizerData[ 'astra-settings' ][ 'global-color-palette' ]
-					.palette || [];
+					?.palette || [];
 
 			if ( globalPalette ) {
 				defaultPaletteValues = [
@@ -165,7 +169,7 @@ export const getColorScheme = ( demo ) => {
 };
 
 export const getAllSites = () => {
-	return astraSitesVars.all_sites;
+	return astraSitesVars?.all_sites;
 };
 
 export const getSupportLink = ( templateId, subject ) => {
@@ -175,21 +179,26 @@ export const getSupportLink = ( templateId, subject ) => {
 export const getGridItem = ( site ) => {
 	let imageUrl = site[ 'thumbnail-image-url' ] || '';
 	if ( '' === imageUrl && false === whiteLabelEnabled() ) {
-		if ( astraSitesVars.default_page_builder === 'fse' ) {
+		if ( astraSitesVars?.default_page_builder === 'fse' ) {
 			imageUrl = `${ starterTemplates.imageDir }spectra-placeholder.png`;
 		} else {
 			imageUrl = `${ starterTemplates.imageDir }placeholder.png`;
 		}
 	}
 
+	let badge = '';
+	let type = 'free';
+	if ( site[ 'astra-sites-type' ] !== 'free' ) {
+		badge = <>{ __( 'Premium', 'astra-sites' ) }</>;
+		type = 'premium';
+	}
+
 	return {
 		id: site.id,
 		image: imageUrl,
 		title: decodeEntities( site.title ),
-		badge:
-			'free' !== site[ 'astra-sites-type' ]
-				? __( 'Premium', 'astra-sites' )
-				: '',
+		type,
+		badge,
 		...site,
 	};
 };
@@ -209,10 +218,10 @@ export const getTotalTime = ( value ) => {
 export const saveGutenbergAsDefaultBuilder = ( pageBuilder = 'gutenberg' ) => {
 	const content = new FormData();
 	content.append( 'action', 'astra-sites-change-page-builder' );
-	content.append( '_ajax_nonce', astraSitesVars._ajax_nonce );
+	content.append( '_ajax_nonce', astraSitesVars?._ajax_nonce );
 	content.append( 'page_builder', pageBuilder );
 
-	fetch( ajaxurl, {
+	return fetch( ajaxurl, {
 		method: 'post',
 		body: content,
 	} );
@@ -280,4 +289,24 @@ export const debounce = ( func, wait, immediate ) => {
  */
 export const getStepIndex = ( name = '' ) => {
 	return STEPS.findIndex( ( step ) => step.name === name );
+};
+
+/**
+ * Track onboarding step
+ *
+ * @param {string} stepKey The step key to track
+ * @param {string} status
+ * @return {Promise} Promise that resolves when tracking is complete
+ */
+export const trackOnboardingStep = ( stepKey, status = 'yes' ) => {
+	const formData = new FormData();
+	formData.append( 'action', 'astra_sites_track_onboarding_step' );
+	formData.append( '_ajax_nonce', starterTemplates?.restNonce );
+	formData.append( 'step_visited', stepKey );
+	formData.append( 'step_status', status );
+
+	return fetch( ajaxurl, {
+		method: 'POST',
+		body: formData,
+	} );
 };

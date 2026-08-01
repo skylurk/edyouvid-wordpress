@@ -1,10 +1,19 @@
-import { useReducer, useState } from '@wordpress/element';
+import { useState, useReducer } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { useNavigateSteps } from '../router';
 import { STORE_KEY } from '../store';
 import apiFetch from '@wordpress/api-fetch';
 import toast from 'react-hot-toast';
 import { toastBody } from '../helpers';
+import { setCookie } from '../utils/helpers';
+
+export const canBypassWithOverage = () => {
+	const overage = aiBuilderVars?.zip_plans?.plan_data?.overage;
+	if ( ! overage ) {
+		return false;
+	}
+	return overage.eligible === true && overage.auto_charge_enabled === true;
+};
 
 const useBuildSiteController = () => {
 	const { nextStep } = useNavigateSteps();
@@ -54,10 +63,27 @@ const useBuildSiteController = () => {
 		),
 		setPrevErrorAlertOpen = ( value ) =>
 			setPrevErrorAlert( { open: value } );
+
+	const [ multisitePermissionModal, setMultisitePermissionModal ] =
+			useReducer(
+				( state, action ) => ( {
+					...state,
+					...action,
+				} ),
+				{ open: false, missingThemes: [], missingPlugins: [] }
+			),
+		setMultisitePermissionModalOpen = ( value ) =>
+			setMultisitePermissionModal( { open: value } );
+
 	const selectedTemplateData = templateList?.find(
-			( item ) => item?.uuid === selectedTemplate
-		),
-		isEcommarceSite = selectedTemplateData?.features?.ecommerce === 'yes';
+		( item ) => item?.uuid === selectedTemplate
+	);
+
+	const hasEcommerceFeature =
+		selectedTemplateData?.features?.ecommerce === 'yes';
+
+	const hasDonationsFeature =
+		selectedTemplateData?.features?.donations === 'yes';
 
 	const handleClosePreBuildModal = ( value = false ) => {
 		setPreBuildModal( ( prev ) => {
@@ -102,6 +128,9 @@ const useBuildSiteController = () => {
 			typeof aiSitesRemainingCount === 'number' &&
 			aiSitesRemainingCount <= 0
 		) {
+			if ( canBypassWithOverage() ) {
+				return false;
+			}
 			return true;
 		}
 
@@ -185,6 +214,7 @@ const useBuildSiteController = () => {
 				importErrorResponse: [],
 				importError: false,
 			} );
+			setCookie( 'ai-show-start-over-warning', true, 2 * 24 * 60 * 60 ); // 2 days in seconds.
 			nextStep();
 		} else {
 			const error = response?.data?.data?.errors,
@@ -199,14 +229,19 @@ const useBuildSiteController = () => {
 						message,
 						error,
 					} );
-				} else if (
-					'site_creation_limit_exceeded' === code ||
-					message.includes( 'limit' )
-				) {
-					// Handle site limit exceed error.
-					setLimitExceedModal( {
-						open: true,
-					} );
+				} else if ( 'site_creation_limit_exceeded' === code ) {
+					// If overage is available, surface the server message instead of the limit modal.
+					if ( canBypassWithOverage() ) {
+						setApiErrorModal( {
+							open: true,
+							message,
+							error,
+						} );
+					} else {
+						setLimitExceedModal( {
+							open: true,
+						} );
+					}
 				} else {
 					setApiErrorModal( {
 						open: true,
@@ -216,6 +251,7 @@ const useBuildSiteController = () => {
 			} else {
 				setApiErrorModal( {
 					open: true,
+					message,
 					error,
 				} );
 			}
@@ -238,15 +274,19 @@ const useBuildSiteController = () => {
 				return;
 			}
 
-			const enabledFeatures = skip
-				? []
-				: siteFeatures
-						.filter( ( feature ) => feature.enabled )
-						.map( ( feature ) => feature.id );
+			const enabledFeatures = siteFeatures
+				.filter( ( feature ) =>
+					skip ? feature.compulsory : feature.enabled
+				)
+				.map( ( feature ) => feature.id );
 
 			// Add ecommerce feature if selected template is ecommerce.
-			if ( isEcommarceSite ) {
+			if ( hasEcommerceFeature ) {
 				enabledFeatures.push( 'ecommerce' );
+			}
+
+			if ( hasDonationsFeature ) {
+				enabledFeatures.push( 'donations' );
 			}
 
 			const requestData = {
@@ -296,6 +336,9 @@ const useBuildSiteController = () => {
 		onConfirmErrorAlert,
 		handleClickStartBuilding,
 		isInProgress,
+		multisitePermissionModal,
+		setMultisitePermissionModalOpen,
+		setMultisitePermissionModal,
 	};
 };
 

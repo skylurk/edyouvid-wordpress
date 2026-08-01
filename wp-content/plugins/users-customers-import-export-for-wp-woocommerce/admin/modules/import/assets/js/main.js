@@ -20,10 +20,10 @@ var wt_iew_basic_import=(function( $ ) {
 		local_import_file:'',
 		url_import_file:'',
 		on_rerun:false,
-                import_finished:false,
+		import_finished:false,
 		rerun_id:0,
-                import_delimiter:',',
-                import_start_time:0,                
+		import_delimiter:',',
+		import_start_time:0,               
 		Set:function()
 		{
 			this.step_keys=Object.keys(wt_iew_import_basic_params.steps);
@@ -1515,12 +1515,13 @@ var wt_iew_dropzone=
 			return false;
 		}
 		this.elm=jQuery("#"+elm_id);
-                var map_profile =jQuery('.wt-iew-import-template-sele').val();
+        var map_profile =jQuery('.wt-iew-import-template-sele').val();
 		var ajax_data={
 	            '_wpnonce': wt_iew_basic_params.nonces.main,
 	            'action': "iew_import_ajax_basic",
 	            'import_action': 'upload_import_file',
-                    'map_profile_id':map_profile,
+				'map_profile_id': map_profile,
+				'to_import': wt_iew_basic_import.to_import,
 	            'data_type': 'json',
 	            'file_url': '',
 	       	};

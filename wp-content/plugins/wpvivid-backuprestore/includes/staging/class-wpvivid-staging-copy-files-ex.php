@@ -239,19 +239,19 @@ class WPvivid_Staging_Copy_Files
             {
 
                 $pattern     = "/define\s*\(\s*'DB_NAME'\s*,\s*(.*)\s*\);.*/";
-                $replacement = "define( 'DB_NAME', '".DB_NAME."');";
+                $replacement = "define( 'DB_NAME', " . var_export(DB_NAME, true) . " );";
                 $data     = preg_replace( $pattern, $replacement, $data );
 
                 $pattern     = "/define\s*\(\s*'DB_USER'\s*,\s*(.*)\s*\);.*/";
-                $replacement = "define( 'DB_USER', '".DB_USER."');";
+                $replacement = "define( 'DB_USER', " . var_export(DB_USER, true) . " );";
                 $data     = preg_replace( $pattern, $replacement, $data );
 
                 $pattern     = "/define\s*\(\s*'DB_PASSWORD'\s*,\s*(.*)\s*\);.*/";
-                $replacement = "define( 'DB_PASSWORD', '".DB_PASSWORD."');";
+                $replacement = "define( 'DB_PASSWORD', " . var_export(DB_PASSWORD, true) . " );";
                 $data     = preg_replace( $pattern, $replacement, $data );
 
                 $pattern     = "/define\s*\(\s*'DB_HOST'\s*,\s*(.*)\s*\);.*/";
-                $replacement = "define( 'DB_HOST', '".DB_HOST."');";
+                $replacement = "define( 'DB_HOST', " . var_export(DB_HOST, true) . " );";
                 $data     = preg_replace( $pattern, $replacement, $data );
             }
         }
@@ -260,19 +260,19 @@ class WPvivid_Staging_Copy_Files
             if( $db['des_use_additional_db'])
             {
                 $pattern     = "/define\s*\(\s*'DB_NAME'\s*,\s*(.*)\s*\);.*/";
-                $replacement = "define( 'DB_NAME', '{$db['des_dbname']}');";
+                $replacement = "define( 'DB_NAME', " . var_export($db['des_dbname'], true) . " );";
                 $data     = preg_replace( $pattern, $replacement, $data );
 
                 $pattern     = "/define\s*\(\s*'DB_USER'\s*,\s*(.*)\s*\);.*/";
-                $replacement = "define( 'DB_USER', '{$db['des_dbuser']}');";
+                $replacement = "define( 'DB_USER', " . var_export($db['des_dbuser'], true) . " );";
                 $data     = preg_replace( $pattern, $replacement, $data );
 
                 $pattern     = "/define\s*\(\s*'DB_PASSWORD'\s*,\s*(.*)\s*\);.*/";
-                $replacement = "define( 'DB_PASSWORD', '{$db['des_dbpassword']}');";
+                $replacement = "define( 'DB_PASSWORD', " . var_export($db['des_dbpassword'], true) . " );";
                 $data     = preg_replace( $pattern, $replacement, $data );
 
                 $pattern     = "/define\s*\(\s*'DB_HOST'\s*,\s*(.*)\s*\);.*/";
-                $replacement = "define( 'DB_HOST', '{$db['des_dbhost']}');";
+                $replacement = "define( 'DB_HOST', " . var_export($db['des_dbhost'], true) . " );";
                 $data     = preg_replace( $pattern, $replacement, $data );
             }
         }

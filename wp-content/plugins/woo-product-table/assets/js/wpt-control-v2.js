@@ -99,12 +99,6 @@
                 self.toggleFooterCartHover();
             });
 
-            $(document.body).on('click', '.caqv-open-modal-notfound', function() {
-                this.showNotification('Quick View by CodeAstrology plugin is required.<br>Please Install and Activate it.<br>Plugin will load on new tab.', 'error');
-                // alert('Quick View by CodeAstrology plugin is required.\nPlease Install and Activate it.\nPlugin will load on new tab.');
-                window.open('https://wordpress.org/plugins/ca-quick-view/', '_blank');
-            });
-
             $(window).scroll(function() {
                 self.handleInfiniteScroll();
             });
@@ -535,7 +529,6 @@
             $('.wpt-new-footer-cart').addClass('wpt-fcart-anim');
             $('.wpt-fcart-coll-expand').addClass('animated');
         },
-
 
         // =========================
         // Notification System

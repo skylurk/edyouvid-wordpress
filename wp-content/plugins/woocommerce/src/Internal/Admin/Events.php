@@ -8,14 +8,11 @@ namespace Automattic\WooCommerce\Internal\Admin;
 defined( 'ABSPATH' ) || exit;
 
 use Automattic\WooCommerce\Admin\Features\Features;
-use Automattic\WooCommerce\Admin\RemoteInboxNotifications\DataSourcePoller;
 use Automattic\WooCommerce\Admin\RemoteInboxNotifications\RemoteInboxNotificationsEngine;
-use Automattic\WooCommerce\Internal\Admin\Notes\AddFirstProduct;
-use Automattic\WooCommerce\Internal\Admin\Notes\ChoosingTheme;
-use Automattic\WooCommerce\Internal\Admin\Notes\CouponPageMoved;
 use Automattic\WooCommerce\Internal\Admin\Notes\CustomizeStoreWithBlocks;
 use Automattic\WooCommerce\Internal\Admin\Notes\CustomizingProductCatalog;
 use Automattic\WooCommerce\Internal\Admin\Notes\EditProductsOnTheMove;
+use Automattic\WooCommerce\Internal\Admin\Notes\EmailImprovements;
 use Automattic\WooCommerce\Internal\Admin\Notes\EUVATNumber;
 use Automattic\WooCommerce\Internal\Admin\Notes\FirstProduct;
 use Automattic\WooCommerce\Internal\Admin\Notes\InstallJPAndWCSPlugins;
@@ -23,7 +20,6 @@ use Automattic\WooCommerce\Internal\Admin\Notes\LaunchChecklist;
 use Automattic\WooCommerce\Internal\Admin\Notes\MagentoMigration;
 use Automattic\WooCommerce\Internal\Admin\Notes\ManageOrdersOnTheGo;
 use Automattic\WooCommerce\Internal\Admin\Notes\MarketingJetpack;
-use Automattic\WooCommerce\Internal\Admin\Notes\MerchantEmailNotifications;
 use Automattic\WooCommerce\Internal\Admin\Notes\MigrateFromShopify;
 use Automattic\WooCommerce\Internal\Admin\Notes\MobileApp;
 use Automattic\WooCommerce\Internal\Admin\Notes\NewSalesRecord;
@@ -35,8 +31,8 @@ use Automattic\WooCommerce\Internal\Admin\Notes\PaymentsRemindMeLater;
 use Automattic\WooCommerce\Internal\Admin\Notes\PerformanceOnMobile;
 use Automattic\WooCommerce\Internal\Admin\Notes\PersonalizeStore;
 use Automattic\WooCommerce\Internal\Admin\Notes\RealTimeOrderAlerts;
+use Automattic\WooCommerce\Internal\Admin\Notes\ScheduledUpdatesPromotion;
 use Automattic\WooCommerce\Internal\Admin\Notes\SellingOnlineCourses;
-use Automattic\WooCommerce\Internal\Admin\Notes\TestCheckout;
 use Automattic\WooCommerce\Internal\Admin\Notes\TrackingOptIn;
 use Automattic\WooCommerce\Internal\Admin\Notes\UnsecuredReportFiles;
 use Automattic\WooCommerce\Internal\Admin\Notes\WooCommercePayments;
@@ -71,11 +67,10 @@ class Events {
 	 * @var array
 	 */
 	private static $note_classes_to_added_or_updated = array(
-		AddFirstProduct::class,
-		ChoosingTheme::class,
 		CustomizeStoreWithBlocks::class,
 		CustomizingProductCatalog::class,
 		EditProductsOnTheMove::class,
+		EmailImprovements::class,
 		EUVATNumber::class,
 		FirstProduct::class,
 		LaunchChecklist::class,
@@ -92,7 +87,7 @@ class Events {
 		PerformanceOnMobile::class,
 		PersonalizeStore::class,
 		RealTimeOrderAlerts::class,
-		TestCheckout::class,
+		ScheduledUpdatesPromotion::class,
 		TrackingOptIn::class,
 		WooCommercePayments::class,
 		WooCommerceSubscriptions::class,
@@ -104,7 +99,6 @@ class Events {
 	 * @var array
 	 */
 	private static $other_note_classes = array(
-		CouponPageMoved::class,
 		InstallJPAndWCSPlugins::class,
 		OrderMilestones::class,
 		SellingOnlineCourses::class,
@@ -148,15 +142,10 @@ class Events {
 		$this->possibly_refresh_data_source_pollers();
 
 		if ( $this->is_remote_inbox_notifications_enabled() ) {
-			DataSourcePoller::get_instance()->read_specs_from_data_sources();
 			RemoteInboxNotificationsEngine::run();
 		}
 
-		if ( $this->is_merchant_email_notifications_enabled() ) {
-			MerchantEmailNotifications::run();
-		}
-
-		if ( Features::is_enabled( 'onboarding' ) ) {
+		if ( Features::is_enabled( 'core-profiler' ) ) {
 			( new MailchimpScheduler() )->run();
 		}
 	}
@@ -180,7 +169,14 @@ class Events {
 					$note = clone $note_from_db;
 					$note->set_title( $note_from_class->get_title() );
 					$note->set_content( $note_from_class->get_content() );
-					$note->set_actions( $note_from_class->get_actions() );
+					$actions = $note_from_class->get_actions();
+					foreach ( $actions as $action ) {
+						$matching_action = $note->get_action( $action->name );
+						if ( $matching_action && $matching_action->id ) {
+							$action->id = $matching_action->id;
+						}
+					}
+					$note->set_actions( $actions );
 					return $note;
 				}
 				break;
@@ -255,7 +251,8 @@ class Events {
 	}
 
 	/**
-	 *   Refresh transient for the following DataSourcePollers on wc_admin_daily cron job.
+	 *   Prime or fetch specs for the following DataSourcePollers on the wc_admin_daily cron job
+	 *   when their related transients are missing or expired:
 	 *   - PaymentGatewaySuggestionsDataSourcePoller
 	 *   - RemoteFreeExtensionsDataSourcePoller
 	 */
@@ -263,11 +260,11 @@ class Events {
 		$completed_tasks = get_option( 'woocommerce_task_list_tracked_completed_tasks', array() );
 
 		if ( ! in_array( 'payments', $completed_tasks, true ) && ! in_array( 'woocommerce-payments', $completed_tasks, true ) ) {
-			PaymentGatewaySuggestionsDataSourcePoller::get_instance()->read_specs_from_data_sources();
+			PaymentGatewaySuggestionsDataSourcePoller::get_instance()->get_specs_from_data_sources();
 		}
 
 		if ( ! in_array( 'store_details', $completed_tasks, true ) && ! in_array( 'marketing', $completed_tasks, true ) ) {
-			RemoteFreeExtensionsDataSourcePoller::get_instance()->read_specs_from_data_sources();
+			RemoteFreeExtensionsDataSourcePoller::get_instance()->get_specs_from_data_sources();
 		}
 	}
 }

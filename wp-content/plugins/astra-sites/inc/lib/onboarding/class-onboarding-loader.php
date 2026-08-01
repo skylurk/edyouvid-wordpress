@@ -73,6 +73,28 @@ class Intelligent_Starter_Templates_Loader {
 	}
 
 	/**
+	 * Checks if legacy Beaver Builder support is enabled.
+	 *
+	 * This method applies a filter to allow enabling support for Beaver Builder, which is being gradually deprecated.
+	 *
+	 * @since 4.4.16
+	 * @return bool Returns `true` if legacy Beaver Builder support is enabled, `false` otherwise.
+	 */
+	public static function is_legacy_beaver_builder_enabled() {
+		/**
+		 * Filter to enable legacy Beaver Builder support.
+		 *
+		 * @param bool $enabled Default value indicating if Beaver Builder support is enabled. Default to `false`.
+		 *
+		 * @since 4.4.16
+		 * @return bool Returns `true` if Beaver Builder support is enabled, `false` otherwise.
+		 *
+		 * Note: this filter is also added in Ai Builder library at ai-builder/ai-builder-plugin-loader.php file.
+		 */
+		return boolval( apply_filters( 'astra_sites_enable_legacy_beaver_builder_support', false ) );
+	}
+
+	/**
 	 * Add main menu
 	 *
 	 * @since 3.0.0-beta.1
@@ -187,7 +209,7 @@ class Intelligent_Starter_Templates_Loader {
 		wp_enqueue_media();
 		wp_enqueue_script( 'starter-templates-onboarding' );
 		// Set the script translations.
-		wp_set_script_translations( 'starter-templates-onboarding', 'astra-sites' );
+		wp_set_script_translations( 'starter-templates-onboarding', 'astra-sites', ASTRA_SITES_DIR . 'languages' );
 		
 		wp_enqueue_style( 'starter-templates-onboarding', INTELLIGENT_TEMPLATES_URI . 'assets/dist/onboarding/style-main.css', array(), $asset['version'] );
 		wp_style_add_data( 'starter-templates-onboarding', 'rtl', 'replace' );
@@ -237,11 +259,17 @@ class Intelligent_Starter_Templates_Loader {
 			'searchData' => Astra_Sites::get_instance()->get_api_domain() . 'wp-json/starter-templates/v1/ist-data',
 			'firstImportStatus' => get_option( 'astra_sites_import_complete', false ),
 			'supportLink' => 'https://wpastra.com/starter-templates-support/?ip=' . Astra_Sites_Helper::get_client_ip(),
-			'isElementorDisabled'=> get_option( 'st-elementor-builder-flag'),
-			'isBeaverBuilderDisabled'=> get_option( 'st-beaver-builder-flag'),
-			'analytics' => get_site_option( 'bsf_analytics_optin', false ),
+			'isElementorDisabled'=> get_option( 'st-elementor-builder-flag' ),
+			'isBeaverBuilderDisabled'=> get_option( 'st-beaver-builder-flag' ) || ! self::is_legacy_beaver_builder_enabled(),
+			'analytics' => get_site_option( 'astra_sites_usage_optin', false ),
 			'phpVersion' => PHP_VERSION,
 			'reportError' => $this->should_report_error(),
+			'bsfUsageTracking' => get_site_option( 'astra_sites_usage_optin', 'no' ) === 'yes',
+			'showOtherBuilders' => get_option( 'st-elementor-builder-flag', false ) || ( self::is_legacy_beaver_builder_enabled() && get_option( 'st-beaver-builder-flag', false ) ),
+			'isMultisite' => is_multisite(),
+			'canInstallPlugins' => current_user_can( 'install_plugins' ),
+			'canActivatePlugins' => current_user_can( 'activate_plugins' ),
+			'isWPFreshSite' => Astra_Sites::get_instance()->is_wp_fresh_site(),
 		);
 
 		return apply_filters( 'starter_templates_onboarding_localize_vars', $data );
@@ -312,15 +340,21 @@ class Intelligent_Starter_Templates_Loader {
 		$beaver_builder_value = get_option( 'st-beaver-builder-flag');
 		ob_start();
 		?>
-			<div style="display:flex;flex-direction:column;gap:15px;padding:10px;">
+			<div style="display:flex;flex-direction:column;gap:15px;">
 				<label>
 					<input id='st-elementor-builder-flag' type='checkbox' name='st-elementor-builder-flag' value='1' <?php checked(1, $elementor_value, true); ?>>
 					<?php _e('Disable Elementor Page Builder Templates in Starter Templates','astra-sites'); ?>
 				</label>
-				<label>
-					<input id='st-beaver-builder-flag' type='checkbox' name='st-beaver-builder-flag' value='1' <?php checked(1, $beaver_builder_value, true); ?>>
-					<?php _e('Disable Beaver Builder Page Builder Templates in Starter Templates','astra-sites'); ?>
+				<?php
+				if ( self::is_legacy_beaver_builder_enabled() ) {
+					?>
+					<label>
+						<input id='st-beaver-builder-flag' type='checkbox' name='st-beaver-builder-flag' value='1' <?php checked(1, $beaver_builder_value, true); ?>>
+						<?php _e('Disable Beaver Builder Page Builder Templates in Starter Templates','astra-sites'); ?>
 					</label>
+					<?php
+				}
+				?>
 			</div>	
 		<?php
 		echo ob_get_clean();

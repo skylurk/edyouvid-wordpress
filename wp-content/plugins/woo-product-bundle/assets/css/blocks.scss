@@ -1,4 +1,4 @@
-.wc-block-cart-items__row {
+.wc-block-cart-items__row, .wc-block-components-order-summary-item {
   &.woosb-bundles {
     &:not(.woosb-fixed-price) {
       .wc-block-cart-item__prices, .wc-block-components-product-badge, .wc-block-components-product-price__value {

@@ -65,7 +65,7 @@ class Module extends BaseApp {
 
 		foreach ( $active_announcements as $announcement ) {
 			$additional_settings[] = $announcement->get_prepared_data();
-			//@TODO - replace with ajax request from the front after actually triggered
+			// @TODO - replace with ajax request from the front after actually triggered
 			$announcement->after_triggered();
 		}
 
@@ -92,39 +92,7 @@ class Module extends BaseApp {
 	 * @return array[]
 	 */
 	private function get_raw_announcements(): array {
-		$raw_announcements = [
-			[
-				'title' => 'Unlock the Power of Elementor AI ',
-				'description' => '<p>Design a website true to your brand with natively integrated AI tools.</p>
-				<ul>
-					<li>Generate containers using text or any website you reference from the web and get a wireframe layout to start with. Use the container variations capability to bring the wireframe to life with design and content.</li>
-					<li>Let AI write or edit your text in the context of your brand, tone of voice and optimal length. Also generate custom code or CSS that seamlessly integrates into your website.</li>
-					<li>Create one-of-a-kind images, add, or erase content from existing images or expand them beyond their original size and aspect ratio.</li>
-					<li>Use Elementor’s AI History Panel to efficiently access previously-generated text, code or image prompts, and ensure consistency across your site.</li>
-				</ul>',
-				'media' => [
-					'type' => 'image',
-					'src' => ELEMENTOR_ASSETS_URL . 'images/announcement.png?' . ELEMENTOR_VERSION,
-				],
-				'cta' => [
-					[
-						'label' => 'Continue',
-						'variant' => 'primary',
-						'target' => '_blank',
-					],
-					[
-						'label' => 'Learn More',
-						'target' => '_blank',
-						'url' => 'https://go.elementor.com/whats-new-popup-learn-elementor-ai/',
-					],
-				],
-				'triggers' => [
-					[
-						'action' => 'aiStared',
-					],
-				],
-			],
-		];
+		$raw_announcements = [];
 
 		// DO NOT USE THIS FILTER
 		return apply_filters( 'elementor/announcements/raw_announcements', $raw_announcements );

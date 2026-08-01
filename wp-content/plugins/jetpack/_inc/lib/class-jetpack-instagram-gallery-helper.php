@@ -18,7 +18,7 @@ class Jetpack_Instagram_Gallery_Helper {
 	 * Check whether an Instagram access token is valid,
 	 * or has been permanently deleted elsewhere.
 	 *
-	 * @param  int $access_token_id The ID of the external access token for Instagram.
+	 * @param  string $access_token_id The ID of the external access token for Instagram.
 	 * @return bool
 	 */
 	public static function is_instagram_access_token_valid( $access_token_id ) {
@@ -48,8 +48,8 @@ class Jetpack_Instagram_Gallery_Helper {
 	/**
 	 * Get the Instagram Gallery.
 	 *
-	 * @param  int $access_token_id The ID of the external access token for Instagram.
-	 * @param  int $count           The number of Instagram posts to fetch.
+	 * @param  string $access_token_id The ID of the external access token for Instagram.
+	 * @param  int    $count           The number of Instagram posts to fetch.
 	 * @return mixed
 	 */
 	public static function get_instagram_gallery( $access_token_id, $count ) {
@@ -73,8 +73,9 @@ class Jetpack_Instagram_Gallery_Helper {
 		$cached_gallery = get_transient( $transient_key );
 		if ( $cached_gallery ) {
 			$decoded_cached_gallery = json_decode( $cached_gallery );
-			// `images` can be an array of images or a string 'ERROR'.
-			$cached_count = is_array( $decoded_cached_gallery->images ) ? count( $decoded_cached_gallery->images ) : 0;
+			// Assuming the json_decode succeeds, `images` can be an array of images or a string 'ERROR'.
+			$cached_images = $decoded_cached_gallery->images ?? null;
+			$cached_count  = is_array( $cached_images ) ? count( $cached_images ) : 0;
 			if ( $cached_count >= $count ) {
 				return $decoded_cached_gallery;
 			}

@@ -3,7 +3,7 @@
  * Plugin Name: REDIS - WooCommerce Dynamic Pricing and Discounts
  * Plugin URI: https://villatheme.com/extensions/redis-woocommerce-dynamic-pricing-and-discounts/
  * Description: REDIS - WooCommerce Dynamic Pricing and Discounts help you easily set up bulk discounts for products or add discounts to the cart in various scenarios.
- * Version: 1.0.21
+ * Version: 1.0.23
  * Author: VillaTheme
  * Author URI: https://villatheme.com
  * License:           GPL v2 or later
@@ -14,21 +14,31 @@
  * Requires Plugins: woocommerce
  * Requires PHP: 7.0
  * Requires at least: 5.0
- * Tested up to: 6.9
+ * Tested up to: 7.0
  * WC requires at least: 7.0
- * WC tested up to: 10.4
+ * WC tested up to: 10.8
  **/
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-
+if(!defined('VIREDIS_VERSION')) {
+	define( 'VIREDIS_VERSION', '1.0.23' );
+	define( 'VIREDIS_DIR', plugin_dir_path( __FILE__ ) );
+	define( 'VIREDIS_LANGUAGES', VIREDIS_DIR . "languages" . DIRECTORY_SEPARATOR );
+	define( 'VIREDIS_INCLUDES', VIREDIS_DIR . "includes" . DIRECTORY_SEPARATOR );
+	define( 'VIREDIS_ADMIN', VIREDIS_INCLUDES . "admin" . DIRECTORY_SEPARATOR );
+	define( 'VIREDIS_FRONTEND', VIREDIS_INCLUDES . "frontend" . DIRECTORY_SEPARATOR );
+	define( 'VIREDIS_TEMPLATES', VIREDIS_INCLUDES . "templates" . DIRECTORY_SEPARATOR );
+	$plugin_url = plugins_url( 'assets/', __FILE__ );
+	define( 'VIREDIS_CSS', $plugin_url . "css/" );
+	define( 'VIREDIS_JS', $plugin_url . "js/" );
+	define( 'VIREDIS_IMAGES', $plugin_url . "images/" );
+}
 /**
  * Class VIREDIS_DYNAMIC_PRICING_AND_DISCOUNTS
  */
 class VIREDIS_DYNAMIC_PRICING_AND_DISCOUNTS {
 	public function __construct() {
-		$this->define();
 		//compatible with 'High-Performance order storage (COT)'
 		add_action( 'before_woocommerce_init', array( $this, 'before_woocommerce_init' ) );
 		add_action( 'activated_plugin', array( $this, 'activated_plugin' ),10,2 );
@@ -66,19 +76,7 @@ class VIREDIS_DYNAMIC_PRICING_AND_DISCOUNTS {
 			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
 		}
 	}
-	protected function define() {
-		define( 'VIREDIS_VERSION', '1.0.21' );
-		define( 'VIREDIS_DIR', plugin_dir_path( __FILE__ ) );
-		define( 'VIREDIS_LANGUAGES', VIREDIS_DIR . "languages" . DIRECTORY_SEPARATOR );
-		define( 'VIREDIS_INCLUDES', VIREDIS_DIR . "includes" . DIRECTORY_SEPARATOR );
-		define( 'VIREDIS_ADMIN', VIREDIS_INCLUDES . "admin" . DIRECTORY_SEPARATOR );
-		define( 'VIREDIS_FRONTEND', VIREDIS_INCLUDES . "frontend" . DIRECTORY_SEPARATOR );
-		define( 'VIREDIS_TEMPLATES', VIREDIS_INCLUDES . "templates" . DIRECTORY_SEPARATOR );
-		$plugin_url = plugins_url( 'assets/', __FILE__ );
-		define( 'VIREDIS_CSS', $plugin_url . "css/" );
-		define( 'VIREDIS_JS', $plugin_url . "js/" );
-		define( 'VIREDIS_IMAGES', $plugin_url . "images/" );
-	}
+
 	protected function includes() {
 		$files = array(
 			VIREDIS_INCLUDES . 'class-pricing-table.php',

@@ -1,36 +1,22 @@
 <?php
-
-if (!function_exists('presto_player')) :
-    function presto_player($id)
-    {
-        return do_shortcode('[presto_player id=' . $id . ']');
-    }
-endif;
-
-
 /**
- * Just in case Ray is not installed 
- * but forgot to remove it.
+ * Global template helper functions.
+ *
+ * No ABSPATH guard here: this file is eagerly loaded via Composer's `autoload.files`
+ * (vendor/autoload.php), so an exit() would abort every CLI/PHPUnit run. It only
+ * declares a function and has no side effects on direct access.
+ *
+ * @package PrestoPlayer
  */
-if(!function_exists('ray')) {
-  class Presto_Ray_Dummy_Class {
-      function __call($funName, $arguments) {
-          return new Presto_Ray_Dummy_Class();
-      }
 
-      static function ray(...$args) {
-          return new Presto_Ray_Dummy_Class();
-      }
-      
-      function __get($propertyName) {
-          return null;
-      }
-
-      function __set($property, $value) {
-      }
-  }
-
-  function ray(...$args) {   
-      return Presto_Ray_Dummy_Class::ray(...$args);
-  }
-}
+if ( ! function_exists( 'presto_player' ) ) :
+	/**
+	 * Renders the Presto Player shortcode for a given media item.
+	 *
+	 * @param int|string $id Media item ID.
+	 * @return string Rendered shortcode output.
+	 */
+	function presto_player( $id ) {
+		return do_shortcode( '[presto_player id=' . absint( $id ) . ']' );
+	}
+endif;

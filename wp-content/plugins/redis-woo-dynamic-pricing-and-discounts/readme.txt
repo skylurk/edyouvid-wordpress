@@ -3,8 +3,8 @@ Contributors: villatheme, mrt3vn
 Donate link: http://www.villatheme.com/donate
 Tags:  dynamic pricing woocommerce, discounts,woocommerce discount,woo discount rules,woocommerce bulk discount
 Requires at least: 5.0
-WC tested up to: 10.4
-Tested up to: 6.9
+WC tested up to: 10.8
+Tested up to: 7.0
 Requires PHP: 7.0
 Stable tag: trunk
 License: GPL v2 or later
@@ -357,6 +357,12 @@ Exclude purchased categories: Fill in the categories which if the customer has p
 3. Bulk pricing base on product quantity
 
 == Changelog ==
+/**1.0.23 - 2026.06.19**/
+- Updated: VillaTheme support
+
+/**1.0.22 - 2026.03.06**/
+– Updated: Allow to search categories that do not include any products
+
 /**1.0.21 - 2026.01.23**/
 - Updated: VillaTheme support
 

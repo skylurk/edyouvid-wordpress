@@ -3,8 +3,6 @@
  * Breadcrumbs for Astra theme.
  *
  * @package     Astra
- * @author      Brainstorm Force
- * @copyright   Copyright (c) 2020, Brainstorm Force
  * @link        https://www.brainstormforce.com
  * @since       Astra 1.8.0
  */
@@ -21,7 +19,6 @@ if ( ! class_exists( 'Astra_Breadcrumbs_Markup' ) ) {
 	 * @since 1.8.0
 	 */
 	class Astra_Breadcrumbs_Markup {
-
 		/**
 		 * Member Variable
 		 *
@@ -107,42 +104,42 @@ if ( ! class_exists( 'Astra_Breadcrumbs_Markup' ) ) {
 		 *
 		 * @since 1.8.0
 		 *
-		 * @return boolean
+		 * @return bool
 		 */
 		public static function astra_breadcrumb_rules() {
 
 			// Display Breadcrumb default true.
 			$display_breadcrumb = true;
 
-			if ( is_front_page() && '1' == astra_get_option( 'breadcrumb-disable-home-page' ) ) {
+			if ( is_front_page() && '0' == astra_get_option( 'breadcrumb-disable-home-page' ) ) {
 				$display_breadcrumb = false;
 			}
 
-			if ( is_home() && '1' == astra_get_option( 'breadcrumb-disable-blog-posts-page' ) ) {
+			if ( is_home() && '0' == astra_get_option( 'breadcrumb-disable-blog-posts-page' ) ) {
 				$display_breadcrumb = false;
 			}
 
-			if ( is_search() && '1' == astra_get_option( 'breadcrumb-disable-search' ) ) {
+			if ( is_search() && '0' == astra_get_option( 'breadcrumb-disable-search' ) ) {
 				$display_breadcrumb = false;
 			}
 
-			if ( ( is_archive() ) && '1' == astra_get_option( 'breadcrumb-disable-archive' ) ) {
+			if ( is_archive() && '0' == astra_get_option( 'breadcrumb-disable-archive' ) ) {
 				$display_breadcrumb = false;
 			}
 
-			if ( is_page() && '1' == astra_get_option( 'breadcrumb-disable-single-page' ) ) {
+			if ( is_page() && '0' == astra_get_option( 'breadcrumb-disable-single-page' ) ) {
 				$display_breadcrumb = false;
 			}
 
-			if ( is_single() && '1' == astra_get_option( 'breadcrumb-disable-single-post' ) ) {
+			if ( is_single() && '0' == astra_get_option( 'breadcrumb-disable-single-post' ) ) {
 				$display_breadcrumb = false;
 			}
 
-			if ( is_singular() && '1' == astra_get_option( 'breadcrumb-disable-singular' ) ) {
+			if ( is_singular() && '0' == astra_get_option( 'breadcrumb-disable-singular' ) ) {
 				$display_breadcrumb = false;
 			}
 
-			if ( is_404() && '1' == astra_get_option( 'breadcrumb-disable-404-page' ) ) {
+			if ( is_404() && '0' == astra_get_option( 'breadcrumb-disable-404-page' ) ) {
 				$display_breadcrumb = false;
 			}
 
@@ -152,6 +149,6 @@ if ( ! class_exists( 'Astra_Breadcrumbs_Markup' ) ) {
 }
 
 /**
-*  Kicking this off by calling 'get_instance()' method
-*/
+ *  Kicking this off by calling 'get_instance()' method
+ */
 Astra_Breadcrumbs_Markup::get_instance();

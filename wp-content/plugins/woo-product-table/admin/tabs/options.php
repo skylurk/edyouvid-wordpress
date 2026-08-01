@@ -16,14 +16,7 @@ $data = isset( $meta_basics['data'] ) ? $meta_basics['data'] : false;
     <!-- Export Feature Settings - Start -->
     <div class="wpt_column wpt-export-settings-wrapper">
         <table class="ultraaddons-table">
-            <tr>
-                <th colspan="2">
-                    <h3 style="margin: 0; padding: 10px 0; border-bottom: 2px solid #667eea; color: #667eea;">
-                        <span class="dashicons dashicons-download" style="margin-right: 5px;"></span>
-                        <?php esc_html_e( 'Export Settings', 'woo-product-table' ); ?>
-                    </h3>
-                </th>
-            </tr>
+
             <tr>
                 <th>
                     <label class="wpt_label" for="wpt_export_enable"><?php esc_html_e( 'Enable Export', 'woo-product-table' ); ?></label>
@@ -35,8 +28,9 @@ $data = isset( $meta_basics['data'] ) ? $meta_basics['data'] : false;
                         $export_enable = isset( $meta_basics['export_enable'] ) ? $meta_basics['export_enable'] : 'off';
                         ?>
                         <input type="hidden" name="basics[export_enable]"
+                             data-on="on|.wpt_export_on_off"
                             value="<?php echo esc_attr( $export_enable ); ?>"
-                            class="custom-select-box-input" id="wpt_export_enable">
+                            class="custom-select-box-input wpt_toggle" id="wpt_export_enable">
                         <div class="wpt-custom-select-boxes">
                             <div class="wpt-custom-select-box <?php echo esc_attr( $export_enable === 'on' ? 'active' : '' ); ?>" data-value="on">
                                 <?php esc_html_e( 'Enable', 'woo-product-table' ); ?>
@@ -49,7 +43,7 @@ $data = isset( $meta_basics['data'] ) ? $meta_basics['data'] : false;
                     </div>
                 </td>
             </tr>
-            <tr>
+            <tr class="wpt_export_on_off">
                 <th>
                     <label class="wpt_label"><?php esc_html_e( 'Export Formats', 'woo-product-table' ); ?></label>
                 </th>
@@ -224,9 +218,9 @@ $data = isset( $meta_basics['data'] ) ? $meta_basics['data'] : false;
                 </th>
                 <td>
                     <select name="basics[minicart_position]" data-name='minicart_position' id="wpt_table_minicart_position" class="wpt_fullwidth wpt_data_filed_atts ua_input" >
+                        <option value="none" <?php echo isset( $meta_basics['minicart_position'] ) && $meta_basics['minicart_position'] == 'none' ? 'selected' : false; ?>><?php esc_html_e( 'None', 'woo-product-table' );?></option>
                         <option value="top" <?php echo isset( $meta_basics['minicart_position'] ) && $meta_basics['minicart_position'] == 'top' ? 'selected' : false; ?>><?php esc_html_e( 'Top (Default)', 'woo-product-table' );?></option>
                         <option value="bottom" <?php echo isset( $meta_basics['minicart_position'] ) && $meta_basics['minicart_position'] == 'bottom' ? 'selected' : false; ?>><?php esc_html_e( 'Bottom', 'woo-product-table');?></option>
-                        <option value="none" <?php echo isset( $meta_basics['minicart_position'] ) && $meta_basics['minicart_position'] == 'none' ? 'selected' : false; ?>><?php esc_html_e( 'None', 'woo-product-table' );?></option>
                         <option value="both" <?php echo isset( $meta_basics['minicart_position'] ) && $meta_basics['minicart_position'] == 'both' ? 'selected' : false; ?>><?php esc_html_e( 'Both', 'woo-product-table' );?></option>
                     </select><?php wpt_doc_link('https://wooproducttable.com/docs/doc/table-options/mini-cart-options/'); ?> 
                 </td>
@@ -445,27 +439,7 @@ $meta_conditions =  get_post_meta( $post->ID, 'conditions', true );
                 </td>
             </tr>
 
-            
-            <!-- 
-                actually ei option ta mai action column a niye gechi.
-                location: admin/handle/feature-loader.php
-                location: admin/handle/action-feature.php
-            -->
 
-            <!-- <tr>
-                <th>
-                    <label class="wpt_label" for="wpt_table_table_type"><?php esc_html_e( 'Third Party Plugin Supporting ', 'woo-product-table' ); ?></label>
-                </th>
-                <td>
-                    <select name="conditions[table_type]" data-name='table_type' id="wpt_table_table_type" class="wpt_fullwidth wpt_data_filed_atts ua_input" >
-                        
-                    <option value="normal_table" <?php echo isset( $meta_conditions['table_type'] ) && $meta_conditions['table_type'] == 'normal_table' ? 'selected' : ''; ?>><?php esc_html_e( 'Default', 'woo-product-table' ); ?></option>
-                    <option value="advance_table" <?php echo isset( $meta_conditions['table_type'] ) && $meta_conditions['table_type'] == 'advance_table' ? 'selected' : ''; ?>><?php esc_html_e( 'Enable', 'woo-product-table' ); ?></option>
-                        
-                        
-                    </select>
-                </td>
-            </tr> -->
 
             <tr>
                 <th>

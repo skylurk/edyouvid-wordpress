@@ -1,7 +1,7 @@
 <?php
 /**
  * Module Name: Extra Sidebar Widgets
- * Module Description: Provides additional widgets for use on your site.
+ * Module Description: Add more widget options to your site, like social feeds, subscriptions, and more.
  * Sort Order: 4
  * First Introduced: 1.2
  * Requires Connection: No
@@ -12,6 +12,10 @@
  *
  * @package automattic/jetpack
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 /**
  * Load Jetpack widget files.
@@ -36,9 +40,6 @@ function jetpack_load_widgets() {
 	foreach ( $widgets_include as $include ) {
 		include_once $include;
 	}
-
-	include_once __DIR__ . '/widgets/migrate-to-core/image-widget.php';
-	include_once __DIR__ . '/widgets/migrate-to-core/gallery-widget.php';
 }
 
 add_action( 'jetpack_modules_loaded', 'jetpack_widgets_loaded' );

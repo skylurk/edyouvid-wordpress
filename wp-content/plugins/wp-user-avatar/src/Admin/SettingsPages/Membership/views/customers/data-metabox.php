@@ -42,12 +42,12 @@ echo '<div class="ppress-membership-customer-details">';
                         <span class="customer-email"><?php echo $customer_data->get_email() ?></span>
 
                         <span class="customer-since">
-						<?php printf('Customer since %s', $customer_data->get_date_created()) ?>
+						<?php printf(esc_html__('Customer since %s', 'wp-user-avatar'), esc_html($customer_data->get_date_created())) ?>
                     </span>
 
                         <?php if ( ! empty($customer_data->get_last_login())) : ?>
                             <span class="last-login">
-						    <?php printf('Last login on %s', $customer_data->get_last_login()) ?>
+						    <?php printf(esc_html__('Last login on %s', 'wp-user-avatar'), esc_html($customer_data->get_last_login())) ?>
                         </span>
                         <?php endif; ?>
 
@@ -74,6 +74,8 @@ echo '<div class="ppress-membership-customer-details">';
                         </p>
                     </div>
                 </div>
+
+                <?php do_action('ppress_admin_customer_data_after_customer_info', $customer_id, $customer_data); ?>
 
             </div>
         </div>
@@ -125,7 +127,7 @@ echo '<div class="ppress-membership-customer-details">';
                             sprintf(
                                 '[edit-profile-cpf id="%1$s" key="%1$s" value="%2$s"]',
                                 CF::BILLING_ADDRESS,
-                                get_user_meta($user_id, CF::BILLING_ADDRESS, true)
+                                strip_shortcodes(esc_attr(get_user_meta($user_id, CF::BILLING_ADDRESS, true)))
                             ),
                             true
                         );
@@ -140,7 +142,7 @@ echo '<div class="ppress-membership-customer-details">';
                             sprintf(
                                 '[edit-profile-cpf id="%1$s" key="%1$s" value="%2$s"]',
                                 CF::BILLING_CITY,
-                                get_user_meta($user_id, CF::BILLING_CITY, true)
+                                    strip_shortcodes(esc_attr(get_user_meta($user_id, CF::BILLING_CITY, true)))
                             ),
                             true
                         );
@@ -155,7 +157,7 @@ echo '<div class="ppress-membership-customer-details">';
                             sprintf(
                                 '[edit-profile-cpf id="%1$s" key="%1$s" value="%2$s"]',
                                 CF::BILLING_COUNTRY,
-                                get_user_meta($user_id, CF::BILLING_COUNTRY, true)
+                                    strip_shortcodes(esc_attr(get_user_meta($user_id, CF::BILLING_COUNTRY, true)))
                             ),
                             true
                         );
@@ -170,7 +172,7 @@ echo '<div class="ppress-membership-customer-details">';
                             sprintf(
                                 '[edit-profile-cpf id="%1$s" key="%1$s" value="%2$s"]',
                                 CF::BILLING_STATE,
-                                get_user_meta($user_id, CF::BILLING_STATE, true)
+                                    strip_shortcodes(esc_attr(get_user_meta($user_id, CF::BILLING_STATE, true)))
                             ),
                             true
                         );
@@ -185,7 +187,7 @@ echo '<div class="ppress-membership-customer-details">';
                             sprintf(
                                 '[edit-profile-cpf id="%1$s" key="%1$s" value="%2$s"]',
                                 CF::BILLING_POST_CODE,
-                                get_user_meta($user_id, CF::BILLING_POST_CODE, true)
+                                    strip_shortcodes(esc_attr(get_user_meta($user_id, CF::BILLING_POST_CODE, true)))
                             ),
                             true
                         );
@@ -200,7 +202,7 @@ echo '<div class="ppress-membership-customer-details">';
                             sprintf(
                                 '[edit-profile-cpf id="%1$s" key="%1$s" value="%2$s"]',
                                 CF::BILLING_PHONE_NUMBER,
-                                get_user_meta($user_id, CF::BILLING_PHONE_NUMBER, true)
+                                    strip_shortcodes(esc_attr(get_user_meta($user_id, CF::BILLING_PHONE_NUMBER, true)))
                             ),
                             true
                         );
@@ -216,7 +218,7 @@ echo '<div class="ppress-membership-customer-details">';
                                 sprintf(
                                     '[edit-profile-cpf id="%1$s" key="%1$s" value="%2$s"]',
                                     $field_id,
-                                    get_user_meta($user_id, $field_id, true)
+                                        strip_shortcodes(esc_attr(get_user_meta($user_id, $field_id, true)))
                                 ),
                                 true
                             );

@@ -7,6 +7,12 @@
 
 namespace Automattic\Jetpack\Sync\Replicastore;
 
+use Exception;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Class to handle Table Checksums for the Users table.
  */

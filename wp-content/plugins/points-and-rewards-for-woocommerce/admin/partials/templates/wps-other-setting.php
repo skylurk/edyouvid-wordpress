@@ -148,6 +148,10 @@ $wps_wpr_other_settings = array(
 				'id'   => 'temp_three',
 				'name' => __( 'Template Three', 'points-and-rewards-for-woocommerce' ),
 			),
+			array(
+				'id'   => 'temp_four',
+				'name' => __( 'Template Four', 'points-and-rewards-for-woocommerce' ),
+			),
 		),
 	),
 	array(
@@ -196,6 +200,32 @@ $wps_wpr_other_settings = array(
 	array(
 		'type' => 'sectionend',
 	),
+	array(
+		'title' => __( 'Reward points for Guest Users', 'points-and-rewards-for-woocommerce' ),
+		'type'  => 'title',
+	),
+	array(
+		'title'    => __( 'Enable to Earn Points for Guest Users', 'points-and-rewards-for-woocommerce' ),
+		'type'     => 'checkbox',
+		'id'       => 'wps_wpr_enable_guest_user_rewards_points',
+		'class'    => 'input-text',
+		'desc_tip' => __( 'When a user logs in using the same email address, they will receive the points that were previously rewarded to them as a guest user.', 'points-and-rewards-for-woocommerce' ),
+		'default'  => 0,
+		'desc'     => __( 'Enable this setting if you want to reward points to guest users. Points will be awarded based on their email address.', 'points-and-rewards-for-woocommerce' ),
+	),
+	array(
+		'title'             => __( 'Enter Points', 'points-and-rewards-for-woocommerce' ),
+		'type'              => 'number',
+		'default'           => 1,
+		'id'                => 'wps_wpr_guest_user_rewards_points',
+		'custom_attributes' => array( 'min' => '"1"' ),
+		'class'             => 'input-text wps_wpr_new_woo_ver_style_text',
+		'desc_tip'          => __( 'Points will be rewarded to the user when the order status is marked as completed.', 'points-and-rewards-for-woocommerce' ),
+		'desc'              => __( 'Enter the number of points to be assigned to guest users when they place an order using their email address.', 'points-and-rewards-for-woocommerce' ),
+	),
+	array(
+		'type' => 'sectionend',
+	),
 );
 
 $wps_wpr_other_settings = apply_filters( 'wps_wpr_others_settings', $wps_wpr_other_settings );
@@ -206,19 +236,31 @@ if ( isset( $_POST['wps_wpr_save_othersetting'] ) && isset( $_POST['wps-wpr-nonc
 	if ( wp_verify_nonce( $wps_par_nonce, 'wps-wpr-nonce' ) ) {
 
 		unset( $_POST['wps_wpr_save_othersetting'] );
-		$other_settings = array();
-		$postdata       = $settings_obj->check_is_settings_is_not_empty( $wps_wpr_other_settings, $_POST );
-		foreach ( $postdata as $key => $value ) {
-
-			$other_settings[ $key ] = $value;
-		}
+		$other_settings = array(
+			'wps_wpr_other_shortcode_text'              => ! empty( $_POST['wps_wpr_other_shortcode_text'] ) ? sanitize_text_field( wp_unslash( $_POST['wps_wpr_other_shortcode_text'] ) ) : '',
+			'wps_wpr_shortcode_text_membership'         => ! empty( $_POST['wps_wpr_shortcode_text_membership'] ) ? sanitize_text_field( wp_unslash( $_POST['wps_wpr_shortcode_text_membership'] ) ) : '',
+			'wps_wpr_notification_color'                => ! empty( $_POST['wps_wpr_notification_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['wps_wpr_notification_color'] ) ) : '',
+			'wps_wpr_cart_page_apply_point_section'     => ! empty( $_POST['wps_wpr_cart_page_apply_point_section'] ) ? 1 : 0,
+			'wps_wpr_checkout_page_apply_point_section' => ! empty( $_POST['wps_wpr_checkout_page_apply_point_section'] ) ? 1 : 0,
+			'wps_wpr_restrict_rewards_points'           => ! empty( $_POST['wps_wpr_restrict_rewards_points'] ) ? 1 : 0,
+			'wps_wpr_show_message_on_cart_page'         => ! empty( $_POST['wps_wpr_show_message_on_cart_page'] ) ? 1 : 0,
+			'wps_wpr_enable_payment_rewards_settings'   => ! empty( $_POST['wps_wpr_enable_payment_rewards_settings'] ) ? 1 : 0,
+			'wps_wpr_enable_guest_user_rewards_points'  => ! empty( $_POST['wps_wpr_enable_guest_user_rewards_points'] ) ? 1 : 0,
+			'wps_wpr_restricted_cart_page_msg'          => ! empty( $_POST['wps_wpr_restricted_cart_page_msg'] ) ? sanitize_textarea_field( wp_unslash( $_POST['wps_wpr_restricted_cart_page_msg'] ) ) : '',
+			'wps_wpr_choose_account_page_temp'          => ! empty( $_POST['wps_wpr_choose_account_page_temp'] ) ? sanitize_text_field( wp_unslash( $_POST['wps_wpr_choose_account_page_temp'] ) ) : '',
+			'wps_wpr_points_tab_layout_color'           => ! empty( $_POST['wps_wpr_points_tab_layout_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['wps_wpr_points_tab_layout_color'] ) ) : '',
+			'wps_wpr_choose_payment_method'             => ! empty( $_POST['wps_wpr_choose_payment_method'] ) ? sanitize_text_field( wp_unslash( $_POST['wps_wpr_choose_payment_method'] ) ) : '',
+			'wps_wpr_payment_method_rewards_points'     => ! empty( $_POST['wps_wpr_payment_method_rewards_points'] ) ? absint( wp_unslash( $_POST['wps_wpr_payment_method_rewards_points'] ) ) : 0,
+			'wps_wpr_guest_user_rewards_points'         => ! empty( $_POST['wps_wpr_guest_user_rewards_points'] ) ? absint( wp_unslash( $_POST['wps_wpr_guest_user_rewards_points'] ) ) : 0,
+		);
 		/* Save settings data into the database*/
 		if ( ! empty( $other_settings ) && is_array( $other_settings ) ) {
+			$other_settings = apply_filters( 'wps_wpr_save_extra_other_settings', $other_settings );
 			update_option( 'wps_wpr_other_settings', $other_settings );
 		}
 		/* Save settings Notification*/
 		$settings_obj->wps_wpr_settings_saved();
-		do_action( 'wps_wpr_save_other_settings', $postdata );
+		do_action( 'wps_wpr_save_other_settings', $_POST );
 	}
 }
 
@@ -228,12 +270,21 @@ $other_settings = get_option( 'wps_wpr_other_settings', array() );
 <div class="wps_wpr_table">
 		<div class="wps_wpr_general_wrapper">
 				<?php
+				$wps_section_open = false;
 				foreach ( $wps_wpr_other_settings as $key => $value ) {
 					if ( 'title' == $value['type'] ) {
+						if ( $wps_section_open ) {
+							?>
+							</div></div>
+							<?php
+						}
 						?>
 						<div class="wps_wpr_general_row_wrap">
 							<?php $settings_obj->wps_rwpr_generate_heading( $value ); ?>
-							<?php } ?>
+							<div class="wps_wpr_section_content">
+							<?php
+						$wps_section_open = true;
+						} ?>
 							<?php if ( 'title' != $value['type'] && 'sectionend' != $value['type'] ) { ?>
 							<div class="wps_wpr_general_row">
 								<?php $settings_obj->wps_rwpr_generate_label( $value ); ?>
@@ -289,10 +340,16 @@ $other_settings = get_option( 'wps_wpr_other_settings', array() );
 								<?php
 							}
 							?>
-							<?php if ( 'sectionend' == $value['type'] ) : ?>
+							<?php if ( 'sectionend' == $value['type'] && $wps_section_open ) : ?>
+							</div>
 						</div>
-					<?php endif; ?>
-			<?php } ?> 		
+					<?php
+					$wps_section_open = false;
+					endif; ?>
+			<?php } ?>
+			<?php if ( $wps_section_open ) : ?>
+				</div></div>
+			<?php endif; ?>
 		</div>
 	</div>
 <p class="submit">

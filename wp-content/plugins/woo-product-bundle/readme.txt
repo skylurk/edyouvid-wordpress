@@ -2,9 +2,9 @@
 Contributors: wpclever
 Donate link: https://wpclever.net
 Tags: woocommerce, wpc, bundle, bundles, kits
-Tested up to: 6.9
-Version: 8.4.4
-Stable tag: 8.4.4
+Tested up to: 7.0
+Version: 8.5.7
+Stable tag: 8.5.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,49 @@ Please try other plugins from us:
 5. Almost done! Click Save and see the result
 
 == Changelog ==
+
+= 8.5.7 =
+* Fixed: Search settings (SKU, exact, sentence)
+
+= 8.5.6 =
+* Fixed: Error on the Blocks class
+
+= 8.5.5 =
+* Added: Import/export selected products
+
+= 8.5.4 =
+* Fixed: Vulnerability reported by Jakub Herman
+
+= 8.5.3 =
+* Updated: Compatible with WPC Multi Currency
+* Updated: Compatible with WPC Price by Quantity
+
+= 8.5.2 =
+* Updated: Optimized the code for better performance
+
+= 8.5.1 =
+* Updated: Optimized the code
+* Updated: Compatible with WP 6.9 & Woo 10.7
+
+= 8.5.0 =
+* Updated: Optimized the code for better performance
+
+= 8.4.9 =
+* Fixed: Minor CSS/JS issues in the backend
+* Updated: Compatible with WP 6.9 & Woo 10.6
+
+= 8.4.8 =
+* Updated: Compatible with WPC Add Product to Order
+
+= 8.4.7 =
+* Updated: Optimized the code
+* Updated: Compatible with WP 6.9 & Woo 10.5
+
+= 8.4.6 =
+* Fixed: Security vulnerability reported by hhhai
+
+= 8.4.5 =
+* Fixed: Only show the edit link for optional bundles
 
 = 8.4.4 =
 * Added: Edit link for bundles on the cart page

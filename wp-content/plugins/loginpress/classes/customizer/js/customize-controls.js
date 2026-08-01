@@ -29,6 +29,50 @@
 			}
 		}
 	}
+
+	wp.customize.bind('ready', function(){
+		// Hook into your custom panel
+		wp.customize.panel('loginpress_panel', function(panel){
+
+			panel.expanded.bind(function(isExpanded){
+				if (isExpanded) {
+					const currentUrl = window.location.href;
+
+					// Check if already focused to the right panel (autofocus param present)
+					const alreadyFocused = currentUrl.includes('autofocus=loginpress_panel') 
+						|| currentUrl.includes('autofocus[panel]=loginpress_panel');
+
+					if (!alreadyFocused) {
+						// Get return parameter from current URL if it exists, otherwise use default
+						const urlParams = new URLSearchParams(window.location.search);
+						let returnParam = urlParams.get('return');
+						
+						// If no return param, use default admin dashboard
+						if (!returnParam) {
+							returnParam = '/wp-admin/index.php';
+						}
+						
+						// Encode the return parameter
+						const encodedReturn = encodeURIComponent(returnParam);
+						
+						// Use custom login URL only if WPS Hide Login or similar plugin is active
+						// Otherwise use default to avoid conflicts with other plugins like ASE
+						const loginUrl = (typeof loginpress_script !== 'undefined' 
+							&& loginpress_script.use_custom_login_url 
+							&& loginpress_script.login_url) 
+							? loginpress_script.login_url 
+							: window.location.origin + '/wp-login.php';
+						
+						// Not focused yet, redirect to your plugin page which does the redirect properly
+						window.location.href = window.location.origin + '/wp-admin/customize.php?url=' + encodeURIComponent(loginUrl) + '&autofocus=loginpress_panel&return=' + encodedReturn;
+					}
+				}
+
+			});
+
+		});
+
+	});
 	var formbg;
 	var get_theme;
 	// Wait until the customizer is ready
@@ -244,9 +288,9 @@
 						$( '#customize-control-loginpress_customization-textfield_label_color,#customize-control-loginpress_customization-customize_form_label' ).show();
 					}
 					if (checkbox_values == 'default18') {
-						loginpress_manage_customizer_controls( ['setting_logo', 'customize_logo_width', 'customize_logo_height'], 'off' );
+						loginpress_manage_customizer_controls( ['setting_logo', 'customize_logo_width', 'customize_logo_height', 'customize_logo_width_mobile', 'customize_logo_height_mobile'], 'off' );
 					} else {
-						loginpress_manage_customizer_controls( ['setting_logo', 'customize_logo_width', 'customize_logo_height'], 'on' );
+						loginpress_manage_customizer_controls( ['setting_logo', 'customize_logo_width', 'customize_logo_height', 'customize_logo_width_mobile', 'customize_logo_height_mobile'], 'on' );
 					}
 					formbg = $( '#customize-preview iframe' ).contents().find( '#login' ).css( 'background' );
 				}
@@ -282,10 +326,10 @@
 						}
 						if ( loginPressVal == '' ) {
 							formbgimg = '';
-							loginpress_find( target ).css( 'background-image', 'none' );
+							loginpress_find( target ).css( '--backgrond-desktop-image', 'none' );
 						} else {
 							formbgimg = loginPressVal;
-							loginpress_find( target ).css( 'background-image', 'url(' + loginPressVal + ')' );
+							loginpress_find( target ).css( '--backgrond-desktop-image', 'url(' + loginPressVal + ')' );
 						}
 					}
 				);
@@ -338,6 +382,7 @@
 						if ( loginPressVal == '' ) {
 							loginpress_find( target ).css( property, '' );
 						} else {
+							console.log( loginpress_find( target ));
 							loginpress_find( target )[0].style.setProperty( property , loginPressVal + suffix , 'important' );
 							if ( property == 'height' ) {
 								wp_logo_height = loginPressVal;
@@ -1179,19 +1224,8 @@
 					}
 
 					if ( loginPressVal == false ) { // Set conditions on behalf on themes.
-
-						if ( 'default6' == customizer_bg ) {
-							loginpress_find().html( "#login::after{background-image: none}" );
-						} else if ( 'default8' == customizer_bg ) {
-							loginpress_find().html( "body.login::after{background: none}" );
-						} else if ( 'default10' == customizer_bg ) {
-							loginpress_find().html( "#login::after{background-image: none}" );
-						} else if ( 'default17' == customizer_bg ) {
-							loginpress_find().html( "#login{background: none}" );
-						} else {
-							loginpress_find( 'body.login' ).css( 'background-image', 'none' );
-						}
-
+						loginpress_find( 'body.login' ).css( '--background-desktop-image', 'none' );
+						loginpress_find( 'body.login' ).css( '--background-mobile-image', 'none' );
 						// Turn Off the Dependencies controls.
 						// $('#customize-control-loginpress_customization-loginpress_display_bg').nextAll().hide();
 						loginpress_manage_customizer_controls( ['gallery_background', 'setting_background', 'background_repeat_radio', 'background_position', 'background_image_size', 'mobile_background'], 'off' );
@@ -1201,31 +1235,11 @@
 
 							loginpress_bg_ = 'url(' + localStorage.loginpress_bg + ')';
 
-							if ( 'default6' == customizer_bg ) {
-								loginpress_find().html( "#login::after{background-image: " + loginpress_bg_ + "}" );
-							} else if ( 'default8' == customizer_bg ) {
-								loginpress_find().html( "body.login::after{background: " + loginpress_bg_ + " no-repeat 0 0; background-size: cover}" );
-							} else if ( 'default10' == customizer_bg ) {
-								loginpress_find().html( "#login::after{background-image: " + loginpress_bg_ + "}" );
-							} else if ( 'default17' == customizer_bg ) {
-								loginpress_find().html( "#login{background: " + loginpress_bg_ + " no-repeat 0 0;}" );
-							} else {
-								loginpress_find( 'body.login' ).css( 'background-image', loginpress_bg_ );
-							}
+							loginpress_find( 'body.login' ).css( '--background-desktop-image', loginpress_bg_ );
 
 						} else if ( loginpress_script.loginpress_bg_url == true ) {
 
-							if ( 'default6' == customizer_bg ) {
-								loginpress_find().html( "#login::after{background-image: " + loginpress_script.loginpress_bg_url + "}" );
-							} else if ( 'default8' == customizer_bg ) {
-								loginpress_find().html( "body.login::after{background: " + loginpress_script.loginpress_bg_url + " no-repeat 0 0; background-size: cover}" );
-							} else if ( 'default10' == customizer_bg ) {
-								loginpress_find().html( "#login::after{background-image: " + loginpress_script.loginpress_bg_url + "}" );
-							} else if ( 'default17' == customizer_bg ) {
-								loginpress_find().html( "#login{background: " + loginpress_script.loginpress_bg_url + " no-repeat 0 0;}" );
-							} else {
-								loginpress_find( 'body.login' ).css( 'background-image', 'url(' + loginpress_script.loginpress_bg_url + ')' );
-							}
+							loginpress_find( 'body.login' ).css( '--background-desktop-image', 'url(' + loginpress_script.loginpress_bg_url + ')' );
 
 						} else {
 
@@ -1241,17 +1255,7 @@
 								loginpress_bg = 'url(' + loginpress_bg + ')';
 							}
 
-							if ( 'default6' == customizer_bg ) {
-								loginpress_find().html( "#login::after{background-image: " + loginpress_bg + "}" );
-							} else if ( 'default8' == customizer_bg ) {
-								loginpress_find().html( "body.login::after{background: " + loginpress_bg + " no-repeat 0 0; background-size: cover}" );
-							} else if ( 'default10' == customizer_bg ) {
-								loginpress_find().html( "#login::after{background-image: " + loginpress_bg + "}" );
-							} else if ( 'default17' == customizer_bg ) {
-								loginpress_find().html( "#login{background: " + loginpress_bg + " no-repeat 0 0;}" );
-							} else {
-								loginpress_find( 'body.login' ).css( 'background-image', loginpress_bg );
-							}
+								loginpress_find( 'body.login' ).css( '--background-desktop-image', loginpress_bg );
 
 							// Display Gallery Control.
 							$( '#customize-control-loginpress_customization-gallery_background' ).fadeIn().css( 'display', 'list-item' );
@@ -1302,16 +1306,13 @@
 							loginpress_bg = $( '#loginpress-gallery .image-select:checked' ).val();
 							loginpress_bg = 'url(' + loginpress_bg + ')';
 						}
-						if ( 'default6' == customizer_bg ) {
-							loginpress_find().html( "#login::after{background-image: " + loginpress_bg + "}" );
-						} else if ( 'default8' == customizer_bg ) {
-							loginpress_find().html( "body.login::after{background: " + loginpress_bg + " no-repeat 0 0; background-size: cover}" );
-						} else if ( 'default10' == customizer_bg ) {
-							loginpress_find().html( "#login::after{background-image: " + loginpress_bg + "}" );
-						} else if ( 'default17' == customizer_bg ) {
-							loginpress_find().html( "#login{background: " + loginpress_bg + " no-repeat 0 0;}" );
-						} else {
-							loginpress_find( 'body.login' ).css( 'background-image', loginpress_bg );
+						loginpress_find( 'body.login' ).css( '--background-desktop-image', loginpress_bg );
+						loginpress_find( 'body.login' ).addClass(get_theme);
+						// Check if both setting_background and mobile_background are empty, then update mobile background
+						var settingBg = wp.customize( 'loginpress_customization[setting_background]' ).get();
+						var mobileBg = wp.customize( 'loginpress_customization[mobile_background]' ).get();
+						if ( (!settingBg || settingBg == '') && (!mobileBg || mobileBg == '') ) {
+							loginpress_find( 'body.login' ).css( '--background-mobile-image', loginpress_bg );
 						}
 
 						// Display the Gallery Control.
@@ -1323,17 +1324,70 @@
 						localStorage.setItem( "loginpress_bg", loginPressVal );
 						// }
 
-						if ( 'default6' == customizer_bg ) {
-							loginpress_find().html( "#login::after{background-image: url(" + loginPressVal + ")}" );
-						} else if ( 'default8' == customizer_bg ) {
-							loginpress_find().html( "body.login::after{background: url(" + loginPressVal + ") no-repeat 0 0; background-size: cover}" );
-						} else if ( 'default10' == customizer_bg ) {
-							loginpress_find().html( "#login::after{background-image: url(" + loginPressVal + ")}" );
-						} else if ( 'default17' == customizer_bg ) {
-							loginpress_find().html( "#login{background: url(" + loginPressVal + ") no-repeat 0 0;}" );
-						} else {
-							loginpress_find( 'body.login' ).css( 'background-image', 'url(' + loginPressVal + ')' );
+						loginpress_find( 'body.login' ).css( '--background-desktop-image', 'url(' + loginPressVal + ')' );
+						loginpress_find( 'body.login' ).addClass(get_theme);
+						
+						// Check if both setting_background and mobile_background are empty, then update mobile background
+						var settingBg = wp.customize( 'loginpress_customization[setting_background]' ).get();
+						var mobileBg = wp.customize( 'loginpress_customization[mobile_background]' ).get();
+						if ( (!settingBg || settingBg == '') && (!mobileBg || mobileBg == '') ) {
+							loginpress_find( 'body.login' ).css( '--background-mobile-image', 'url(' + loginPressVal + ')' );
 						}
+
+						// Disable the Gallery Control.
+						$( '#customize-control-loginpress_customization-gallery_background' ).fadeOut().css( 'display', 'none' );
+					}
+				}
+			);
+		}
+	);
+
+
+	// Change LoginPress Mobile Background Image.
+	wp.customize(
+		'loginpress_customization[mobile_background]',
+		function (value) {
+			value.bind(
+				function (loginPressVal) {
+
+					customizer_bg = change_theme ? change_theme : loginpress_script.login_theme;
+
+					if ( loginPressVal == '' ) {
+
+						if ( localStorage.loginpress_bg ) {
+							localStorage.removeItem( "loginpress_bg" );
+						}
+
+						/**
+						 * [loginpress_customizer_bg Retrive the Image URL w.r.t theme]
+						*
+						 * @param  {[string]} customizer_bg [Preset Option]
+						 * @return {[URL]} loginpress_bg   [Image URL]
+						 */
+						loginpress_customizer_bg( customizer_bg );
+						if ( $( '#loginpress-gallery .image-select:checked' ).length > 0 && $( '#loginpress-gallery .image-select:checked' ).parent( '.loginpress_gallery_thumbnails' ).index() != 0 ) { // when remove custom background, set selected gallery bg
+							loginpress_bg = $( '#loginpress-gallery .image-select:checked' ).val();
+							loginpress_bg = 'url(' + loginpress_bg + ')';
+						}
+						
+						// Get setting_background value, if it exists use it, otherwise use loginpress_bg
+						var settingBg = wp.customize( 'loginpress_customization[setting_background]' ).get();
+						var mobileBgValue = ( settingBg && settingBg != '' ) ? 'url(' + settingBg + ')' : loginpress_bg;
+						loginpress_find( 'body.login' ).css( '--background-mobile-image', mobileBgValue );
+
+						// Display the Gallery Control.
+						$( '#customize-control-loginpress_customization-gallery_background' ).fadeIn().css( 'display', 'list-item' );
+
+					} else {
+
+						// if (!localStorage.loginpress_bg) {
+						localStorage.setItem( "loginpress_bg", loginPressVal );
+						// }
+
+						// Get setting_background value, if it exists use it, otherwise use loginPressVal
+						var settingBg = wp.customize( 'loginpress_customization[setting_background]' ).get();
+						var mobileBgValue = ( loginPressVal && loginPressVal != '' ) ? 'url(' + loginPressVal + ')' : 'url(' + settingBg + ')';
+						loginpress_find( 'body.login' ).css( '--background-mobile-image', mobileBgValue );
 
 						// Disable the Gallery Control.
 						$( '#customize-control-loginpress_customization-gallery_background' ).fadeOut().css( 'display', 'none' );
@@ -1368,32 +1422,10 @@
 						 */
 						loginpress_customizer_bg( customizer_bg );
 						// console.log(loginpress_bg);
-						if ( 'default6' == customizer_bg ) {
-							loginpress_find().html( "#login::after{background-image: " + loginpress_bg + "}" );
-						} else if ( 'default8' == customizer_bg ) {
-							loginpress_find().html( "body.login::after{background: " + loginpress_bg + " no-repeat 0 0; background-size: cover}" );
-						} else if ( 'default10' == customizer_bg ) {
-							loginpress_find().html( "#login::after{background-image: " + loginpress_bg + "}" );
-						} else if ( 'default17' == customizer_bg ) {
-							loginpress_find().html( "#login{background: " + loginpress_bg + " no-repeat 0 0;}" );
-						} else {
-							loginpress_find( 'body.login' ).css( 'background-image', loginpress_bg );
-						}
+						loginpress_find( 'body.login' ).css( '--background-desktop-image', loginpress_bg );
 
 					} else {
-
-						if ( 'default6' == customizer_bg ) {
-							loginpress_find().html( "#login::after{background-image: url(" + loginPressVal + ")}" );
-						} else if ( 'default8' == customizer_bg ) {
-							loginpress_find().html( "body.login::after{background: url(" + loginPressVal + ") no-repeat 0 0; background-size: cover}" );
-						} else if ( 'default10' == customizer_bg ) {
-							loginpress_find().html( "#login::after{background-image: url(" + loginPressVal + ")}" );
-						} else if ( 'default17' == customizer_bg ) {
-							loginpress_find().html( "#login{background: url(" + loginPressVal + ") no-repeat 0 0;}" );
-						} else {
-							loginpress_find( 'body.login' ).css( 'background-image', 'url(' + loginPressVal + ')' );
-						}
-
+						loginpress_find( 'body.login' ).css( '--background-desktop-image', 'url(' + loginPressVal + ')' );
 					}
 				}
 			);
@@ -1466,12 +1498,90 @@
 	 * @param  {[type]} login                    [Targeted CSS]
 	 * @param  {[type]} width                    [Property]
 	 * @param  {[type]} px                       [Unit]
+	 * @version 6.2.0
 	 */
-	loginpress_new_css_property( 'loginpress_customization[customize_logo_width]', '#login h1 a', 'width', 'px' );
-	loginpress_new_css_property( 'loginpress_customization[customize_logo_height]', '#login h1 a', 'height', 'px' );
+
+	/**
+	 * Sync body.login CSS variables for logo and form width (matches style-login.php).
+	 *
+	 * @since 6.2.0
+	 * @return {void}
+	 */
+	function loginpress_refresh_layout_css_vars() {
+		var $body = loginpress_find( 'body.login' );
+		if ( ! $body.length ) {
+			return;
+		}
+		var body = $body[0];
+		function getInt( id ) {
+			try {
+				var v = wp.customize( 'loginpress_customization[' + id + ']' ).get();
+				var n = parseInt( v, 10 );
+				return isNaN( n ) ? 0 : n;
+			} catch ( err ) {
+				return 0;
+			}
+		}
+		function setVar( name, pxValue ) {
+			if ( pxValue > 0 ) {
+				body.style.setProperty( name, pxValue + 'px' );
+			} else {
+				body.style.removeProperty( name );
+			}
+		}
+		var dw = getInt( 'customize_logo_width' );
+		var dh = getInt( 'customize_logo_height' );
+		var mw = getInt( 'customize_logo_width_mobile' );
+		var mh = getInt( 'customize_logo_height_mobile' );
+		var fw = getInt( 'customize_form_width' );
+		var fwm = getInt( 'customize_form_width_mobile' );
+		var effW = mw > 0 ? mw : dw;
+		var effH = mh > 0 ? mh : dh;
+		var effF = fwm > 0 ? fwm : fw;
+		setVar( '--loginpress-logo-w', dw );
+		setVar( '--loginpress-logo-h', dh );
+		setVar( '--loginpress-logo-w-sm', effW );
+		setVar( '--loginpress-logo-h-sm', effH );
+		setVar( '--loginpress-form-mw', fw );
+		setVar( '--loginpress-form-mw-sm', effF );
+	}
+
+	wp.customize.bind(
+		'ready',
+		function () {
+			loginpress_refresh_layout_css_vars();
+			var layoutVarIds = [
+				'customize_logo_width',
+				'customize_logo_height',
+				'customize_logo_width_mobile',
+				'customize_logo_height_mobile',
+				'customize_form_width',
+				'customize_form_width_mobile',
+			];
+			layoutVarIds.forEach(
+				function ( id ) {
+					wp.customize(
+						'loginpress_customization[' + id + ']',
+						function ( value ) {
+							value.bind( function () {
+								loginpress_refresh_layout_css_vars();
+							} );
+						}
+					);
+				}
+			);
+			$( '#customize-preview iframe' ).on(
+				'load',
+				function () {
+					loginpress_refresh_layout_css_vars();
+				}
+			);
+		}
+	);
+
 	loginpress_new_css_property( 'loginpress_customization[customize_logo_padding]', '#login h1 a', 'margin-bottom', 'px' );
-	loginpress_new_css_property( 'loginpress_customization[custom_button_color]', '.wp-core-ui #login input[type=checkbox]', 'border-color', '' );
-	loginpress_new_css_property( 'loginpress_customization[custom_button_color]', '.wp-core-ui #login .dashicons-visibility', 'color', '' );
+	loginpress_new_css_property( 'loginpress_customization[visibility_icon_color]', '.wp-core-ui #login input[type=checkbox]', 'border-color', '' );
+	loginpress_new_css_property( 'loginpress_customization[visibility_icon_color]', '.wp-core-ui #login .dashicons-visibility', 'color', '' );
 
 	loginpress_attr_property( 'loginpress_customization[customize_logo_hover]', '#login h1 a', 'href' );
 	loginpress_attr_property( 'loginpress_customization[customize_logo_hover_title]', '#login h1 a', 'title' );
@@ -1647,7 +1757,6 @@
 
 	loginpress_background_img( 'loginpress_customization[setting_form_background]', '#loginform' );
 
-	loginpress_new_css_property( 'loginpress_customization[customize_form_width]', '#login', 'max-width', 'px' );
 	loginpress_new_css_property( 'loginpress_customization[customize_form_height]', '#loginform', 'min-height', 'px' );
 	loginpress_css_property( 'loginpress_customization[customize_form_padding]', '#loginform', 'padding' );
 	loginpress_css_property( 'loginpress_customization[customize_form_border]', '#loginform', 'border' );
@@ -2060,7 +2169,8 @@
 	);
 
 	loginpress_new_css_property( 'loginpress_customization[login_footer_font_size]', '.login #nav a', 'font-size', 'px' );
-	loginpress_new_css_property( 'loginpress_customization[customize_form_label]', '.login label[for="user_login"], .login label[for="user_pass"]', 'font-size', 'px' );
+	loginpress_new_css_property( 'loginpress_customization[customize_form_label]', '.login label[for="user_pass"]', 'font-size', 'px' );
+	loginpress_new_css_property( 'loginpress_customization[customize_form_label]', '.login label[for="user_login"]', 'font-size', 'px' );
 	loginpress_new_css_property( 'loginpress_customization[remember_me_font_size]', '.login form .forgetmenot label', 'font-size', 'px' );
 	loginpress_css_property( 'loginpress_customization[login_footer_bg_color]', '.login #nav', 'background-color', 'transparent' );
 	loginpress_css_property( 'loginpress_customization[back_display_text]', '.login #backtoblog', 'display' );
@@ -2216,11 +2326,12 @@
 
 	/**
 	 * WordPress Login Page Footer Style.
+	 * @version 6.2.0
 	 */
 	loginpress_new_css_property( 'loginpress_customization[login_back_font_size]', '.login #backtoblog a', 'font-size', 'px' );
 	loginpress_css_property( 'loginpress_customization[login_back_font_size]', '.login #backtoblog a', 'font-size' );
 	loginpress_css_property( 'loginpress_customization[login_back_bg_color]', '.login #backtoblog', 'background-color', 'transparent' );
-	// loginpress_css_property( 'loginpress_customization[show_some_love_text_color]', '.loginpress-show-love, .loginpress-show-love a', 'color', 'transparent' );
+	loginpress_css_property( 'loginpress_customization[show_love_text_color]', '.loginpress-show-love, .loginpress-show-love a', 'color', '#263466' );
 	// loginpress_css_property( 'loginpress_customization[copyright_text_color]', '.footer-cont .copyRight', 'color', '' );
 	// loginpress_css_property( 'loginpress_customization[copyright_background_color]', '.footer-cont .copyRight', 'background-color', 'transparent' );
 	loginpress_footer_text_message( 'loginpress_customization[login_footer_copy_right]', '.copyRight' );
@@ -2290,6 +2401,52 @@
 							loginpress_find( '.loginpress-show-love' ).addClass( 'love-position' );
 					} else {
 						loginpress_find( '.loginpress-show-love' ).removeClass( 'love-position' );
+					}
+				}
+			);
+		}
+	);
+
+	var loginPressShowLoveClr;
+	wp.customize(
+		'loginpress_customization[show_love_text_color]',
+		function ( value ) {
+			value.bind(
+				function ( v ) {
+					loginPressShowLoveClr = ( v && v !== '' ) ? v : '#263466';
+				}
+			);
+		}
+	);
+	/**
+	 * Change Show some Love – LoginPress link hover color live.
+	 */
+	wp.customize(
+		'loginpress_customization[show_love_link_hover_color]',
+		function ( value ) {
+			value.bind(
+				function ( loginPressVal ) {
+					if ( loginPressVal == '' ) {
+						loginpress_find( '.loginpress-show-love a' ).off( 'mouseover mouseleave' );
+						loginpress_find( '.loginpress-show-love a' ).on( 'mouseover', function () {
+							$( this ).css( 'color', '' );
+						} ).on( 'mouseleave', function () {
+							if ( typeof loginPressShowLoveClr !== 'undefined' && loginPressShowLoveClr !== null && loginPressShowLoveClr !== '' ) {
+								$( this ).css( 'color', loginPressShowLoveClr );
+							} else {
+								$( this ).css( 'color', '#263466' );
+							}
+						} );
+					} else {
+						loginpress_find( '.loginpress-show-love a' ).off( 'mouseover mouseleave' ).on( 'mouseover', function () {
+							$( this ).css( 'color', loginPressVal );
+						} ).on( 'mouseleave', function () {
+							if ( typeof loginPressShowLoveClr !== 'undefined' && loginPressShowLoveClr !== null && loginPressShowLoveClr !== '' ) {
+								$( this ).css( 'color', loginPressShowLoveClr );
+							} else {
+								$( this ).css( 'color', '#263466' );
+							}
+						} );
 					}
 				}
 			);
@@ -2661,7 +2818,7 @@
 
 			if ( $( '#customize_presets_settingsdefault18' ).is( ':checked' ) == true ) {
 
-				loginpress_manage_customizer_controls( ['setting_logo', 'customize_logo_width', 'customize_logo_height'], 'off' );
+				loginpress_manage_customizer_controls( ['setting_logo', 'customize_logo_width', 'customize_logo_height', 'customize_logo_width_mobile', 'customize_logo_height_mobile'], 'off' );
 				loginpress_find( '#loginform #user_login' ).on(
 					'focus',
 					function () {

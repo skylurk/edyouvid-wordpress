@@ -139,6 +139,12 @@ class Shortcode extends Shortcode_Base{
     public $th_tag = 'th';
     public $td_tag = 'td';
 
+    public $table_tag = 'div';
+    public $thead_tag = 'header';
+    public $tbody_tag = 'main';
+    public $tr_tag = 'section';
+    public $th_tag = 'span';
+    public $td_tag = 'div';
 
 
  */
@@ -268,6 +274,12 @@ class Shortcode extends Shortcode_Base{
 
     public $get_params = [];
 
+    /**
+     * Run the shortcode Object
+     * Execute the shortcode 
+     *
+     * @return void
+     */
     public function run(){
 
         add_shortcode( $this->shortcde_text, [$this, 'shortcode'] );
@@ -300,6 +312,7 @@ class Shortcode extends Shortcode_Base{
 
         $this->atts = $atts;
 
+
         $pairs = array( 'exclude' => false );
         extract( shortcode_atts( $pairs, $atts ) );
         
@@ -317,109 +330,35 @@ class Shortcode extends Shortcode_Base{
         if( ! $this->table_display ) return;
 
         ob_start();
-        
+        $latout = 'no-sidebar';
+        if( isset($this->search_n_filter['search_box']) && $this->search_n_filter['search_box'] !== 'no' ){
+            $latout = $this->table_style['layout'] ?? 'no-sidebar';
+        }
         ?>
+
         <div id="table_id_<?php echo esc_attr( $this->table_id ); ?>" 
         data-page_number="<?php echo esc_attr( $this->page_number ); ?>"
-        class="<?php echo esc_attr( Table_Attr::wrapper_class( $this ) ); ?>"
+        class="<?php echo esc_attr( Table_Attr::wrapper_class( $this ) ); ?> layout-<?php echo esc_attr( $latout ); ?>"
         data-unique_id="<?php echo esc_attr( $this->unique_id ); ?>"
         data-temp_number="<?php echo esc_attr( $this->table_id ); ?>" 
         data-basic_settings="<?php echo esc_attr( wp_json_encode( $this->basic_settings ) ); ?>" >
+
             <?php
-
-
             //Render Top Minicart here, Condition applied inside method/function
             $this->minicart_render( 'top' );
 
-            $this->search_box_render();
-            
-            // Render export button after search box
-            $this->export_button_render();
-            
-            //Actually this action hook is no need here, because it should called $this->search_box_render() but still we didnt' call over there.
-            //we made new for our new table
-            //do_action( 'wpto_after_advance_search_box', $this->table_id, $this->args, $this->column_settings, $this->_enable_cols, $this->_config, $this->atts );
-    
-    
-            do_action( 'wpto_action_before_table', $this->table_id, $this->args, $this->column_settings, $this->_enable_cols, $this->_config, $this->atts );
-            $this->instance_search_render();
-            $this->mini_filter_render();
-            if($this->checkbox_validation){
-                Checkbox_Box::render($this);
-            }
-            
+            //.wpt-search-full-wrapper - this class is important for sidebar search box -
+            //Onek jaygay use kora hoise ei class ta. Be careful changing or removing it
             ?>
-            <div class="wpt-stats-report">
-                <?php $this->stats_render(); ?>
+            <div class="sidebar-table-part wpt-search-full-wrapper">
+                <?php $this->search_box_render(); ?>
             </div>
-            <div class="wpt_table_tag_wrapper">
-                <div class="wpt-ob_get_clean"></div>
-                <!-- data-config_json attr is important for custom.js-->
-                <?php 
-                /**
-                 * new hook for before table body tag
-                 * @version 6.0.0.0
-                 */
-                do_action('wpto_before_table_body', $this->table_id, $this); ?>
-                <<?php echo esc_html( $this->table_tag ); ?> 
-                data-temp_number="<?php echo esc_attr( $this->table_id ); ?>"
-                data-config_json="<?php echo esc_attr( wp_json_encode( $this->_config ) ); ?>"
-                data-data_json=""
-                data-data_json_backup=""
-                id="wpt_table"
-                class="wpt-table-tag <?php echo esc_attr( Table_Attr::table_class( $this ) ); ?>">
-
-                <?php $this->table_head(); ?>
-                <?php 
-                echo '<'. esc_html( $this->tbody_tag ) .' class="wpt-tbody-tag">';
-                $this->table_body();
-                echo '</'. esc_html( $this->tbody_tag ) .'>';
-                ?>
-                </<?php echo esc_html( $this->table_tag ); ?>>
-                <?php 
-                /**
-                 * New hook added just after Table body tag
-                 * @version 6.0.0.0
-                 */
-                do_action('wpto_after_table_body', $this->table_id, $this); ?>
-
-
-
-            </div> <!-- /.wpt_table_tag_wrapper -->
-            <?php 
-            do_action( 'wpto_action_after_table', $this->table_id, $this->args, $this->column_settings, $this->_enable_cols, $this->_config, $this->atts );
-            $this->do_action( 'wpt_after_table' );
-            ?>
-
-            <?php 
-
-            if($this->checkbox_validation){
-                Checkbox_Box::render($this, 'footer');
-            }
             
-            /**
-             * Pagination's this part/method, only need when pagination will number.
-             * and in our plugin, pagination value 'on' means number. for other,
-             * value will be different. like: load_more, infinite_scroll etc.
-             * 
-             * We will call Pagination::render() Only when pagination is number
-             * mean: pagination value is 'on'
-             */
+            <div class="main-content-table-part">
+                <?php $this->mainpart_table(); ?>
+            </div>
             
-            switch($this->pagination){
-                case 'on':
-                    $big = 99999999;
-                    $this->pagination_base_url = str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) );
-        
-                    Pagination::render( $this );
-                    break;
-                case 'off':
-                    break;
-                case 'load_more':
-                case 'infinite_scroll':
-                    Element::loadMore( $this );
-                    break;
-            }
+            <?php
 
             //Render Bottom Minicart here, Condition applied inside method/function
             $this->minicart_render( 'bottom' );
@@ -439,6 +378,97 @@ class Shortcode extends Shortcode_Base{
          */
         $this->product_loop = null;
         return ob_get_clean();
+    }
+
+    public function mainpart_table(){
+            
+        // Render export button after search box
+        $this->export_button_render();
+        
+        //Actually this action hook is no need here, because it should called $this->search_box_render() but still we didnt' call over there.
+        //we made new for our new table
+        //do_action( 'wpto_after_advance_search_box', $this->table_id, $this->args, $this->column_settings, $this->_enable_cols, $this->_config, $this->atts );
+
+
+        do_action( 'wpto_action_before_table', $this->table_id, $this->args, $this->column_settings, $this->_enable_cols, $this->_config, $this->atts );
+        $this->instance_search_render();
+        $this->mini_filter_render();
+        if($this->checkbox_validation){
+            Checkbox_Box::render($this);
+        }
+        
+        ?>
+        <div class="wpt-stats-report">
+            <?php $this->stats_render(); ?>
+        </div>
+        <div class="wpt_table_tag_wrapper">
+            <div class="wpt-ob_get_clean"></div>
+            <!-- data-config_json attr is important for custom.js-->
+            <?php 
+            /**
+             * new hook for before table body tag
+             * @version 6.0.0.0
+             */
+            do_action('wpto_before_table_body', $this->table_id, $this); ?>
+            <<?php echo esc_html( $this->table_tag ); ?> 
+            data-temp_number="<?php echo esc_attr( $this->table_id ); ?>"
+            data-config_json="<?php echo esc_attr( wp_json_encode( $this->_config ) ); ?>"
+            data-data_json=""
+            data-data_json_backup=""
+            id="wpt_table"
+            class="wpt-table-tag <?php echo esc_attr( Table_Attr::table_class( $this ) ); ?>">
+
+            <?php $this->table_head(); ?>
+            <?php 
+            echo '<'. esc_html( $this->tbody_tag ) .' class="wpt-tbody-tag">';
+            $this->table_body();
+            echo '</'. esc_html( $this->tbody_tag ) .'>';
+            ?>
+            </<?php echo esc_html( $this->table_tag ); ?>>
+            <?php 
+            /**
+             * New hook added just after Table body tag
+             * @version 6.0.0.0
+             */
+            do_action('wpto_after_table_body', $this->table_id, $this); ?>
+
+
+
+        </div> <!-- /.wpt_table_tag_wrapper -->
+        <?php 
+        do_action( 'wpto_action_after_table', $this->table_id, $this->args, $this->column_settings, $this->_enable_cols, $this->_config, $this->atts );
+        $this->do_action( 'wpt_after_table' );
+        ?>
+
+        <?php 
+
+        if($this->checkbox_validation){
+            Checkbox_Box::render($this, 'footer');
+        }
+        
+        /**
+         * Pagination's this part/method, only need when pagination will number.
+         * and in our plugin, pagination value 'on' means number. for other,
+         * value will be different. like: load_more, infinite_scroll etc.
+         * 
+         * We will call Pagination::render() Only when pagination is number
+         * mean: pagination value is 'on'
+         */
+        
+        switch($this->pagination){
+            case 'on':
+                $big = 99999999;
+                $this->pagination_base_url = str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) );
+    
+                Pagination::render( $this );
+                break;
+            case 'off':
+                break;
+            case 'load_more':
+            case 'infinite_scroll':
+                Element::loadMore( $this );
+                break;
+        }
     }
 
     /**
@@ -699,9 +729,14 @@ class Shortcode extends Shortcode_Base{
          * 
          * @since 3.3.6
          * @author Saiful Islam <codersaiful@gmail.com>
+         * 
+         * Actually we have changed and now totally removed table type option from condition tab
+         * Now it will come from Action Column third party plugin support option
+         * 
+         * eta bortomany chalu korle normal hobe, kichu na korle advance table hobe
+         * age er ulto chilo.
          */
-        $third_table_type = $this->conditions['table_type'] ?? $this->table_type;
-        $this->table_type = $this->column_settings['action']['third_party_plugin'] ?? $third_table_type;
+        $this->table_type = $this->column_settings['action']['third_party_plugin'] ?? 'advance_table';
 
         /**
          * Column Management Here
@@ -1049,9 +1084,9 @@ class Shortcode extends Shortcode_Base{
     protected function table_head(){
         if( ! $this->table_head ) return;
         if( ! $this->is_table_head ) return; //Check column available or not, if empty array of _enable_cols, it will return false.
-        $show_stats = $this->generated_row ? 'display: none;' : '';
+
         ?>
-        <<?php echo esc_html( $this->thead_tag ); ?> style="<?php echo esc_attr( $show_stats ); ?>" class="wpt-thead-tag">
+        <<?php echo esc_html( $this->thead_tag ); ?> class="wpt-thead-tag">
             <<?php echo esc_html( $this->tr_tag ); ?> data-temp_number="<?php echo esc_attr( $this->table_id ); ?>" class="wpt-tr-tag wpt_table_header_row wpt_table_head">
             <?php 
             foreach( $this->_enable_cols as $key => $col ){ ?>
@@ -1112,9 +1147,6 @@ class Shortcode extends Shortcode_Base{
      * @author Saiful Islam <codersaiful@gmail.com>
      */
     public function search_box_render(){
-        ?>
-        <div class="wpt-search-full-wrapper">
-        <?php
         if( $this->search_box ){
             Search_Box::render($this);
         }else{
@@ -1136,10 +1168,6 @@ class Shortcode extends Shortcode_Base{
          * @author Saiful Islam <codersaiful@gmail.com>
          */
         $this->do_action( 'wpt_after_searchbox' );
-        
-        ?>
-        </div>
-        <?php
         
     }
 

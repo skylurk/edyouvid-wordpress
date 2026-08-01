@@ -11,7 +11,7 @@ use Automattic\Jetpack\Assets;
  * Disable direct access/execution to/of the widget code.
  */
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+	exit( 0 );
 }
 
 if ( ! class_exists( 'Jetpack_EU_Cookie_Law_Widget' ) ) {
@@ -93,10 +93,6 @@ if ( ! class_exists( 'Jetpack_EU_Cookie_Law_Widget' ) ) {
 				),
 				array()
 			);
-
-			if ( is_active_widget( false, false, $this->id_base ) || is_customize_preview() ) {
-				add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
-			}
 		}
 
 		/**
@@ -140,12 +136,20 @@ if ( ! class_exists( 'Jetpack_EU_Cookie_Law_Widget' ) ) {
 				'position'           => $this->position_options[0],
 				'policy-link-text'   => esc_html__( 'Cookie Policy', 'jetpack' ),
 				'button'             => esc_html__( 'Close and accept', 'jetpack' ),
-				'default-text'       => esc_html__( "Privacy & Cookies: This site uses cookies. By continuing to use this website, you agree to their use. \r\nTo find out more, including how to control cookies, see here:", 'jetpack' ),
+				'default-text'       => esc_html__(
+					'Privacy & Cookies: This site uses cookies. By continuing to use this website, you agree to their use.
+
+To find out more, including how to control cookies, see here:',
+					'jetpack'
+				),
 			);
 		}
 
 		/**
 		 * Front-end display of the widget.
+		 *
+		 * @html-template-var array $instance
+		 * @html-template-var array<string,string> $classes
 		 *
 		 * @param array $args     Widget arguments.
 		 * @param array $instance Saved values from database.
@@ -161,6 +165,9 @@ if ( ! class_exists( 'Jetpack_EU_Cookie_Law_Widget' ) ) {
 			if ( apply_filters( 'jetpack_disable_eu_cookie_law_widget', false ) ) {
 				return;
 			}
+
+			// Enqueue front end assets.
+			$this->enqueue_frontend_scripts();
 
 			$instance = wp_parse_args( $instance, $this->defaults() );
 
@@ -212,7 +219,10 @@ if ( ! class_exists( 'Jetpack_EU_Cookie_Law_Widget' ) ) {
 		/**
 		 * Back-end widget form.
 		 *
+		 * @html-template-var array $instance
+		 *
 		 * @param array $instance Previously saved values from database.
+		 * @return string|void
 		 */
 		public function form( $instance ) {
 			$instance = wp_parse_args( $instance, $this->defaults() );
@@ -245,11 +255,11 @@ if ( ! class_exists( 'Jetpack_EU_Cookie_Law_Widget' ) ) {
 			$instance = array();
 			$defaults = $this->defaults();
 
-			$instance['hide']         = $this->filter_value( isset( $new_instance['hide'] ) ? $new_instance['hide'] : '', $this->hide_options );
-			$instance['text']         = $this->filter_value( isset( $new_instance['text'] ) ? $new_instance['text'] : '', $this->text_options );
-			$instance['color-scheme'] = $this->filter_value( isset( $new_instance['color-scheme'] ) ? $new_instance['color-scheme'] : '', $this->color_scheme_options );
-			$instance['policy-url']   = $this->filter_value( isset( $new_instance['policy-url'] ) ? $new_instance['policy-url'] : '', $this->policy_url_options );
-			$instance['position']     = $this->filter_value( isset( $new_instance['position'] ) ? $new_instance['position'] : '', $this->position_options );
+			$instance['hide']         = $this->filter_value( $new_instance['hide'] ?? '', $this->hide_options );
+			$instance['text']         = $this->filter_value( $new_instance['text'] ?? '', $this->text_options );
+			$instance['color-scheme'] = $this->filter_value( $new_instance['color-scheme'] ?? '', $this->color_scheme_options );
+			$instance['policy-url']   = $this->filter_value( $new_instance['policy-url'] ?? '', $this->policy_url_options );
+			$instance['position']     = $this->filter_value( $new_instance['position'] ?? '', $this->position_options );
 
 			if ( isset( $new_instance['hide-timeout'] ) ) {
 				// Time can be a value between 3 and 1000 seconds.
@@ -304,7 +314,10 @@ if ( ! class_exists( 'Jetpack_EU_Cookie_Law_Widget' ) ) {
 			}
 
 			// Show the banner again if a setting has been changed.
-			setcookie( self::$cookie_name, '', time() - 86400, '/', COOKIE_DOMAIN, is_ssl(), false ); // phpcs:ignore Jetpack.Functions.SetCookie -- Fine to have accessible.
+			// Sometimes plugins send headers already, so we can't set a cookie and any attempt will throw a warning.
+			if ( ! headers_sent() ) {
+				setcookie( self::$cookie_name, '', time() - 86400, '/', COOKIE_DOMAIN, is_ssl(), false ); // phpcs:ignore Jetpack.Functions.SetCookie -- Fine to have accessible.
+			}
 
 			return $instance;
 		}

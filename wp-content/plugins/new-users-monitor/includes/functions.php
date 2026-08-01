@@ -4,6 +4,10 @@
  * functions.php
  */
  
+	if ( ! defined( 'ABSPATH' ) ) {
+		exit; // Exit if accessed directly
+	}
+ 
 	/* Get Unconfirmed Users. 
 	----------------------------------------------------------------- */ 
 	function NUM_Get_UnconfirmedUsers () {
@@ -49,6 +53,28 @@
 		NUM_Debugger ($Count_UnconfirmedUsers, '$Count_UnconfirmedUsers', $debug_process, __FUNCTION__, __LINE__);
 		
 		return $Count_UnconfirmedUsers;
+	}
+	
+	/* Check User Roles. 
+	----------------------------------------------------------------- */
+	function NUM_Check_User_Roles ($User_Roles) {
+		$debug_process = 'f_check_user_roles';
+		
+		NUM_Debugger ($User_Roles, '$User_Roles', $debug_process, __FUNCTION__, __LINE__);
+		
+		if ( is_array($User_Roles) ) {
+			foreach ( $User_Roles as $User_Role ) {
+				if ( current_user_can( $User_Role ) ) {
+					return true;
+				}
+			}			
+		} else {
+			if ( current_user_can('administrator') ) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
  
 	/* Debugger. 

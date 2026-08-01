@@ -19,7 +19,7 @@ class Editor_View {
 	/**
 	 * Add hooks according to screen.
 	 *
-	 * @param WP_Screen $screen Data about current screen.
+	 * @param \WP_Screen $screen Data about current screen.
 	 */
 	public static function add_hooks( $screen ) {
 		if ( isset( $screen->base ) && 'post' === $screen->base ) {
@@ -32,7 +32,6 @@ class Editor_View {
 	 * Admin header.
 	 */
 	public static function admin_head() {
-		remove_action( 'media_buttons', array( Admin::init(), 'grunion_media_button' ), 999 );
 		add_action( 'media_buttons', array( __CLASS__, 'grunion_media_button' ), 999 );
 	}
 
@@ -59,10 +58,7 @@ class Editor_View {
 	 * @return array
 	 */
 	public static function mce_external_plugins( $plugin_array ) {
-		$plugin_array['grunion_form'] = Assets::get_file_url_for_environment(
-			'_inc/build/contact-form/js/tinymce-plugin-form-button.min.js',
-			'modules/contact-form/js/tinymce-plugin-form-button.js'
-		);
+		$plugin_array['grunion_form'] = plugins_url( '../../dist/contact-form/js/tinymce-plugin-form-button.js', __FILE__ );
 		return $plugin_array;
 	}
 
@@ -92,24 +88,27 @@ class Editor_View {
 		add_filter( 'mce_external_plugins', array( __CLASS__, 'mce_external_plugins' ) );
 		add_filter( 'mce_buttons', array( __CLASS__, 'mce_buttons' ) );
 
-		wp_enqueue_style( 'grunion-editor-ui', plugins_url( 'css/editor-ui.css', __FILE__ ), array(), \JETPACK__VERSION );
+		wp_enqueue_style( 'grunion-editor-ui', plugins_url( '../../dist/contact-form/css/editor-ui.css', __FILE__ ), array(), \JETPACK__VERSION );
 		wp_style_add_data( 'grunion-editor-ui', 'rtl', 'replace' );
-		wp_enqueue_script(
+
+		Assets::register_script(
 			'grunion-editor-view',
-			Assets::get_file_url_for_environment(
-				'_inc/build/contact-form/js/editor-view.min.js',
-				'modules/contact-form/js/editor-view.js'
-			),
-			array( 'wp-util', 'jquery', 'quicktags' ),
-			\JETPACK__VERSION,
-			true
+			'../../dist/contact-form/js/editor-view.js',
+			__FILE__,
+			array(
+				'enqueue'      => true,
+				'dependencies' => array( 'wp-util', 'jquery', 'quicktags' ),
+				'version'      => \JETPACK__VERSION,
+				'in_footer'    => true,
+			)
 		);
+
 		wp_localize_script(
 			'grunion-editor-view',
 			'grunionEditorView',
 			array(
-				'inline_editing_style'     => plugins_url( 'css/editor-inline-editing-style.css', __FILE__ ),
-				'inline_editing_style_rtl' => plugins_url( 'css/editor-inline-editing-style.rtl.css', __FILE__ ),
+				'inline_editing_style'     => plugins_url( '../../dist/contact-form/css/editor-inline-editing-style.css', __FILE__ ),
+				'inline_editing_style_rtl' => plugins_url( '../../dist/contact-form/css/editor-inline-editing-style.rtl.css', __FILE__ ),
 				'dashicons_css_url'        => includes_url( 'css/dashicons.css' ),
 				'default_form'             => '[contact-field label="' . __( 'Name', 'jetpack-forms' ) . '" type="name"  required="true" /]' .
 									'[contact-field label="' . __( 'Email', 'jetpack-forms' ) . '" type="email" required="true" /]' .
@@ -117,7 +116,7 @@ class Editor_View {
 									'[contact-field label="' . __( 'Message', 'jetpack-forms' ) . '" type="textarea" /]',
 				'labels'                   => array(
 					'submit_button_text'  => __( 'Submit', 'jetpack-forms' ),
-					/** This filter is documented in modules/contact-form/grunion-contact-form.php */
+					/** This filter is documented in \Automattic\Jetpack\Forms\ContactForm\Contact_Form */
 					'required_field_text' => apply_filters( 'jetpack_required_field_text', __( '(required)', 'jetpack-forms' ) ),
 					'edit_close_ays'      => __( 'Are you sure you\'d like to stop editing this form without saving your changes?', 'jetpack-forms' ),
 					'quicktags_label'     => __( 'contact form', 'jetpack-forms' ),
@@ -126,7 +125,7 @@ class Editor_View {
 			)
 		);
 
-		add_editor_style( plugin_dir_url( __FILE__ ) . 'css/editor-style.css' );
+		add_editor_style( plugin_dir_url( __FILE__ ) . '../../dist/contact-form/css/editor-style.css' );
 	}
 
 	/**
@@ -180,7 +179,7 @@ class Editor_View {
 <script type="text/html" id="tmpl-grunion-field-checkbox">
 	<div>
 		<label class='grunion-field-label checkbox'>
-			<input type='checkbox' name='{{ data.id }}' value='<?php esc_attr__( 'Yes', 'jetpack-forms' ); ?>' class="{{ data.class }}" <# if ( data.value ) print( 'checked="checked"' ) #> />
+			<input type='checkbox' name='{{ data.id }}' value='<?php esc_attr_e( 'Yes', 'jetpack-forms' ); ?>' class="{{ data.class }}" <# if ( data.value ) print( 'checked="checked"' ) #> />
 				<span>{{ data.label }}</span><# if ( data.required ) print( " <span>" + data.required + "</span>" ) #>
 		</label>
 		<div class='clear-form'></div>
@@ -259,7 +258,7 @@ class Editor_View {
 				<?php esc_html_e( 'Field Type', 'jetpack-forms' ); ?>
 				<select name="type">
 					<?php foreach ( $grunion_field_types as $type => $label ) : ?>
-					<option <# if ( '<?php echo esc_js( $type ); ?>' === data.type ) print( "selected='selected'" ) #> value="<?php echo esc_attr( $type ); ?>">
+					<option <# if ( <?php echo wp_json_encode( $type, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP ); ?> === data.type ) print( "selected='selected'" ) #> value="<?php echo esc_attr( $type ); ?>">
 						<?php echo esc_html( $label ); ?>
 					</option>
 					<?php endforeach; ?>
@@ -302,7 +301,7 @@ class Editor_View {
 				<label><?php esc_html_e( 'What would you like the subject of the email to be?', 'jetpack-forms' ); ?>
 					<input type="text" name="subject" value="{{ data.subject }}" />
 				</label>
-				<label><?php esc_html_e( 'Which email address should we send the submissions to?', 'jetpack-forms' ); ?>
+				<label><?php esc_html_e( 'Which email address should we send the responses to?', 'jetpack-forms' ); ?>
 					<input type="text" name="to" value="{{ data.to }}" />
 				</label>
 			</section>

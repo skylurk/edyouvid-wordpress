@@ -7,6 +7,10 @@
 
 namespace Automattic\Jetpack\Sync;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * An implementation of Automattic\Jetpack\Sync\Codec_Interface that uses base64
  * algorithm to compress objects serialized using json_encode.
@@ -59,5 +63,4 @@ class Simple_Codec extends JSON_Deflate_Array_Codec {
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 		return $this->json_unserialize( base64_decode( $input ) );
 	}
-
 }

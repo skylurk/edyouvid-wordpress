@@ -138,7 +138,7 @@ msgid "Advanced Heading"
 msgstr ""
 
 #: src/Components/Compare/FreevsPro.jsx:225
-#: src/Components/NavMenu.js:242
+#: src/Components/NavMenu.js:251
 #: src/Components/Onboarding/Features.jsx:193
 msgid "Free"
 msgstr ""
@@ -149,6 +149,7 @@ msgstr ""
 
 #: src/Components/Compare/FreevsPro.jsx:231
 #: src/Components/Onboarding/Features.jsx:351
+#: src/lib/bsf-learn/components/BsfLearnStep.js:136
 msgid "Pro"
 msgstr ""
 
@@ -431,17 +432,17 @@ msgstr ""
 
 #: src/Components/Dashboard/ExtendWebsiteWidget.jsx:107
 #: src/Components/Onboarding/ExtendOnboardingWidget.jsx:114
-msgid "Theme Installation failed, Please try again later."
+msgid "Theme installation failed. Please try again later."
 msgstr ""
 
 #: src/Components/Dashboard/ExtendWebsiteWidget.jsx:111
 #: src/Components/Onboarding/ExtendOnboardingWidget.jsx:115
-msgid "Plugin Installation failed, Please try again later."
+msgid "Plugin installation failed. Please try again later."
 msgstr ""
 
 #: src/Components/Dashboard/ExtendWebsiteWidget.jsx:144
 #: src/Components/Onboarding/ExtendOnboardingWidget.jsx:143
-msgid "Activating.."
+msgid "Activating..."
 msgstr ""
 
 #: src/Components/Dashboard/ExtendWebsiteWidget.jsx:157
@@ -484,7 +485,7 @@ msgstr ""
 
 #: src/Components/Dashboard/ExtendWebsiteWidget.jsx:71
 #: src/Components/Onboarding/ExtendOnboardingWidget.jsx:93
-msgid "Installing.."
+msgid "Installing..."
 msgstr ""
 
 #: src/Components/Dashboard/ExtendWebsiteWidget.jsx:82
@@ -611,6 +612,7 @@ msgstr ""
 
 #: src/Components/Dashboard/UltimateFeatures.js:87
 #: src/Components/Settings/Branding.jsx:42
+#: src/Components/Settings/Settings.jsx:91
 #: src/Components/Widgets/UltimateWidgetFeatures.jsx:89
 msgid "White Label"
 msgstr ""
@@ -641,12 +643,12 @@ msgid "Create Header/Footer"
 msgstr ""
 
 #: src/Components/Dashboard/WelcomeContainer.js:88
-#: src/Components/Onboarding/Create.jsx:323
+#: src/Components/Onboarding/Create.jsx:337
 msgid "Create New Page"
 msgstr ""
 
 #: src/Components/Dashboard/WidgetItem.jsx:177
-#: src/Components/NavMenu.js:210
+#: src/Components/NavMenu.js:219
 #: src/Components/UpgradeNotice.jsx:81
 msgid "Get Full Control"
 msgstr ""
@@ -672,6 +674,25 @@ msgstr ""
 msgid "Formerly Elementor Header & Footer Builder"
 msgstr ""
 
+#: src/Components/Learn/Learn.jsx:32
+#: src/Components/NavMenu.js:172
+msgid "Learn"
+msgstr ""
+
+#: src/Components/Learn/Learn.jsx:35
+msgid ""
+"Master UAE with our step-by-step guide and tutorials. Create stunning "
+"headers and footers with confidence."
+msgstr ""
+
+#: src/Components/Learn/Learn.jsx:46
+msgid "Hide Video"
+msgstr ""
+
+#: src/Components/Learn/Learn.jsx:46
+msgid "Watch Video"
+msgstr ""
+
 #: src/Components/NavMenu.js:131
 msgid "Dashboard"
 msgstr ""
@@ -684,39 +705,39 @@ msgstr ""
 msgid "Widgets"
 msgstr ""
 
-#: src/Components/NavMenu.js:174
+#: src/Components/NavMenu.js:183
 msgid "Settings"
 msgstr ""
 
-#: src/Components/NavMenu.js:183
+#: src/Components/NavMenu.js:192
 msgid "Free vs Pro"
 msgstr ""
 
-#: src/Components/NavMenu.js:233
+#: src/Components/NavMenu.js:242
 msgid "Version"
 msgstr ""
 
-#: src/Components/NavMenu.js:267
+#: src/Components/NavMenu.js:276
 msgid "Useful Resources"
 msgstr ""
 
-#: src/Components/NavMenu.js:284
+#: src/Components/NavMenu.js:293
 msgid "Getting Started"
 msgstr ""
 
-#: src/Components/NavMenu.js:297
+#: src/Components/NavMenu.js:306
 msgid "How to use widgets"
 msgstr ""
 
-#: src/Components/NavMenu.js:310
+#: src/Components/NavMenu.js:319
 msgid "How to use features"
 msgstr ""
 
-#: src/Components/NavMenu.js:323
+#: src/Components/NavMenu.js:332
 msgid "How to use templates"
 msgstr ""
 
-#: src/Components/NavMenu.js:336
+#: src/Components/NavMenu.js:345
 msgid "Contact us"
 msgstr ""
 
@@ -725,7 +746,7 @@ msgid "What's New?"
 msgstr ""
 
 #: src/Components/Onboarding/Build.jsx:141
-msgid "You're all set!🚀"
+msgid "You're all set! 🚀"
 msgstr ""
 
 #: src/Components/Onboarding/Build.jsx:144
@@ -787,144 +808,145 @@ msgid ""
 msgstr ""
 
 #: src/Components/Onboarding/Build.jsx:318
-#: src/Components/Onboarding/Create.jsx:345
+#: src/Components/Onboarding/Create.jsx:359
 msgid "We have a special Reward just for you! 🎁"
 msgstr ""
 
 #: src/Components/Onboarding/Build.jsx:332
-#: src/Components/Onboarding/Create.jsx:371
+#: src/Components/Onboarding/Create.jsx:385
 msgid ""
 "Enter your details to get special offer that we have for you and stay "
 "updated on UAE’s latest news and updates."
 msgstr ""
 
 #: src/Components/Onboarding/Build.jsx:340
-#: src/Components/Onboarding/Create.jsx:387
-#: src/Components/Onboarding/ExtendOnboarding.jsx:441
+#: src/Components/Onboarding/Create.jsx:401
+#: src/Components/Onboarding/ExtendOnboarding.jsx:458
 msgid "First Name"
 msgstr ""
 
 #: src/Components/Onboarding/Build.jsx:367
-#: src/Components/Onboarding/Create.jsx:427
-#: src/Components/Onboarding/ExtendOnboarding.jsx:466
+#: src/Components/Onboarding/Create.jsx:441
+#: src/Components/Onboarding/ExtendOnboarding.jsx:483
 msgid "Last Name"
 msgstr ""
 
 #: src/Components/Onboarding/Build.jsx:390
-#: src/Components/Onboarding/Create.jsx:456
+#: src/Components/Onboarding/Create.jsx:470
 msgid "Your Email Address"
 msgstr ""
 
 #: src/Components/Onboarding/Build.jsx:43
-#: src/Components/Onboarding/Create.jsx:43
-#: src/Components/Onboarding/ExtendOnboarding.jsx:257
+#: src/Components/Onboarding/Create.jsx:57
+#: src/Components/Onboarding/ExtendOnboarding.jsx:272
 msgid "This field is required"
 msgstr ""
 
 #: src/Components/Onboarding/Build.jsx:434
-#: src/Components/Onboarding/Create.jsx:515
+#: src/Components/Onboarding/Create.jsx:529
 msgid "Submit"
 msgstr ""
 
 #: src/Components/Onboarding/Build.jsx:50
-#: src/Components/Onboarding/Create.jsx:52
+#: src/Components/Onboarding/Create.jsx:66
 msgid "Entered email address is invalid!"
 msgstr ""
 
 #: src/Components/Onboarding/Build.jsx:87
-#: src/Components/Onboarding/Create.jsx:93
-#: src/Components/Onboarding/ExtendOnboarding.jsx:100
+#: src/Components/Onboarding/Create.jsx:107
+#: src/Components/Onboarding/ExtendOnboarding.jsx:101
 #: src/Components/Settings/ThemeSupport.jsx:63
 #: src/Components/Settings/UsageTracking.jsx:32
 msgid "Settings saved successfully!"
 msgstr ""
 
 #: src/Components/Onboarding/Build.jsx:92
-#: src/Components/Onboarding/Create.jsx:105
-#: src/Components/Onboarding/ExtendOnboarding.jsx:106
+#: src/Components/Onboarding/Create.jsx:119
+#: src/Components/Onboarding/ExtendOnboarding.jsx:107
 #: src/Components/Settings/ThemeSupport.jsx:68
 #: src/Components/Settings/UsageTracking.jsx:37
 msgid "Failed to save settings!"
 msgstr ""
 
-#: src/Components/Onboarding/Create.jsx:165
+#: src/Components/Onboarding/Create.jsx:179
 msgid "You’re All Set to Start Creating! 🚀"
 msgstr ""
 
-#: src/Components/Onboarding/Create.jsx:174
+#: src/Components/Onboarding/Create.jsx:188
 msgid ""
 "Ultimate Addons is ready to supercharge your Elementor workflow! Build "
 "faster, cleaner, and more creatively — with complete control over your site."
 msgstr ""
 
-#: src/Components/Onboarding/Create.jsx:180
+#: src/Components/Onboarding/Create.jsx:194
 msgid "What You Can Do Next:"
 msgstr ""
 
-#: src/Components/Onboarding/Create.jsx:202
+#: src/Components/Onboarding/Create.jsx:216
 msgid "Build a custom header"
 msgstr ""
 
-#: src/Components/Onboarding/Create.jsx:218
+#: src/Components/Onboarding/Create.jsx:232
 msgid "Design your site footer"
 msgstr ""
 
-#: src/Components/Onboarding/Create.jsx:234
+#: src/Components/Onboarding/Create.jsx:248
 msgid "Create a new page"
 msgstr ""
 
-#: src/Components/Onboarding/Create.jsx:277
+#: src/Components/Onboarding/Create.jsx:291
 msgid "Create New Header"
 msgstr ""
 
-#: src/Components/Onboarding/Create.jsx:298
+#: src/Components/Onboarding/Create.jsx:312
 msgid "Create New Footer"
 msgstr ""
 
-#: src/Components/Onboarding/ExtendOnboarding.jsx:253
+#: src/Components/Onboarding/ExtendOnboarding.jsx:268
 msgid "Please enter a valid email address"
 msgstr ""
 
-#: src/Components/Onboarding/ExtendOnboarding.jsx:349
+#: src/Components/Onboarding/ExtendOnboarding.jsx:366
 msgid "Recommended Essentials"
 msgstr ""
 
-#: src/Components/Onboarding/ExtendOnboarding.jsx:360
+#: src/Components/Onboarding/ExtendOnboarding.jsx:377
 msgid ""
 "These free plugins add essential features to your website and help speed up "
 "your workflow. Select the plugins you want to install."
 msgstr ""
 
-#: src/Components/Onboarding/ExtendOnboarding.jsx:433
+#: src/Components/Onboarding/ExtendOnboarding.jsx:450
 msgid "Get Important Notifications and Updates"
 msgstr ""
 
-#: src/Components/Onboarding/ExtendOnboarding.jsx:492
+#: src/Components/Onboarding/ExtendOnboarding.jsx:509
 msgid "Email Address"
 msgstr ""
 
-#: src/Components/Onboarding/ExtendOnboarding.jsx:526
+#: src/Components/Onboarding/ExtendOnboarding.jsx:543
 msgid ""
-"Notify me about critical updates and new features and help us improve by "
+"Stay in the loop and help shape Ultimate Addons for Elementor! Get feature "
+"updates, and help us build a better Ultimate Addons for Elementor by "
 "sharing how you use the plugin. "
 msgstr ""
 
-#: src/Components/Onboarding/ExtendOnboarding.jsx:535
+#: src/Components/Onboarding/ExtendOnboarding.jsx:552
 msgid " Privacy Policy"
 msgstr ""
 
-#: src/Components/Onboarding/ExtendOnboarding.jsx:551
+#: src/Components/Onboarding/ExtendOnboarding.jsx:568
 #: src/Components/Onboarding/Features.jsx:389
 msgid "Back"
 msgstr ""
 
-#: src/Components/Onboarding/ExtendOnboarding.jsx:560
-#: src/Components/Onboarding/Features.jsx:398
+#: src/Components/Onboarding/ExtendOnboarding.jsx:580
+#: src/Components/Onboarding/Features.jsx:401
 msgid "Skip"
 msgstr ""
 
-#: src/Components/Onboarding/ExtendOnboarding.jsx:573
-#: src/Components/Onboarding/Features.jsx:426
+#: src/Components/Onboarding/ExtendOnboarding.jsx:593
+#: src/Components/Onboarding/Features.jsx:432
 msgid "Next"
 msgstr ""
 
@@ -973,15 +995,15 @@ msgid ""
 "promotions, or show messages without needing a separate popup plugin."
 msgstr ""
 
-#: src/Components/Onboarding/Features.jsx:412
+#: src/Components/Onboarding/Features.jsx:415
 msgid "Upgrade"
 msgstr ""
 
-#: src/Components/Onboarding/Features.jsx:441
+#: src/Components/Onboarding/Features.jsx:447
 msgid "You've picked Pro features upgrade to start using them."
 msgstr ""
 
-#: src/Components/Onboarding/WelcomeNew.jsx:121
+#: src/Components/Onboarding/WelcomeNew.jsx:124
 msgid "Let's Get Started"
 msgstr ""
 
@@ -1005,7 +1027,7 @@ msgstr ""
 msgid "Reliable support from experts when you need it"
 msgstr ""
 
-#: src/Components/Onboarding/index.js:89
+#: src/Components/Onboarding/index.js:151
 msgid "Exit Guided Setup"
 msgstr ""
 
@@ -1121,8 +1143,11 @@ msgstr ""
 msgid "Version Control"
 msgstr ""
 
-#: src/Components/Settings/Settings.jsx:91
-msgid "Branding"
+#: src/Components/Settings/ThemeSupport.jsx:10
+msgid ""
+"This option will automatically replace your theme's header and footer files "
+"with custom templates from the plugin. It works with most themes and is "
+"selected by default."
 msgstr ""
 
 #: src/Components/Settings/ThemeSupport.jsx:140
@@ -1141,9 +1166,8 @@ msgstr ""
 
 #: src/Components/Settings/ThemeSupport.jsx:16
 msgid ""
-"This option will automatically replace your theme's header and footer files "
-"with custom templates from the plugin. It works with most themes and is "
-"selected by default."
+"This option hides your theme's header and footer using CSS and displays "
+"custom templates from the plugin. Use this if Option 1 causes layout issues."
 msgstr ""
 
 #: src/Components/Settings/ThemeSupport.jsx:9
@@ -1162,9 +1186,9 @@ msgstr ""
 
 #: src/Components/Settings/UsageTracking.jsx:68
 msgid ""
-"Collect non-sensitive information from your website, such as the PHP "
-"version and features used, to help us fix bugs faster, make smarter "
-"decisions, and build features that actually matter to you. "
+"Help shape the future of Ultimate Addons for Elementor. Share how you use "
+"the plugin so we can build features that matter, fix issues faster, and "
+"make smarter decisions. "
 msgstr ""
 
 #: src/Components/Settings/UsageTracking.jsx:78
@@ -1217,7 +1241,7 @@ msgstr ""
 #: src/Components/Templates/ExploreTemplates.jsx:183
 msgid ""
 "Stop building your site from scratch. Use our professional templates for "
-"your stunning website.It is easy to customize and completely responsive. "
+"your stunning website. It is easy to customize and completely responsive. "
 "Explore hundreds of designs and bring your vision to life in no time."
 msgstr ""
 
@@ -1274,7 +1298,7 @@ msgid "Deactivating..."
 msgstr ""
 
 #: src/Components/Widgets/Features/FeatureWidgets.jsx:253
-msgid "Deactivate All "
+msgid "Deactivate All"
 msgstr ""
 
 #: src/Components/Widgets/UltimateWidgetFeatures.jsx:149
@@ -1293,4 +1317,35 @@ msgstr ""
 
 #: src/Components/Widgets/UltimateWidgets.jsx:119
 msgid "Compare Free vs Pro"
+msgstr ""
+
+#: src/lib/bsf-learn/components/BsfLearnChapters.js:102
+#. %1$d is the number of completed steps, %2$d is the total number of steps.
+msgid "%1$d of %2$d steps completed"
+msgstr ""
+
+#: src/lib/bsf-learn/components/BsfLearnChapters.js:89
+#: src/lib/bsf-learn/components/BsfLearnStep.js:146
+msgid "Learn how"
+msgstr ""
+
+#: src/lib/bsf-learn/components/BsfLearnStep.js:165
+msgid "Set Up"
+msgstr ""
+
+#: src/lib/bsf-learn/components/BsfLearnStep.js:86
+msgid "Mark as incomplete"
+msgstr ""
+
+#: src/lib/bsf-learn/components/BsfLearnStep.js:87
+msgid "Mark as complete"
+msgstr ""
+
+#: src/lib/bsf-learn/components/learn-how/Checklist.js:25
+#. %s is the step number.
+msgid "Step %d:"
+msgstr ""
+
+#: src/lib/bsf-learn/useBsfLearn.js:78
+msgid "Failed to save progress. Please try again."
 msgstr ""

@@ -6,6 +6,10 @@
  * @package automattic/jetpack
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Add featured media url to API post responses.
  */
@@ -38,8 +42,14 @@ class WPCOM_REST_API_V2_Sites_Posts_Add_Featured_Media_URL {
 	 * @param mixed           $object      What the endpoint returns.
 	 * @param string          $field_name  Should always match `->field_name`.
 	 * @param WP_REST_Request $request     WP API request.
+	 *
+	 * @return string
 	 */
 	public function get_featured_media_url( $object, $field_name, $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+		if ( ! isset( $object['id'] ) ) {
+			return '';
+		}
+
 		$featured_media_url = '';
 		$image_attributes   = wp_get_attachment_image_src(
 			get_post_thumbnail_id( $object['id'] ),

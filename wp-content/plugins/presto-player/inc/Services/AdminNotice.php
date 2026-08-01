@@ -1,48 +1,93 @@
 <?php
+/**
+ * Temporary admin notice service.
+ *
+ * @package PrestoPlayer
+ */
 
 namespace PrestoPlayer\Services;
 
-class AdminNotice
-{
-    const NOTICE_FIELD = 'presto_player_temp_admin_notice';
+/**
+ * Stores and displays a one-time admin notice.
+ */
+class AdminNotice {
 
-    public static function displayAdminNotice()
-    {
-        $option      = get_option(self::NOTICE_FIELD);
-        $message     = isset($option['message']) ? $option['message'] : false;
-        $noticeLevel = !empty($option['notice-level']) ? $option['notice-level'] : 'notice-error';
+	const NOTICE_FIELD = 'presto_player_temp_admin_notice';
 
-        if ($message) {
-            echo "<div class='notice {$noticeLevel} is-dismissible'><p>{$message}</p></div>";
-            delete_option(self::NOTICE_FIELD);
-        }
-    }
+	/**
+	 * Display the stored admin notice, then remove it.
+	 *
+	 * @return void
+	 */
+	public static function displayAdminNotice() {
+		$option       = get_option( self::NOTICE_FIELD );
+		$message      = isset( $option['message'] ) ? $option['message'] : false;
+		$notice_level = ! empty( $option['notice-level'] ) ? $option['notice-level'] : 'notice-error';
 
-    public static function displayError($message)
-    {
-        self::updateOption($message, 'notice-error');
-    }
+		if ( $message ) {
+			printf(
+				'<div class="notice %s is-dismissible"><p>%s</p></div>',
+				esc_attr( $notice_level ),
+				wp_kses_post( $message )
+			);
+			delete_option( self::NOTICE_FIELD );
+		}
+	}
 
-    public static function displayWarning($message)
-    {
-        self::updateOption($message, 'notice-warning');
-    }
+	/**
+	 * Queue an error notice.
+	 *
+	 * @param string $message Notice message.
+	 * @return void
+	 */
+	public static function displayError( $message ) {
+		self::updateOption( $message, 'notice-error' );
+	}
 
-    public static function displayInfo($message)
-    {
-        self::updateOption($message, 'notice-info');
-    }
+	/**
+	 * Queue a warning notice.
+	 *
+	 * @param string $message Notice message.
+	 * @return void
+	 */
+	public static function displayWarning( $message ) {
+		self::updateOption( $message, 'notice-warning' );
+	}
 
-    public static function displaySuccess($message)
-    {
-        self::updateOption($message, 'notice-success');
-    }
+	/**
+	 * Queue an info notice.
+	 *
+	 * @param string $message Notice message.
+	 * @return void
+	 */
+	public static function displayInfo( $message ) {
+		self::updateOption( $message, 'notice-info' );
+	}
 
-    protected static function updateOption($message, $noticeLevel)
-    {
-        update_option(self::NOTICE_FIELD, [
-            'message' => $message,
-            'notice-level' => $noticeLevel
-        ]);
-    }
+	/**
+	 * Queue a success notice.
+	 *
+	 * @param string $message Notice message.
+	 * @return void
+	 */
+	public static function displaySuccess( $message ) {
+		self::updateOption( $message, 'notice-success' );
+	}
+
+	/**
+	 * Store the notice message and level for later display.
+	 *
+	 * @param string $message      Notice message.
+	 * @param string $notice_level Notice CSS level class.
+	 * @return void
+	 */
+	protected static function updateOption( $message, $notice_level ) {
+		update_option(
+			self::NOTICE_FIELD,
+			array(
+				'message'      => $message,
+				'notice-level' => $notice_level,
+			)
+		);
+	}
 }

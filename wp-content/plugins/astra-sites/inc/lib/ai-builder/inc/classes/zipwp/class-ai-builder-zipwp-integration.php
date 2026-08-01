@@ -9,13 +9,11 @@
 namespace AiBuilder\Inc\Classes\Zipwp;
 
 use AiBuilder\Inc\Traits\Instance;
-use AiBuilder\Inc\Classes\Ai_Builder_Importer_Log;
 
 /**
  * ZipWP Integration
  */
 class Ai_Builder_ZipWP_Integration {
-
 	use Instance;
 
 	/**
@@ -38,14 +36,23 @@ class Ai_Builder_ZipWP_Integration {
 
 		global $pagenow;
 
-		//phpcs:disable WordPress.Security.NonceVerification.Recommended
-
-		if ( ! is_admin() || ! isset( $_GET['page'] ) ) { //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! is_admin() || ! isset( $_GET['page'] ) ) {
 			return;
 		}
 
 		// Check if we are on the starter templates page.
 		if ( 'themes.php' !== $pagenow || 'ai-builder' !== $_GET['page'] ) {
+			return;
+		}
+
+		if ( ! isset( $_GET['security'] ) ) {
+			return;
+		}
+
+		$security = sanitize_text_field( $_GET['security'] );
+
+		// Verify the nonce.
+		if ( ! wp_verify_nonce( $security, 'zipwp-auth-nonce' ) ) {
 			return;
 		}
 
@@ -110,8 +117,7 @@ class Ai_Builder_ZipWP_Integration {
 
 		// Encrypt the input and return it.
 		$base_64 = base64_encode( $input ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-		$encode  = rtrim( $base_64, '=' );
-		return $encode;
+		return rtrim( $base_64, '=' );
 	}
 
 	/**
@@ -145,18 +151,18 @@ class Ai_Builder_ZipWP_Integration {
 		}
 
 		$details = array(
-			'business_name'          => ( ! empty( $details['business_name'] ) ) ? $details['business_name'] : '',
-			'business_address'       => ( ! empty( $details['business_address'] ) ) ? $details['business_address'] : '',
-			'business_phone'         => ( ! empty( $details['business_phone'] ) ) ? $details['business_phone'] : '',
-			'business_email'         => ( ! empty( $details['business_email'] ) ) ? $details['business_email'] : '',
-			'business_category'      => ( ! empty( $details['business_category'] ) ) ? $details['business_category'] : '',
-			'business_category_name' => ( ! empty( $details['business_category_name'] ) ) ? $details['business_category_name'] : '',
-			'business_description'   => ( ! empty( $details['business_description'] ) ) ? $details['business_description'] : '',
-			'templates'              => ( ! empty( $details['templates'] ) ) ? $details['templates'] : array(),
-			'language'               => ( ! empty( $details['language'] ) ) ? $details['language'] : '',
-			'images'                 => ( ! empty( $details['images'] ) ) ? $details['images'] : array(),
-			'social_profiles'        => ( ! empty( $details['social_profiles'] ) ) ? $details['social_profiles'] : array(),
-			'image_keyword'          => ( ! empty( $details['image_keyword'] ) ) ? $details['image_keyword'] : array(),
+			'business_name'          => ! empty( $details['business_name'] ) ? $details['business_name'] : '',
+			'business_address'       => ! empty( $details['business_address'] ) ? $details['business_address'] : '',
+			'business_phone'         => ! empty( $details['business_phone'] ) ? $details['business_phone'] : '',
+			'business_email'         => ! empty( $details['business_email'] ) ? $details['business_email'] : '',
+			'business_category'      => ! empty( $details['business_category'] ) ? $details['business_category'] : '',
+			'business_category_name' => ! empty( $details['business_category_name'] ) ? $details['business_category_name'] : '',
+			'business_description'   => ! empty( $details['business_description'] ) ? $details['business_description'] : '',
+			'templates'              => ! empty( $details['templates'] ) ? $details['templates'] : array(),
+			'language'               => ! empty( $details['language'] ) ? $details['language'] : '',
+			'images'                 => ! empty( $details['images'] ) ? $details['images'] : array(),
+			'social_profiles'        => ! empty( $details['social_profiles'] ) ? $details['social_profiles'] : array(),
+			'image_keyword'          => ! empty( $details['image_keyword'] ) ? $details['image_keyword'] : array(),
 		);
 
 		if ( ! empty( $key ) ) {
@@ -235,8 +241,7 @@ class Ai_Builder_ZipWP_Integration {
 
 		// Decrypt the input and return it.
 		$base_64 = $input . str_repeat( '=', strlen( $input ) % 4 );
-		$decode  = base64_decode( $base_64 ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-		return $decode;
+		return base64_decode( $base_64 ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 	}
 
 }

@@ -1,3 +1,3 @@
 export declare class PrestoModernSkin {
-  render(): any;
+    render(): any;
 }

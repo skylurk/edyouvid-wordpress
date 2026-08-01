@@ -1,11 +1,9 @@
 <?php 
 $product_id      = $product->get_id();
-$qv_button_label = get_option( 'qv_button_label', __( 'Qiuck View', 'woo-product-table' ) );
-
-$class_name = class_exists('CAWQV_PLUGIN_LITE') ? 'caqv-open-modal' : 'caqv-open-modal-notfound';
+if(shortcode_exists('bizzview')){
+    echo do_shortcode( '[bizzview id="' . esc_attr( $product_id ) . '"]' );  
+}elseif( is_user_logged_in() ){
+    //Download linkk for admin if shortcode not exists
+    echo '<a href="https://wordpress.org/plugins/ca-quick-view/" target="_blank" class="bizzview-upgrade-button" title="' . esc_attr__( 'Download Bizzview - Quick View Plugin', 'woo-product-table' ) . '">' . __( '⬇️ Tool', 'woo-product-table' ) . '</a>';
+}
 ?>
-<button type="button" class="<?php echo esc_attr( $class_name ); ?>" 
-data-id="<?php echo esc_attr( absint( $product_id ) ); ?>" >
-    <i class="btn-icon <?php echo esc_attr( get_option('cawqv_general_section', 'cawqv-icon-search' ) ); ?>"></i>
-    <span><?php echo esc_html( $qv_button_label ) ?> </span>
-</button>

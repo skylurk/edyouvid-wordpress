@@ -546,7 +546,7 @@ div.wpvivid-note{
 .setting-tab-block{padding: 10px 10px 10px 0;}
 .setting-tab-block input{display:line-block; margin-top:10px; margin-bottom:10px;margin-right:10px;}
 .setting-page-content{padding-left:10px;}
-.backup-log-btn{height:30px;float:left; margin-left:10px; margin-bottom:10px;}
+.backup-log-btn{float:left; margin-left:10px; margin-bottom:10px;}
 @keyframes rotate { 0%   { transform: rotate(0); } 100%  { transform: rotate(359.9deg); } }
 .wpvivid-backup-storage-list tr:hover,
 .wpvivid-websiteinfo-list tr:hover,

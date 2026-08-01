@@ -9,6 +9,10 @@
  * @package automattic/jetpack
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 wp_oembed_add_provider( 'https://me.sh/*', 'https://me.sh/oembed?format=json' );
 wp_oembed_add_provider( '#https?://(www\.)?gfycat\.com/.*#i', 'https://api.gfycat.com/v1/oembed', true );
 wp_oembed_add_provider( '#https?://[^.]+\.(wistia\.com|wi\.st)/(medias|embed)/.*#', 'https://fast.wistia.com/oembed', true );
@@ -26,8 +30,11 @@ wp_oembed_add_provider( '#https?://(www\.)?loom\.com/share/.*#i', 'https://www.l
  *
  * @return int The timeout value in seconds.
  */
-function jetpack_oembed_timeout_override( $timeout, $url ) {
-	if ( false !== strpos( $url, 'iwmb.icloud.com' ) ) {
+function jetpack_oembed_timeout_override( $timeout, $url = '' ) {
+	if (
+		is_string( $url )
+		&& str_contains( $url, 'iwmb.icloud.com' )
+	) {
 		return 10;
 	}
 	return $timeout;

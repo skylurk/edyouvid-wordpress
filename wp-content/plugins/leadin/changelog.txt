@@ -1,3 +1,6 @@
+= 11.3.44 (2026-03-18) =
+* Fixed a trailing comma error on PHP versions lower than 7.3
+
 = 11.3.39 (2026-01-29) =
 * Ensure reverse proxy passes through request/response headers
 
@@ -300,7 +303,4 @@
 
 = 8.13.45 (2022-06-08) =
 * Remove char from proxy url
-
-= 8.13.39 (2022-06-07) =
-* Add tracking of events in review banner
 

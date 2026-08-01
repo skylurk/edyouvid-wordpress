@@ -1,14 +1,11 @@
 <?php
 namespace Elementor;
 
-use Elementor\Core\Editor\Editor;
 use Elementor\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit; // Exit if accessed directly.
 }
-
-$is_editor_v2_active = Plugin::$instance->experiments->is_feature_active( Editor::EDITOR_V2_EXPERIMENT_NAME );
 ?>
 <script type="text/template" id="tmpl-elementor-hotkeys">
 	<# var ctrlLabel = environment.mac ? '&#8984;' : 'Ctrl'; #>
@@ -85,6 +82,17 @@ $is_editor_v2_active = Plugin::$instance->experiments->is_feature_active( Editor
 					</div>
 				</li>
 
+				<?php if ( Utils::has_pro() && Plugin::$instance->experiments->is_feature_active( 'e_atomic_elements' ) ) : ?>
+				<li class="elementor-hotkeys__item">
+					<div class="elementor-hotkeys__item--label"><?php echo esc_html__( 'Create Component', 'elementor' ); ?></div>
+					<div class="elementor-hotkeys__item--shortcut">
+						<kbd>{{{ ctrlLabel }}}</kbd>
+						<kbd>Shift</kbd>
+						<kbd>K</kbd>
+					</div>
+				</li>
+				<?php endif ?>
+
 			</ul>
 
 		</div>
@@ -120,11 +128,7 @@ $is_editor_v2_active = Plugin::$instance->experiments->is_feature_active( Editor
 				</li>
 
 				<li class="elementor-hotkeys__item">
-					<div class="elementor-hotkeys__item--label"><?php
-						echo $is_editor_v2_active
-							? esc_html__( 'Structure', 'elementor' )
-							: esc_html__( 'Navigator', 'elementor' );
-					?></div>
+					<div class="elementor-hotkeys__item--label"><?php echo esc_html__( 'Structure', 'elementor' ); ?></div>
 					<div class="elementor-hotkeys__item--shortcut">
 						<kbd>{{{ ctrlLabel }}}</kbd>
 						<kbd>I</kbd>

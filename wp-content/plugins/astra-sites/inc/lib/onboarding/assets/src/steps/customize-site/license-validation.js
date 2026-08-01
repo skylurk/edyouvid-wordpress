@@ -33,7 +33,7 @@ const LicenseValidation = ( param ) => {
 	}, [] );
 
 	const accessLinkOutput = __(
-		`Access this template and all others with Essentials & Business Toolkit package starting at just $79.`,
+		`Access this template and all others with Essentials & Business Toolkit package.`,
 		'astra-sites'
 	);
 
@@ -43,12 +43,12 @@ const LicenseValidation = ( param ) => {
 	);
 
 	const getAccessLink = () => {
-		window.open( astraSitesVars.cta_links[ builder ] );
+		window.open( astraSitesVars?.cta_links[ builder ] );
 	};
 
 	const getwhiteLabelLink = () => {
-		if ( astraSitesVars.whiteLabelUrl !== '#' ) {
-			window.open( astraSitesVars.whiteLabelUrl );
+		if ( astraSitesVars?.whiteLabelUrl !== '#' ) {
+			window.open( astraSitesVars?.whiteLabelUrl );
 		}
 	};
 
@@ -95,7 +95,7 @@ const LicenseValidation = ( param ) => {
 			`If you have already purchased the Essential or Business Toolkit, please install the premium version of the Starter Templates plugin from our %1$sstore%2$s.`,
 			'astra-sites'
 		),
-		`<a href="https://wpastra.com/support/free-support/" target="_blank">`,
+		`<a href="https://store.brainstormforce.com/account/" target="_blank">`,
 		`</a>`
 	);
 

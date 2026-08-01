@@ -1,6 +1,9 @@
-// In your application's entrypoint
-const { InnerBlocks, useBlockProps } = wp.blockEditor;
+import { __ } from "@wordpress/i18n";
 import edit from "./edit";
+import save from "./save";
+import { select } from "@wordpress/data";
+import { store as coreStore } from "@wordpress/core-data";
+import deprecated from "./deprecated";
 
 /**
  * Block Name
@@ -11,7 +14,7 @@ export const name = "presto-player/reusable-display";
  * Block Options
  */
 export const options = {
-  title: "Reusable Block Display",
+  title: __("Media Hub Item", "presto-player"),
 
   category: "presto",
 
@@ -20,35 +23,46 @@ export const options = {
   },
 
   supports: {
-    align: true,
     inserter: false,
     reusable: false,
     html: false,
+    align: true,
   },
 
   usesContext: ["presto-player/playlist-media-id"],
+  providesContext: {
+    "presto-player/playlist-media-id": "id",
+  },
 
   icon: (
     <svg
-      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      xmlns="http://www.w3.org/2000/svg"
       className="presto-block-icon"
     >
-      <circle cx="12" cy="12" r="10"></circle>
-      <line x1="2" y1="12" x2="22" y2="12"></line>
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+      <path
+        d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10 8L16 12L10 16V8Z"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   ),
-
   edit,
-
-  // dynamic save function
-  save: function () {
-    return null;
+  save,
+  __experimentalLabel: (attributes) => {
+    const queryArgs = ["postType", "pp_video_block", attributes.id];
+    const videoRecord = select(coreStore).getEditedEntityRecord(...queryArgs);
+    return videoRecord?.title;
   },
+  deprecated,
 };

@@ -557,6 +557,7 @@ var thwcfd_settings_field = (function($, window, document) {
 		cssclass    : {name : 'cssclass', type : 'text'},
 
 		title          : {name : 'title', type : 'text'},
+		title_type : {name : 'title_type', type : 'select'},	
 
 		order_meta : {name : 'order_meta', type : 'checkbox'},
 		user_meta  : {name : 'user_meta', type : 'checkbox'},
@@ -707,7 +708,7 @@ var thwcfd_settings_field = (function($, window, document) {
 			var type   = field['type'];
 			var value  = props && props[name] ? props[name] : '';
 
-			if(ftype == 'textarea' && name == 'default'){
+			if(ftype == 'textarea' && name == 'value'){
 				type = "textarea";
 			}
 
@@ -756,6 +757,19 @@ var thwcfd_settings_field = (function($, window, document) {
 		form.find('.thwcfd_field_form_tab_general_placeholder').html($('#thwcfd_field_form_id_'+type).html());
 
 		enable_all_tabs_and_fields(popup, form);
+
+		if (popup.hasClass('thadmin-block-form')) {
+			var displayStylesTab = popup.find('ul.pp_nav_links li.pp-nav-link-price');
+			if (displayStylesTab.length) {
+				var displayTabIndex = displayStylesTab.data('index');
+				displayTabIndex = typeof displayTabIndex !== 'undefined' ? parseInt(displayTabIndex, 10) : 1;
+				if (type === 'paragraph' || type === 'heading') {
+					thwcfd_base.form_wizard_disable_tab(popup, displayTabIndex);
+				} else {
+					thwcfd_base.form_wizard_enable_tab(popup, displayTabIndex);
+				}
+			}
+		}
 
 		if(type in FIELDS_TO_HIDE){
 			$.each(FIELDS_TO_HIDE[type], function(index, name) {
@@ -1029,7 +1043,9 @@ function thwcfdRemoveOptionRow(elm){
 function thwcfdSaveField(elm){
 	thwcfd_settings_field.save_field(elm);
 }
-
+function thwcfdValidateFieldForm(elm){
+	
+}
 var thwcfd_settings_section = (function($, window, document) {
 	'use strict';
 

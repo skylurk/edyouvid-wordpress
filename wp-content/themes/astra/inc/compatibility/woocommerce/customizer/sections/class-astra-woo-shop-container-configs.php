@@ -3,8 +3,6 @@
  * Container Options for Astra theme.
  *
  * @package     Astra
- * @author      Brainstorm Force
- * @copyright   Copyright (c) 2020, Brainstorm Force
  * @link        https://www.brainstormforce.com
  * @since       Astra 1.0
  */
@@ -19,7 +17,6 @@ if ( ! class_exists( 'Astra_Woo_Shop_Container_Configs' ) ) {
 	 * Customizer Sanitizes Initial setup
 	 */
 	class Astra_Woo_Shop_Container_Configs extends Astra_Customizer_Config_Base {
-
 		/**
 		 * Register Astra-WooCommerce Shop Container Settings.
 		 *
@@ -33,32 +30,60 @@ if ( ! class_exists( 'Astra_Woo_Shop_Container_Configs' ) ) {
 			$_configs = array(
 
 				/**
-				 * Option: Shop Page
+				 * Option: Revamped Container Layout.
 				 */
 				array(
-					'name'     => ASTRA_THEME_SETTINGS . '[woocommerce-content-layout]',
-					'type'     => 'control',
-					'control'  => 'ast-select',
-					'default'  => astra_get_option( 'woocommerce-content-layout' ),
-					'section'  => 'section-container-layout',
-					'priority' => 85,
-					'title'    => __( 'WooCommerce Layout', 'astra' ),
-					'divider'  => array( 'ast_class' => 'ast-top-divider' ),
-					'choices'  => array(
-						'default'                 => __( 'Default', 'astra' ),
-						'boxed-container'         => __( 'Boxed', 'astra' ),
-						'content-boxed-container' => __( 'Content Boxed', 'astra' ),
-						'plain-container'         => __( 'Full Width / Contained', 'astra' ),
-						'page-builder'            => __( 'Full Width / Stretched', 'astra' ),
+					'name'              => ASTRA_THEME_SETTINGS . '[woocommerce-ast-content-layout]',
+					'type'              => 'control',
+					'control'           => 'ast-radio-image',
+					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_choices' ),
+					'section'           => 'section-woo-general',
+					'default'           => astra_get_option( 'woocommerce-ast-content-layout' ),
+					'priority'          => 5,
+					'title'             => __( 'Container Layout', 'astra' ),
+					'choices'           => array(
+						'default'                => array(
+							'label' => __( 'Default', 'astra' ),
+							'path'  => class_exists( 'Astra_Builder_UI_Controller' ) ? Astra_Builder_UI_Controller::fetch_svg_icon( 'layout-default', false ) : '',
+						),
+						'normal-width-container' => array(
+							'label' => __( 'Normal', 'astra' ),
+							'path'  => class_exists( 'Astra_Builder_UI_Controller' ) ? Astra_Builder_UI_Controller::fetch_svg_icon( 'normal-width-container', false ) : '',
+						),
+						'full-width-container'   => array(
+							'label' => __( 'Full Width', 'astra' ),
+							'path'  => class_exists( 'Astra_Builder_UI_Controller' ) ? Astra_Builder_UI_Controller::fetch_svg_icon( 'full-width-container', false ) : '',
+						),
 					),
+					'divider'           => array( 'ast_class' => 'ast-section-spacing ast-bottom-spacing' ),
+				),
+
+				/**
+				 * Option: Content Style Option.
+				 */
+				array(
+					'name'        => ASTRA_THEME_SETTINGS . '[woocommerce-content-style]',
+					'type'        => 'control',
+					'control'     => 'ast-selector',
+					'section'     => 'section-woo-general',
+					'default'     => astra_get_option( 'woocommerce-content-style', 'default' ),
+					'priority'    => 5,
+					'title'       => __( 'Container Style', 'astra' ),
+					'description' => __( 'Container style will apply only when layout is set to either normal or narrow.', 'astra' ),
+					'choices'     => array(
+						'default' => __( 'Default', 'astra' ),
+						'unboxed' => __( 'Unboxed', 'astra' ),
+						'boxed'   => __( 'Boxed', 'astra' ),
+					),
+					'renderAs'    => 'text',
+					'responsive'  => false,
+					'divider'     => array( 'ast_class' => 'ast-top-divider' ),
 				),
 			);
 
 			return array_merge( $configurations, $_configs );
-
 		}
 	}
 }
 
 new Astra_Woo_Shop_Container_Configs();
-

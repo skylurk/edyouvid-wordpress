@@ -3,9 +3,9 @@ Contributors: asanaplugins
 Donate link: https://www.asanaplugins.com/
 Tags: discount, coupon, bulk discount, category discount, bogo, woocommerce, woocommerce discounts, woocommerce pricing deals, woocommerce Buy One Get One Free, bulk coupons, gift coupons, signup coupons, advanced coupons, woocommerce bulk discounts, woocommerce pricing, woocommerce price rules, woocommerce advanced discounts, woocommerce pricing deals, woocommerce bulk discounts, woocommerce cart discounts, woocommerce pricing deals, woocommerce discount rules, discount rules for woocommerce, woocommerce shipping, dynamic shipping, url coupons for woocommerce
 Requires at least: 4.4.2
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 5.6.0
-Stable tag: 8.1.2
+Stable tag: 9.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -254,6 +254,34 @@ Just install the plugin pro version and create a purchase rule easily and we hav
 7. WooCommerce Checkout Fee - Charge £20.00 fee when weight is greater than a specific wheight.
 
 == Changelog ==
+
+= 9.1.1 =
+* Fix: When a product updates, the background price updater now updates only that product.
+* Update: Verified compatibility with WooCommerce 10.8.1
+
+= 9.1.0 =
+* New: Added order total coupon rules.
+* New: Added products subtotal coupon rules.
+* New: Added minimum spend templates.
+* New: Added cart total coupons templates.
+* New: Added generate coupon code button to generate coupon codes easily.
+* New: Added user role based coupon code templates to create coupons fast & easy.
+* Fix: Fixed quantity based on field in bulk pricing for variations templates.
+* Update: Verified compatibility with WooCommerce 10.8.1
+* Update: Verified compatibility with WordPress 7.0
+
+= 9.0.1 =
+* Fix: Fixed checkout integration js file doesn't load issue.
+* Update: Verified compatibility with WooCommerce 10.7.0
+
+= 9.0.0 =
+* New: Added "BOGO" or "Buy One Get One free" deals support for products in free version.
+* New: Added "Buy 2 Get 1 Free" deals support for products in the free version.
+* New: Added "Buy 3 Get 1 Free" deals support for products in the free version.
+* New: Added "Add from Template" button for the rules in the admin side to create rules quickly & easily with just a few edits.
+* New: Performance improvement on get_available_variatoins for variable products.
+* Fix: Added a compatibility for the Porto theme skeleton feature for bulk pricing rules table.
+* Update: Verified compatibility with WooCommerce 10.5.2
 
 = 8.1.2 =
 * Update: Update WordPress tested version to 6.9

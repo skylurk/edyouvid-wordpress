@@ -94,16 +94,16 @@ class Data {
 		);
 
 		$args = array(
-			'order'      => $video_data['query']['order'],
-			'orderby'    => $video_data['query']['orderBy'],
-			'per_page'   => $video_data['query']['itemsPerPage'],
-			'page'       => $video_data['query']['page'],
-			'media_type' => 'video',
+			'order'    => $video_data['query']['order'],
+			'orderby'  => $video_data['query']['orderBy'],
+			'per_page' => $video_data['query']['itemsPerPage'],
+			'page'     => $video_data['query']['page'],
 		);
 
 		if ( $is_videopress ) {
 			$args['mime_type'] = 'video/videopress';
 		} else {
+			$args['media_type']    = 'video';
 			$args['no_videopress'] = true;
 		}
 
@@ -292,9 +292,9 @@ class Data {
 				$description = $jetpack_videopress['description'];
 				$caption     = $jetpack_videopress['caption'];
 
-				$width    = isset( $media_details['width'] ) ? $media_details['width'] : null;
-				$height   = isset( $media_details['height'] ) ? $media_details['height'] : null;
-				$duration = isset( $media_details['length'] ) ? $media_details['length'] : null;
+				$width    = $media_details['width'] ?? null;
+				$height   = $media_details['height'] ?? null;
+				$duration = $media_details['length'] ?? null;
 
 				return array(
 					'id'                     => $id,

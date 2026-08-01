@@ -6,6 +6,10 @@
  * @package automattic/jetpack
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Register a upcomingevents shortcode.
  * Most of the heavy lifting done in iCalendarReader class,
@@ -63,4 +67,4 @@ class Upcoming_Events_Shortcode {
 		return sprintf( '<p>%s</p>', __( 'No upcoming events', 'jetpack' ) );
 	}
 }
-add_action( 'plugins_loaded', array( 'Upcoming_Events_Shortcode', 'init' ), 101 );
+add_action( 'after_setup_theme', array( 'Upcoming_Events_Shortcode', 'init' ), 2 );

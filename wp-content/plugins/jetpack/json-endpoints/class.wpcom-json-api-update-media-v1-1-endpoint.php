@@ -5,6 +5,10 @@
  * Endpoint: v1.1/sites/%s/media/%d
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 new WPCOM_JSON_API_Update_Media_v1_1_Endpoint(
 	array(
 		'description'          => 'Edit basic information about a media item.',
@@ -75,6 +79,8 @@ new WPCOM_JSON_API_Update_Media_v1_1_Endpoint(
 // phpcs:disable PEAR.NamingConventions.ValidClassName.Invalid
 /**
  * Update media item info v1.1 class.
+ *
+ * @phan-constructor-used-for-side-effects
  */
 class WPCOM_JSON_API_Update_Media_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint {
 	/**
@@ -127,7 +133,7 @@ class WPCOM_JSON_API_Update_Media_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint 
 		}
 
 		// audio only artist/album info.
-		if ( 0 === strpos( $item->mime_type, 'audio/' ) ) {
+		if ( str_starts_with( $item->mime_type, 'audio/' ) ) {
 			$changed = false;
 			$id3data = wp_get_attachment_metadata( $media_id );
 
@@ -188,13 +194,13 @@ class WPCOM_JSON_API_Update_Media_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint 
 		return \Videopress_Attachment_Metadata::persist_metadata(
 			$media_id,
 			$item->videopress_guid,
-			isset( $input['title'] ) ? $input['title'] : null,
-			isset( $input['caption'] ) ? $input['caption'] : null,
-			isset( $input['description'] ) ? $input['description'] : null,
-			isset( $input['rating'] ) ? $input['rating'] : null,
-			isset( $input['display_embed'] ) ? $input['display_embed'] : null,
-			isset( $input['allow_download'] ) ? $input['allow_download'] : null,
-			isset( $input['privacy_setting'] ) ? $input['privacy_setting'] : null
+			$input['title'] ?? null,
+			$input['caption'] ?? null,
+			$input['description'] ?? null,
+			$input['rating'] ?? null,
+			$input['display_embed'] ?? null,
+			$input['allow_download'] ?? null,
+			$input['privacy_setting'] ?? null
 		);
 	}
 }

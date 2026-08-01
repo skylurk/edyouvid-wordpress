@@ -91,6 +91,34 @@ class Widget_Text_Editor extends Widget_Base {
 	}
 
 	/**
+	 * Get style dependencies.
+	 *
+	 * Retrieve the list of style dependencies the widget requires.
+	 *
+	 * The 'widget-text-editor' style is required only when the drop cap is used.
+	 * Therefor, style should not be loaded on the widget level, rather only on
+	 * control level when the drop cap is active.
+	 *
+	 * Only in the Editor, these style should be loaded on the widget level.
+	 *
+	 * @since 3.24.0
+	 * @access public
+	 *
+	 * @return array Widget style dependencies.
+	 */
+	public function get_style_depends(): array {
+		$style_dependencies = Plugin::$instance->editor->is_edit_mode() || Plugin::$instance->preview->is_preview_mode()
+			? [ 'widget-text-editor' ]
+			: [];
+
+		return $style_dependencies;
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
+	}
+
+	/**
 	 * Register text editor widget controls.
 	 *
 	 * Adds different input fields to allow the user to change and customize the widget settings.
@@ -123,6 +151,23 @@ class Widget_Text_Editor extends Widget_Base {
 				'label_on' => esc_html__( 'On', 'elementor' ),
 				'prefix_class' => 'elementor-drop-cap-',
 				'frontend_available' => true,
+				'assets' => [
+					'styles' => [
+						[
+							'name' => 'widget-text-editor',
+							'conditions' => [
+								'terms' => [
+									[
+										'name' => 'drop_cap',
+										'operator' => '===',
+										'value' => 'yes',
+									],
+								],
+							],
+						],
+					],
+
+				],
 			]
 		);
 
@@ -213,16 +258,16 @@ class Widget_Text_Editor extends Widget_Base {
 				'label' => esc_html__( 'Alignment', 'elementor' ),
 				'type' => Controls_Manager::CHOOSE,
 				'options' => [
-					'left' => [
-						'title' => esc_html__( 'Left', 'elementor' ),
+					'start' => [
+						'title' => esc_html__( 'Start', 'elementor' ),
 						'icon' => 'eicon-text-align-left',
 					],
 					'center' => [
 						'title' => esc_html__( 'Center', 'elementor' ),
 						'icon' => 'eicon-text-align-center',
 					],
-					'right' => [
-						'title' => esc_html__( 'Right', 'elementor' ),
+					'end' => [
+						'title' => esc_html__( 'End', 'elementor' ),
 						'icon' => 'eicon-text-align-right',
 					],
 					'justify' => [
@@ -230,24 +275,15 @@ class Widget_Text_Editor extends Widget_Base {
 						'icon' => 'eicon-text-align-justify',
 					],
 				],
+				'classes' => 'elementor-control-start-end',
+				'selectors_dictionary' => [
+					'left' => is_rtl() ? 'end' : 'start',
+					'right' => is_rtl() ? 'start' : 'end',
+				],
 				'selectors' => [
 					'{{WRAPPER}}' => 'text-align: {{VALUE}};',
 				],
-			]
-		);
-
-		$this->add_control(
-			'text_color',
-			[
-				'label' => esc_html__( 'Text Color', 'elementor' ),
-				'type' => Controls_Manager::COLOR,
-				'default' => '',
-				'selectors' => [
-					'{{WRAPPER}}' => 'color: {{VALUE}};',
-				],
-				'global' => [
-					'default' => Global_Colors::COLOR_TEXT,
-				],
+				'separator' => 'after',
 			]
 		);
 
@@ -268,6 +304,108 @@ class Widget_Text_Editor extends Widget_Base {
 				'selector' => '{{WRAPPER}}',
 			]
 		);
+
+		$this->add_responsive_control(
+			'paragraph_spacing',
+			[
+				'label' => esc_html__( 'Paragraph Spacing', 'elementor' ),
+				'type' => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'em', 'rem', 'vh', 'custom' ],
+				'range' => [
+					'px' => [
+						'max' => 100,
+					],
+					'em' => [
+						'min' => 0.1,
+						'max' => 20,
+					],
+				],
+				'selectors' => [
+					'{{WRAPPER}} p' => 'margin-block-end: {{SIZE}}{{UNIT}}',
+				],
+			]
+		);
+
+		$this->add_control(
+			'separator',
+			[
+				'type' => Controls_Manager::DIVIDER,
+			]
+		);
+
+		$this->start_controls_tabs( 'link_colors' );
+
+		$this->start_controls_tab(
+			'colors_normal',
+			[
+				'label' => esc_html__( 'Normal', 'elementor' ),
+			]
+		);
+
+		$this->add_control(
+			'text_color',
+			[
+				'label' => esc_html__( 'Text Color', 'elementor' ),
+				'type' => Controls_Manager::COLOR,
+				'default' => '',
+				'selectors' => [
+					'{{WRAPPER}}' => 'color: {{VALUE}};',
+				],
+				'global' => [
+					'default' => Global_Colors::COLOR_TEXT,
+				],
+			]
+		);
+
+		$this->add_control(
+			'link_color',
+			[
+				'label' => esc_html__( 'Link Color', 'elementor' ),
+				'type' => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} a' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->end_controls_tab();
+
+		$this->start_controls_tab(
+			'colors_hover',
+			[
+				'label' => esc_html__( 'Hover', 'elementor' ),
+			]
+		);
+
+		$this->add_control(
+			'link_hover_color',
+			[
+				'label' => esc_html__( 'Link Color', 'elementor' ),
+				'type' => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} a:hover, {{WRAPPER}} a:focus' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'link_hover_color_transition_duration',
+			[
+				'label' => esc_html__( 'Transition Duration', 'elementor' ),
+				'type' => Controls_Manager::SLIDER,
+				'size_units' => [ 's', 'ms', 'custom' ],
+				'default' => [
+					'unit' => 's',
+				],
+				'selectors' => [
+					'{{WRAPPER}} a' => 'transition-duration: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->end_controls_tab();
+
+		$this->end_controls_tabs();
 
 		$this->end_controls_section();
 
@@ -385,8 +523,7 @@ class Widget_Text_Editor extends Widget_Base {
 					],
 				],
 				'selectors' => [
-					'body:not(.rtl) {{WRAPPER}} .elementor-drop-cap' => 'margin-right: {{SIZE}}{{UNIT}};',
-					'body.rtl {{WRAPPER}} .elementor-drop-cap' => 'margin-left: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .elementor-drop-cap' => 'margin-inline-end: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
@@ -469,8 +606,9 @@ class Widget_Text_Editor extends Widget_Base {
 		<?php if ( $should_render_inline_editing ) { ?>
 			<div <?php $this->print_render_attribute_string( 'editor' ); ?>>
 		<?php } ?>
-		<?php // PHPCS - the main text of a widget should not be escaped.
-				echo $editor_content; // phpcs:ignore WordPress.Security.EscapeOutput ?>
+		<?php // PHPCS - DO NOT REMOVE THIS ECHO - THE MAIN TEXT OF A WIDGET SHOULD NOT BE ESCAPED!
+			echo $editor_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		?>
 		<?php if ( $should_render_inline_editing ) { ?>
 			</div>
 		<?php } ?>
@@ -498,6 +636,17 @@ class Widget_Text_Editor extends Widget_Base {
 	 * @since 2.9.0
 	 * @access protected
 	 */
+	public function render_markdown(): string {
+		$editor_content = $this->get_settings_for_display( 'editor' );
+		$editor_content = $this->parse_text_editor( $editor_content );
+
+		if ( empty( $editor_content ) ) {
+			return '';
+		}
+
+		return \Elementor\Modules\MarkdownRender\Html_To_Markdown::convert( $editor_content );
+	}
+
 	protected function content_template() {
 		?>
 		<#

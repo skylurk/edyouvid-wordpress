@@ -1,22 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ToggleDropdown } from '@brainstormforce/starter-templates-components';
 import { __ } from '@wordpress/i18n';
 import { useStateValue } from '../../../store/store';
 import { initialState } from '../../../store/reducer';
-const { imageDir, isElementorDisabled, isBeaverBuilderDisabled } =
-	starterTemplates;
+const {
+	imageDir,
+	isElementorDisabled,
+	isBeaverBuilderDisabled,
+	showOtherBuilders = false,
+} = starterTemplates;
+
+const { showAiBuilder } = astraSitesVars;
 
 import Tippy from '@tippyjs/react/headless';
 import { motion } from 'framer-motion';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
-import { WandIcon } from '../../ui/icons';
 import { Button } from '../../../components/index';
 import { getStepIndex } from '../../../utils/functions';
+
+import { AILogoIcon } from '../../ui/icons';
 
 const zipPlans = astraSitesVars?.zip_plans;
 const sitesRemaining = zipPlans?.plan_data?.remaining;
 const aiSitesRemainingCount = sitesRemaining?.ai_sites_count;
-const PageBuilder = ( { placement = 'bottom-end' } ) => {
+const PageBuilder = ( { placement = 'bottom-end', isDisabled } ) => {
 	const [
 		{ builder, currentIndex, dismissAINotice, limitExceedModal },
 		dispatch,
@@ -25,11 +32,35 @@ const PageBuilder = ( { placement = 'bottom-end' } ) => {
 		dismissAINotice === 'true' ? false : true
 	);
 
+	const initialMountRef = useRef( true );
+	useEffect( () => {
+		if ( ! initialMountRef.current ) {
+			return;
+		}
+		initialMountRef.current = false;
+
+		if ( currentIndex !== getStepIndex( 'site-list' ) ) {
+			const urlParams = new URLSearchParams( window.location.search );
+			// Removing the query param from url.
+			const newURL = new URL( window.location.href );
+			newURL.searchParams.delete( 'page-builder' );
+			window.history.replaceState( {}, '', newURL );
+
+			let urlBuilder = urlParams.get( 'page-builder' );
+			urlBuilder =
+				'block-editor' === urlBuilder ? 'gutenberg' : urlBuilder;
+
+			if ( urlBuilder && urlBuilder !== builder ) {
+				updateBuilder( urlBuilder );
+			}
+		}
+	}, [ builder, currentIndex, initialMountRef ] );
+
 	const dismissAIPopup = () => {
 		setShow( false );
 		const content = new FormData();
 		content.append( 'action', 'astra-sites-dismiss-ai-promotion' );
-		content.append( '_ajax_nonce', astraSitesVars._ajax_nonce );
+		content.append( '_ajax_nonce', astraSitesVars?._ajax_nonce );
 		content.append( 'dismiss_ai_promotion', true );
 		fetch( ajaxurl, {
 			method: 'post',
@@ -47,6 +78,11 @@ const PageBuilder = ( { placement = 'bottom-end' } ) => {
 
 	if ( builder === 'fse' ) {
 		return null;
+	}
+
+	// Don't show page builder selection on page builder screen (i.e. ci=1) and if all builders are showing.
+	if ( ! showOtherBuilders && currentIndex === 1 ) {
+		return;
 	}
 
 	const isLimitReached =
@@ -103,6 +139,53 @@ const PageBuilder = ( { placement = 'bottom-end' } ) => {
 		}
 	}
 
+	if ( ! showAiBuilder ) {
+		// Find the index of the Beaver builder in the array.
+		const indexToRemove = buildersList.findIndex(
+			( pageBuilder ) => pageBuilder.id === 'ai-builder'
+		);
+
+		// Remove the Beaver builder if it exists.
+		if ( indexToRemove !== -1 ) {
+			buildersList.splice( indexToRemove, 1 );
+		}
+	}
+
+	// Add `Show Other Builders` option when any of our builders are disabled via option meta.
+	if ( showOtherBuilders ) {
+		buildersList.push( {
+			id: 'show-other-builders',
+			title: __( 'Show Other Builders', 'astra-sites' ),
+			image: `${ imageDir }ellipsis.svg`,
+		} );
+	}
+
+	const handleShowOtherBuilders = () => {
+		const formData = new FormData();
+		formData.append( 'action', 'astra-sites-show-other-builders' );
+		formData.append( '_ajax_nonce', astraSitesVars?._ajax_nonce );
+
+		fetch( ajaxurl, {
+			method: 'POST',
+			body: formData,
+		} )
+			.then( ( response ) => response.json() )
+			.then( ( data ) => {
+				if ( data.success ) {
+					// Reload the window to reflect the builders options.
+					window.location.reload();
+				} else {
+					console.error(
+						'Failed to show other builders:',
+						data.error
+					);
+				}
+			} )
+			.catch( ( error ) => {
+				console.error( 'Error fetching data:', error );
+			} );
+	};
+
 	const handleBuildWithAIPress = () => {
 		if (
 			typeof aiSitesRemainingCount === 'number' &&
@@ -119,7 +202,7 @@ const PageBuilder = ( { placement = 'bottom-end' } ) => {
 		}
 		const content = new FormData();
 		content.append( 'action', 'astra-sites-change-page-builder' );
-		content.append( '_ajax_nonce', astraSitesVars._ajax_nonce );
+		content.append( '_ajax_nonce', astraSitesVars?._ajax_nonce );
 		content.append( 'page_builder', 'ai-builder' );
 		fetch( ajaxurl, {
 			method: 'post',
@@ -129,126 +212,139 @@ const PageBuilder = ( { placement = 'bottom-end' } ) => {
 			dismissAIPopup();
 		}
 		window.location.href =
-			astraSitesVars.adminURL + 'themes.php?page=ai-builder';
+			astraSitesVars?.adminURL + 'themes.php?page=ai-builder';
+	};
+
+	const handleBuilderChange = ( event, option ) => {
+		if ( option.id === 'show-other-builders' ) {
+			handleShowOtherBuilders();
+			return;
+		}
+
+		if ( 'ai-builder' === option.id ) {
+			if ( isLimitReached ) {
+				dispatch( {
+					type: 'set',
+					limitExceedModal: {
+						...limitExceedModal,
+						open: true,
+					},
+					currentIndex: 0,
+				} );
+				return;
+			}
+			return ( window.location = `${ astraSitesVars?.adminURL }themes.php?page=ai-builder` );
+		}
+		dispatch( {
+			type: 'set',
+			siteSearchTerm: '',
+			siteBusinessType: initialState.siteBusinessType,
+			selectedMegaMenu: initialState.selectedMegaMenu,
+			siteType: '',
+			siteOrder: 'popular',
+			onMyFavorite: false,
+			currentIndex: 2,
+		} );
+
+		const pageBuilderOptionId =
+			isLimitReached && 'ai-builder' === option.id
+				? 'gutenberg'
+				: option.id;
+		updateBuilder( pageBuilderOptionId );
+	};
+
+	const updateBuilder = ( option ) => {
+		const content = new FormData();
+		content.append( 'action', 'astra-sites-change-page-builder' );
+		content.append( '_ajax_nonce', astraSitesVars?._ajax_nonce );
+		content.append( 'page_builder', option );
+
+		fetch( ajaxurl, {
+			method: 'post',
+			body: content,
+		} );
+		dispatch( {
+			type: 'set',
+			builder: option,
+		} );
 	};
 
 	return (
-		<Tippy
-			visible={ show }
-			render={ ( attrs ) =>
-				currentIndex === getStepIndex( 'site-list' ) && (
-					<motion.div
-						className="flex flex-col items-start gap-5 max-w-[320px] h-auto bg-white rounded-lg shadow-xl p-4"
-						{ ...attrs }
-					>
-						<div
-							className="flex-col flex bg-white text-left relative rounded-xl max-w-[356px]"
-							tabIndex="0"
+		<div className="relative">
+			<Tippy
+				visible={ show }
+				arrow={ false }
+				offset={ [ 60, 8 ] }
+				render={ ( attrs ) =>
+					currentIndex === getStepIndex( 'site-list' ) &&
+					showAiBuilder && (
+						<motion.div
+							className="flex flex-col items-start gap-5 min-w-[250px] sm:min-w-[304px] bg-white rounded-lg shadow-lg p-4 border border-button-disabled"
+							{ ...attrs }
 						>
-							<WandIcon className="w-[24px] h-[24px] text-accent-st-secondary stroke-2" />
-							<div className="mt-4 mb-1 text-heading-text flex gap-2">
-								<span className="text-base font-semibold leading-1">
+							<div
+								className="flex-row sm:flex-col flex-wrap flex bg-white text-left relative rounded-xl max-w-[356px]"
+								tabIndex="0"
+							>
+								<AILogoIcon />
+								<div className="mt-0 sm:mt-2 ml-2 sm:ml-0 mb-1 text-heading-text flex gap-2">
+									<span className="text-base font-semibold leading-1">
+										{ __(
+											'Build website 10x faster!',
+											'astra-sites'
+										) }
+									</span>
+								</div>
+								<div className="zw-sm-normal text-body-text sm:block hidden">
+									{ ' ' }
 									{ __(
-										'Have you tried the new AI WordPress Website Builder?',
+										'Experience the future of website building.',
 										'astra-sites'
-									) }
-								</span>
-								<span className="bg-gradient-1 bg-clip-text text-transparent text-xs font-medium text-center leading-3">
-									{ __( 'Hot!', 'astra-sites' ) }
-								</span>
+									) }{ ' ' }
+								</div>
+								<div className="pt-2 sm:pt-4 mt-auto flex gap-5 items-center">
+									<Button
+										className="!p-2 !px-3"
+										onClick={ handleBuildWithAIPress }
+									>
+										<span className="text-xs">
+											{ __(
+												'Try AI Builder',
+												'astra-sites'
+											) }
+										</span>{ ' ' }
+										<ArrowRightIcon className="size-4 ml-2" />
+									</Button>
+									<a
+										className="!text-zip-app-inactive-icon !text-center !text-xs !font-semibold"
+										rel="noreferrer"
+										onClick={ dismissAIPopup }
+									>
+										{ __( 'Maybe Later', 'astra-sites' ) }
+									</a>
+								</div>
 							</div>
-							<div className="zw-sm-normal text-body-text">
-								{ ' ' }
-								{ __(
-									'Experience the future of website building. We offer AI features powered by ZipWP to help you build your website 10x faster.',
-									'astra-sites'
-								) }{ ' ' }
-							</div>
-							<div className="pt-4 mt-auto flex flex-col gap-2 items-center">
-								<Button
-									className="w-full h-10"
-									onClick={ handleBuildWithAIPress }
-								>
-									<span>Try the New AI Builder</span>{ ' ' }
-									<ArrowRightIcon className="w-5 h-5 ml-2" />
-								</Button>
-								<a
-									className="w-fill h-hug !text-zip-app-inactive-icon !text-center !text-sm !font-semibold"
-									rel="noreferrer"
-									onClick={ dismissAIPopup }
-								>
-									{ __( 'Dismiss', 'astra-sites' ) }
-								</a>
-							</div>
-						</div>
-						{ /* Arrow */ }
-						<div
-							data-popper-arrow
-							className="-top-1 absolute w-2 h-2 bg-inherit before:content-[''] before:w-2 before:h-2 before:bg-inherit before:absolute invisible before:visible before:!rotate-45"
-						/>
-					</motion.div>
-				)
-			}
-			interactive={ true }
-			interactiveBorder={ 20 }
-			placement={ placement }
-		>
-			<div className="st-page-builder-filter">
-				<ToggleDropdown
-					value={ builder }
-					options={ buildersList }
-					className="st-page-builder-toggle"
-					onClick={ ( event, option ) => {
-						if ( 'ai-builder' === option.id ) {
-							if ( isLimitReached ) {
-								dispatch( {
-									type: 'set',
-									limitExceedModal: {
-										...limitExceedModal,
-										open: true,
-									},
-									currentIndex: 0,
-								} );
-								return;
-							}
-							return ( window.location = `${ astraSitesVars.adminURL }themes.php?page=ai-builder` );
-						}
-						dispatch( {
-							type: 'set',
-							builder: option.id,
-							siteSearchTerm: '',
-							siteBusinessType: initialState.siteBusinessType,
-							selectedMegaMenu: initialState.selectedMegaMenu,
-							siteType: '',
-							siteOrder: 'popular',
-							onMyFavorite: false,
-							currentIndex: 1,
-						} );
-
-						const pageBuilderOptionId =
-							isLimitReached && 'ai-builder' === option.id
-								? 'gutenberg'
-								: option.id;
-						const content = new FormData();
-						content.append(
-							'action',
-							'astra-sites-change-page-builder'
-						);
-						content.append(
-							'_ajax_nonce',
-							astraSitesVars._ajax_nonce
-						);
-						content.append( 'page_builder', pageBuilderOptionId );
-
-						fetch( ajaxurl, {
-							method: 'post',
-							body: content,
-						} );
-					} }
-					dismissAiPopup={ dismissAiPopup }
-				/>
-			</div>
-		</Tippy>
+						</motion.div>
+					)
+				}
+				interactive={ true }
+				interactiveBorder={ 20 }
+				placement={ placement }
+			>
+				<div className="st-page-builder-filter">
+					<ToggleDropdown
+						value={ builder }
+						options={ buildersList }
+						className="st-page-builder-toggle"
+						onClick={ handleBuilderChange }
+						dismissAiPopup={ dismissAiPopup }
+					/>
+				</div>
+			</Tippy>
+			{ isDisabled && (
+				<div className="w-full absolute h-full top-0 bg-white/75 cursor-not-allowed"></div>
+			) }
+		</div>
 	);
 };
 

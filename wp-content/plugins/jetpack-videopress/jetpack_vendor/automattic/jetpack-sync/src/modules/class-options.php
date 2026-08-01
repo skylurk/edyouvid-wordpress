@@ -10,6 +10,10 @@ namespace Automattic\Jetpack\Sync\Modules;
 use Automattic\Jetpack\Sync\Defaults;
 use Automattic\Jetpack\Sync\Settings;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Class to handle sync for options.
  */
@@ -172,17 +176,23 @@ class Options extends Module {
 	 * @access public
 	 *
 	 * @param array $config Full sync configuration for this sync module.
+	 * @param array $status This module Full Sync status.
 	 * @param int   $send_until The timestamp until the current request can send.
-	 * @param array $state This module Full Sync status.
+	 * @param int   $started The timestamp when the full sync started.
 	 *
 	 * @return array This module Full Sync status.
 	 */
-	public function send_full_sync_actions( $config, $send_until, $state ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function send_full_sync_actions( $config, $status, $send_until, $started ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		// we call this instead of do_action when sending immediately.
-		$this->send_action( 'jetpack_full_sync_options', array( true ) );
+		$result = $this->send_action( 'jetpack_full_sync_options', array( true ) );
 
-		// The number of actions enqueued, and next module state (true == done).
-		return array( 'finished' => true );
+		if ( is_wp_error( $result ) ) {
+			$status['error'] = true;
+			return $status;
+		}
+		$status['finished'] = true;
+		$status['sent']     = $status['total'];
+		return $status;
 	}
 
 	/**
@@ -220,7 +230,7 @@ class Options extends Module {
 		$options       = array();
 		$random_string = wp_generate_password();
 		foreach ( $this->options_whitelist as $option ) {
-			if ( 0 === strpos( $option, Settings::SETTINGS_OPTION_PREFIX ) ) {
+			if ( str_starts_with( $option, Settings::SETTINGS_OPTION_PREFIX ) ) {
 				$option_value       = Settings::get_setting( str_replace( Settings::SETTINGS_OPTION_PREFIX, '', $option ) );
 				$options[ $option ] = $option_value;
 			} else {
@@ -307,8 +317,17 @@ class Options extends Module {
 			return false;
 		}
 
+		// Check if 'jetpack_options' were updated and reject if the change affected only blacklisted keys.
+		if ( 'jetpack_options' === $args[0] && 3 === count( $args ) ) {
+			if ( ! $this->should_enqueue_jetpack_options_update( $args[1], $args[2] ) ) {
+				return false;
+			}
+
+			return $args;
+		}
+
 		// Filter our weird array( false ) value for theme_mods_*.
-		if ( 'theme_mods_' === substr( $args[0], 0, 11 ) ) {
+		if ( str_starts_with( $args[0], 'theme_mods_' ) ) {
 			$this->filter_theme_mods( $args[1] );
 			if ( isset( $args[2] ) ) {
 				$this->filter_theme_mods( $args[2] );
@@ -335,7 +354,7 @@ class Options extends Module {
 	 * @return boolean Whether the option is whitelisted.
 	 */
 	public function is_whitelisted_option( $option ) {
-		return in_array( $option, $this->options_whitelist, true ) || 'theme_mods_' === substr( $option, 0, 11 );
+		return in_array( $option, $this->options_whitelist, true ) || str_starts_with( $option, 'theme_mods_' );
 	}
 
 	/**
@@ -461,7 +480,7 @@ class Options extends Module {
 			$random_string = wp_generate_password();
 			// Only whitelisted options can be returned.
 			if ( in_array( $id, $this->options_whitelist, true ) ) {
-				if ( 0 === strpos( $id, Settings::SETTINGS_OPTION_PREFIX ) ) {
+				if ( str_starts_with( $id, Settings::SETTINGS_OPTION_PREFIX ) ) {
 					$option_value = Settings::get_setting( str_replace( Settings::SETTINGS_OPTION_PREFIX, '', $id ) );
 					return $option_value;
 				} else {
@@ -478,4 +497,48 @@ class Options extends Module {
 		return 'OPTION-DOES-NOT-EXIST';
 	}
 
+	/**
+	 * Check if 'jetpack_options' option update should be processed based on excluded keys.
+	 *
+	 * @param mixed $old_value    The old option value.
+	 * @param mixed $value        The new option value.
+	 * @return bool False if only excluded keys changed (or no change), true otherwise.
+	 */
+	private function should_enqueue_jetpack_options_update( $old_value, $value ) {
+		// No changes at all.
+		if ( $old_value === $value ) {
+			return false;
+		}
+		// Values are different but not both arrays - meaningful change.
+		if ( ! is_array( $old_value ) || ! is_array( $value ) ) {
+			return true;
+		}
+		// Determine all top-level keys present in either the old or new value.
+		$all_keys = array_unique(
+			array_merge(
+				array_keys( $old_value ),
+				array_keys( $value )
+			)
+		);
+		// Short-circuit as soon as we find a changed key that is not blacklisted.
+		foreach ( $all_keys as $key ) {
+			$old_has_key = array_key_exists( $key, $old_value );
+			$new_has_key = array_key_exists( $key, $value );
+			// Key was added or removed.
+			if ( ! $old_has_key || ! $new_has_key ) {
+				if ( ! in_array( $key, Defaults::$jetpack_options_blacklist, true ) ) {
+					return true;
+				}
+				continue;
+			}
+			// Key exists in both arrays but the value changed.
+			if ( $old_value[ $key ] !== $value[ $key ] ) {
+				if ( ! in_array( $key, Defaults::$jetpack_options_blacklist, true ) ) {
+					return true;
+				}
+			}
+		}
+		// Either there were no effective changes, or all changed keys are excluded.
+		return false;
+	}
 }

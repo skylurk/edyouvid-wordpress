@@ -2,78 +2,74 @@
 
 namespace PrestoPlayer\Support;
 
-class HasOneRelationship
-{
-    protected $classname, $parent_model, $parent_field;
+class HasOneRelationship {
 
-    /**
-     * Construct
-     *
-     * @param string $classname
-     * @param \PrestoPlayer\Models\Model $parent_model
-     */
-    public function __construct($classname, $parent_model, $parent_field)
-    {
-        $this->classname = $classname;
-        $this->parent_model = $parent_model;
-        $this->parent_field = $parent_field;
-    }
+	protected $classname, $parent_model, $parent_field;
 
-    public function getRelationshipClass()
-    {
-        return $this->classname;
-    }
+	/**
+	 * Construct
+	 *
+	 * @param string                     $classname
+	 * @param \PrestoPlayer\Models\Model $parent_model
+	 */
+	public function __construct( $classname, $parent_model, $parent_field ) {
+		$this->classname    = $classname;
+		$this->parent_model = $parent_model;
+		$this->parent_field = $parent_field;
+	}
 
-    public function getParentField()
-    {
-        return $this->parent_field;
-    }
+	public function getRelationshipClass() {
+		return $this->classname;
+	}
 
-    public function getRelationshipTable()
-    {
-        return (new $this->classname)->getTableName();
-    }
+	public function getParentField() {
+		return $this->parent_field;
+	}
 
-    /**
-     * Save the model with the relationship
-     *
-     * @param array $arguments
-     * @return \PrestoPlayer\Models\Model
-     */
-    public function save($arguments)
-    {
-        // create the item and save as
-        $saved_id = (new $this->classname())->create($arguments);
+	public function getRelationshipTable() {
+		return ( new $this->classname() )->getTableName();
+	}
 
-        // update or create parent model
-        if ($this->parent_model->id) {
-            return $this->parent_model->update([
-                $this->parent_field => (int) $saved_id
-            ]);
-        }
+	/**
+	 * Save the model with the relationship
+	 *
+	 * @param array $arguments
+	 * @return \PrestoPlayer\Models\Model
+	 */
+	public function save( $arguments ) {
+		// create the item and save as
+		$saved_id = ( new $this->classname() )->create( $arguments );
 
-        return new \WP_Error('unsaved', 'Please save the model before adding the relationship.');
-    }
+		// update or create parent model
+		if ( $this->parent_model->id ) {
+			return $this->parent_model->update(
+				array(
+					$this->parent_field => (int) $saved_id,
+				)
+			);
+		}
 
-    public function update($arguments)
-    {
-        if (!$this->parent_field) {
-            return new \WP_Error('unsaved', 'Please create the relationship before updating it.');
-        }
+		return new \WP_Error( 'unsaved', 'Please save the model before adding the relationship.' );
+	}
 
-        $item_class = (new $this->classname());
-        $item = $this->parent_model->{$this->parent_field};
+	public function update( $arguments ) {
+		if ( ! $this->parent_field ) {
+			return new \WP_Error( 'unsaved', 'Please create the relationship before updating it.' );
+		}
 
-        if (is_int($item)) {
-            $item = $item_class->get($item);
-        } else if (is_object($item)) {
-            $item = $item_class->set($item);
-        }
+		$item_class = ( new $this->classname() );
+		$item       = $this->parent_model->{$this->parent_field};
 
-        if (empty($item)) {
-            return new \WP_Error('unsaved', 'Please create the relationship before updating it.');
-        }
+		if ( is_int( $item ) ) {
+			$item = $item_class->get( $item );
+		} elseif ( is_object( $item ) ) {
+			$item = $item_class->set( $item );
+		}
 
-        return $item->update($arguments);
-    }
+		if ( empty( $item ) ) {
+			return new \WP_Error( 'unsaved', 'Please create the relationship before updating it.' );
+		}
+
+		return $item->update( $arguments );
+	}
 }

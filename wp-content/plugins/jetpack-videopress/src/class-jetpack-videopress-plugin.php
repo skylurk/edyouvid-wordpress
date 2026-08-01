@@ -6,7 +6,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+	exit( 0 );
 }
 
 use Automattic\Jetpack\Connection\Manager as Connection_Manager;
@@ -16,6 +16,8 @@ use Automattic\Jetpack\VideoPress\Initializer as VideoPress_Pkg_Initializer;
 
 /**
  * Class Jetpack_VideoPress_Plugin
+ *
+ * @phan-constructor-used-for-side-effects
  */
 class Jetpack_VideoPress_Plugin {
 

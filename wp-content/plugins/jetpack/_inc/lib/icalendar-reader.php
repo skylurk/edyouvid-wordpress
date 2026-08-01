@@ -46,6 +46,13 @@ class iCalendarReader {
 	public $timezone = null;
 
 	/**
+	 * Last iCalendar keyword parsed.
+	 *
+	 * @var string
+	 */
+	public $last_keyword;
+
+	/**
 	 * Class constructor
 	 *
 	 * @return void
@@ -65,7 +72,6 @@ class iCalendarReader {
 		$transient_id = 'icalendar_vcal_' . md5( $url ) . '_' . $count;
 
 		$vcal = get_transient( $transient_id );
-		$vcal = false;
 		if ( ! empty( $vcal ) ) {
 			if ( isset( $vcal['TIMEZONE'] ) ) {
 				$this->timezone = $this->timezone_from_string( $vcal['TIMEZONE'] );
@@ -147,13 +153,13 @@ class iCalendarReader {
 				$start_time = preg_replace( '/Z$/', '', $event['DTSTART'] );
 				$start_time = new DateTime( $start_time, $this->timezone );
 				$start_time->setTimeZone( $timezone );
-
-				$end_time = preg_replace( '/Z$/', '', $event['DTEND'] );
-				$end_time = new DateTime( $end_time, $this->timezone );
-				$end_time->setTimeZone( $timezone );
-
 				$event['DTSTART'] = $start_time->format( 'YmdHis\Z' );
-				$event['DTEND']   = $end_time->format( 'YmdHis\Z' );
+				if ( isset( $event['DTEND'] ) ) {
+					$end_time = preg_replace( '/Z$/', '', $event['DTEND'] );
+					$end_time = new DateTime( $end_time, $this->timezone );
+					$end_time->setTimeZone( $timezone );
+					$event['DTEND'] = $end_time->format( 'YmdHis\Z' );
+				}
 			}
 
 			$offsetted_events[] = $event;
@@ -230,10 +236,10 @@ class iCalendarReader {
 			}
 
 			// Process events with RRULE before other events.
-			$rrule = isset( $event['RRULE'] ) ? $event['RRULE'] : false;
-			$uid   = $event['UID'];
+			$rrule = $event['RRULE'] ?? false;
+			$uid   = $event['UID'] ?? false;
 
-			if ( $rrule && ! in_array( $uid, $set_recurring_events, true ) ) {
+			if ( $rrule && $uid && ! in_array( $uid, $set_recurring_events, true ) ) {
 
 				// Break down the RRULE into digestible chunks.
 				$rrule_array = array();
@@ -243,8 +249,8 @@ class iCalendarReader {
 					$rrule_array[ $rkey ]  = $rvalue;
 				}
 
-				$interval    = ( isset( $rrule_array['INTERVAL'] ) ) ? $rrule_array['INTERVAL'] : 1;
-				$rrule_count = ( isset( $rrule_array['COUNT'] ) ) ? $rrule_array['COUNT'] : 0;
+				$interval    = $rrule_array['INTERVAL'] ?? 1;
+				$rrule_count = $rrule_array['COUNT'] ?? 0;
 				$until       = ( isset( $rrule_array['UNTIL'] ) ) ? strtotime( $rrule_array['UNTIL'] ) : strtotime( '+1 year', $current );
 
 				// Used to bound event checks.
@@ -269,7 +275,7 @@ class iCalendarReader {
 							$catchup = floor( ( $current - strtotime( $event['DTSTART'] ) ) / ( $interval * DAY_IN_SECONDS ) );
 							if ( $rrule_count && $catchup > 0 ) {
 								if ( $catchup < $rrule_count ) {
-									$rrule_count                = $rrule_count - $catchup;
+									$rrule_count               -= $catchup;
 									$recurring_event_date_start = date(
 										'Ymd',
 										strtotime(
@@ -317,7 +323,7 @@ class iCalendarReader {
 							$catchup = floor( ( $current - strtotime( $event['DTSTART'] ) ) / ( $interval * WEEK_IN_SECONDS ) );
 							if ( $rrule_count && $catchup > 0 ) {
 								if ( ( $catchup * count( $bydays ) ) < $rrule_count ) {
-									$rrule_count                = $rrule_count - ( $catchup * count( $bydays ) ); // Estimate current event count.
+									$rrule_count               -= $catchup * count( $bydays ); // Estimate current event count.
 									$recurring_event_date_start = date( 'Ymd', strtotime( '+ ' . ( $interval * $catchup ) . ' weeks', strtotime( $event['DTSTART'] ) ) ) . date( '\THis', strtotime( $event['DTSTART'] ) );
 								} else {
 									$noop = true;
@@ -341,17 +347,23 @@ class iCalendarReader {
 							$recurring_event_date_start = date( 'Ymd\THis', strtotime( $event['DTSTART'] ) );
 						} else {
 							// Describe the date in the month.
-							if ( isset( $rrule_array['BYDAY'] ) ) {
-								$day_number      = substr( $rrule_array['BYDAY'], 0, 1 );
-								$week_day        = substr( $rrule_array['BYDAY'], 1 );
-								$day_cardinals   = array(
-									1 => 'first',
-									2 => 'second',
-									3 => 'third',
-									4 => 'fourth',
-									5 => 'fifth',
+							if ( isset( $rrule_array['BYDAY'] )
+								&& preg_match( '/^(-?\d)([A-Z]{2})/', $rrule_array['BYDAY'], $matches )
+							) {
+								$day_number = $matches[1];
+								$week_day   = $matches[2];
+
+								$day_cardinals = array(
+									-3 => 'third to last',
+									-2 => 'second to last',
+									-1 => 'last',
+									1  => 'first',
+									2  => 'second',
+									3  => 'third',
+									4  => 'fourth',
+									5  => 'fifth',
 								);
-								$weekdays        = array(
+								$weekdays      = array(
 									'SU' => 'Sunday',
 									'MO' => 'Monday',
 									'TU' => 'Tuesday',
@@ -360,7 +372,10 @@ class iCalendarReader {
 									'FR' => 'Friday',
 									'SA' => 'Saturday',
 								);
-								$event_date_desc = "{$day_cardinals[$day_number]} {$weekdays[$week_day]} of ";
+
+								$day_cardinal    = $day_cardinals[ $day_number ] ?? '';
+								$weekday         = $weekdays[ $week_day ] ?? '';
+								$event_date_desc = "$day_cardinal $weekday of ";
 							} else {
 								$event_date_desc = date( 'd ', strtotime( $event['DTSTART'] ) );
 							}
@@ -428,7 +443,7 @@ class iCalendarReader {
 					}
 
 					// Set up EXDATE handling for the event.
-					$exdates = ( isset( $event['EXDATE'] ) ) ? $event['EXDATE'] : array();
+					$exdates = $event['EXDATE'] ?? array();
 
 					for ( $i = 1; $i <= $echo_limit; $i++ ) {
 
@@ -543,7 +558,7 @@ class iCalendarReader {
 					$set_recurring_events[] = $uid;
 
 				}
-			} elseif ( strtotime( isset( $event['DTEND'] ) ? $event['DTEND'] : $event['DTSTART'] ) >= $current ) { // Process normal events.
+			} elseif ( strtotime( $event['DTEND'] ?? $event['DTSTART'] ) >= $current ) { // Process normal events.
 				$upcoming[] = $event;
 			}
 		}
@@ -761,7 +776,7 @@ class iCalendarReader {
 			if ( 2 === count( $keyword ) ) {
 				$tparam = $keyword[1];
 
-				if ( strpos( $tparam, 'TZID' ) !== false ) {
+				if ( str_contains( $tparam, 'TZID' ) ) {
 					$tzid = $this->timezone_from_string( str_replace( 'TZID=', '', $tparam ) );
 				}
 			}

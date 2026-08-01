@@ -1,75 +1,102 @@
 <?php
+/**
+ * Application configuration file.
+ *
+ * @package PrestoPlayer
+ */
 
-return [
-    /*
-    |--------------------------------------------------------------------------
-    | Autoloaded Components
-    |--------------------------------------------------------------------------
-    |
-    | The component classes listed here will be automatically loaded on the
-    | request to your application.
-    |
-    */
-    'components' => [
-        // seeder
-        \PrestoPlayer\Seeds\Seeder::class,
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
 
-        // files
-        \PrestoPlayer\Files::class,
-        \PrestoPlayer\Attachment::class,
+return array(
 
-        // blocks
-        \PrestoPlayer\Blocks\SelfHostedBlock::class,
-        \PrestoPlayer\Blocks\YouTubeBlock::class,
-        \PrestoPlayer\Blocks\VimeoBlock::class,
-        \PrestoPlayer\Blocks\ReusableVideoBlock::class,
-        \PrestoPlayer\Blocks\ReusableEditBlock::class,
-        \PrestoPlayer\Blocks\AudioBlock::class,
+	/*
+	|--------------------------------------------------------------------------
+	| Autoloaded Components
+	|--------------------------------------------------------------------------
+	|
+	| The component classes listed here will be automatically loaded on the
+	| request to your application.
+	|
+	*/
+	'components'     => array(
+		// Seeder.
+		\PrestoPlayer\Seeds\Seeder::class,
 
-        // block services
-        \PrestoPlayer\Services\Blocks\YoutubeBlockService::class,
-        \PrestoPlayer\Services\Blocks\VimeoBlockService::class,
+		// Files.
+		\PrestoPlayer\Files::class,
+		\PrestoPlayer\Attachment::class,
 
-        // integrations
-        \PrestoPlayer\Integrations\Kadence::class,
-        \PrestoPlayer\Integrations\Divi\Divi::class,
-        \PrestoPlayer\Integrations\Elementor\Elementor::class,
-        \PrestoPlayer\Integrations\BeaverBuilder\BeaverBuilder::class,
-        \PrestoPlayer\Integrations\LearnDash\LearnDash::class,
-        \PrestoPlayer\Integrations\Tutor\Tutor::class,
-        \PrestoPlayer\Integrations\Lifter\Lifter::class,
+		// Blocks.
+		\PrestoPlayer\Blocks\SelfHostedBlock::class,
+		\PrestoPlayer\Blocks\YouTubeBlock::class,
+		\PrestoPlayer\Blocks\VimeoBlock::class,
+		\PrestoPlayer\Blocks\ReusableVideoBlock::class,
+		\PrestoPlayer\Blocks\ReusableEditBlock::class,
+		\PrestoPlayer\Blocks\AudioBlock::class,
+		\PrestoPlayer\Blocks\MediaHubBlock::class,
+		\PrestoPlayer\Blocks\PopupBlock::class,
+		\PrestoPlayer\Blocks\PopupTriggerBlock::class,
+		\PrestoPlayer\Blocks\PopupMediaBlock::class,
 
-        // services
-        \PrestoPlayer\Services\Migrations::class,
-        \PrestoPlayer\Services\Translation::class,
-        \PrestoPlayer\Services\Player::class,
-        \PrestoPlayer\Services\Shortcodes::class,
-        \PrestoPlayer\Services\Menu::class,
-        \PrestoPlayer\Services\Scripts::class,
-        \PrestoPlayer\Services\Blocks::class,
-        \PrestoPlayer\Services\Settings::class,
-        \PrestoPlayer\Services\VideoPostType::class,
-        \PrestoPlayer\Services\ReusableVideos::class,
-        \PrestoPlayer\Services\AdminNotices::class,
-        \PrestoPlayer\Services\ProCompatibility::class,
-        \PrestoPlayer\Services\Compatibility::class,
-        \PrestoPlayer\Services\AjaxActions::class,
+		// Block services.
+		\PrestoPlayer\Services\Blocks\YoutubeBlockService::class,
+		\PrestoPlayer\Services\Blocks\VimeoBlockService::class,
+		\PrestoPlayer\Services\Blocks\PopupTriggerService::class,
 
-        // api
-        \PrestoPlayer\Services\API\RestPresetsController::class,
-        \PrestoPlayer\Services\API\RestAudioPresetsController::class,
-        \PrestoPlayer\Services\API\RestSettingsController::class,
-        \PrestoPlayer\Services\API\RestVideosController::class,
-    ],
+		// Integrations.
+		\PrestoPlayer\Integrations\Kadence::class,
+		\PrestoPlayer\Integrations\Divi\Divi::class,
+		\PrestoPlayer\Integrations\Elementor\Elementor::class,
+		\PrestoPlayer\Integrations\BeaverBuilder\BeaverBuilder::class,
+		\PrestoPlayer\Integrations\LearnDash\LearnDash::class,
+		\PrestoPlayer\Integrations\Tutor\Tutor::class,
+		\PrestoPlayer\Integrations\Lifter\Lifter::class,
 
-    /*
-    |--------------------------------------------------------------------------
-    | Autoloaded Pro Components
-    |--------------------------------------------------------------------------
-    |
-    | The component classes listed here will be automatically loaded
-    | if another plugin adds to this filter
-    |
-    */
-    'pro_components' => apply_filters('presto_player_pro_components', [])
-];
+		// Services.
+		\PrestoPlayer\Services\NpsSurvey::class,
+		\PrestoPlayer\Services\Migrations::class,
+		\PrestoPlayer\Services\Translation::class,
+		\PrestoPlayer\Services\Player::class,
+		\PrestoPlayer\Services\Shortcodes::class,
+		\PrestoPlayer\Services\Menu::class,
+		\PrestoPlayer\Services\Scripts::class,
+		\PrestoPlayer\Services\Blocks::class,
+		\PrestoPlayer\Services\Settings::class,
+		\PrestoPlayer\Services\VideoPostType::class,
+		\PrestoPlayer\Services\ReusableVideos::class,
+		\PrestoPlayer\Services\AdminNotices::class,
+		\PrestoPlayer\Services\Usage::class,
+		\PrestoPlayer\Services\ProCompatibility::class,
+		\PrestoPlayer\Services\Compatibility::class,
+		\PrestoPlayer\Services\AjaxActions::class,
+		\PrestoPlayer\Services\PluginInstaller::class,
+		\PrestoPlayer\Services\Onboarding::class,
+		\PrestoPlayer\Services\Learn::class,
+
+		// License.
+		\PrestoPlayer\Services\License\License::class,
+
+		// API.
+		\PrestoPlayer\Services\API\RestPresetsController::class,
+		\PrestoPlayer\Services\API\RestAudioPresetsController::class,
+		\PrestoPlayer\Services\API\RestSettingsController::class,
+		\PrestoPlayer\Services\API\RestVideosController::class,
+		\PrestoPlayer\Services\API\RestMediaPostController::class,
+		\PrestoPlayer\Services\API\RestMediaListController::class,
+		\PrestoPlayer\Services\API\RestEmailSubmissionsController::class,
+		\PrestoPlayer\Services\API\RestLicenseController::class,
+	),
+
+	/*
+	|--------------------------------------------------------------------------
+	| Autoloaded Pro Components
+	|--------------------------------------------------------------------------
+	|
+	| The component classes listed here will be automatically loaded
+	| if another plugin adds to this filter
+	|
+	*/
+	'pro_components' => apply_filters( 'presto_player_pro_components', array() ),
+);

@@ -2,10 +2,16 @@
 /**
  * Jetpack_Flickr_Widget frontend widget output.
  *
+ * @html-template Jetpack_Flickr_Widget::widget
  * @package automattic/jetpack
  */
 
-//phpcs:disable VariableAnalysis.CodeAnalysis.VariableAnalysis.UndefinedVariable
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
+// phpcs:disable VariableAnalysis.CodeAnalysis.VariableAnalysis.UndefinedVariable -- HTML template, let Phan handle it.
+
 ?>
 <!-- Start of Flickr Widget -->
 <div class="flickr-wrapper flickr-size-<?php echo esc_attr( $instance['flickr_image_size'] ); ?>">

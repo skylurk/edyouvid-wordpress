@@ -8,6 +8,11 @@
  * @package automattic/jetpack
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
+// Run these everywhere to preserve some content, even in cases of display for improper code saved to the DB.
 add_filter( 'pre_kses', array( 'Filter_Embedded_HTML_Objects', 'filter' ), 11 );
 add_filter( 'pre_kses', array( 'Filter_Embedded_HTML_Objects', 'maybe_create_links' ), 100 ); // See WPCom_Embed_Stats::init().
 
@@ -245,7 +250,7 @@ class Filter_Embedded_HTML_Objects {
 		} else {
 			// no src found, search html.
 			foreach ( self::$html_strpos_filters as $match => $callback ) {
-				if ( false !== strpos( $html, $match ) ) {
+				if ( str_contains( $html, $match ) ) {
 					return call_user_func( $callback, $attrs );
 				}
 			}
@@ -263,7 +268,7 @@ class Filter_Embedded_HTML_Objects {
 
 		// check source filter.
 		foreach ( self::$strpos_filters as $match => $callback ) {
-			if ( false !== strpos( $src, $match ) ) {
+			if ( str_contains( $src, $match ) ) {
 				return call_user_func( $callback, $attrs );
 			}
 		}
@@ -276,7 +281,7 @@ class Filter_Embedded_HTML_Objects {
 
 		// check html filters.
 		foreach ( self::$html_strpos_filters as $match => $callback ) {
-			if ( false !== strpos( $html, $match ) ) {
+			if ( str_contains( $html, $match ) ) {
 				return call_user_func( $callback, $attrs );
 			}
 		}
@@ -324,7 +329,7 @@ class Filter_Embedded_HTML_Objects {
 		foreach ( self::$failed_embeds as $entry ) {
 			$html = sprintf( '<a href="%s">%s</a>', esc_url( $entry['src'] ), esc_url( $entry['src'] ) );
 			// Check if the string doesn't contain iframe, before replace.
-			if ( ! preg_match( '/<iframe /', $string ) ) {
+			if ( ! str_contains( $string, '<iframe ' ) ) {
 				$string = str_replace( $entry['match'], $html, $string );
 			}
 		}
@@ -341,7 +346,7 @@ class Filter_Embedded_HTML_Objects {
 	 */
 	public static function get_attrs( $html ) {
 		if (
-			! ( class_exists( 'DOMDocument' ) && function_exists( 'libxml_use_internal_errors' ) && function_exists( 'simplexml_load_string' ) ) ) {
+			! ( class_exists( 'DOMDocument' ) && function_exists( 'simplexml_load_string' ) ) ) {
 			trigger_error( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
 				esc_html__( 'PHP’s XML extension is not available. Please contact your hosting provider to enable PHP’s XML extension.', 'jetpack' )
 			);

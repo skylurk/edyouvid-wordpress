@@ -69,7 +69,7 @@ function mlfp_display_folder_tree() {
           jQuery.ajax({
             type: "POST",
             async: true,
-            data: { action: "mlfp_load_image", src: src, nonce: mlfpmedia.nonce },
+            data: { action: "mlfp_load_image", src: src, nonce: mlfpmedia.lin_nonce },
             url: mlfpmedia.ajaxurl,
             success: function (data) {
               if(data.length > 0) {

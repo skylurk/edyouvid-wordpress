@@ -411,7 +411,7 @@ class Shortcode_Ajax extends Shortcode{
      * as well as shortcode.php by basic_settings 
      * 
      * @param string $method To be $_POST['table_id'] 
-     * @return void
+     * @return array
      */
     public function set_atts(){
         $nonce = sanitize_text_field( wp_unslash( $_POST['nonce'] ?? '' ) );

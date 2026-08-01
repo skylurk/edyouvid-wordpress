@@ -14,11 +14,13 @@ export default (props) => {
   const { id, title, duration } = attributes;
   const blockProps = useBlockProps();
 
-  const { video } = useSelect(
+  const { entityTitle } = useSelect(
     (select) => {
-      if (!id) return {};
       const queryArgs = ["postType", "pp_video_block", id];
-      return select(coreStore).getEditedEntityRecord(...queryArgs);
+      const videoRecord = select(coreStore).getEntityRecord(...queryArgs);
+      return {
+        entityTitle: videoRecord ? videoRecord?.title : null,
+      };
     },
     [id]
   );
@@ -51,7 +53,7 @@ export default (props) => {
           <div className="item-title" slot="item-title">
             <RichText
               tagName="span"
-              value={!title ? video?.title?.raw : title}
+              value={!title ? entityTitle : title}
               allowedFormats={[]}
               onChange={(title) => setAttributes({ title })}
               placeholder={__("Title...", "presto-player")}

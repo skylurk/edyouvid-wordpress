@@ -4,32 +4,31 @@ namespace PrestoPlayer\Database;
 
 use PrestoPlayer\Database\Table;
 
-class Visits
-{
-    protected $table;
-    protected $version = 1;
-    protected $name = 'presto_player_visits';
+class Visits {
 
-    public function __construct(Table $table)
-    {
-        $this->table = $table;
-    }
+	protected $table;
+	protected $version = 1;
+	protected $name    = 'presto_player_visits';
 
-    public function getName()
-    {
-        global $wpdb;
-        return $wpdb->prefix . $this->name;
-    }
+	public function __construct( Table $table ) {
+		$this->table = $table;
+	}
 
-    /**
-     * Add relationships custom table
-     * This allows for simple, efficient queries
-     *
-     * @return void
-     */
-    public function install()
-    {
-        return $this->table->create($this->name, "
+	public function getName() {
+		global $wpdb;
+		return $wpdb->prefix . $this->name;
+	}
+
+	/**
+	 * Add relationships custom table
+	 * This allows for simple, efficient queries
+	 *
+	 * @return void
+	 */
+	public function install() {
+		return $this->table->create(
+			$this->name,
+			"
             id bigint(20) unsigned NOT NULL auto_increment,
             user_id bigint(20) unsigned NULL,
             duration bigint(20) unsigned NOT NULL,
@@ -44,20 +43,21 @@ class Visits
             KEY ip_address (ip_address),
             KEY created_at (created_at),
             KEY updated_at (updated_at)
-        ", $this->version);
-    }
+        ",
+			$this->version
+		);
+	}
 
-    /**
-     * Uninstall tables
-     *
-     * @return void
-     */
-    public function uninstall()
-    {
-        $this->table->drop($this->getName());
-    }
+	/**
+	 * Uninstall tables
+	 *
+	 * @return void
+	 */
+	public function uninstall() {
+		$this->table->drop( $this->getName() );
+	}
 
-    public function exists(){
-        return $this->table->exists($this->name );
-    }
+	public function exists() {
+		return $this->table->exists( $this->name );
+	}
 }

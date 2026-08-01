@@ -20,22 +20,38 @@ if ( ! defined( 'ABSPATH' ) ) {
  * the visitor has not yet entered the password we will
  * return early without loading the comments.
  */
-if ( post_password_required() ) {
+if ( post_password_required() || false === astra_get_option( 'enable-comments-area', true ) ) {
 	return;
+}
+
+$comment_form_position = astra_get_option( 'comment-form-position', 'below' );
+$container_selector    = 'outside' === astra_get_option( 'comments-box-placement' ) ? 'ast-container--' . astra_get_option( 'comments-box-container-width', '' ) : '';
+
+if ( is_customize_preview() && is_callable( 'Astra_Builder_UI_Controller::render_customizer_edit_button' ) ) {
+	?>
+		<div id="comments" class="customizer-item-block-preview customizer-navigate-on-focus comments-area comment-form-position-<?php echo esc_attr( $comment_form_position ); ?> <?php echo esc_attr( $container_selector ); ?>" data-section="ast-sub-section-comments" data-type="section">
+	<?php
+	Astra_Builder_UI_Controller::render_customizer_edit_button( 'row-editor-shortcut' );
+} else {
+	?>
+		<div id="comments" class="comments-area comment-form-position-<?php echo esc_attr( $comment_form_position ); ?> <?php echo esc_attr( $container_selector ); ?>">
+	<?php
 }
 ?>
 
-<div id="comments" class="comments-area">
-
 	<?php astra_comments_before(); ?>
 
-	<?php 
-	if ( have_comments() ) : 
-		astra_markup_open( 'comment-count-wrapper' ); 
+	<?php
+	if ( 'above' === $comment_form_position ) {
+		comment_form();
+	}
+	if ( have_comments() ) {
+		astra_markup_open( 'comment-count-wrapper' );
+		$title_tag = apply_filters( 'astra_comment_title_tag', 'h3' );
 		?>
-			<h3 class="comments-title">
+			<<?php echo esc_attr( $title_tag ); ?> class="comments-title">
 				<?php
-				$comments_title = apply_filters(
+				$astra_comments_title = apply_filters(
 					'astra_comment_form_title',
 					sprintf( // WPCS: XSS OK.
 						/* translators: 1: number of comments */
@@ -45,12 +61,12 @@ if ( post_password_required() ) {
 					)
 				);
 
-				echo esc_html( $comments_title );
+				echo esc_html( $astra_comments_title );
 				?>
-			</h3>
-		<?php 
+			</<?php echo esc_attr( $title_tag ); ?>>
+		<?php
 		astra_markup_close( 'comment-count-wrapper' );
-		if ( get_comment_pages_count() > 1 && get_option( 'page_comments' ) ) : 
+		if ( get_comment_pages_count() > 1 && get_option( 'page_comments' ) ) {
 			?>
 		<nav id="comment-nav-above" class="navigation comment-navigation" aria-label="<?php esc_attr_e( 'Comments Navigation', 'astra' ); ?>">
 			<h3 class="screen-reader-text"><?php echo esc_html( astra_default_strings( 'string-comment-navigation-next', false ) ); ?></h3>
@@ -61,7 +77,7 @@ if ( post_password_required() ) {
 
 			</div><!-- .nav-links -->
 		</nav><!-- #comment-nav-above -->
-		<?php endif; ?>
+		<?php } ?>
 
 		<ol class="ast-comment-list">
 			<?php
@@ -74,7 +90,7 @@ if ( post_password_required() ) {
 			?>
 		</ol><!-- .ast-comment-list -->
 
-		<?php if ( get_comment_pages_count() > 1 && get_option( 'page_comments' ) ) : ?>
+		<?php if ( get_comment_pages_count() > 1 && get_option( 'page_comments' ) ) { ?>
 		<nav id="comment-nav-below" class="navigation comment-navigation" aria-label="<?php esc_attr_e( 'Comments Navigation', 'astra' ); ?>">
 			<h3 class="screen-reader-text"><?php echo esc_html( astra_default_strings( 'string-comment-navigation-next', false ) ); ?></h3>
 			<div class="nav-links">
@@ -84,19 +100,25 @@ if ( post_password_required() ) {
 
 			</div><!-- .nav-links -->
 		</nav><!-- #comment-nav-below -->
-		<?php endif; ?>
+		<?php } ?>
 
-	<?php endif; ?>
+	<?php } ?>
 
 	<?php
 		// If comments are closed and there are comments, let's leave a little note, shall we?
-	if ( ! comments_open() && get_comments_number() && post_type_supports( get_post_type(), 'comments' ) ) :
+	if ( ! comments_open() && get_comments_number() && post_type_supports( get_post_type(), 'comments' ) ) {
 		?>
 		<p class="no-comments"><?php echo esc_html( astra_default_strings( 'string-comment-closed', false ) ); ?></p>
-	<?php endif; ?>
+	<?php } ?>
 
-	<?php comment_form(); ?>
+	<?php
+	if ( 'below' === $comment_form_position ) {
+		comment_form();
+	}
+	?>
 
 	<?php astra_comments_after(); ?>
 
 </div><!-- #comments -->
+
+<?php do_action( 'astra_after_comments_module' ); ?>

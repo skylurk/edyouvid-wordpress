@@ -255,20 +255,31 @@ class WPvivid_Setting
         return $options = get_option('wpvivid_task_list', $default);
     }
 
+    public static function clean_task_list_cache()
+    {
+        wp_cache_delete('wpvivid_task_list', 'options');
+        wp_cache_delete('alloptions', 'options');
+        wp_cache_delete('notoptions', 'options');
+    }
+
     public static function update_task($id,$task)
     {
         $default = array();
+        self::clean_task_list_cache();
         $options = get_option('wpvivid_task_list', $default);
         $options[$id]=$task;
         self::update_option('wpvivid_task_list',$options);
+        self::clean_task_list_cache();
     }
 
     public static function delete_task($id)
     {
         $default = array();
+        self::clean_task_list_cache();
         $options = get_option('wpvivid_task_list', $default);
         unset($options[$id]);
         self::update_option('wpvivid_task_list',$options);
+        self::clean_task_list_cache();
     }
 
     public static function check_compress_options()

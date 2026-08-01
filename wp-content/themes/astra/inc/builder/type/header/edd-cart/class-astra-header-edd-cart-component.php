@@ -3,8 +3,6 @@
  * EDD Cart for Astra theme.
  *
  * @package     astra-builder
- * @author      Astra
- * @copyright   Copyright (c) 2020, Astra
  * @link        https://wpastra.com/
  * @since       3.0.0
  */
@@ -24,17 +22,14 @@ if ( ! class_exists( 'Astra_Header_Edd_Cart_Component' ) ) {
 	 * @since 3.0.0
 	 */
 	class Astra_Header_Edd_Cart_Component {
-
 		/**
 		 * Constructor function that initializes required actions and hooks
 		 */
 		public function __construct() {
 
 			// @codingStandardsIgnoreStart WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound
-			require_once ASTRA_HEADER_EDD_CART_DIR . '/class-astra-header-edd-cart-loader.php';
-
 			// Include front end files.
-			if ( ! is_admin() ) {
+			if ( ! is_admin() || Astra_Builder_Customizer::astra_collect_customizer_builder_data() ) {
 				require_once ASTRA_HEADER_EDD_CART_DIR . '/dynamic-css/dynamic.css.php';
 			}
 			// @codingStandardsIgnoreEnd WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound

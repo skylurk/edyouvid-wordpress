@@ -86,7 +86,7 @@ class CookieJar implements \YoastSEO_Vendor\GuzzleHttp\Cookie\CookieJarInterface
             return $cookie->toArray();
         }, $this->getIterator()->getArrayCopy());
     }
-    public function clear(string $domain = null, string $path = null, string $name = null) : void
+    public function clear(?string $domain = null, ?string $path = null, ?string $name = null) : void
     {
         if (!$domain) {
             $this->cookies = [];
@@ -192,7 +192,7 @@ class CookieJar implements \YoastSEO_Vendor\GuzzleHttp\Cookie\CookieJarInterface
     /**
      * Computes cookie path following RFC 6265 section 5.1.4
      *
-     * @see https://tools.ietf.org/html/rfc6265#section-5.1.4
+     * @see https://datatracker.ietf.org/doc/html/rfc6265#section-5.1.4
      */
     private function getCookiePathFromRequest(\YoastSEO_Vendor\Psr\Http\Message\RequestInterface $request) : string
     {

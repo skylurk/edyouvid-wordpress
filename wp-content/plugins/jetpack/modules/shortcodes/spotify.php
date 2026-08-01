@@ -8,6 +8,10 @@
  * @package automattic/jetpack
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 if ( ! shortcode_exists( 'spotify' ) ) {
 	add_shortcode( 'spotify', 'jetpack_spotify_shortcode' );
 }
@@ -23,6 +27,9 @@ if ( ! shortcode_exists( 'spotify' ) ) {
  * @return string
  */
 function jetpack_spotify_shortcode( $atts = array(), $content = '' ) {
+	if ( ! is_array( $atts ) ) {
+		$atts = array();
+	}
 
 	if ( ! empty( $content ) ) {
 		$id = $content;
@@ -91,7 +98,7 @@ function jetpack_spotify_embed_ids( $content ) {
 		}
 
 		// If this element does not contain a Spotify embed, continue.
-		if ( false === strpos( $element, 'spotify:' ) ) {
+		if ( ! str_contains( $element, 'spotify:' ) ) {
 			continue;
 		}
 

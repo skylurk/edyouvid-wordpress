@@ -10,6 +10,7 @@
 namespace STImporter\Importer;
 
 use STImporter\Importer\ST_Importer_Helper;
+use STImporter\Importer\ST_Importer_Log;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -72,6 +73,26 @@ class ST_Option_Importer {
 				// Astra Theme Global Color Palette and Typography Preset options.
 				'astra-color-palettes',
 				'astra-typography-presets',
+
+				// Plugin: Elementor.
+				'elementor_container_width',
+				'elementor_cpt_support',
+				'elementor_css_print_method',
+				'elementor_default_generic_fonts',
+				'elementor_disable_color_schemes',
+				'elementor_disable_typography_schemes',
+				'elementor_editor_break_lines',
+				'elementor_exclude_user_roles',
+				'elementor_global_image_lightbox',
+				'elementor_page_title_selector',
+				'elementor_scheme_color',
+				'elementor_scheme_color-picker',
+				'elementor_scheme_typography',
+				'elementor_space_between_widgets',
+				'elementor_stretched_section_container',
+				'elementor_load_fa4_shim',
+				'elementor_active_kit',
+				'elementor_experiment-container',
 			)
 		);
 	}
@@ -118,13 +139,48 @@ class ST_Option_Importer {
 	 */
 	public static function update_page_id_by_option_value( $option_name, $option_value ) {
 		if ( empty( $option_value ) ) {
+			ST_Importer_Log::add(
+				'warning',
+				'Empty option value provided, skipping page ID update',
+				array(
+					'option_name' => $option_name,
+				)
+			);
 			return;
 		}
+
+		ST_Importer_Log::add(
+			'info',
+			'Looking up page by title for option update',
+			array(
+				'option_name'  => $option_name,
+				'option_value' => $option_value,
+			)
+		);
 
 		$page = self::get_page_by_title( $option_value, 'page' );
 
 		if ( is_object( $page ) && isset( $page->ID ) ) {
 			update_option( $option_name, $page->ID );
+
+			ST_Importer_Log::add(
+				'success',
+				'Page ID updated successfully in options',
+				array(
+					'option_name' => $option_name,
+					'page_title'  => $option_value,
+					'page_id'     => $page->ID,
+				)
+			);
+		} else {
+			ST_Importer_Log::add(
+				'error',
+				'Page not found for option update',
+				array(
+					'option_name' => $option_name,
+					'page_title'  => $option_value,
+				)
+			);
 		}
 	}
 
@@ -142,19 +198,68 @@ class ST_Option_Importer {
 
 		$menu_locations = array();
 
+		ST_Importer_Log::add(
+			'info',
+			'Starting navigation menu location mapping',
+			array(
+				'total_locations' => count( $nav_menu_locations ),
+			)
+		);
+
 		// Update menu locations.
 		if ( is_array( $nav_menu_locations ) ) {
+
+			$successful_mappings = 0;
+			$failed_locations    = array();
 
 			foreach ( $nav_menu_locations as $menu => $value ) {
 
 				$term = get_term_by( 'slug', $value, 'nav_menu' );
 
-				if ( is_object( $term ) && isset( $term->term_id ) ) {
+				if ( is_object( $term ) && property_exists( $term, 'term_id' ) ) {
 					$menu_locations[ $menu ] = $term->term_id;
+					$successful_mappings++;
+
+					ST_Importer_Log::add(
+						'info',
+						'Menu location mapped successfully',
+						array(
+							'location' => $menu,
+							'slug'     => $value,
+							'menu_id'  => $term->term_id,
+						)
+					);
+				} else {
+					$failed_locations[] = $menu;
+
+					ST_Importer_Log::add(
+						'warning',
+						'Menu not found for location',
+						array(
+							'location' => $menu,
+							'slug'     => $value,
+						)
+					);
 				}
 			}
 
 			set_theme_mod( 'nav_menu_locations', $menu_locations );
+
+			ST_Importer_Log::add(
+				'success',
+				'Navigation menu location mapping completed',
+				array(
+					'successful_mappings' => $successful_mappings,
+					'failed_locations'    => $failed_locations,
+					'total_locations'     => count( $nav_menu_locations ),
+				)
+			);
+		} else { // @phpstan-ignore-line - else branch is reachable despite PHPDoc
+			ST_Importer_Log::add(
+				'warning',
+				'No navigation menu locations provided for mapping',
+				array()
+			);
 		}
 	}
 
@@ -167,6 +272,14 @@ class ST_Option_Importer {
 	 */
 	public static function insert_logo( $image_url = '' ) {
 
+		ST_Importer_Log::add(
+			'info',
+			'Starting logo insertion process',
+			array(
+				'url' => $image_url,
+			)
+		);
+
 		$downloaded_image = self::import(
 			array(
 				'url' => $image_url,
@@ -177,6 +290,24 @@ class ST_Option_Importer {
 		if ( $downloaded_image['id'] ) {
 			ST_Importer_Helper::track_post( $downloaded_image['id'] );
 			set_theme_mod( 'custom_logo', $downloaded_image['id'] );
+
+			ST_Importer_Log::add(
+				'success',
+				'Logo inserted successfully and set as custom logo',
+				array(
+					'url'           => $image_url,
+					'attachment_id' => $downloaded_image['id'],
+					'logo_url'      => $downloaded_image['url'] ?? '',
+				)
+			);
+		} else {
+			ST_Importer_Log::add(
+				'error',
+				'Failed to insert logo: no attachment ID returned',
+				array(
+					'url' => $image_url,
+				)
+			);
 		}
 
 	}
@@ -193,12 +324,37 @@ class ST_Option_Importer {
 	public static function import( $attachment ) {
 
 		if ( isset( $attachment['url'] ) && ! self::is_valid_image_url( $attachment['url'] ) ) {
+			ST_Importer_Log::add(
+				'error',
+				'Invalid image URL provided for import',
+				array(
+					'url' => $attachment['url'] ?? '', // @phpstan-ignore-line
+				)
+			);
 			return $attachment;
 		}
+
+		$image_url = $attachment['url'] ?? '';
+		ST_Importer_Log::add(
+			'info',
+			'Starting image download process',
+			array(
+				'url'  => $image_url,
+				'sha1' => ST_Importer_Helper::get_hash_image( $image_url ),
+			)
+		);
 
 		$saved_image = self::get_saved_image( $attachment );
 
 		if ( $saved_image['status'] ) {
+			ST_Importer_Log::add(
+				'success',
+				'Image already imported, using existing attachment',
+				array(
+					'url'           => $image_url,
+					'attachment_id' => $saved_image['attachment']['id'] ?? 0,
+				)
+			);
 			return $saved_image['attachment'];
 		}
 
@@ -214,8 +370,25 @@ class ST_Option_Importer {
 
 		// Empty file content?
 		if ( empty( $file_content ) ) {
+			ST_Importer_Log::add(
+				'error',
+				'Failed to download image: empty file content',
+				array(
+					'url'       => $image_url,
+					'file_size' => 0,
+				)
+			);
 			return $attachment;
 		}
+
+		ST_Importer_Log::add(
+			'info',
+			'Image downloaded successfully',
+			array(
+				'url'       => $image_url,
+				'file_size' => strlen( $file_content ),
+			)
+		);
 
 		// Extract the file name and extension from the URL.
 		$filename = basename( $attachment['url'] );
@@ -232,6 +405,14 @@ class ST_Option_Importer {
 			$post['post_mime_type'] = $info['type'];
 		} else {
 			// For now just return the origin attachment.
+			ST_Importer_Log::add(
+				'error',
+				'Unable to determine file type for uploaded image',
+				array(
+					'filename' => $filename,
+					'filepath' => $upload['file'] ?? '', // @phpstan-ignore-line
+				)
+			);
 			return $attachment;
 		}
 
@@ -247,6 +428,14 @@ class ST_Option_Importer {
 				wp_generate_attachment_metadata( $post_id, $upload['file'] )
 			);
 		} catch ( \Exception $e ) {
+			ST_Importer_Log::add(
+				'error',
+				'Failed to generate attachment metadata',
+				array(
+					'attachment_id' => $post_id,
+					'error_message' => $e->getMessage(),
+				)
+			);
 			throw $e;
 		}
 
@@ -259,6 +448,17 @@ class ST_Option_Importer {
 		);
 
 		self::$already_imported_ids[] = $post_id;
+
+		ST_Importer_Log::add(
+			'success',
+			'Image imported successfully',
+			array(
+				'url'            => $image_url,
+				'attachment_id'  => $post_id,
+				'attachment_url' => $upload['url'],
+				'filename'       => $filename,
+			)
+		);
 
 		return $new_attachment;
 	}
@@ -274,6 +474,14 @@ class ST_Option_Importer {
 	public static function get_saved_image( $attachment ) {
 
 		if ( apply_filters( 'astra_sites_image_importer_skip_image', false, $attachment ) ) {
+			$url = $attachment['url'] ?? '';
+			ST_Importer_Log::add(
+				'warning',
+				'Image import skipped by filter',
+				array(
+					'url' => $url,
+				)
+			);
 			return array(
 				'status'     => true,
 				'attachment' => $attachment,
@@ -283,6 +491,15 @@ class ST_Option_Importer {
 		global $wpdb;
 
 		$url = $attachment['url'] ?? '';
+
+		ST_Importer_Log::add(
+			'info',
+			'Looking up image in database by SHA1 hash',
+			array(
+				'url'  => $url,
+				'sha1' => ST_Importer_Helper::get_hash_image( $url ),
+			)
+		);
 
 		// 1. Is already imported in Batch Import Process?
 		$post_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- We are checking if this image is already processed. WO_Query would have been overkill.
@@ -301,6 +518,14 @@ class ST_Option_Importer {
 			// Get file name without extension.
 			// To check it exist in attachment.
 			$filename = basename( $url );
+
+			ST_Importer_Log::add(
+				'info',
+				'SHA1 hash lookup failed, trying filename lookup',
+				array(
+					'filename' => $filename,
+				)
+			);
 
 			// Find the attachment by meta value.
 			// Code reused from Elementor plugin.
@@ -321,11 +546,29 @@ class ST_Option_Importer {
 			);
 			self::$already_imported_ids[] = $post_id;
 
+			ST_Importer_Log::add(
+				'success',
+				'Existing image found in database',
+				array(
+					'url'            => $url,
+					'attachment_id'  => $post_id,
+					'attachment_url' => $new_attachment['url'],
+				)
+			);
+
 			return array(
 				'status'     => true,
 				'attachment' => $new_attachment,
 			);
 		}
+
+		ST_Importer_Log::add(
+			'info',
+			'No existing image found, will proceed with download',
+			array(
+				'url' => $url,
+			)
+		);
 
 		return array(
 			'status'     => false,

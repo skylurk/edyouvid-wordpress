@@ -3,8 +3,6 @@
  * Astra Theme Customizer Configuration Builder.
  *
  * @package     astra-builder
- * @author      Astra
- * @copyright   Copyright (c) 2020, Astra
  * @link        https://wpastra.com/
  * @since       3.0.0
  */
@@ -20,16 +18,15 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 3.0.0
  */
 class Astra_Html_Component_Configs {
-
 	/**
 	 * Register Builder Customizer Configurations.
 	 *
-	 * @param Array  $configurations Configurations.
+	 * @param array  $configurations Configurations.
 	 * @param string $builder_type Builder Type.
 	 * @param string $section Section.
 	 *
 	 * @since 3.0.0
-	 * @return Array Astra Customizer Configurations with updated configurations.
+	 * @return array $configurations Astra Customizer Configurations with updated configurations.
 	 */
 	public static function register_configuration( $configurations, $builder_type = 'header', $section = 'section-hb-html-' ) {
 
@@ -95,6 +92,7 @@ class Astra_Html_Component_Configs {
 						'fallback_refresh' => false,
 					),
 					'context'     => Astra_Builder_Helper::$general_tab,
+					'divider'     => array( 'ast_class' => 'ast-section-spacing' ),
 				),
 
 				/**
@@ -113,6 +111,7 @@ class Astra_Html_Component_Configs {
 					'rgba'       => true,
 					'title'      => __( 'Text Color', 'astra' ),
 					'context'    => Astra_Builder_Helper::$design_tab,
+					'divider'    => array( 'ast_class' => 'ast-section-spacing' ),
 				),
 				array(
 					'name'       => ASTRA_THEME_SETTINGS . '[' . $builder_type . '-html-' . $index . '-link-group]',
@@ -125,7 +124,7 @@ class Astra_Html_Component_Configs {
 					'priority'   => 8,
 					'context'    => Astra_Builder_Helper::$design_tab,
 					'responsive' => true,
-					'divider'    => array( 'ast_class' => 'ast-bottom-divider' ),
+					'divider'    => array( 'ast_class' => 'ast-bottom-section-divider' ),
 				),
 
 				/**
@@ -144,6 +143,7 @@ class Astra_Html_Component_Configs {
 					'parent'     => ASTRA_THEME_SETTINGS . '[' . $builder_type . '-html-' . $index . '-link-group]',
 					'title'      => __( 'Normal', 'astra' ),
 					'context'    => Astra_Builder_Helper::$design_tab,
+					'divider'    => array( 'ast_class' => 'ast-bottom-section-divider' ),
 				),
 
 				/**
@@ -165,6 +165,21 @@ class Astra_Html_Component_Configs {
 				),
 
 				/**
+				 * Option: Divider
+				 */
+				array(
+					'name'     => ASTRA_THEME_SETTINGS . '[' . $_section . '-margin-divider]',
+					'section'  => $_section,
+					'title'    => __( 'Spacing', 'astra' ),
+					'type'     => 'control',
+					'control'  => 'ast-heading',
+					'priority' => 109,
+					'settings' => array(),
+					'context'  => Astra_Builder_Helper::$design_tab,
+					'divider'  => array( 'ast_class' => 'ast-top-section-divider' ),
+				),
+
+				/**
 				 * Option: Margin Space
 				 */
 				array(
@@ -175,9 +190,9 @@ class Astra_Html_Component_Configs {
 					'control'           => 'ast-responsive-spacing',
 					'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_responsive_spacing' ),
 					'section'           => $_section,
-					'priority'          => 220,
+					'priority'          => 109,
 					'title'             => __( 'Margin', 'astra' ),
-					'divider'           => array( 'ast_class' => 'ast-top-divider' ),
+					'divider'           => array( 'ast_class' => 'ast-section-spacing' ),
 					'linked_choices'    => true,
 					'unit_choices'      => array( 'px', 'em', '%' ),
 					'choices'           => array(
@@ -206,7 +221,7 @@ class Astra_Html_Component_Configs {
 						'center' => 'align-center',
 						'right'  => 'align-right',
 					),
-					'divider'   => array( 'ast_class' => 'ast-top-divider' ),
+					'divider'   => array( 'ast_class' => 'ast-top-section-divider' ),
 				);
 			}
 
@@ -217,10 +232,8 @@ class Astra_Html_Component_Configs {
 			$html_config[] = $_configs;
 		}
 
-		$html_config    = call_user_func_array( 'array_merge', $html_config + array( array() ) );
-		$configurations = array_merge( $configurations, $html_config );
-
-		return $configurations;
+		$html_config = call_user_func_array( 'array_merge', $html_config + array( array() ) );
+		return array_merge( $configurations, $html_config );
 	}
 }
 

@@ -36,7 +36,14 @@
  * @package automattic/jetpack
  */
 
-add_filter( 'pre_kses', 'googleapps_embed_to_shortcode' );
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
+if ( jetpack_shortcodes_should_hook_pre_kses() ) {
+	add_filter( 'pre_kses', 'googleapps_embed_to_shortcode' );
+}
+
 add_shortcode( 'googleapps', 'googleapps_shortcode' );
 
 /**
@@ -210,7 +217,7 @@ function googleapps_validate_domain_and_dir( $domain, $dir ) {
 	}
 
 	// Calendars.
-	if ( ( 'www' === $domain || 'calendar' === $domain ) && 'calendar/' !== substr( $dir, 0, 9 ) ) {
+	if ( ( 'www' === $domain || 'calendar' === $domain ) && ! str_starts_with( $dir, 'calendar/' ) ) {
 		return false;
 	}
 

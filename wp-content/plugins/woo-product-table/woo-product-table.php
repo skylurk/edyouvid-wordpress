@@ -8,11 +8,11 @@
  * Author URI: https://wooproducttable.com/?utm_source=WPT+Plugin+Dashboard&utm_medium=Free+Version
  * Tags: wooproducttable, woocommerce product list,woocommerce product table, wc product table, product grid view, inventory, shop product table
  * 
- * Version: 6.0.2
+ * Version: 6.1.0
  * Requires at least:    6.2
- * Tested up to:         6.9
+ * Tested up to:         7.0
  * WC requires at least: 6.2.2
- * WC tested up to: 	 10.4.5
+ * WC tested up to: 	 10.7.0
  * 
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -44,7 +44,7 @@ if( ! defined( 'WPT_PLUGIN_BASE_FOLDER' ) ){
 }
 
 if( ! defined( 'WPT_DEV_VERSION' ) ){
-    define( 'WPT_DEV_VERSION', '6.0.2.0' );
+    define( 'WPT_DEV_VERSION', '6.1.0.0' );
 }
 
 if( ! defined( 'WPT_CAPABILITY' ) ){
@@ -52,8 +52,8 @@ if( ! defined( 'WPT_CAPABILITY' ) ){
     define( 'WPT_CAPABILITY', $wpt_capability );
 }
 
-if( ! defined( 'WPT_PLUGIN' ) ){
-    define( 'WPT_PLUGIN', plugin_basename( __FILE__ ) ); 
+if( ! defined( 'WPT_FILE' ) ){
+    define( 'WPT_FILE', __FILE__ ); 
 }
 
 
@@ -240,6 +240,9 @@ if( ! class_exists('WPT_Product_Table') ){
             include_once dirname( __FILE__ ) . '/includes/functions.php';
 
 
+             
+
+
 
             add_action( 'plugins_loaded', [$this, 'plugins_loaded'] );
             add_action( 'init', [$this, 'include_defaults'] );
@@ -261,13 +264,13 @@ if( ! class_exists('WPT_Product_Table') ){
                 'height'        => __( 'Height(cm)', 'woo-product-table' ),
                 'rating'        => __( 'Rating', 'woo-product-table' ),
                 'stock'         => __( 'Stock', 'woo-product-table' ),
+                'quick_view'    => __( 'Quick View', 'woo-product-table' ),
+                'quick'         => __( 'Quick', 'woo-product-table' ), //Yith Quick View actually
                 'price'         => __( 'Price', 'woo-product-table' ),
                 'wishlist'      => __( 'Wish List', 'woo-product-table' ),
                 'quantity'      => __( 'Quantity', 'woo-product-table' ),
                 'total'         => __( 'Total Price', 'woo-product-table' ),
                 'message'       => __( 'Short Message', 'woo-product-table' ),
-                'quick_view'    => __( 'Quick View', 'woo-product-table' ),
-                'quick'         => __( 'Quick', 'woo-product-table' ), //Yith Quick View actually
                 'date'          =>  __( 'Date', 'woo-product-table' ),
                 'modified_date' =>  __( 'Modified Date', 'woo-product-table' ),
                 'attribute'     =>  __( 'Attributes', 'woo-product-table' ),
@@ -288,9 +291,9 @@ if( ! class_exists('WPT_Product_Table') ){
                 'tick'         => 'tick',  
                 'thumbnails'    => 'thumbnails',  
                 'product_title' => 'product_title',  
-                'quantity'      => 'quantity',  
                 'price'         => 'price',  
                 'action'        => 'action',  
+                'quick'      => 'quick', 
             );
 
             /**
@@ -412,12 +415,6 @@ if( ! class_exists('WPT_Product_Table') ){
                     }
                 }
             );
-
-            $wpt_premium_loader = dirname( __FILE__ ) . '/premium/premium-loader.php';
-            if ( file_exists( $wpt_premium_loader ) ) { 
-                // include_once $wpt_premium_loader;
-            }
-
         
             
             // Check for required PHP version
@@ -425,6 +422,18 @@ if( ! class_exists('WPT_Product_Table') ){
                 add_action( 'admin_notices', [ $this, 'admin_notice_minimum_php_version' ] );
                 return;
             }
+
+            /**
+             * Including CA_Framework
+             * 
+             * @since 3.1.3.1
+             * @author Saiful <codersaiful@gmail.com>
+             */
+            require_once WPT_DIR_BASE . '/framework/handle.php';
+            // dd(WPT_Required::fail());
+            if( WPT_Required::fail() ){
+                return;
+            } 
 
             $dir = dirname( __FILE__ ); //dirname( __FILE__ )
 
@@ -461,9 +470,7 @@ if( ! class_exists('WPT_Product_Table') ){
             include_once $this->path('BASE_DIR','admin/wpt_product_table_post.php');
             if( is_admin() ){
             
- 
-
-                //A solution for recommended plugin check issue
+                 //A solution for recommended plugin check issue
                 add_action( 'init', function(){
 
                     new WOO_PRODUCT_TABLE\Admin\Admin_Loader();
@@ -696,7 +703,7 @@ if( ! class_exists('WPT_Product_Table') ){
         /**
          * Getting Version by this Function/Method
          * 
-         * @return type static String
+         * @return string static String
          */
         public static function getName() {
             $data = self::getPluginData();
@@ -706,8 +713,8 @@ if( ! class_exists('WPT_Product_Table') ){
         /**
          * Getting Plugin Default Data
          * 
-         * @param type $indexKey
-         * @return variable
+         * @param string $indexKey
+         * @return mixed
          */
         public static function getDefault( $indexKey = false ){
             $default = self::$default;

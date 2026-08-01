@@ -9,7 +9,13 @@ namespace Automattic\Jetpack\Sync\Modules;
 
 use Automattic\Jetpack\Constants as Jetpack_Constants;
 use Automattic\Jetpack\Roles;
+use Automattic\Jetpack\Sync\Activity_Log_Event;
+use Automattic\Jetpack\Sync\Modules;
 use Automattic\Jetpack\Sync\Settings;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 /**
  * Class to handle sync for posts.
@@ -43,6 +49,15 @@ class Posts extends Module {
 	private $action_handler;
 
 	/**
+	 * Mark posts that are deleted in the current request.
+	 *
+	 * @access private
+	 *
+	 * @var array
+	 */
+	private static $deleted_posts_in_request = array();
+
+	/**
 	 * Import end.
 	 *
 	 * @access private
@@ -62,16 +77,6 @@ class Posts extends Module {
 	 * @var int
 	 */
 	const MAX_POST_CONTENT_LENGTH = 5000000;
-
-	/**
-	 * Max bytes allowed for post meta_value => length.
-	 * Current Setting : 2MB.
-	 *
-	 * @access public
-	 *
-	 * @var int
-	 */
-	const MAX_POST_META_LENGTH = 2000000;
 
 	/**
 	 * Default previous post state.
@@ -95,14 +100,28 @@ class Posts extends Module {
 	}
 
 	/**
-	 * The table in the database.
+	 * The table name.
 	 *
 	 * @access public
 	 *
 	 * @return string
+	 * @deprecated since 3.11.0 Use table() instead.
 	 */
 	public function table_name() {
+		_deprecated_function( __METHOD__, '3.11.0', 'Automattic\\Jetpack\\Sync\\Posts->table' );
 		return 'posts';
+	}
+
+	/**
+	 * The table in the database with the prefix.
+	 *
+	 * @access public
+	 *
+	 * @return string|bool
+	 */
+	public function table() {
+		global $wpdb;
+		return $wpdb->posts;
 	}
 
 	/**
@@ -135,25 +154,31 @@ class Posts extends Module {
 	public function init_listeners( $callable ) {
 		$this->action_handler = $callable;
 
+		add_action( 'before_delete_post', array( $this, 'mark_post_is_being_deleted' ), 0, 1 );
 		add_action( 'wp_insert_post', array( $this, 'wp_insert_post' ), 11, 3 );
 		add_action( 'wp_after_insert_post', array( $this, 'wp_after_insert_post' ), 11, 2 );
 		add_action( 'jetpack_sync_save_post', $callable, 10, 4 );
 
 		add_action( 'deleted_post', $callable, 10 );
-		add_action( 'jetpack_published_post', $callable, 10, 2 );
+		add_action( 'jetpack_published_post', $callable, 10, 3 );
 		add_filter( 'jetpack_sync_before_enqueue_deleted_post', array( $this, 'filter_blacklisted_post_types_deleted' ) );
 
 		add_action( 'transition_post_status', array( $this, 'save_published' ), 10, 3 );
 
 		// Listen for meta changes.
 		$this->init_listeners_for_meta_type( 'post', $callable );
-		$this->init_meta_whitelist_handler( 'post', array( $this, 'filter_meta' ) );
+		add_filter( 'jetpack_sync_before_enqueue_added_post_meta', array( $this, 'filter_meta' ) );
+		add_filter( 'jetpack_sync_before_enqueue_updated_post_meta', array( $this, 'filter_updated_post_meta' ) );
+		add_filter( 'jetpack_sync_before_enqueue_deleted_post_meta', array( $this, 'filter_deleted_post_meta' ) );
 
 		add_filter( 'jetpack_sync_before_enqueue_jetpack_sync_save_post', array( $this, 'filter_jetpack_sync_before_enqueue_jetpack_sync_save_post' ) );
+		add_filter( 'jetpack_sync_before_enqueue_jetpack_published_post', array( $this, 'filter_jetpack_sync_before_enqueue_jetpack_published_post' ) );
 
 		add_action( 'jetpack_daily_akismet_meta_cleanup_before', array( $this, 'daily_akismet_meta_cleanup_before' ) );
 		add_action( 'jetpack_daily_akismet_meta_cleanup_after', array( $this, 'daily_akismet_meta_cleanup_after' ) );
 		add_action( 'jetpack_post_meta_batch_delete', $callable, 10, 2 );
+
+		add_action( 'deleted_post', array( $this, 'unmark_post_being_deleted' ), 11, 1 );
 	}
 
 	/**
@@ -216,11 +241,16 @@ class Posts extends Module {
 	 */
 	public function init_before_send() {
 		// meta.
-		add_filter( 'jetpack_sync_before_send_added_post_meta', array( $this, 'trim_post_meta' ) );
-		add_filter( 'jetpack_sync_before_send_updated_post_meta', array( $this, 'trim_post_meta' ) );
+		add_filter( 'jetpack_sync_before_send_added_post_meta', array( $this, 'filter_added_post_meta_before_send' ), 5 ); // Incase this filter is used elsewhere, we run early.
+		add_filter( 'jetpack_sync_before_send_updated_post_meta', array( $this, 'filter_updated_post_meta_before_send' ), 5 ); // Incase this filter is used elsewhere, we run early.
 		add_filter( 'jetpack_sync_before_send_deleted_post_meta', array( $this, 'trim_post_meta' ) );
 		// Full sync.
-		add_filter( 'jetpack_sync_before_send_jetpack_full_sync_posts', array( $this, 'expand_post_ids' ) );
+		$sync_module = Modules::get_module( 'full-sync' );
+		if ( $sync_module instanceof Full_Sync_Immediately ) {
+			add_filter( 'jetpack_sync_before_send_jetpack_full_sync_posts', array( $this, 'build_full_sync_action_array' ) );
+		} else {
+			add_filter( 'jetpack_sync_before_send_jetpack_full_sync_posts', array( $this, 'expand_posts_with_metadata_and_terms' ) );
+		}
 	}
 
 	/**
@@ -247,14 +277,14 @@ class Posts extends Module {
 	 * @todo Use $wpdb->prepare for the SQL query.
 	 *
 	 * @param array $config Full sync configuration for this sync module.
-	 * @return array Number of items yet to be enqueued.
+	 * @return int Number of items yet to be enqueued.
 	 */
 	public function estimate_full_sync_actions( $config ) {
 		global $wpdb;
 
 		$query = "SELECT count(*) FROM $wpdb->posts WHERE " . $this->get_where_sql( $config );
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$count = $wpdb->get_var( $query );
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$count = (int) $wpdb->get_var( $query );
 
 		return (int) ceil( $count / self::ARRAY_CHUNK_SIZE );
 	}
@@ -271,7 +301,7 @@ class Posts extends Module {
 		$where_sql = Settings::get_blacklisted_post_types_sql();
 
 		// Config is a list of post IDs to sync.
-		if ( is_array( $config ) ) {
+		if ( is_array( $config ) && ! empty( $config ) ) {
 			$where_sql .= ' AND ID IN (' . implode( ',', array_map( 'intval', $config ) ) . ')';
 		}
 
@@ -290,7 +320,7 @@ class Posts extends Module {
 	}
 
 	/**
-	 * Filter meta arguments so that we don't sync meta_values over MAX_POST_META_LENGTH.
+	 * Filter meta arguments so that we don't sync meta_values over MAX_META_LENGTH.
 	 *
 	 * @param array $args action arguments.
 	 *
@@ -301,10 +331,114 @@ class Posts extends Module {
 		// Explicitly truncate meta_value when it exceeds limit.
 		// Large content will cause OOM issues and break Sync.
 		$serialized_value = maybe_serialize( $meta_value );
-		if ( strlen( $serialized_value ) >= self::MAX_POST_META_LENGTH ) {
+		if ( $serialized_value === null || strlen( $serialized_value ) >= self::MAX_META_LENGTH ) {
 			$meta_value = '';
 		}
 		return array( $meta_id, $object_id, $meta_key, $meta_value );
+	}
+
+	/**
+	 * Updated post meta send-time filter: refreshes _wp_attachment_metadata to the latest DB value, then trims.
+	 *
+	 * @param array $args [ $meta_id, $object_id, $meta_key, $meta_value ].
+	 * @return array Filtered args.
+	 */
+	public function filter_updated_post_meta_before_send( $args ) {
+		if ( ! is_array( $args ) || count( $args ) < 4 ) {
+			return $args;
+		}
+		list( $meta_id, $object_id, $meta_key, $meta_value ) = $args;
+		if ( '_wp_attachment_metadata' !== $meta_key || 'attachment' !== get_post_type( (int) $object_id ) ) {
+			return $this->trim_post_meta( $args );
+		}
+		$current_value = wp_get_attachment_metadata( (int) $object_id );
+		if ( is_array( $current_value ) && ! empty( $current_value ) ) {
+			$meta_value = $current_value;
+		}
+		return $this->trim_post_meta( array( $meta_id, $object_id, $meta_key, $meta_value ) );
+	}
+
+	/**
+	 * Added post meta send-time filter: refreshes _wp_attachment_metadata to the latest DB value, then trims.
+	 *
+	 * @param array $args [ $meta_id, $object_id, $meta_key, $meta_value ].
+	 * @return array|false Filtered args, or false to skip sending when the snapshot is clearly incomplete.
+	 */
+	public function filter_added_post_meta_before_send( $args ) {
+		if ( ! is_array( $args ) || count( $args ) < 4 ) {
+			return $args;
+		}
+		list( $meta_id, $object_id, $meta_key, $meta_value ) = $args;
+		if ( '_wp_attachment_metadata' !== $meta_key || 'attachment' !== get_post_type( (int) $object_id ) ) {
+			return $this->trim_post_meta( $args );
+		}
+		$current_value = wp_get_attachment_metadata( (int) $object_id );
+		// For added_post_meta, skip clearly incomplete snapshots (e.g., missing or empty sizes).
+		if ( ! is_array( $current_value ) || empty( $current_value ) ) {
+			return false;
+		}
+		if ( isset( $current_value['sizes'] ) && is_array( $current_value['sizes'] ) && count( $current_value['sizes'] ) === 0 ) {
+			return false;
+		}
+		$meta_value = $current_value;
+		return $this->trim_post_meta( array( $meta_id, $object_id, $meta_key, $meta_value ) );
+	}
+
+	/**
+	 * Mark a post as being deleted in the current request.
+	 *
+	 * @param int $post_id ID of the post being deleted.
+	 */
+	public function mark_post_is_being_deleted( $post_id ) {
+		self::$deleted_posts_in_request[ (int) $post_id ] = true;
+	}
+
+	/**
+	 * Enqueue-time per-request dedupe for deleted post metadata, if the post itself is being deleted.
+	 *
+	 * @param array $args [ $meta_id, $post_id, $meta_key, $meta_value ].
+	 * @return array|false
+	 */
+	public function maybe_skip_deleted_post_meta( $args ) {
+		if ( is_array( $args ) && isset( $args[1] ) && is_numeric( $args[1] ) ) {
+			$post_id = (int) $args[1];
+			if ( isset( self::$deleted_posts_in_request[ $post_id ] ) ) {
+				return false;
+			}
+		}
+		return $args;
+	}
+
+	/**
+	 * Unmark a post as being deleted in the current request, to clean up.
+	 *
+	 * @param int $post_id ID of the post.
+	 */
+	public function unmark_post_being_deleted( $post_id ) {
+		unset( self::$deleted_posts_in_request[ (int) $post_id ] );
+	}
+
+	/**
+	 * Enqueue-time per-request dedupe for updated attachment metadata.
+	 *
+	 * @param array $args [ $meta_id, $object_id, $meta_key, $meta_value ].
+	 * @return array|false
+	 */
+	public function on_before_enqueue_updated_attachment_metadata( $args ) {
+		if ( ! is_array( $args ) || count( $args ) < 3 ) {
+			return $args;
+		}
+		$post_id  = (int) $args[1];
+		$meta_key = $args[2];
+		if ( '_wp_attachment_metadata' !== $meta_key || 'attachment' !== get_post_type( $post_id ) ) {
+			return $args;
+		}
+		static $seen_updated_meta_for_post = array();
+		if ( isset( $seen_updated_meta_for_post[ $post_id ] ) ) {
+			return false;
+		}
+		$seen_updated_meta_for_post[ $post_id ] = true;
+		return $args;
 	}
 
 	/**
@@ -326,13 +460,56 @@ class Posts extends Module {
 	 * @return array|false Hook arguments, or false if the post type is a blacklisted one.
 	 */
 	public function filter_jetpack_sync_before_enqueue_jetpack_sync_save_post( $args ) {
-		list( $post_id, $post, $update, $previous_state ) = $args;
+		if (
+			! is_array( $args )
+			|| ! array_key_exists( 0, $args ) || ! is_numeric( $args[0] )
+			|| ! array_key_exists( 1, $args ) || ! ( $args[1] instanceof \WP_Post )
+		) {
+			return false;
+		}
+
+		list( $post_id, $post, $update, $previous_state ) = array_pad( $args, 4, null );
 
 		if ( in_array( $post->post_type, Settings::get_setting( 'post_types_blacklist' ), true ) ) {
 			return false;
 		}
 
-		return array( $post_id, $this->filter_post_content_and_add_links( $post ), $update, $previous_state );
+		// During incremental sync, skip posts whose type is not registered (e.g. CPT unregistered before sync).
+		// Full sync may have already sent them; we simply don't enqueue incremental updates for them.
+		if ( ! get_post_type_object( $post->post_type ) ) {
+			return false;
+		}
+
+		if ( Activity_Log_Event::POST_TYPE === $post->post_type && ! Activity_Log_Event::is_valid_post( $post ) ) {
+			return false;
+		}
+
+		return array( (int) $post_id, $this->filter_post_content_and_add_links( $post ), $update, $previous_state );
+	}
+
+	/**
+	 * Add filtered post content.
+	 *
+	 * @param array $args Hook arguments.
+	 * @return array|false Hook arguments, or false if the arguments are invalid.
+	 */
+	public function filter_jetpack_sync_before_enqueue_jetpack_published_post( $args ) {
+		if (
+			! is_array( $args )
+			|| ! array_key_exists( 0, $args ) || ! is_numeric( $args[0] )
+			|| ! array_key_exists( 1, $args ) || ! is_array( $args[1] )
+			|| ! array_key_exists( 2, $args ) || ! ( $args[2] instanceof \WP_Post )
+		) {
+			return false;
+		}
+
+		list( $post_id, $flags, $post ) = $args;
+
+		if ( Activity_Log_Event::POST_TYPE === $post->post_type && ! Activity_Log_Event::is_valid_post( $post ) ) {
+			return false;
+		}
+
+		return array( (int) $post_id, $flags, $this->filter_post_content_and_add_links( $post ) );
 	}
 
 	/**
@@ -342,7 +519,9 @@ class Posts extends Module {
 	 * @return array|false Hook arguments, or false if the post type is a blacklisted one.
 	 */
 	public function filter_blacklisted_post_types_deleted( $args ) {
-
+		if ( ! is_array( $args ) || ! array_key_exists( 0, $args ) || ! is_numeric( $args[0] ) ) {
+			return false;
+		}
 		// deleted_post is called after the SQL delete but before cache cleanup.
 		// There is the potential we can't detect post_type at this point.
 		if ( ! $this->is_post_type_allowed( $args[0] ) ) {
@@ -355,15 +534,79 @@ class Posts extends Module {
 	/**
 	 * Filter all meta that is not blacklisted, or is stored for a disallowed post type.
 	 *
-	 * @param array $args Hook arguments.
+	 * @param array|false $args Hook arguments.
 	 * @return array|false Hook arguments, or false if meta was filtered.
 	 */
 	public function filter_meta( $args ) {
-		if ( $this->is_post_type_allowed( $args[1] ) && $this->is_whitelisted_post_meta( $args[2] ) ) {
-			return $args;
+		if ( ! $this->has_valid_meta_args( $args ) || ! is_numeric( $args[1] ) ) {
+			return false;
 		}
 
-		return false;
+		return $this->is_allowed_post_meta( $args[1], $args[2] ) ? $args : false;
+	}
+
+	/**
+	 * Filter updated post meta that is not whitelisted, is stored for a disallowed post type,
+	 * or is duplicate attachment metadata.
+	 *
+	 * @param array|false $args Hook arguments.
+	 * @return array|false Hook arguments, or false if meta was filtered.
+	 */
+	public function filter_updated_post_meta( $args ) {
+		$args = $this->on_before_enqueue_updated_attachment_metadata( $args );
+		if ( false === $args ) {
+			return false;
+		}
+
+		return $this->filter_meta( $args );
+	}
+
+	/**
+	 * Filter deleted post meta that is not whitelisted, or is stored for a disallowed post type.
+	 *
+	 * @param array|false $args Hook arguments.
+	 * @return array|false Hook arguments, or false if meta was filtered.
+	 */
+	public function filter_deleted_post_meta( $args ) {
+		if ( ! $this->has_valid_meta_args( $args ) ) {
+			return false;
+		}
+		// Core uses post ID 0 on this hook for delete-all metadata operations. Only mirror value-constrained deletes.
+		if ( 0 === $args[1] ) {
+			if ( ! array_key_exists( 3, $args ) || '' === $args[3] || null === $args[3] || false === $args[3] ) {
+				return false;
+			}
+
+			return $this->is_whitelisted_post_meta( $args[2] ) ? $args : false;
+		}
+
+		$args = $this->filter_meta( $args );
+		if ( false === $args ) {
+			return false;
+		}
+
+		return $this->maybe_skip_deleted_post_meta( $args );
+	}
+
+	/**
+	 * Whether metadata hook arguments include a meta key.
+	 *
+	 * @param array|false $args Hook arguments.
+	 * @return bool Whether metadata hook arguments include a meta key.
+	 */
+	private function has_valid_meta_args( $args ) {
+		return is_array( $args ) && array_key_exists( 1, $args ) && array_key_exists( 2, $args ) && is_string( $args[2] );
+	}
+
+	/**
+	 * Whether post metadata is allowed to sync.
+	 *
+	 * @param int|string $object_id Post ID.
+	 * @param string     $meta_key  Meta key.
+	 * @return bool Whether post metadata is allowed to sync.
+	 */
+	private function is_allowed_post_meta( $object_id, $meta_key ) {
+		return $this->is_post_type_allowed( $object_id ) && $this->is_whitelisted_post_meta( $meta_key );
 	}
 
 	/**
@@ -373,8 +616,11 @@ class Posts extends Module {
 	 * @return boolean Whether the post meta key is whitelisted.
 	 */
 	public function is_whitelisted_post_meta( $meta_key ) {
-		// The _wpas_skip_ meta key is used by Publicize.
-		return in_array( $meta_key, Settings::get_setting( 'post_meta_whitelist' ), true ) || ( 0 === strpos( $meta_key, '_wpas_skip_' ) );
+		if ( ! is_string( $meta_key ) ) {
+			return false;
+		}
+		// The '_wpas_skip_' meta key prefix is used by Publicize to mark posts that should be skipped.
+		return str_starts_with( $meta_key, '_wpas_skip_' ) || in_array( $meta_key, Settings::get_setting( 'post_meta_whitelist' ), true );
 	}
 
 	/**
@@ -428,6 +674,10 @@ class Posts extends Module {
 	 */
 	public function filter_post_content_and_add_links( $post_object ) {
 		global $post;
+
+		// Used to restore the post global.
+		$current_post = $post;
+
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$post = $post_object;
 
@@ -440,6 +690,9 @@ class Posts extends Module {
 			$non_existant_post->post_modified_gmt = $post->post_modified_gmt;
 			$non_existant_post->post_status       = 'jetpack_sync_non_registered_post_type';
 			$non_existant_post->post_type         = $post->post_type;
+			// Restore global post.
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			$post = $current_post;
 
 			return $non_existant_post;
 		}
@@ -466,6 +719,10 @@ class Posts extends Module {
 			$blocked_post->post_modified_gmt = $post->post_modified_gmt;
 			$blocked_post->post_status       = 'jetpack_sync_blocked';
 			$blocked_post->post_type         = $post->post_type;
+
+			// Restore global post.
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			$post = $current_post;
 
 			return $blocked_post;
 		}
@@ -546,7 +803,13 @@ class Posts extends Module {
 			$post->amp_permalink = amp_get_permalink( $post->ID );
 		}
 
-		return $post;
+		$filtered_post = $post;
+
+		// Restore global post.
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$post = $current_post;
+
+		return $filtered_post;
 	}
 
 	/**
@@ -557,6 +820,9 @@ class Posts extends Module {
 	 * @param \WP_Post $post       Post object.
 	 */
 	public function save_published( $new_status, $old_status, $post ) {
+		if ( ! $post instanceof \WP_Post ) {
+			return;
+		}
 		if ( 'publish' === $new_status && 'publish' !== $old_status ) {
 			$this->just_published[ $post->ID ] = true;
 		}
@@ -572,12 +838,10 @@ class Posts extends Module {
 	 * The 2nd request is to update post meta, which is not supported on WP REST API.
 	 * When syncing post data, we will include if this was a meta box update.
 	 *
-	 * @todo Implement nonce verification.
-	 *
 	 * @return boolean Whether this is a Gutenberg meta box update.
 	 */
-	public function is_gutenberg_meta_box_update() {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
+	private function is_gutenberg_meta_box_update() {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended -- We only check the request to determine if this is a Gutenberg meta box update, and we only use the result to set a boolean logged in the sync event. If anyone anywhere else gets the flag and does something CSRF-able with it, they should ensure that a nonce has been checked.
 		return (
 			isset( $_POST['action'], $_GET['classic-editor'], $_GET['meta_box'] ) &&
 			'editpost' === $_POST['action'] &&
@@ -596,18 +860,18 @@ class Posts extends Module {
 	 * @param boolean  $update  Whether this is an existing post being updated or not.
 	 */
 	public function wp_insert_post( $post_ID, $post = null, $update = null ) {
-		if ( ! is_numeric( $post_ID ) || $post === null ) {
+		if ( ! is_numeric( $post_ID ) || ! $post instanceof \WP_Post ) {
 			return;
 		}
 
 		// Workaround for https://github.com/woocommerce/woocommerce/issues/18007.
-		if ( $post && 'shop_order' === $post->post_type ) {
+		if ( 'shop_order' === $post->post_type ) {
 			$post = get_post( $post_ID );
 		}
 
-		$previous_status = isset( $this->previous_status[ $post_ID ] ) ? $this->previous_status[ $post_ID ] : self::DEFAULT_PREVIOUS_STATE;
+		$previous_status = $this->previous_status[ $post_ID ] ?? self::DEFAULT_PREVIOUS_STATE;
 
-		$just_published = isset( $this->just_published[ $post_ID ] ) ? $this->just_published[ $post_ID ] : false;
+		$just_published = $this->just_published[ $post_ID ] ?? false;
 
 		$state = array(
 			'is_auto_save'                 => (bool) Jetpack_Constants::get_constant( 'DOING_AUTOSAVE' ),
@@ -640,12 +904,12 @@ class Posts extends Module {
 	 * @param \WP_Post $post    Post object.
 	 **/
 	public function wp_after_insert_post( $post_ID, $post ) {
-		if ( ! is_numeric( $post_ID ) || $post === null ) {
+		if ( ! is_numeric( $post_ID ) || ! $post instanceof \WP_Post ) {
 			return;
 		}
 
 		// Workaround for https://github.com/woocommerce/woocommerce/issues/18007.
-		if ( $post && 'shop_order' === $post->post_type ) {
+		if ( 'shop_order' === $post->post_type ) {
 			$post = get_post( $post_ID );
 		}
 
@@ -699,10 +963,6 @@ class Posts extends Module {
 		// Only Send Pulished Post event if post_type is not blacklisted.
 		if ( ! in_array( $post->post_type, Settings::get_setting( 'post_types_blacklist' ), true ) ) {
 
-			// Refreshing the post in the cache site before triggering the publish event.
-			// The true parameter means that it's an update action, not create action.
-			$this->wp_insert_post( $post_ID, $post, true );
-
 			/**
 			 * Action that gets synced when a post type gets published.
 			 *
@@ -711,8 +971,9 @@ class Posts extends Module {
 			 *
 			 * @param int $post_ID
 			 * @param mixed array $flags post flags that are added to the post
+			 * @param WP_Post $post The post object
 			 */
-			do_action( 'jetpack_published_post', $post_ID, $flags );
+			do_action( 'jetpack_published_post', $post_ID, $flags, $post );
 		}
 		unset( $this->just_published[ $post_ID ] );
 
@@ -721,6 +982,9 @@ class Posts extends Module {
 		 */
 		if ( 'customize_changeset' === $post->post_type ) {
 			$post_content = json_decode( $post->post_content, true );
+			if ( ! is_iterable( $post_content ) ) {
+				return;
+			}
 			foreach ( $post_content as $key => $value ) {
 				// Skip if it isn't a widget.
 				if ( 'widget_' !== substr( $key, 0, strlen( 'widget_' ) ) ) {
@@ -736,7 +1000,7 @@ class Posts extends Module {
 					$widget_data = array(
 						'name'  => $wp_registered_widgets[ $key ]['name'],
 						'id'    => $key,
-						'title' => $value['value']['title'],
+						'title' => $value['value']['title'] ?? '',
 					);
 					do_action( 'jetpack_widget_edited', $widget_data );
 				}
@@ -745,24 +1009,66 @@ class Posts extends Module {
 	}
 
 	/**
+	 * Build the full sync action object for Posts.
+	 *
+	 * @access public
+	 *
+	 * @param array $args An array with the posts and the previous end.
+	 *
+	 * @return array An array with the posts, postmeta and the previous end.
+	 */
+	public function build_full_sync_action_array( $args ) {
+		list( $filtered_posts, $previous_end ) = $args;
+		return array(
+			$filtered_posts['objects'],
+			$filtered_posts['meta'],
+			array(), // WPCOM does not process term relationships in full sync posts actions for a while now, let's skip them.
+			$previous_end,
+		);
+	}
+
+	/**
+	 * Add term relationships to post objects within a hook before they are serialized and sent to the server.
+	 * This is used in Full Sync Immediately
+	 *
+	 * @access public
+	 *
+	 * @param array $args The hook parameters.
+	 * @return array $args The expanded hook parameters.
+	 * @deprecated since 4.7.0
+	 */
+	public function add_term_relationships( $args ) {
+		_deprecated_function( __METHOD__, '4.7.0' );
+		list( $filtered_posts, $previous_interval_end ) = $args;
+
+		return array(
+			$filtered_posts['objects'],
+			$filtered_posts['meta'],
+			$this->get_term_relationships( $filtered_posts['object_ids'] ),
+			$previous_interval_end,
+		);
+	}
+
+	/**
 	 * Expand post IDs to post objects within a hook before they are serialized and sent to the server.
+	 * This is used in Legacy Full Sync
 	 *
 	 * @access public
 	 *
 	 * @param array $args The hook parameters.
 	 * @return array $args The expanded hook parameters.
 	 */
-	public function expand_post_ids( $args ) {
-		list( $post_ids, $previous_interval_end) = $args;
+	public function expand_posts_with_metadata_and_terms( $args ) {
+		list( $post_ids, $previous_interval_end ) = $args;
 
-		$posts = array_filter( array_map( array( 'WP_Post', 'get_instance' ), $post_ids ) );
-		$posts = array_map( array( $this, 'filter_post_content_and_add_links' ), $posts );
-		$posts = array_values( $posts ); // Reindex in case posts were deleted.
+		$posts              = $this->expand_posts( $post_ids );
+		$posts_metadata     = $this->get_metadata( $post_ids, 'post', Settings::get_setting( 'post_meta_whitelist' ) );
+		$term_relationships = $this->get_term_relationships( $post_ids );
 
 		return array(
 			$posts,
-			$this->get_metadata( $post_ids, 'post', Settings::get_setting( 'post_meta_whitelist' ) ),
-			$this->get_term_relationships( $post_ids ),
+			$posts_metadata,
+			$term_relationships,
 			$previous_interval_end,
 		);
 	}
@@ -779,5 +1085,67 @@ class Posts extends Module {
 	 */
 	public function get_min_max_object_ids_for_batches( $batch_size, $where_sql = false ) {
 		return parent::get_min_max_object_ids_for_batches( $batch_size, $this->get_where_sql( $where_sql ) );
+	}
+
+	/**
+	 * Given the Module Configuration and Status return the next chunk of items to send.
+	 * This function also expands the posts and metadata and filters them based on the maximum size constraints.
+	 *
+	 * @param array $config This module Full Sync configuration.
+	 * @param array $status This module Full Sync status.
+	 * @param int   $chunk_size Chunk size.
+	 *
+	 * @return array
+	 */
+	public function get_next_chunk( $config, $status, $chunk_size ) {
+
+		$post_ids = parent::get_next_chunk( $config, $status, $chunk_size );
+
+		if ( empty( $post_ids ) ) {
+			return array();
+		}
+
+		$posts = $this->expand_posts( $post_ids );
+
+		// If no posts were fetched, make sure to return the expected structure so that status is updated correctly.
+		if ( empty( $posts ) ) {
+			return array(
+				'object_ids' => $post_ids,
+				'objects'    => array(),
+				'meta'       => array(),
+			);
+		}
+		// Get the post IDs from the posts that were fetched.
+		$fetched_post_ids = wp_list_pluck( $posts, 'ID' );
+		$metadata         = $this->get_metadata( $fetched_post_ids, 'post', Settings::get_setting( 'post_meta_whitelist' ) );
+
+		// Filter the posts and metadata based on the maximum size constraints.
+		list( $filtered_post_ids, $filtered_posts, $filtered_posts_metadata ) = $this->filter_objects_and_metadata_by_size(
+			'post',
+			$posts,
+			$metadata,
+			self::MAX_META_LENGTH,
+			self::MAX_SIZE_FULL_SYNC
+		);
+
+		return array(
+			'object_ids' => $filtered_post_ids,
+			'objects'    => $filtered_posts,
+			'meta'       => $filtered_posts_metadata,
+		);
+	}
+
+	/**
+	 * Expand posts.
+	 *
+	 * @param array $post_ids Post IDs.
+	 *
+	 * @return array Expanded posts.
+	 */
+	private function expand_posts( $post_ids ) {
+		$posts = array_filter( array_map( array( 'WP_Post', 'get_instance' ), $post_ids ) );
+		$posts = array_map( array( $this, 'filter_post_content_and_add_links' ), $posts );
+		$posts = array_values( $posts ); // Reindex in case posts were deleted.
+		return $posts;
 	}
 }

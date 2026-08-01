@@ -14,6 +14,10 @@ use Automattic\Jetpack\Status;
 use Automattic\Jetpack\Sync\Modules\Search as Search_Sync_Module;
 use Automattic\Jetpack\Tracking;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Provides a widget to show available/selected filters on searches.
  *
@@ -38,10 +42,11 @@ class Search_Widget extends \WP_Widget {
 	 */
 	const DEFAULT_SORT = 'relevance_desc';
 	/**
-	 * The Jetpack_Search instance.
+	 * Never used.
 	 *
 	 * @since 5.7.0
-	 * @var Jetpack_Search
+	 * @deprecated 0.44.5
+	 * @var null
 	 */
 	protected $jetpack_search;
 	/**
@@ -80,8 +85,6 @@ class Search_Widget extends \WP_Widget {
 
 		if ( is_admin() ) {
 			add_action( 'sidebar_admin_setup', array( $this, 'widget_admin_setup' ) );
-		} else {
-			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
 		}
 
 		add_action( 'jetpack_search_render_filters_widget_title', array( 'Automattic\Jetpack\Search\Template_Tags', 'render_widget_title' ), 10, 3 );
@@ -163,7 +166,7 @@ class Search_Widget extends \WP_Widget {
 	 * @since 5.8.0
 	 */
 	public function enqueue_frontend_scripts() {
-		if ( ! is_active_widget( false, false, $this->id_base, true ) || Options::is_instant_enabled() ) {
+		if ( Options::is_instant_enabled() ) {
 			return;
 		}
 		Assets::register_script(
@@ -177,9 +180,9 @@ class Search_Widget extends \WP_Widget {
 				// @see https://github.com/Automattic/jetpack/blob/b3de78dce3d88b0d9b283282a5b04515245c8057/projects/plugins/jetpack/tools/builder/frontend-css.js#L52.
 				// @see https://github.com/Automattic/jetpack/blob/bb1b6a9a9cfa98600441f8fa31c9f9c4ef9a04a5/projects/plugins/jetpack/class.jetpack.php#L106.
 				'css_path'   => 'css/search-widget-frontend.css',
+				'enqueue'    => true,
 			)
 		);
-		Assets::enqueue_script( 'jetpack-search-widget' );
 	}
 
 	/**
@@ -300,6 +303,9 @@ class Search_Widget extends \WP_Widget {
 			return;
 		}
 
+		// Enqueue front end assets.
+		$this->enqueue_frontend_scripts();
+
 		if ( Options::is_instant_enabled() ) {
 			if ( array_key_exists( 'id', $args ) && Instant_Search::INSTANT_SEARCH_SIDEBAR === $args['id'] ) {
 				$this->widget_empty_instant( $args, $instance );
@@ -319,26 +325,23 @@ class Search_Widget extends \WP_Widget {
 	 * @since 8.3.0
 	 */
 	public function widget_non_instant( $args, $instance ) {
-		$display_filters = false;
+		$filters = array();
 
 		// Search instance must have been initialized before widget render.
-		if ( is_search() && Classic_Search::instance() ) {
+		if ( is_search() ) {
+			$search_instance = Inline_Search::get_instance_maybe_fallback_to_classic();
 			if ( Helper::should_rerun_search_in_customizer_preview() ) {
-				Classic_Search::instance()->update_search_results_aggregations();
+				$search_instance->update_search_results_aggregations();
 			}
 
-			$filters = Classic_Search::instance()->get_filters();
+			$filters = $search_instance->get_filters();
 
 			if ( ! Helper::are_filters_by_widget_disabled() && ! $this->should_display_sitewide_filters() ) {
 				$filters = array_filter( $filters, array( $this, 'is_for_current_widget' ) );
 			}
-
-			if ( ! empty( $filters ) ) {
-				$display_filters = true;
-			}
 		}
 
-		if ( ! $display_filters && empty( $instance['search_box_enabled'] ) && empty( $instance['user_sort_enabled'] ) ) {
+		if ( ! $filters && empty( $instance['search_box_enabled'] ) && empty( $instance['user_sort_enabled'] ) ) {
 			return;
 		}
 
@@ -366,7 +369,7 @@ class Search_Widget extends \WP_Widget {
 			do_action( 'jetpack_search_render_filters_widget_title', $title, $args['before_title'], $args['after_title'] );
 		}
 
-		$default_sort            = isset( $instance['sort'] ) ? $instance['sort'] : self::DEFAULT_SORT;
+		$default_sort            = $instance['sort'] ?? self::DEFAULT_SORT;
 		list( $orderby, $order ) = $this->sorting_to_wp_query_param( $default_sort );
 		$current_sort            = "{$orderby}|{$order}";
 
@@ -393,7 +396,7 @@ class Search_Widget extends \WP_Widget {
 			<?php
 		endif;
 
-		if ( $display_filters ) {
+		if ( $filters ) {
 			/**
 			 * Responsible for rendering filters to narrow down search results.
 			 *
@@ -406,7 +409,7 @@ class Search_Widget extends \WP_Widget {
 			do_action(
 				'jetpack_search_render_filters',
 				$filters,
-				isset( $instance['post_types'] ) ? $instance['post_types'] : null
+				$instance['post_types'] ?? null
 			);
 		}
 
@@ -438,8 +441,6 @@ class Search_Widget extends \WP_Widget {
 			$filters = array_filter( $filters, array( $this, 'is_for_current_widget' ) );
 		}
 
-		$display_filters = ! empty( $filters );
-
 		$title = ! empty( $instance['title'] ) ? $instance['title'] : '';
 
 		/** This filter is documented in core/src/wp-includes/default-widgets.php */
@@ -466,7 +467,7 @@ class Search_Widget extends \WP_Widget {
 
 		Template_Tags::render_widget_search_form( array(), '', '' );
 
-		if ( $display_filters ) {
+		if ( $filters ) {
 			/**
 			 * Responsible for rendering filters to narrow down search results.
 			 *
@@ -495,7 +496,7 @@ class Search_Widget extends \WP_Widget {
 	 * @since 8.3.0
 	 */
 	public function widget_empty_instant( $args, $instance ) {
-		$title = isset( $instance['title'] ) ? $instance['title'] : '';
+		$title = $instance['title'] ?? '';
 
 		if ( empty( $title ) ) {
 			$title = '';
@@ -604,11 +605,11 @@ class Search_Widget extends \WP_Widget {
 	private function sorting_to_wp_query_param( $sort ) {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		$parts   = explode( '|', $sort );
-		$orderby = isset( $_GET['orderby'] )
+		$orderby = isset( $_GET['orderby'] ) && is_string( $_GET['orderby'] )
 			? sanitize_sql_orderby( wp_unslash( $_GET['orderby'] ) )
 			: $parts[0];
 
-		$order = isset( $_GET['order'] )
+		$order = isset( $_GET['order'] ) && is_string( $_GET['order'] )
 			? ( strtoupper( $_GET['order'] ) === 'ASC' ? 'ASC' : 'DESC' ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- This is validating.
 			: ( ( isset( $parts[1] ) && 'ASC' === strtoupper( $parts[1] ) ) ? 'ASC' : 'DESC' );
 
@@ -635,8 +636,8 @@ class Search_Widget extends \WP_Widget {
 		// Keep `search_box_enabled` and `user_sort_enabled` settings when updating widget on Instant Search
 		// Set `search_box_enabled` and `user_sort_enabled` default to '1' when createing a NEW widget
 		if ( Options::is_instant_enabled() ) {
-			$instance['search_box_enabled'] = empty( $old_instance ) ? '1' : $old_instance['search_box_enabled'];
-			$instance['user_sort_enabled']  = empty( $old_instance ) ? '1' : $old_instance['user_sort_enabled'];
+			$instance['search_box_enabled'] = empty( $old_instance ) || empty( $old_instance['search_box_enabled'] ) ? '1' : $old_instance['search_box_enabled'];
+			$instance['user_sort_enabled']  = empty( $old_instance ) || empty( $old_instance['user_sort_enabled'] ) ? '1' : $old_instance['user_sort_enabled'];
 		} else {
 			$instance['search_box_enabled'] = empty( $new_instance['search_box_enabled'] ) ? '0' : '1';
 			$instance['user_sort_enabled']  = empty( $new_instance['user_sort_enabled'] ) ? '0' : '1';
@@ -650,48 +651,60 @@ class Search_Widget extends \WP_Widget {
 		$filters = array();
 		if ( isset( $new_instance['filter_type'] ) ) {
 			foreach ( (array) $new_instance['filter_type'] as $index => $type ) {
-				$count = (int) $new_instance['num_filters'][ $index ];
+				$count = (int) ( $new_instance['num_filters'][ $index ] ?? 1 );
 				$count = min( 50, $count ); // Set max boundary at 50.
 				$count = max( 1, $count );  // Set min boundary at 1.
 
 				switch ( $type ) {
 					case 'taxonomy':
 						$filters[] = array(
-							'name'     => sanitize_text_field( $new_instance['filter_name'][ $index ] ),
+							'name'     => sanitize_text_field( $new_instance['filter_name'][ $index ] ?? '' ),
 							'type'     => 'taxonomy',
-							'taxonomy' => sanitize_key( $new_instance['taxonomy_type'][ $index ] ),
+							'taxonomy' => sanitize_key( $new_instance['taxonomy_type'][ $index ] ?? '' ),
 							'count'    => $count,
 						);
 						break;
 					case 'post_type':
 						$filters[] = array(
-							'name'  => sanitize_text_field( $new_instance['filter_name'][ $index ] ),
+							'name'  => sanitize_text_field( $new_instance['filter_name'][ $index ] ?? '' ),
 							'type'  => 'post_type',
 							'count' => $count,
 						);
 						break;
 					case 'author':
 						$filters[] = array(
-							'name'  => sanitize_text_field( $new_instance['filter_name'][ $index ] ),
+							'name'  => sanitize_text_field( $new_instance['filter_name'][ $index ] ?? '' ),
 							'type'  => 'author',
 							'count' => $count,
 						);
 						break;
 					case 'blog_id':
 						$filters[] = array(
-							'name'  => sanitize_text_field( $new_instance['filter_name'][ $index ] ),
+							'name'  => sanitize_text_field( $new_instance['filter_name'][ $index ] ?? '' ),
 							'type'  => 'blog_id',
 							'count' => $count,
 						);
 						break;
 					case 'date_histogram':
 						$filters[] = array(
-							'name'     => sanitize_text_field( $new_instance['filter_name'][ $index ] ),
+							'name'     => sanitize_text_field( $new_instance['filter_name'][ $index ] ?? '' ),
 							'type'     => 'date_histogram',
 							'count'    => $count,
-							'field'    => sanitize_key( $new_instance['date_histogram_field'][ $index ] ),
-							'interval' => sanitize_key( $new_instance['date_histogram_interval'][ $index ] ),
+							'field'    => sanitize_key( $new_instance['date_histogram_field'][ $index ] ?? '' ),
+							'interval' => sanitize_key( $new_instance['date_histogram_interval'][ $index ] ?? '' ),
 						);
+						break;
+					case 'product_attribute':
+						$filter_data = array(
+							'name'  => sanitize_text_field( $new_instance['filter_name'][ $index ] ?? '' ),
+							'type'  => 'product_attribute',
+							'count' => $count,
+						);
+						// Save included attributes if any are selected.
+						if ( isset( $new_instance[ 'included_attributes_' . $index ] ) && is_array( $new_instance[ 'included_attributes_' . $index ] ) ) {
+							$filter_data['included_attributes'] = array_map( 'sanitize_key', $new_instance[ 'included_attributes_' . $index ] );
+						}
+						$filters[] = $filter_data;
 						break;
 				}
 			}
@@ -718,13 +731,17 @@ class Search_Widget extends \WP_Widget {
 		}
 
 		$instance = $widget_instance;
-		foreach ( $widget_instance['filters'] as $filter ) {
-			$instance['filter_type'][]             = isset( $filter['type'] ) ? $filter['type'] : '';
-			$instance['taxonomy_type'][]           = isset( $filter['taxonomy'] ) ? $filter['taxonomy'] : '';
-			$instance['filter_name'][]             = isset( $filter['name'] ) ? $filter['name'] : '';
-			$instance['num_filters'][]             = isset( $filter['count'] ) ? $filter['count'] : 5;
-			$instance['date_histogram_field'][]    = isset( $filter['field'] ) ? $filter['field'] : '';
-			$instance['date_histogram_interval'][] = isset( $filter['interval'] ) ? $filter['interval'] : '';
+		foreach ( $widget_instance['filters'] as $index => $filter ) {
+			$instance['filter_type'][]             = $filter['type'] ?? '';
+			$instance['taxonomy_type'][]           = $filter['taxonomy'] ?? '';
+			$instance['filter_name'][]             = $filter['name'] ?? '';
+			$instance['num_filters'][]             = $filter['count'] ?? 5;
+			$instance['date_histogram_field'][]    = $filter['field'] ?? '';
+			$instance['date_histogram_interval'][] = $filter['interval'] ?? '';
+			// Handle included_attributes for product_attribute filters.
+			if ( isset( $filter['included_attributes'] ) && is_array( $filter['included_attributes'] ) ) {
+				$instance[ 'included_attributes_' . $index ] = $filter['included_attributes'];
+			}
 		}
 		unset( $instance['filters'] );
 		return $instance;
@@ -734,6 +751,7 @@ class Search_Widget extends \WP_Widget {
 	 * Outputs the settings update form.
 	 *
 	 * @param array $instance Previously saved values from database.
+	 * @return string|void
 	 * @since 5.0.0
 	 */
 	public function form( $instance ) {
@@ -825,14 +843,16 @@ class Search_Widget extends \WP_Widget {
 
 			<?php if ( ! $hide_filters ) : ?>
 				<script class="jetpack-search-filters-widget__filter-template" type="text/template">
-					<?php
-					echo $this->render_widget_edit_filter( array(), true ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					?>
+					<?php $this->render_widget_edit_filter( array(), true ); ?>
 				</script>
 				<div class="jetpack-search-filters-widget__filters">
-					<?php foreach ( (array) $instance['filters'] as $filter ) : ?>
-						<?php $this->render_widget_edit_filter( $filter ); ?>
-					<?php endforeach; ?>
+					<?php
+					$filter_index = 0;
+					foreach ( (array) $instance['filters'] as $filter ) :
+						$this->render_widget_edit_filter( $filter, false, false, $filter_index );
+						++$filter_index;
+					endforeach;
+					?>
 				</div>
 				<p class="jetpack-search-filters-widget__add-filter-wrapper">
 					<a class="button jetpack-search-filters-widget__add-filter" href="#">
@@ -841,7 +861,7 @@ class Search_Widget extends \WP_Widget {
 				</p>
 				<noscript>
 					<p class="jetpack-search-filters-help">
-						<?php echo esc_html_e( 'Adding filters requires JavaScript!', 'jetpack-search-pkg' ); ?>
+						<?php esc_html_e( 'Adding filters requires JavaScript!', 'jetpack-search-pkg' ); ?>
 					</p>
 				</noscript>
 				<?php if ( is_customize_preview() ) : ?>
@@ -899,7 +919,7 @@ class Search_Widget extends \WP_Widget {
 				</script>
 				<noscript>
 					<p class="jetpack-search-filters-help">
-						<?php echo esc_html_e( 'Adding filters requires JavaScript!', 'jetpack-search-pkg' ); ?>
+						<?php esc_html_e( 'Adding filters requires JavaScript!', 'jetpack-search-pkg' ); ?>
 					</p>
 				</noscript>
 			<?php endif; ?>
@@ -945,9 +965,10 @@ class Search_Widget extends \WP_Widget {
 	 * @param array $filter      The filter to render.
 	 * @param bool  $is_template Whether this is for an Underscore template or not.
 	 * @param bool  $is_instant_search Whether this site enables Instant Search or not.
+	 * @param int   $filter_index The index of this filter in the filters array.
 	 * @since 5.7.0
 	 */
-	public function render_widget_edit_filter( $filter, $is_template = false, $is_instant_search = false ) {
+	public function render_widget_edit_filter( $filter, $is_template = false, $is_instant_search = false, $filter_index = 0 ) {
 		$args = wp_parse_args(
 			$filter,
 			array(
@@ -989,6 +1010,9 @@ class Search_Widget extends \WP_Widget {
 						<?php endif; ?>
 						<option value="date_histogram" <?php $this->render_widget_option_selected( 'type', $args['type'], 'date_histogram', $is_template ); ?>>
 							<?php esc_html_e( 'Date', 'jetpack-search-pkg' ); ?>
+						</option>
+						<option value="product_attribute" <?php $this->render_widget_option_selected( 'type', $args['type'], 'product_attribute', $is_template ); ?>>
+							<?php esc_html_e( 'Product Attributes', 'jetpack-search-pkg' ); ?>
 						</option>
 					</select>
 				</label>
@@ -1068,7 +1092,41 @@ class Search_Widget extends \WP_Widget {
 				</label>
 			</p>
 
-			<p>
+			<div class="jetpack-search-filters-widget__product-attribute-inclusions">
+			<?php
+			if ( function_exists( 'wc_get_attribute_taxonomies' ) && function_exists( 'wc_attribute_taxonomy_name' ) ) {
+				$product_attributes  = wc_get_attribute_taxonomies();
+				$included_attributes = ! $is_template && isset( $args['included_attributes'] ) ? (array) $args['included_attributes'] : array();
+
+				if ( ! empty( $product_attributes ) ) :
+					?>
+					<p>
+						<label><?php esc_html_e( 'Select which attributes to display as filters. Leave blank to show all.', 'jetpack-search-pkg' ); ?></label>
+					</p>
+					<div class="jetpack-search-filters-widget__attribute-checkboxes">
+						<?php
+						foreach ( $product_attributes as $attribute ) :
+							$attribute_name = wc_attribute_taxonomy_name( $attribute->attribute_name );
+							$is_included    = in_array( $attribute_name, $included_attributes, true );
+							?>
+							<label class="jetpack-search-filters-widget__attribute-checkbox">
+								<input
+									type="checkbox"
+									name="<?php echo esc_attr( $this->get_field_name( 'included_attributes_' . ( $is_template ? '<%= data.index %>' : $filter_index ) ) ); ?>[]"
+									value="<?php echo esc_attr( $attribute_name ); ?>"
+									<?php checked( $is_included ); ?>
+								/>
+								<?php echo esc_html( $attribute->attribute_label ); ?>
+							</label>
+						<?php endforeach; ?>
+					</div>
+					<?php
+					endif;
+			}
+			?>
+			</div>
+
+			<p class="jetpack-search-filters-widget__filter-count">
 				<label>
 					<?php esc_html_e( 'Maximum number of filters (1-50):', 'jetpack-search-pkg' ); ?>
 					<input

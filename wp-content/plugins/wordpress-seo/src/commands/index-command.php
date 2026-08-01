@@ -171,7 +171,7 @@ class Index_Command implements Command_Interface {
 	public function index( $args = null, $assoc_args = null ) {
 		if ( ! $this->indexable_helper->should_index_indexables() ) {
 			WP_CLI::log(
-				\__( 'Your WordPress environment is running on a non-production site. Indexables can only be created on production environments. Please check your `WP_ENVIRONMENT_TYPE` settings.', 'wordpress-seo' )
+				\__( 'Your WordPress environment is running on a non-production site. Indexables can only be created on production environments. Please check your `WP_ENVIRONMENT_TYPE` settings.', 'wordpress-seo' ),
 			);
 
 			return;
@@ -270,6 +270,8 @@ class Index_Command implements Command_Interface {
 
 	/**
 	 * Clears the database related to the indexables.
+	 *
+	 * @return void
 	 */
 	protected function clear() {
 		global $wpdb;
@@ -280,14 +282,14 @@ class Index_Command implements Command_Interface {
 		$wpdb->query(
 			$wpdb->prepare(
 				'TRUNCATE TABLE %1$s',
-				Model::get_table_name( 'Indexable' )
-			)
+				Model::get_table_name( 'Indexable' ),
+			),
 		);
 		$wpdb->query(
 			$wpdb->prepare(
 				'TRUNCATE TABLE %1$s',
-				Model::get_table_name( 'Indexable_Hierarchy' )
-			)
+				Model::get_table_name( 'Indexable_Hierarchy' ),
+			),
 		);
 		// phpcs:enable
 	}

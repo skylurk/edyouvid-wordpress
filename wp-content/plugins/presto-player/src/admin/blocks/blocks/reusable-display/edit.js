@@ -1,44 +1,59 @@
 /** @jsx jsx */
 import { css, jsx } from "@emotion/core";
 import {
-  InspectorControls,
   useBlockProps,
   useInnerBlocksProps,
+  store as blockEditorStore,
+  __experimentalUseBlockPreview as useBlockPreview,
 } from "@wordpress/block-editor";
-import { createBlock } from "@wordpress/blocks";
+import { BlockControls, InspectorControls } from "@wordpress/block-editor";
 import {
   Button,
-  PanelBody,
-  PanelRow,
   Placeholder,
   Spinner,
-  TextControl,
+  Toolbar,
+  PanelBody,
+  BaseControl,
+  Flex,
 } from "@wordpress/components";
-import {
-  store as coreStore,
-  useEntityBlockEditor,
-  useEntityProp,
-} from "@wordpress/core-data";
-import { useSelect, useDispatch } from "@wordpress/data";
-import { useEffect } from "@wordpress/element";
+import { store as coreStore, useEntityBlockEditor } from "@wordpress/core-data";
+import { useSelect, useDispatch, select } from "@wordpress/data";
 import { __ } from "@wordpress/i18n";
+import MediaProviders from "../../shared/MediaProviders";
+import { Icon, symbolFilled, edit } from "@wordpress/icons";
+import { useState, useEffect, useMemo } from "@wordpress/element";
+import EditContext from "./context";
+import { createBlock } from "@wordpress/blocks";
 
-export default ({ attributes, context, isSelected, clientId }) => {
+export default ({ attributes, context, clientId, isSelected }) => {
+  const [isEditing, setIsEditing] = useState(null);
+  const { selectBlock } = useDispatch(blockEditorStore);
   const { id: idAttribute } = attributes;
   const id = context["presto-player/playlist-media-id"] || idAttribute;
   const blockProps = useBlockProps();
-  const { selectBlock } = useDispatch("core/editor");
   const [blocks, onInput, onChange] = useEntityBlockEditor(
     "postType",
     "pp_video_block",
     { id }
   );
-  const [title, setTitle] = useEntityProp(
-    "postType",
-    "pp_video_block",
-    "title",
-    id
-  );
+
+  const mediaBlocks = useMemo(() => {
+    return (blocks || []).filter(
+      (block) => block.name === "presto-player/reusable-edit"
+    );
+  }, [blocks]);
+
+  const hasSrc = useMemo(() => {
+    return (mediaBlocks?.[0]?.innerBlocks || []).some(
+      (block) => block.attributes.src
+    );
+  }, [mediaBlocks]);
+
+  const blockPreviewProps = useBlockPreview({
+    blocks: mediaBlocks,
+    props: blockProps,
+  });
+
   const innerBlocksProps = useInnerBlocksProps(blockProps, {
     value: blocks,
     onInput,
@@ -46,45 +61,68 @@ export default ({ attributes, context, isSelected, clientId }) => {
     templateLock: "all",
   });
 
-  useEffect(() => {
-    // if this is selected, and we are in the playlist context, select the inner block.
-    if (isSelected && context["presto-player/playlist-media-id"]) {
-      const blockOrder = wp.data
-        .select("core/block-editor")
-        .getBlockOrder(clientId);
-      const firstInnerBlockClientId = blockOrder[0];
-      selectBlock(firstInnerBlockClientId);
-    }
-  }, [isSelected]);
-
-  // create a block and call innerblocks onChange function
-  // we use onChange instead of onInput to create an undo level.
-  const insertBlockType = (type) =>
-    onChange([createBlock(`presto-player/${type}`)], {});
-
-  const { isMissing, hasResolved } = useSelect(
+  const { media, canEdit, isMissing, hasResolved } = useSelect(
     (select) => {
       const queryArgs = ["postType", "pp_video_block", id];
       const hasResolved = select(coreStore).hasFinishedResolution(
         "getEntityRecord",
         queryArgs
       );
-      const form = select(coreStore).getEntityRecord(...queryArgs);
-      const canEdit =
-        select(coreStore).canUserEditEntityRecord("pp_video_block");
+      const media = select(coreStore).getEntityRecord(...queryArgs);
+      const canEdit = select(coreStore).canUserEditEntityRecord(...queryArgs);
       return {
+        media,
         canEdit,
-        isMissing: hasResolved && !form,
+        isMissing: hasResolved && !media && id,
         hasResolved,
         isResolving: select(coreStore).isResolving(
           "getEntityRecord",
           queryArgs
         ),
-        form,
       };
     },
-    [id]
+    [id, clientId]
   );
+
+  // we can edit the original if there is a block src,
+  // the user can edit, and there is a src or provider_video_id.
+  const canEditOriginal = useMemo(() => {
+    return (
+      !!hasSrc &&
+      !!canEdit &&
+      !!(media?.details?.src || media?.details?.provider_video_id)
+    );
+  }, [hasSrc, canEdit, media?.details?.src, media?.details?.provider_video_id]);
+
+  // set the selection based on if editing or not.
+  useEffect(() => {
+    // Prevent initial focus on page load.
+    if (isEditing === null) {
+      return;
+    }
+
+    // we need setimeout to ensure the block is selected after it is rendered.
+    // this is because we swap between preview and regular inner blocks.
+    setTimeout(() => {
+      const blocks = select(blockEditorStore).getBlocks(clientId);
+      const innerBlockClientId = blocks?.[0]?.innerBlocks?.[0]?.clientId;
+      if (innerBlockClientId && isEditing && canEditOriginal) {
+        selectBlock(innerBlockClientId);
+      } else {
+        selectBlock(clientId);
+      }
+    });
+  }, [isEditing]);
+
+  // make sure innermost block is always selected when this block is selected.
+  // if we are not in edit mode, it won't have any inner blocks anyway.
+  useEffect(() => {
+    const blocks = select(blockEditorStore).getBlocks(clientId);
+    const innerBlockClientId = blocks?.[0]?.innerBlocks?.[0]?.clientId;
+    if (innerBlockClientId) {
+      selectBlock(innerBlockClientId);
+    }
+  }, [isSelected]);
 
   if (!hasResolved) {
     return (
@@ -122,99 +160,70 @@ export default ({ attributes, context, isSelected, clientId }) => {
 
   if (!blocks.length) {
     return (
-      <Placeholder
-        css={css`
-          &.components-placeholder {
-            min-height: 350px;
-          }
-        `}
-        icon={
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="presto-block-icon"
-          >
-            <polygon points="23 7 16 12 23 17 23 7"></polygon>
-            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-          </svg>
-        }
-        instructions={__(
-          "Choose a video type to get started.",
-          "presto-player"
-        )}
-        label={__("Choose a Video Type", "presto-player")}
-      >
-        <Button
-          variant="primary"
-          onClick={() => {
-            insertBlockType("self-hosted");
-          }}
-        >
-          {__("Video", "presto-player")}
-        </Button>
+      <MediaProviders
+        sync={false}
+        onSelect={(type) => {
+          const { replaceBlock } = useDispatch(blockEditorStore);
+          replaceBlock(clientId, createBlock(`presto-player/${type}`));
+        }}
+        onSelectMedia={false}
+      />
+    );
+  }
 
-        <Button
-          variant="primary"
-          onClick={() => {
-            insertBlockType("youtube");
-          }}
-        >
-          {__("Youtube", "presto-player")}
-        </Button>
-
-        <Button
-          variant="primary"
-          onClick={() => {
-            insertBlockType("vimeo");
-          }}
-        >
-          {__("Vimeo", "presto-player")}
-        </Button>
-
-        {!!prestoPlayer?.isPremium && (
-          <Button
-            variant="primary"
-            onClick={() => {
-              insertBlockType("bunny");
-            }}
-          >
-            {__("Bunny.net", "presto-player")}
-          </Button>
-        )}
-
-        <Button
-          variant="primary"
-          onClick={() => {
-            insertBlockType("audio");
-          }}
-        >
-          {__("Audio", "presto-player")}
-        </Button>
-      </Placeholder>
+  if (!canEditOriginal || isEditing) {
+    return (
+      <EditContext.Provider value={{ isEditing, setIsEditing }}>
+        <div {...innerBlocksProps} />
+      </EditContext.Provider>
     );
   }
 
   return (
     <>
-      <InspectorControls>
-        <PanelBody title={__("Media Hub Title", "surecart")}>
-          <PanelRow>
-            <TextControl
-              label={__("Media Hub Title", "surecart")}
-              value={title}
-              onChange={(title) => setTitle(title)}
-            />
-          </PanelRow>
-        </PanelBody>
-      </InspectorControls>
-      <div {...innerBlocksProps} />
+      {canEditOriginal && (
+        <>
+          <BlockControls>
+            <Toolbar>
+              <Button icon={edit} onClick={() => setIsEditing(true)}>
+                {__("Edit Original", "presto-player")}
+              </Button>
+            </Toolbar>
+          </BlockControls>
+          <InspectorControls>
+            <PanelBody>
+              <Flex align="center" justify="flex-start">
+                <Icon icon={symbolFilled} />
+                <h2 class="block-editor-block-card__title">
+                  {__("Synced", "presto-player")}
+                </h2>
+              </Flex>
+
+              <BaseControl
+                help={__(
+                  "This item is synced with the media hub and can be reused across your site.",
+                  "presto-player"
+                )}
+                css={css`
+                  margin-bottom: 10px !important;
+                `}
+              ></BaseControl>
+
+              <Button
+                icon={edit}
+                onClick={() => setIsEditing(true)}
+                variant="secondary"
+              >
+                {__("Edit Original", "presto-player")}
+              </Button>
+            </PanelBody>
+          </InspectorControls>
+
+          <div {...blockProps}>
+            <div {...blockPreviewProps} />
+          </div>
+        </>
+      )}
     </>
   );
 };

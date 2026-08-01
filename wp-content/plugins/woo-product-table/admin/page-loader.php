@@ -2,6 +2,7 @@
 namespace WOO_PRODUCT_TABLE\Admin;
 
 use WOO_PRODUCT_TABLE\Core\Base;
+use WOO_PRODUCT_TABLE\Admin\Handle\Notice_Framework;
 
 class Page_Loader extends Base
 {
@@ -14,16 +15,22 @@ class Page_Loader extends Base
     protected $pro_version;
     protected $license;
     protected $direct;
+    public $notice_framework;
 
     public function __construct()
     {
 
         $this->is_pro = defined( 'WPT_PRO_DEV_VERSION' );
+        
+        $this->notice_framework = new Notice_Framework();
+        $this->notice_framework->plugins_recommendation();
+
         if($this->is_pro && class_exists( '\WOO_Product_Table' ) && ! defined('WPT_NEW_PREMIUM') ){
             $this->pro_version = WPT_PRO_DEV_VERSION;
             $this->handle_license_n_update();
+            // $this->notice_framework->offer_in_premium();
         }else{
-            add_action( 'admin_notices', [$this, 'discount_notice'] );
+            // $this->notice_framework->offer_4_premium_in_free();
         }
         $this->page_folder_dir = $this->base_dir . 'admin/page/';
         $this->topbar_file = $this->page_folder_dir . 'topbar.php';
@@ -37,6 +44,11 @@ class Page_Loader extends Base
         add_action( 'admin_menu', [$this, 'admin_menu'], 2 );
         add_filter('admin_body_class', [$this, 'body_class']);
         add_action( 'admin_enqueue_scripts', [$this, 'admin_enqueue_scripts'] );
+
+        if ( class_exists( '\WOO_PRODUCT_TABLE\Admin\Appseros\Src\Client' ) ) {
+            $client = new \WOO_PRODUCT_TABLE\Admin\Appseros\Src\Client( 'e8d12f8a-54f6-488e-9437-480fe6b3bc27', 'Woo Product Table', WPT_FILE );
+            $client->insights()->init();
+        }
 
     }
 
@@ -311,55 +323,5 @@ class Page_Loader extends Base
         printf( wp_kses_post( $full_message ), esc_html( $message ), esc_url( $link ), esc_html( $link_label ) );    
     }
 
-    /**
-     * Displays an admin notice offering a discount for Woo Product Table Pro.
-     *
-     * The notice includes a 15% discount offer with a link to the pricing page and 
-     * another link to free plugins. The notice is shown randomly with a 5% chance 
-     * on non-Woo Product Table admin pages.
-     *
-     * @global object $current_screen The current screen object in the WordPress admin.
-     *
-     * @return void
-     */
-
-    public function discount_notice()
-    {
-        return;
-
-        if( $this->is_premium_installed ) return;
-
-        $coupon_show_bool = apply_filters( 'wpt_campaign_bool', true );
-        if( ! $coupon_show_bool ) return;
-
-        $campaign_bool = apply_filters( 'ca_campaign_bool', true );
-        if( ! $campaign_bool ) return;
-
-        $logo = WPT_ASSETS_URL . 'images/logo.png';
-        $link_label = __( 'Claim Your Coupon', 'woo-product-table' );
-        $link = "https://wooproducttable.com/pricing/";
-        $plug_name = __( 'Woo Product Table Pro', 'woo-product-table' );
-
-        global $current_screen;
-        $s_id = isset( $current_screen->id ) ? $current_screen->id : '';
-        $wpt = strpos( $s_id, $this->plugin_prefix ) !== false;
-        $is_dissmissable_class = ! $wpt ? 'is-dismissible' : '';
-        $rand = wp_rand( 1, 15 );
-
-        if( ! $wpt && $rand != 1 ) return;
-        ob_start();
-        
-        ?>
-        <div class="notice <?php echo esc_attr( $is_dissmissable_class ); ?> notice-warning updated wpt-discount-notice">
-            <div class="wpt-license-notice-inside">
-                <img src="<?php echo esc_url( $logo ); ?>" class="wpt-license-brand-logo">
-                🎉 <span style="color: #d00;font-weight:bold;">Unlock 20% OFF</span> <strong><?php echo esc_html( $plug_name ); ?></strong> - Use your coupon at checkout (Limited time)
-                <a class="wpt-get-discount" href="<?php echo esc_url( $link ); ?>" target="_blank"><?php echo esc_html( $link_label ); ?></a>
-                <a class="wpt-get-free" href="https://profiles.wordpress.org/codersaiful/#content-plugins" target="_blank">Free plugins for you</a>
-            </div>
-        </div>
-        <?php
-        $full_message = ob_get_clean();
-        echo wp_kses_post( $full_message );  
-    }
+    
 }

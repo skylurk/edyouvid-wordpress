@@ -13,7 +13,8 @@ use Automattic\Jetpack\Connection\Initial_State as Connection_Initial_State;
 use Automattic\Jetpack\Connection\Manager as Connection_Manager;
 use Automattic\Jetpack\Current_Plan;
 use Automattic\Jetpack\My_Jetpack\Products as My_Jetpack_Products;
-use Automattic\Jetpack\Status as Status;
+use Automattic\Jetpack\Status;
+use Automattic\Jetpack\Status\Host;
 use Automattic\Jetpack\Terms_Of_Service;
 use Automattic\Jetpack\Tracking;
 
@@ -27,6 +28,14 @@ class Admin_UI {
 	const ADMIN_PAGE_SLUG = 'jetpack-videopress';
 
 	/**
+	 * Filter name that gates the wp-build–based dashboard.
+	 *
+	 * When this filter returns true, "Jetpack > VideoPress" renders the new
+	 * wp-build dashboard instead of the legacy React app.
+	 */
+	const MODERNIZATION_FILTER = 'rsm_jetpack_ui_modernization_videopress';
+
+	/**
 	 * Initializes the Admin UI of VideoPress
 	 *
 	 * This method is called only once by the Initializer class
@@ -34,15 +43,8 @@ class Admin_UI {
 	 * @return void
 	 */
 	public static function init() {
-		$page_suffix = Admin_Menu::add_menu(
-			__( 'Jetpack VideoPress', 'jetpack-videopress-pkg' ),
-			_x( 'VideoPress', 'The Jetpack VideoPress product name, without the Jetpack prefix', 'jetpack-videopress-pkg' ),
-			'manage_options',
-			self::ADMIN_PAGE_SLUG,
-			array( __CLASS__, 'plugin_settings_page' ),
-			99
-		);
-		add_action( 'load-' . $page_suffix, array( __CLASS__, 'admin_init' ) );
+
+		add_action( 'admin_menu', array( __CLASS__, 'enable_menu' ), 1 ); // Akismet uses 4, so we use 1 to ensure both menus are added when only they exist.
 
 		add_action( 'admin_footer-upload.php', array( __CLASS__, 'attachment_details_two_column_template' ) );
 		add_action( 'admin_footer-post.php', array( __CLASS__, 'attachment_details_template' ), 20 );
@@ -50,6 +52,33 @@ class Admin_UI {
 		add_filter( 'get_edit_post_link', array( __CLASS__, 'edit_video_link' ), 10, 3 );
 
 		add_action( 'admin_init', array( __CLASS__, 'remove_jetpack_hooks' ) );
+
+		if ( self::is_modernized() && self::is_videopress_admin_request() ) {
+			self::load_wp_build();
+			add_action( 'current_screen', array( __CLASS__, 'alias_screen_id_for_wp_build' ) );
+		}
+	}
+
+	/**
+	 * Enable the menu, separately to init due to translations needing to run early for the page suffix.
+	 *
+	 * @return void
+	 */
+	public static function enable_menu() {
+		$callback = self::is_modernized() && function_exists( 'jetpack_videopress_jetpack_videopress_dashboard_wp_admin_render_page' )
+			? 'jetpack_videopress_jetpack_videopress_dashboard_wp_admin_render_page'
+			: array( __CLASS__, 'plugin_settings_page' );
+
+		$page_suffix = Admin_Menu::add_menu(
+			// "VideoPress" is a product name, do not translate.
+			'Jetpack VideoPress',
+			'VideoPress',
+			'manage_options',
+			self::ADMIN_PAGE_SLUG,
+			$callback,
+			3
+		);
+		add_action( 'load-' . $page_suffix, array( __CLASS__, 'admin_init' ) );
 	}
 
 	/**
@@ -129,6 +158,34 @@ class Admin_UI {
 	 * Enqueue plugin admin scripts and styles.
 	 */
 	public static function enqueue_admin_scripts() {
+		// This callback is registered via `load-{$page_suffix}` in `enable_menu()`,
+		// so it only fires on the VideoPress admin page — no need to re-check the page here.
+		if ( self::is_modernized() ) {
+			// Page-level shell stylesheet: scopes the shared `jetpack-admin-page-layout`
+			// mixin to the dashboard body so every route inherits the proper
+			// scrollable chrome (fixed `#wpbody-content`, scrollable middle, pinned
+			// footer) regardless of whether it uses DashboardLayout. Without this,
+			// non-tabbed routes (e.g. Video details) would only get the layout
+			// after a sibling route's chunk happened to inject the same CSS.
+			$shell_css = dirname( __DIR__ ) . '/build/dashboard-shell/index.css';
+			if ( file_exists( $shell_css ) ) {
+				wp_register_style(
+					'jetpack-videopress-dashboard-shell',
+					plugins_url( 'build/dashboard-shell/index.css', __DIR__ ),
+					array(),
+					(string) filemtime( $shell_css )
+				);
+				wp_style_add_data( 'jetpack-videopress-dashboard-shell', 'rtl', 'replace' );
+				wp_enqueue_style( 'jetpack-videopress-dashboard-shell' );
+			}
+
+			// Beyond the shell stylesheet, wp-build manages its own enqueue
+			// pipeline. The legacy script, initial state, tracking, and
+			// media-library bootstrap are all intentionally skipped for the
+			// wp-build dashboard.
+			return;
+		}
+
 		Assets::register_script(
 			self::JETPACK_VIDEOPRESS_PKG_NAMESPACE,
 			'../build/admin/index.js',
@@ -149,7 +206,7 @@ class Admin_UI {
 		}
 
 		// Initial JS state including JP Connection data.
-		wp_add_inline_script( self::JETPACK_VIDEOPRESS_PKG_NAMESPACE, Connection_Initial_State::render(), 'before' );
+		Connection_Initial_State::render_script( self::JETPACK_VIDEOPRESS_PKG_NAMESPACE );
 		wp_add_inline_script( self::JETPACK_VIDEOPRESS_PKG_NAMESPACE, self::render_initial_state(), 'before' );
 	}
 
@@ -159,7 +216,7 @@ class Admin_UI {
 	 * @return string
 	 */
 	public static function render_initial_state() {
-		return 'var jetpackVideoPressInitialState=JSON.parse(decodeURIComponent("' . rawurlencode( wp_json_encode( self::initial_state() ) ) . '"));';
+		return 'var jetpackVideoPressInitialState=' . wp_json_encode( self::initial_state(), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP ) . ';';
 	}
 
 	/**
@@ -176,7 +233,9 @@ class Admin_UI {
 			'adminUri'               => 'admin.php?page=' . self::ADMIN_PAGE_SLUG,
 			'paidFeatures'           => array(
 				'isVideoPressSupported'          => Current_Plan::supports( 'videopress' ),
-				'isVideoPress1TBSupported'       => Current_Plan::supports( 'videopress-1tb-storage' ),
+				// Check videopress-1tb-storage (Jetpack) or videopress (WordPress.com).
+				'isVideoPress1TBSupported'       => Current_Plan::supports( 'videopress-1tb-storage' )
+					|| ( ( new Host() )->is_wpcom_platform() && wpcom_site_has_feature( 'videopress' ) ),
 				'isVideoPressUnlimitedSupported' => Current_Plan::supports( 'videopress-unlimited-storage' ),
 			),
 			'siteSuffix'             => ( new Status() )->get_site_suffix(),
@@ -382,6 +441,10 @@ class Admin_UI {
 	 */
 	protected static function attachment_info_template_part() {
 		?>
+		<span class="setting" data-setting="title">
+			<label for="attachment-details-title" class="name"><?php _e( 'Title', 'jetpack-videopress-pkg' ); ?></label>
+			<input type="text" id="attachment-details-title" value="{{ data.title }}" readonly />
+		</span>
 		<span class="setting" data-setting="filename">
 			<label for="attachment-details-filename" class="name"><?php _e( 'File name', 'jetpack-videopress-pkg' ); ?></label>
 			<input type="text" id="attachment-details-filename" value="{{ data.filename }}" readonly />
@@ -399,4 +462,78 @@ class Admin_UI {
 	}
 	// phpcs:enable WordPress.Security.EscapeOutput.UnsafePrintingFunction
 	// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
+
+	/**
+	 * Load the wp-build entry file and register its polyfills.
+	 *
+	 * Only called on `?page=jetpack-videopress` admin requests when the
+	 * modernization filter is enabled. Keeps wp-build off every other request.
+	 *
+	 * @return void
+	 */
+	private static function load_wp_build() {
+		$build_index = dirname( __DIR__ ) . '/build/build.php';
+
+		if ( ! file_exists( $build_index ) ) {
+			return;
+		}
+
+		require_once $build_index;
+
+		\Automattic\Jetpack\WP_Build_Polyfills\WP_Build_Polyfills::register(
+			'jetpack-videopress',
+			array_merge(
+				\Automattic\Jetpack\WP_Build_Polyfills\WP_Build_Polyfills::SCRIPT_HANDLES,
+				\Automattic\Jetpack\WP_Build_Polyfills\WP_Build_Polyfills::MODULE_IDS
+			)
+		);
+	}
+
+	/**
+	 * Alias the current screen ID to satisfy wp-build's auto-generated enqueue check.
+	 *
+	 * Wp-build's `<page>-wp-admin` enqueue callback enqueues only when the screen ID
+	 * matches the wp-build page slug (`jetpack-videopress-dashboard`). Our WP-admin
+	 * menu slug stays `jetpack-videopress`, so we mutate the screen object in place
+	 * to make the check pass without changing the user-facing URL.
+	 *
+	 * Hooked only when modernization is on AND we're on the VideoPress admin page,
+	 * so this never affects any other request.
+	 *
+	 * @param \WP_Screen|null $screen The current screen object (passed by WP).
+	 * @return void
+	 */
+	public static function alias_screen_id_for_wp_build( $screen ) {
+		if ( ! is_object( $screen ) ) {
+			return;
+		}
+
+		$screen->id = 'jetpack-videopress-dashboard';
+	}
+
+	/**
+	 * Returns true when the wp-build modernization filter is enabled.
+	 *
+	 * @return bool
+	 */
+	public static function is_modernized() {
+		return (bool) apply_filters( self::MODERNIZATION_FILTER, false );
+	}
+
+	/**
+	 * Returns true when the current request targets the VideoPress admin page.
+	 *
+	 * Used to scope wp-build loading to the one page that needs it. The
+	 * `$_GET['page']` value is populated by wp-admin/admin.php before any of
+	 * our hooks fire, so this check is reliable from `init()` onwards.
+	 *
+	 * @return bool
+	 */
+	private static function is_videopress_admin_request() {
+		if ( ! is_admin() || ! isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return false;
+		}
+
+		return sanitize_text_field( wp_unslash( $_GET['page'] ) ) === self::ADMIN_PAGE_SLUG; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	}
 }

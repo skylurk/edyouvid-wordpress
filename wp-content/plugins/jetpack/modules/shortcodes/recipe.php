@@ -2,6 +2,10 @@
 
 use Automattic\Jetpack\Assets;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
+
 /**
  * Embed recipe 'cards' in post, with basic styling and print functionality
  *
@@ -16,6 +20,8 @@ use Automattic\Jetpack\Assets;
 
 /**
  * Register and display Recipes in posts.
+ *
+ * @phan-constructor-used-for-side-effects
  */
 class Jetpack_Recipes {
 
@@ -111,18 +117,18 @@ class Jetpack_Recipes {
 			return;
 		}
 
-		wp_enqueue_script(
-			'jetpack-recipes-printthis',
-			Assets::get_file_url_for_environment( '_inc/build/shortcodes/js/recipes-printthis.min.js', 'modules/shortcodes/js/recipes-printthis.js' ),
+		wp_register_script(
+			'jetpack-shortcode-deps',
+			plugins_url( '_inc/build/shortcodes/js/dependencies.min.js', JETPACK__PLUGIN_FILE ),
 			array( 'jquery' ),
-			'20170202',
-			false
+			'20250905',
+			true
 		);
 
 		wp_enqueue_script(
 			'jetpack-recipes-js',
 			Assets::get_file_url_for_environment( '_inc/build/shortcodes/js/recipes.min.js', 'modules/shortcodes/js/recipes.js' ),
-			array( 'jquery', 'jetpack-recipes-printthis' ),
+			array( 'jquery', 'jetpack-shortcode-deps' ),
 			'20131230',
 			false
 		);
@@ -491,13 +497,13 @@ class Jetpack_Recipes {
 
 		// Check to see if the user is trying to use shortened formatting.
 		if (
-			strpos( $content, '&#8211;' ) !== false ||
-			strpos( $content, '&#8212;' ) !== false ||
-			strpos( $content, '-' ) !== false ||
-			strpos( $content, '*' ) !== false ||
-			strpos( $content, '#' ) !== false ||
-			strpos( $content, '–' ) !== false || // ndash.
-			strpos( $content, '—' ) !== false || // mdash.
+			str_contains( $content, '&#8211;' ) ||
+			str_contains( $content, '&#8212;' ) ||
+			str_contains( $content, '-' ) ||
+			str_contains( $content, '*' ) ||
+			str_contains( $content, '#' ) ||
+			str_contains( $content, '–' ) || // ndash.
+			str_contains( $content, '—' ) || // mdash.
 			preg_match( '/\d+\.\s/', $content )
 		) {
 			// Remove breaks and extra whitespace.
@@ -651,7 +657,7 @@ class Jetpack_Recipes {
 
 		// Check if it's an absolute or relative URL, and return if not.
 		if (
-			0 !== strpos( $src, '/' )
+			! str_starts_with( $src, '/' )
 			&& false === filter_var( $src, FILTER_VALIDATE_URL )
 		) {
 			return '';
@@ -683,8 +689,10 @@ class Jetpack_Recipes {
 		global $themecolors;
 		$style = '';
 
-		if ( isset( $themecolors ) ) {
+		if ( isset( $themecolors['border'] ) ) {
 			$style .= '.jetpack-recipe { border-color: #' . esc_attr( $themecolors['border'] ) . '; }';
+		}
+		if ( isset( $themecolors['link'] ) ) {
 			$style .= '.jetpack-recipe-title { border-bottom-color: #' . esc_attr( $themecolors['link'] ) . '; }';
 		}
 

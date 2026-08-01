@@ -1,75 +1,57 @@
 <?php
+
 /**
  * Uninstalls the plugin.
  *
  * @package WooCommerce\PayPalCommerce
  */
+declare (strict_types=1);
+namespace WooCommerce\PayPalCommerce;
 
-declare(strict_types=1);
-
-use WooCommerce\PayPalCommerce\Uninstall\ClearDatabaseInterface;
-use WooCommerce\PayPalCommerce\Vendor\Dhii\Container\CachingContainer;
-use WooCommerce\PayPalCommerce\WcGateway\Settings\Settings;
-
-if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-	die( 'Direct access not allowed.' );
+use Throwable;
+use WooCommerce\PayPalCommerce\Uninstall\ClearDatabase;
+use WooCommerce\PayPalCommerce\Vendor\Psr\Container\ContainerInterface;
+use WooCommerce\PayPalCommerce\Settings\Data\GeneralSettings;
+if (!defined('WP_UNINSTALL_PLUGIN')) {
+    die('Direct access not allowed.');
 }
-
 $root_dir = __DIR__;
 $main_plugin_file = "{$root_dir}/woocommerce-paypal-payments.php";
-
-if ( !file_exists( $main_plugin_file ) ) {
+if (!file_exists($main_plugin_file)) {
     return;
 }
-
 require $main_plugin_file;
-
-( static function (string $root_dir): void {
-
-	$autoload_filepath = "{$root_dir}/vendor/autoload.php";
-	if ( file_exists( $autoload_filepath ) && ! class_exists( '\WooCommerce\PayPalCommerce\PluginModule' ) ) {
-		require $autoload_filepath;
-	}
-
-	try {
-		$bootstrap = require "{$root_dir}/bootstrap.php";
-
-		$app_container = $bootstrap( $root_dir );
-		assert( $app_container instanceof CachingContainer );
-
-		$settings = $app_container->get( 'wcgateway.settings' );
-		assert( $settings instanceof Settings );
-
-		$should_clear_db = $settings->has( 'uninstall_clear_db_on_uninstall' ) && $settings->get( 'uninstall_clear_db_on_uninstall' );
-		if ( ! $should_clear_db ) {
-			return;
-		}
-
-		$clear_db = $app_container->get( 'uninstall.clear-db' );
-		assert( $clear_db instanceof ClearDatabaseInterface );
-
-		$option_names           = $app_container->get( 'uninstall.ppcp-all-option-names' );
-		$scheduled_action_names = $app_container->get( 'uninstall.ppcp-all-scheduled-action-names' );
-
-		$clear_db->delete_options( $option_names );
-		$clear_db->clear_scheduled_actions( $scheduled_action_names );
-	} catch ( Throwable $throwable ) {
-		$message = sprintf(
-			'<strong>Error:</strong> %s <br><pre>%s</pre>',
-			$throwable->getMessage(),
-			$throwable->getTraceAsString()
-		);
-
-		add_action(
-			'all_admin_notices',
-			static function () use ( $message ) {
-				$class = 'notice notice-error';
-				printf(
-					'<div class="%1$s"><p>%2$s</p></div>',
-					esc_attr( $class ),
-					wp_kses_post( $message )
-				);
-			}
-		);
-	}
-} )($root_dir);
+(static function (string $root_dir): void {
+    $autoload_filepath = "{$root_dir}/vendor/autoload.php";
+    if (file_exists($autoload_filepath) && !class_exists('\WooCommerce\PayPalCommerce\PluginModule')) {
+        require $autoload_filepath;
+    }
+    $bootstrap = require "{$root_dir}/bootstrap.php";
+    $app_container = $bootstrap($root_dir);
+    assert($app_container instanceof ContainerInterface);
+    $general_settings = $app_container->get('settings.data.general');
+    assert($general_settings instanceof GeneralSettings);
+    /**
+     * Delete the branded flag unconditionally so reinstalling from a different
+     * source (e.g. WordPress.org) does not silently re-enter branded-only mode.
+     * Unlike most settings, this flag must be cleared on every uninstall — even
+     * when the full-reset filter is off — because keeping it prevents merchants
+     * from ever escaping branded-only mode without direct DB intervention.
+     */
+    delete_option('woocommerce_paypal_branded');
+    if ($general_settings->reset_installation_path('plugin_uninstall')) {
+        $general_settings->save();
+    }
+    /**
+     * Allows a full reset of the plugin data.
+     *
+     * By default, this is false, preserving plugin settings in the DB during uninstallation.
+     * This filter has no toggle in the UI yet and can only be set using custom code.
+     */
+    $should_reset_db = apply_filters('woocommerce_paypal_payments_uninstall_full_reset', \false);
+    if ($should_reset_db) {
+        $clear_db = $app_container->get('uninstall.clear-db');
+        assert($clear_db instanceof ClearDatabase);
+        $clear_db->clean_up();
+    }
+})($root_dir);

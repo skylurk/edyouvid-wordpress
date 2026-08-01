@@ -5,8 +5,8 @@ if (!function_exists('wpt_admin_body_class')) {
     /**
      * set class for Admin Body tag
      * 
-     * @param type $classes
-     * @return String
+     * @param string $classes
+     * @return string
      */
     function wpt_admin_body_class($class_string)
     {
@@ -30,6 +30,10 @@ if (!function_exists('wpt_selected')) {
      * get_option( WPT_OPTION_KEY )
      * 
      * @since 2.4 
+     * @param string $keyword
+     * @param string $gotten_value
+     * @param array|bool $default_config
+     * @return void
      */
     function wpt_selected($keyword, $gotten_value, $default_config = false)
     {
@@ -47,7 +51,8 @@ if (!function_exists('wpt_default_option')) {
      * Actually we need a blank default option tag for select tab
      * when inside configuration tab
      * 
-     * @param String $page
+     * @param string $page
+     * @return void
      */
     function wpt_default_option($page)
     {
@@ -63,8 +68,8 @@ if (!function_exists('wpt_default_option')) {
  * Remove empty Array value from an Multi-dimensional Array
  * I have taken help from a stackoverflow tips.
  *
- * @param Array $array Obviously should be an Array
- * @return Array
+ * @param array $array Obviously should be an Array
+ * @return array
  * 
  * @link https://stackoverflow.com/questions/9895130/recursively-remove-empty-elements-and-subarrays-from-a-multi-dimensional-array
  * 
@@ -102,12 +107,13 @@ function wpt_remove_empty_value_from_array($array)
  * we will consider as old user
  * 
  * @since 3.0.1.0
+ * @return bool true|false
  */
 function wpt_datewise_validation()
 {
     //If pro available, directly return true
     if (defined('WPT_PRO_DEV_VERSION')) return true;
-    return;
+    return false;
 }
 
 /**
@@ -122,6 +128,12 @@ function wpt_user_can_edit()
     return wpt_datewise_validation();
 }
 
+/**
+ * Pro discount message
+ * 
+ * @since 5.0.3.0
+ * @return null|string
+ */
 function wpt_get_pro_discount_message()
 {
     return;
@@ -146,10 +158,15 @@ function wpt_get_conditional_class()
     return $cond_class;
 }
 
-/**
- * @todo This function and will remove
- */
+
 if (!function_exists('wpt_admin_responsive_tab')) {
+    /**
+     * Add Responsive Tab on Admin
+     * @todo This function and will remove
+     * @since 5.0.3.0
+     * @param array $tab_array
+     * @return array
+     */
     function wpt_admin_responsive_tab($tab_array)
     {
         unset($tab_array['mobile']);
@@ -161,6 +178,12 @@ if (!function_exists('wpt_admin_responsive_tab')) {
 //add_filter( 'wpto_admin_tab_array', 'wpt_admin_responsive_tab' );
 
 if (!function_exists('wpt_admin_responsive_tab_save')) {
+    /**
+     * Save Responsive Tab Data
+     * @since 5.0.3.0
+     * @param array $save_tab_array
+     * @return array
+     */ 
     function wpt_admin_responsive_tab_save($save_tab_array)
     {
         $save_tab_array['responsive'] = 'responsive';
@@ -169,29 +192,19 @@ if (!function_exists('wpt_admin_responsive_tab_save')) {
 }
 add_filter('wpto_save_tab_array', 'wpt_admin_responsive_tab_save');
 
-if (!function_exists('wpt_admin_responsive_tab_file')) {
-    function wpt_admin_responsive_tab_file()
-    {
-        /**
-         * you have return your new file, if u want it on Responsive Tab
-         */
-        //return 'my_new_location_will_be_here';
-    }
-}
-
-//add_filter( 'wpto_admin_tab_file_loc_responsive', 'wpt_admin_responsive_tab_file' );
-
-
-
 if (!function_exists('wpt_column_style_for_all')) {
 
     /**
      * Used:
      * do_action( 'wpto_column_setting_form', $keyword, $column_settings, $columns_array, $updated_columns_array, $post, $additional_data );
      * 
-     * @param type $keyword
-     * @param type $column_settings
-     * @param type $columns_array
+     * @param string $keyword
+     * @param string $_device_name
+     * @param array $column_settings
+     * @param array $columns_array
+     * @param array $updated_columns_array
+     * @param WP_Post $post
+     * @param array $additional_data
      */
     function wpt_column_style_for_all($keyword, $_device_name, $column_settings, $columns_array, $updated_columns_array, $post, $additional_data)
     {
@@ -290,6 +303,14 @@ if (!function_exists('wpt_column_style_for_all')) {
 add_action('wpto_column_setting_form', 'wpt_column_style_for_all', 11, 7);
 
 if (!function_exists('wpt_convert_style_from_arr')) {
+    /**
+     * Convert style array to string
+     * 
+     * @since 2.8.3.5
+     * 
+     * @param array|false $style_arr Style array
+     * @return string
+     */
     function wpt_convert_style_from_arr($style_arr = false)
     {
         $style_string = '';
@@ -313,9 +334,13 @@ if (!function_exists('wpt_data_manipulation_on_save')) {
      * Args Manipulation from Basic Tab
      * Used Filter:
      * $tab_data = apply_filters( 'wpto_tab_data_on_save', $tab_data, $tab, $post_id, $save_tab_array );
+     * @since 2.8.3.5
      * 
-     * @param type $data
-     * @return type
+     * @param array $tab_data Data of current saving tab
+     * @param string $tab Current saving tab name
+     * @param int $post_id Current post ID
+     * @param array $save_tab_array Array of all saving tabs
+     * @return array
      */
     function wpt_data_manipulation_on_save($tab_data, $tab, $post_id, $save_tab_array)
     {
@@ -362,14 +387,14 @@ if (! function_exists('wpt_add_tabs')) {
      * Help Screens Message added
      * Mainly this feature added by Mukul, but this comment added by Saiful
      * 
-     * @since 3.0.0.0
+     * @since 3.3.9.0
      *
      * @return void
      */
     function wpt_add_tabs()
     {
         $screen = get_current_screen();
-        $is_wpt_page = strpos($screen->id, 'wpt_product_table');
+        $is_wpt_page = strpos($screen->id, 'wpt');
 
         if (! $screen || !(false !== $is_wpt_page)) {
             return;
@@ -400,15 +425,17 @@ if (! function_exists('wpt_add_tabs')) {
             '<p><strong>' . __('For more information:', 'woo-product-table') . '</strong></p>' .
                 '<p><a href="https://wooproducttable.com/?utm_source=helptab&utm_content=about&utm_campaign=wptplugin" target="_blank">' . __('About Product Table', 'woo-product-table') . '</a></p>' .
                 '<p><a href="https://wordpress.org/support/plugin/woo-product-table/" target="_blank">' . __('WordPress.org', 'woo-product-table') . '</a></p>' .
-                '<p><a href="https://wooproducttable.com/pricing" target="_blank">' . __('Premium Plugin ', 'woo-product-table') . '</a></p>' .
-                '<p><a href="https://github.com/codersaiful/woo-product-table/" target="_blank">' . __('Github project', 'woo-product-table') . '</a></p>' .
-                '<p><a href="https://wordpress.org/themes/astha/" target="_blank">' . __('Official theme', 'woo-product-table') . '</a></p>' .
-                '<p><a href="https://codecanyon.net/user/codeastrology/?utm_source=helptab&utm_content=wptotherplugins&utm_campaign=wptplugin" target="_blank">' . __('Other Premium Plugins', 'woo-product-table') . '</a></p>'
+                '<p><a href="https://wooproducttable.com/pricing" target="_blank">' . __('Premium Plugin ', 'woo-product-table') . '</a></p>'
         );
     }
 }
 // add_action( 'current_screen', 'wpt_add_tabs', 50 );
 
+/**
+ * Social Links
+ * 
+ * @since 3.2.5.9
+ */
 function wpt_social_links()
 {
     ?>

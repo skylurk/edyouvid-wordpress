@@ -62,76 +62,117 @@ class Wt_Import_Export_For_Woo_User_Basic_User_Export {
         {
 
             $sortby_check = array_intersect($export_sortby, array('ID', 'user_registered', 'user_email', 'user_login', 'user_nicename'));
-            if (empty($sortby_check)) {
-                $wt_export_sortby = $export_sortby[0];
-                $args = array(
-                    'fields' => 'ID', // exclude standard wp_users fields from get_users query -> get Only ID##
-                    'role__in' => $export_user_roles, //An array of role names. Matched users must have at least one of these roles. Default empty array.
-                    'number' => $limit,
-                    'offset' => $real_offset,
-                    'orderby' => 'meta_value',
-                    // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-                    'meta_key' => $wt_export_sortby, // @codingStandardsIgnoreLine
-                    'order' => $export_sort_order,
-                    'date_query' => array(
-                        array(
-                            'after' => $export_start_date,
-                            'before' => $export_end_date,
-                            'inclusive' => true
-                        )),
-                );
-            } else {
 
-                $args = array(
-                    'fields' => 'ID', // exclude standard wp_users fields from get_users query -> get Only ID##
-                    'role__in' => $export_user_roles, //An array of role names. Matched users must have at least one of these roles. Default empty array.
-                    'number' => $limit,
-                    'offset' => $real_offset,
-                    'orderby' => $export_sortby,
-                    'order' => $export_sort_order,
-                    'date_query' => array(
-                        array(
-                            'after' => $export_start_date,
-                            'before' => $export_end_date,
-                            'inclusive' => true
-                        )),
-                );
+            // Build common args array
+            $args = array(
+                'fields' => 'ID', // exclude standard wp_users fields from get_users query -> get Only ID##
+                'role__in' => $export_user_roles, //An array of role names. Matched users must have at least one of these roles. Default empty array.
+                'number' => $limit,
+                'offset' => $real_offset,
+                'order' => $export_sort_order,
+                'date_query' => array(
+                    array(
+                        'after' => $export_start_date,
+                        'before' => $export_end_date,
+                        'inclusive' => true
+                    )),
+            );
+
+            if ( empty( $sortby_check ) ) {
+                $args['orderby'] = 'meta_value';
+                // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+                $args['meta_key'] = $export_sortby[0];
+            } else {
+                $args['orderby'] = $export_sortby; 
             }
+
             if (!empty($user_ids)) {
                 $args['include'] = $user_ids;
             }
 
+            $is_woocommerce_active = class_exists( 'WooCommerce' );
+            $user_export_cache_key = 'wt_iew_user_export_ids_' . md5( wp_json_encode( $form_data ) );
+            $cached_user_ids = get_transient( $user_export_cache_key );
+            $total_item_args = null;
+            $total_record_count = null;
 
-            $users = get_users($args);
-
-            /**
-            *   taking total records
-            */
-            $total_records=0;
-            if($batch_offset==0) //first batch
-            {
-                $total_item_args=$args;
-                $total_item_args['fields'] = 'ids';  
-                $total_item_args['number']=$export_limit; //user given limit
-                $total_item_args['offset']=$current_offset; //user given offset
-                $total_record_count = get_users($total_item_args);                
-                $total_records=count($total_record_count);
-				set_transient( 'wt_total_order_count', $total_records, 60*60*1); // 1 hour
+            if ( false !== $cached_user_ids && is_array( $cached_user_ids ) ) {
+                $batch_ids = array_slice( $cached_user_ids, $batch_offset, $limit );
+                $users = ! empty( $batch_ids ) ? $batch_ids : array();
+            } else {
+                // Only replace $args when the filter returns a valid array (avoids wiping query args on null/false).
+                $args_filtered = apply_filters( 'wt_iew_user_export_args', $args, $form_data );
+                if ( is_array( $args_filtered ) ) {
+                    $args = $args_filtered;
+                }
+                $total_item_args = array_merge(
+                    $args,
+                    array(
+                        'fields' => 'ids',
+                        'number' => $export_limit,
+                        'offset' => $current_offset,
+                    )
+                );
+                $total_record_count = get_users( $total_item_args );
+                set_transient( $user_export_cache_key, $total_record_count, HOUR_IN_SECONDS );
+                $batch_ids = array_slice( $total_record_count, $batch_offset, $limit );
+                $users = ! empty( $batch_ids ) ? $batch_ids : array();
             }
-			
-			
-            // Loop users
-            foreach ($users as $user) {
-                $data = self::get_customers_csv_row($user);
-                $data_array[] = apply_filters('hf_customer_csv_exclude_admin', $data);
+
+            // Registered-user total for this export (same every batch while ID cache exists; recomputed on cache miss).
+            $total_records = 0;
+            if ( false !== $cached_user_ids && is_array( $cached_user_ids ) ) {
+                $total_records = count( $cached_user_ids );
+            } elseif ( isset( $total_record_count ) && is_array( $total_record_count ) ) {
+                $total_records = count( $total_record_count );
+            }
+
+            $users_by_id = array();
+            $user_ids_for_load = array();
+            if ( ! empty( $users ) ) {
+                $user_ids_for_load = array_values(
+                    array_map(
+                        function( $u ) {
+                            return is_object( $u ) && isset( $u->ID ) ? (int) $u->ID : (int) $u;
+                        },
+                        $users
+                    )
+                );
+                $user_ids_for_load = array_filter( array_unique( $user_ids_for_load ) );
+                $bulk_load_threshold = 200;
+                if ( ! empty( $user_ids_for_load ) && count( $user_ids_for_load ) <= $bulk_load_threshold ) {
+                    $loaded_users = get_users(
+                        array(
+                            'include' => $user_ids_for_load,
+                            'orderby' => 'include',
+                        )
+                    );
+                    foreach ( $loaded_users as $u ) {
+                        $users_by_id[ (int) $u->ID ] = $u;
+                    }
+                }
+            }
+
+            $order_stats = array();
+            if ( $is_woocommerce_active && ! empty( $user_ids_for_load ) ) {
+                $order_stats = $this->get_customer_order_stats_batch( $user_ids_for_load );
+            }
+
+            // Loop users (use pre-loaded $users_by_id and $order_stats when available).
+            foreach ( $users as $user ) {
+                $user_id = is_object( $user ) ? (int) $user->ID : (int) $user;
+                $user_obj = isset( $users_by_id[ $user_id ] ) ? $users_by_id[ $user_id ] : null;
+                $user_stats = isset( $order_stats[ $user_id ] ) ? $order_stats[ $user_id ] : null;
+                $data = self::get_customers_csv_row( $user_id, $user_obj, $user_stats );
+                $data_array[] = apply_filters( 'hf_customer_csv_exclude_admin', $data );
             }
 			
 			$is_last_offset = false;
 			$last_batch_count = $real_offset + $batch_count;
-			if($last_batch_count>=get_transient('wt_total_order_count')) //finished
-			{
-				$is_last_offset=true;
-				delete_transient('wt_total_order_count');
+			// $total_records is derived from the ID list every batch — no separate progress transient needed.
+			if ( $last_batch_count >= $total_records ) {
+				$is_last_offset = true;
+				delete_transient( $user_export_cache_key );
 			}
 			if($is_last_offset) //last batch
 			{
@@ -183,13 +224,261 @@ class Wt_Import_Export_For_Woo_User_Basic_User_Export {
 		    }
             return $return;
         }
+        return array( 'total' => 0, 'data' => array() );
     }
 
-    public function get_customers_csv_row($id) {
+    /**
+     * Get order count and total spent for a batch of user IDs (one or two queries instead of N).
+     *
+     * @param int[] $user_ids User IDs.
+     * @return array<int, array{order_count: int, total_spent: float}>
+     */
+    protected function get_customer_order_stats_batch( array $user_ids ) {
+        global $wpdb;
+        $user_ids = array_map( 'absint', array_filter( $user_ids ) );
+        if ( empty( $user_ids ) ) {
+            return array();
+        }
+
+        $stats = array();
+        foreach ( $user_ids as $id ) {
+            $stats[ $id ] = array( 'order_count' => 0, 'total_spent' => 0.0 );
+        }
+
+        $placeholders = implode( ',', array_fill( 0, count( $user_ids ), '%d' ) );
+
+        $use_hpos = $this->is_hpos_in_use();
+
+        if ( $use_hpos ) {
+            $this->fill_order_stats_from_hpos( $stats, $user_ids, $placeholders );
+        } else {
+            $this->fill_order_stats_from_posts( $stats, $user_ids, $placeholders );
+        }
+
+        return $stats;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function is_hpos_in_use() {
+        if ( ! class_exists( 'WooCommerce' ) ) {
+            return false;
+        }
+        if ( ! class_exists( 'Automattic\WooCommerce\Utilities\OrderUtil' ) ) {
+            return false;
+        }
+        return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+    }
+
+    /**
+     * @param array  $stats        Stats array to fill (by reference).
+     * @param int[]  $user_ids     User IDs.
+     * @param string $placeholders Prepared statement placeholders for user_ids.
+     */
+    protected function fill_order_stats_from_hpos( &$stats, $user_ids, $placeholders ) {
+        global $wpdb;
+
+        if ( ! class_exists( 'Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableDataStore' ) ) {
+            return;
+        }
+
+        $orders_table = \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableDataStore::get_orders_table_name();
+
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+        $order_count_sql = $wpdb->prepare(
+            "SELECT customer_id AS user_id, COUNT(*) AS order_count
+             FROM {$orders_table}
+             WHERE type = 'shop_order'
+               AND customer_id IN ({$placeholders})
+             GROUP BY customer_id",
+            $user_ids
+        );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+        $counts = $wpdb->get_results( $order_count_sql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        if ( $counts ) {
+            foreach ( $counts as $row ) {
+                $uid = (int) $row['user_id'];
+                if ( isset( $stats[ $uid ] ) ) {
+                    $stats[ $uid ]['order_count'] = (int) $row['order_count'];
+                }
+            }
+        }
+
+        $paid_statuses = function_exists( 'wc_get_is_paid_statuses' ) ? wc_get_is_paid_statuses() : array( 'completed', 'processing' );
+        if ( empty( $paid_statuses ) ) {
+            return;
+        }
+        $paid_statuses = array_map(
+            static function( $s ) {
+                return ( 0 === strpos( $s, 'wc-' ) ) ? $s : 'wc-' . $s;
+            },
+            $paid_statuses
+        );
+        $status_placeholders = implode( ',', array_fill( 0, count( $paid_statuses ), '%s' ) );
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+        $total_spent_sql = $wpdb->prepare(
+            "SELECT customer_id AS user_id, SUM(total_amount) AS total_spent
+             FROM {$orders_table}
+             WHERE type = 'shop_order'
+               AND customer_id IN ({$placeholders})
+               AND status IN ({$status_placeholders})
+             GROUP BY customer_id",
+            array_merge( $user_ids, $paid_statuses )
+        );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+        $totals = $wpdb->get_results( $total_spent_sql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        if ( $totals ) {
+            foreach ( $totals as $row ) {
+                $uid = (int) $row['user_id'];
+                if ( isset( $stats[ $uid ] ) ) {
+                    $stats[ $uid ]['total_spent'] = (float) $row['total_spent'];
+                }
+            }
+        }
+    }
+
+    /**
+     * @param array  $stats        Stats array to fill (by reference).
+     * @param int[]  $user_ids     User IDs.
+     * @param string $placeholders Prepared statement placeholders for user_ids.
+     */
+    protected function fill_order_stats_from_posts( &$stats, $user_ids, $placeholders ) {
+        global $wpdb;
+
+        $posts_table = $wpdb->posts;
+        $meta_table  = $wpdb->postmeta;
+
+        $order_count_from_stats = false;
+
+        /**
+         * Use wp_wc_order_stats for batched order counts.
+         *
+         * @param bool $use_stats Default true.
+         */
+        $use_wc_order_stats = apply_filters( 'wt_iew_use_wc_order_stats_for_export_order_count', true );
+
+        if ( $use_wc_order_stats ) {
+
+            $order_stats_table = $wpdb->prefix . 'wc_order_stats';
+
+            // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+            $order_count_sql = $wpdb->prepare(
+                "SELECT customer_id AS user_id, COUNT(*) AS order_count
+                 FROM {$order_stats_table}
+                 WHERE customer_id IN ({$placeholders})
+                   AND parent_id = 0
+                 GROUP BY customer_id",
+                $user_ids
+            );
+            // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+
+            $counts = $wpdb->get_results( $order_count_sql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+            if ( null !== $counts ) {
+                foreach ( $counts as $row ) {
+                    $uid = (int) $row['user_id'];
+                    if ( isset( $stats[ $uid ] ) ) {
+                        $stats[ $uid ]['order_count'] = (int) $row['order_count'];
+                    }
+                }
+                $order_count_from_stats = true;
+            }
+        }
+
+        if ( ! $order_count_from_stats ) {
+            // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+            $order_count_sql = $wpdb->prepare(
+                "SELECT pm.meta_value AS user_id, COUNT(DISTINCT pm.post_id) AS order_count
+                 FROM {$meta_table} pm
+                 INNER JOIN {$posts_table} p
+                    ON p.ID = pm.post_id
+                   AND p.post_type IN ('shop_order','shop_order_placehold')
+                 WHERE pm.meta_key = '_customer_user'
+                   AND pm.meta_value IN ({$placeholders})
+                 GROUP BY pm.meta_value",
+                $user_ids
+            );
+            // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+            $counts = $wpdb->get_results( $order_count_sql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            if ( $counts ) {
+                foreach ( $counts as $row ) {
+                    $uid = (int) $row['user_id'];
+                    if ( isset( $stats[ $uid ] ) ) {
+                        $stats[ $uid ]['order_count'] = (int) $row['order_count'];
+                    }
+                }
+            }
+        }
+
+        $paid_statuses = function_exists( 'wc_get_is_paid_statuses' ) ? wc_get_is_paid_statuses() : array( 'completed', 'processing' );
+        if ( empty( $paid_statuses ) ) {
+            return;
+        }
+        $paid_statuses = array_map(
+            static function( $s ) {
+                return ( 0 === strpos( $s, 'wc-' ) ) ? $s : 'wc-' . $s;
+            },
+            $paid_statuses
+        );
+        $status_placeholders = implode( ',', array_fill( 0, count( $paid_statuses ), '%s' ) );
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+        $total_spent_sql = $wpdb->prepare(
+            "SELECT pm_customer.meta_value AS user_id,
+                    SUM(CAST(pm_total.meta_value AS DECIMAL(10,2))) AS total_spent
+             FROM {$meta_table} pm_customer
+             INNER JOIN {$posts_table} p
+                ON p.ID = pm_customer.post_id
+               AND p.post_type IN ('shop_order','shop_order_placehold')
+             INNER JOIN {$meta_table} pm_total
+                ON pm_total.post_id = p.ID
+               AND pm_total.meta_key = '_order_total'
+             WHERE pm_customer.meta_key = '_customer_user'
+               AND pm_customer.meta_value IN ({$placeholders})
+               AND p.post_status IN ({$status_placeholders})
+             GROUP BY pm_customer.meta_value",
+            array_merge( $user_ids, $paid_statuses )
+        );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+        $totals = $wpdb->get_results( $total_spent_sql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        if ( $totals ) {
+            foreach ( $totals as $row ) {
+                $uid = (int) $row['user_id'];
+                if ( isset( $stats[ $uid ] ) ) {
+                    $stats[ $uid ]['total_spent'] = (float) $row['total_spent'];
+                }
+            }
+        }
+    }
+
+    public function get_customers_csv_row( $id, $user = null, $order_stats = null ) {
         global $wpdb;
         $csv_columns = $this->parent_module->get_selected_column_names();
+        $is_woocommerce_active = class_exists( 'WooCommerce' );
 
-        $user = get_user_by('id', $id);
+        if ( null === $user || ! ( $user instanceof WP_User ) ) {
+            $user = get_user_by( 'id', $id );
+        }
+        if ( ! $user ) {
+            return array();
+        }
+
+        $row_order_count = null;
+        $row_total_spent = null;
+        if ( $is_woocommerce_active ) {
+            $use_default_wc_functions = apply_filters( 'wt_iew_use_woocommerce_order_stats_functions', false );
+            if ( is_array( $order_stats ) && isset( $order_stats['order_count'], $order_stats['total_spent'] ) && ! $use_default_wc_functions ) {
+                $row_order_count = (int) $order_stats['order_count'];
+                $row_total_spent = (float) $order_stats['total_spent'];
+            } elseif ( ! empty( $user->ID ) ) {
+                $row_order_count = wc_get_customer_order_count( $user->ID );
+                $row_total_spent = (float) wc_get_customer_total_spent( $user->ID );
+            } else {
+                $row_order_count = 0;
+                $row_total_spent = 0.0;
+            }
+        }
+
         $customer_data = array();
 
         foreach ($csv_columns as $key => $value) {
@@ -214,27 +503,26 @@ class Wt_Import_Export_For_Woo_User_Basic_User_Export {
                 $customer_data[$key] = !empty($user->{$key}) ? base64_encode(json_encode($unserialized_data)) : '';
                 continue;
             }
-            if ( 'orders' === $key ) {
-                $customer_data[$key] = !empty($user->ID) ? wc_get_customer_order_count($user->ID) : 0;
-                continue;
-            }            
-            if ( 'total_spent' === $key ) {
-                $customer_data[$key] = !empty($user->ID) ? wc_get_customer_total_spent($user->ID) : 0.00;
-                continue;
-            }
-            if ( 'aov' === $key ) {
-                if(isset($customer_data['total_spent'])){
-                    $total_spent = $customer_data['total_spent'];
-                }else{
-                    $total_spent = !empty($user->ID) ? wc_get_customer_total_spent($user->ID) : 0.00;
+            if ( $is_woocommerce_active ) {
+                if ( 'orders' === $key ) {
+                    $customer_data[ $key ] = null !== $row_order_count ? $row_order_count : 0;
+                    continue;
                 }
-                if(isset($customer_data['aov'])){
-                    $total_spent = $customer_data['aov'];
-                }else{
-                    $order_count = !empty($user->ID) ? wc_get_customer_order_count($user->ID) : 0;
+                if ( 'total_spent' === $key ) {
+                    $customer_data[ $key ] = null !== $row_total_spent ? $row_total_spent : 0.00;
+                    continue;
                 }
-                $customer_data[$key] = ( $order_count ) ? round( ( (float)$total_spent / (float)$order_count ), 2 ) : 0.00;
-                continue;
+                if ( 'aov' === $key ) {
+                    $cnt = null !== $row_order_count ? $row_order_count : 0;
+                    $sum = null !== $row_total_spent ? $row_total_spent : 0.0;
+                    $customer_data[ $key ] = $cnt ? round( $sum / $cnt, 2 ) : 0.00;
+                    continue;
+                }
+            } else {
+                if ( in_array( $key, array( 'orders', 'total_spent', 'aov' ), true ) ) {
+                    $customer_data[ $key ] = 0;
+                    continue;
+                }
             }	            
             if($key == $wpdb->prefix.'user_level'){
                 $customer_data[$key] = (!empty($user->{$key})) ? $user->{$key} : 0;

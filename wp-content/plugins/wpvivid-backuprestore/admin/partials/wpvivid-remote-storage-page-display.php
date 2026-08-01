@@ -307,6 +307,14 @@ function wpvivid_add_page_storage_list()
 
                         jQuery('input:text[option=edit-'+jsonarray.type+'], textarea[option=edit-'+jsonarray.type+'], select[option=edit-'+jsonarray.type+']').each(function(){
                             var key = jQuery(this).prop('name');
+                            if (jsonarray.type === 'googledrive' && (key === 'upload_chunk_size' || key === 'download_chunk_size')) {
+                                if (typeof jsonarray[key] === 'undefined' || jsonarray[key] === null || jsonarray[key] === '' || isNaN(jsonarray[key])) {
+                                    jsonarray[key] = 2;
+                                }
+                                else {
+                                    jsonarray[key] = jsonarray[key] / 1024 / 1024;
+                                }
+                            }
                             if(sensitive_keys.indexOf(key) !== -1 && jsonarray[key]){
                                 var $input = jQuery(this);
                                 $input.val('');

@@ -109,6 +109,7 @@ if ( ! class_exists( 'Astra_Sites_Batch_Processing' ) ) :
 			add_action( 'wp_ajax_astra-sites-get-sites-request-count', array( $this, 'sites_requests_count' ) );
 			add_action( 'wp_ajax_astra-sites-get-blocks-request-count', array( $this, 'blocks_requests_count' ) );
 			add_action( 'wp_ajax_astra-sites-import-sites', array( $this, 'import_sites' ) );
+			add_action( 'wp_ajax_astra-sites-get-all-sites', array( $this, 'get_all_sites' ) );
 			add_action( 'wp_ajax_astra-sites-get-all-categories', array( $this, 'get_all_categories' ) );
 			add_action( 'wp_ajax_astra-sites-get-all-categories-and-tags', array( $this, 'get_all_categories_and_tags' ) );
 
@@ -123,7 +124,14 @@ if ( ! class_exists( 'Astra_Sites_Batch_Processing' ) ) :
 		 * @return void
 		 */
 		public function start_process() {
+			// AI Builder handles its own batch processing via dedicated AJAX steps.
+			// Skip legacy batch to prevent _elementor_data from being overwritten.
+			if ( 'ai' === get_option( 'astra_sites_current_import_template_type' ) ) {
+				return;
+			}
+
 			set_transient( 'astra_sites_batch_process_started', 'yes', HOUR_IN_SECONDS );
+			update_option( 'astra_sites_batch_process_started_time', time() );
 
 			/** WordPress Plugin Administration API */
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -161,8 +169,19 @@ if ( ! class_exists( 'Astra_Sites_Batch_Processing' ) ) :
 			// Add "elementor" in import [queue].
 			// @todo Remove required `allow_url_fopen` support.
 			if ( ini_get( 'allow_url_fopen' ) && is_plugin_active( 'elementor/elementor.php' ) ) {
-				$import    = new \Elementor\TemplateLibrary\Astra_Sites_Batch_Processing_Elementor();
-				$classes[] = $import;
+				// The Elementor batch file early-returns if \Elementor\Plugin
+				// isn't loaded when includes() runs, and require_once won't
+				// re-run it. Re-require now that Elementor is available.
+				if ( ! class_exists( '\Elementor\TemplateLibrary\Astra_Sites_Batch_Processing_Elementor' )
+					&& class_exists( '\Elementor\Plugin' ) ) {
+					require ASTRA_SITES_DIR . 'inc/importers/batch-processing/class-astra-sites-batch-processing-elementor.php';
+				}
+				if ( class_exists( '\Elementor\TemplateLibrary\Astra_Sites_Batch_Processing_Elementor' ) ) {
+					$import    = new \Elementor\TemplateLibrary\Astra_Sites_Batch_Processing_Elementor();
+					$classes[] = $import;
+				} else {
+					Astra_Sites_Importer_Log::add( 'Elementor batch processor unavailable — Elementor classes not loaded. Skipping Elementor import step.' );
+				}
 			}
 
 			// Add "astra-addon" in import [queue].
@@ -203,6 +222,18 @@ if ( ! class_exists( 'Astra_Sites_Batch_Processing' ) ) :
 			
 			if ( isset( $_GET['st-force-sync'] ) && 'true' === $_GET['st-force-sync'] ) { //phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				self::$is_force_sync = true;
+			}
+
+			// Check from site option.
+			$force_sync = get_site_option( 'astra-sites-force-sync', 'no' );
+			if ( 'yes' === $force_sync ) {
+				self::$is_force_sync = true;
+
+				// Reset options to update onboarding modal UI.
+				update_site_option( 'astra-sites-batch-is-complete', 'no' );
+				update_site_option( 'astra-sites-manual-sync-complete', 'no' );
+				delete_site_option( 'astra-sites-last-export-checksums-latest' );
+				delete_site_option( 'astra-sites-last-export-checksums' );
 			}
 		}
 
@@ -345,7 +376,17 @@ if ( ! class_exists( 'Astra_Sites_Batch_Processing' ) ) :
 			}
 			$page_no = isset( $_POST['page_no'] ) ? absint( $_POST['page_no'] ) : '';
 			if ( $page_no ) {
-				$sites_and_pages = Astra_Sites_Batch_Processing_Importer::get_instance()->import_sites( $page_no );
+				// Checks to improve template sync performance.
+				$is_in_process      = 'in-process' === get_site_option( 'astra-sites-batch-status', '' );
+				$current_page       = (int) get_site_option( 'astra-sites-current-page' );
+				$is_batch_completed = 'yes' === get_site_option( 'astra-sites-batch-is-complete', 'no' );
+
+				// Get sites from JSON file if background template syncing is in process or completed and the page no is less than the already fetched page number.
+				if ( $page_no < $current_page && ( $is_in_process || $is_batch_completed ) ) {
+					$sites_and_pages = Astra_Sites_File_System::get_instance()->get_json_file_content( 'astra-sites-and-pages-page-' . $page_no . '.json' );
+				} else {
+					$sites_and_pages = Astra_Sites_Batch_Processing_Importer::get_instance()->import_sites( $page_no );
+				}
 
 				wp_send_json_success( $sites_and_pages );
 			}
@@ -369,7 +410,16 @@ if ( ! class_exists( 'Astra_Sites_Batch_Processing' ) ) :
 			// Get count.
 			$total_requests = $this->get_total_requests();
 			if ( $total_requests ) {
-				wp_send_json_success( $total_requests );
+				$is_batch_completed = 'yes' === get_site_option( 'astra-sites-batch-is-complete', 'no' );
+				$is_manual_synced   = 'yes' === get_site_option( 'astra-sites-manual-sync-complete', 'no' );
+				$current_page       = intval( get_site_option( 'astra-sites-current-page' ) );
+
+				wp_send_json_success(
+					array(
+						'total'   => $total_requests,
+						'current' => $is_batch_completed || $is_manual_synced ? $total_requests : $current_page, // If batch is completed or manual sync is done then current request will be total requests.
+					)
+				);
 			}
 
 			wp_send_json_error();
@@ -413,6 +463,9 @@ if ( ! class_exists( 'Astra_Sites_Batch_Processing' ) ) :
 
 			update_site_option( 'astra-sites-batch-is-complete', 'no' );
 			update_site_option( 'astra-sites-manual-sync-complete', 'yes' );
+
+			// Delete the current page site option once all the sites are synced.
+			delete_site_option( 'astra-sites-current-page' );
 			wp_send_json_success();
 		}
 
@@ -509,6 +562,9 @@ if ( ! class_exists( 'Astra_Sites_Batch_Processing' ) ) :
 			if ( self::$is_force_sync || ( empty( $is_fresh_site ) && '' === $is_fresh_site ) ) {
 				$this->process_import();
 				update_site_option( 'astra-sites-fresh-site', 'no' );
+
+				// Remove force sync flag once background sync is started.
+				delete_site_option( 'astra-sites-force-sync' );
 			}
 		}
 
@@ -655,6 +711,7 @@ if ( ! class_exists( 'Astra_Sites_Batch_Processing' ) ) :
 				$this->log( 'Sync Process Complete.' );
 				$this->sync_batch_complete();
 				delete_site_option( 'astra-sites-batch-status' );
+				delete_site_option( 'astra-sites-current-page' );
 				update_site_option( 'astra-sites-batch-is-complete', 'yes' );
 			} else {
 				// Dispatch Queue.
@@ -728,11 +785,19 @@ if ( ! class_exists( 'Astra_Sites_Batch_Processing' ) ) :
 			astra_sites_error_log( 'Getting Total Pages' );
 			update_site_option( 'astra-sites-batch-status-string', 'Getting Total Pages' );
 
-			$api_args = array(
+			$api_args   = array(
 				'timeout' => 60,
 			);
+			$query_args = array(
+				'per_page'           => 15,
+				'spectra-blocks-ver' => Astra_Sites::get_rest_spectra_blocks_version(),
+			);
+			$api_url    = add_query_arg(
+				$query_args,
+				trailingslashit( Astra_Sites::get_instance()->get_api_domain() ) . 'wp-json/astra-sites/v1/get-total-pages/'
+			);
 
-			$response = wp_safe_remote_get( trailingslashit( Astra_Sites::get_instance()->get_api_domain() ) . 'wp-json/astra-sites/v1/get-total-pages/?per_page=15', $api_args );
+			$response = wp_safe_remote_get( $api_url, $api_args );
 			if ( ! is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) === 200 ) {
 				$total_requests = json_decode( wp_remote_retrieve_body( $response ), true );
 
@@ -954,6 +1019,27 @@ if ( ! class_exists( 'Astra_Sites_Batch_Processing' ) ) :
 			);
 
 			return $post_types;
+		}
+
+		/**
+		 * Get all sites.
+		 *
+		 * @return void
+		 * @since 4.4.33
+		 */
+		public function get_all_sites() {
+			if ( ! defined( 'WP_CLI' ) && wp_doing_ajax() ) {
+				if ( ! current_user_can( 'customize' ) ) {
+					wp_send_json_error( __( 'You are not allowed to perform this action', 'astra-sites' ) );
+				}
+
+				$all_sites = Astra_Sites::get_instance()->get_all_sites();
+
+				// Delete the current page option, once all sites are fetched.
+				delete_site_option( 'astra-sites-current-page' );
+
+				wp_send_json_success( $all_sites );
+			}
 		}
 
 		/**

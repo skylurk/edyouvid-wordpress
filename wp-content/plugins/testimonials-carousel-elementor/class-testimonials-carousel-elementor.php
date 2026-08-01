@@ -6,10 +6,10 @@
  * @package    TestimonialsCarouselElementor
  * @subpackage WordPress
  * @author     UAPP GROUP
- * @copyright  2024 UAPP GROUP
+ * @copyright  2026 UAPP GROUP
  * @license    https://opensource.org/licenses/GPL-3.0 GPL-3.0-only
  * @link
- * @since      11.7.0
+ * @since      12.0.1
  * php version 7.4.1
  */
 if (!defined('ABSPATH')) {
@@ -28,14 +28,14 @@ final class Testimonials_Carousel_Elementor
   /**
    * Minimum Elementor Version
    *
-   * @since 11.7.0
+   * @since 12.0.1
    * @var string Minimum Elementor version required to run the plugin.
    */
   const MINIMUM_ELEMENTOR_VERSION = '3.10.0';
   /**
    * Minimum PHP Version
    *
-   * @since 11.7.0
+   * @since 12.0.1
    * @var string Minimum PHP version required to run the plugin.
    */
   const MINIMUM_PHP_VERSION = '7.4.1';
@@ -43,7 +43,7 @@ final class Testimonials_Carousel_Elementor
   /**
    * Constructor
    *
-   * @since  11.7.0
+   * @since  12.0.1
    * @access public
    */
   public function __construct()
@@ -152,7 +152,7 @@ final class Testimonials_Carousel_Elementor
    * Load plugin localization files.
    * Fired by `init` action hook.
    *
-   * @since  11.7.0
+   * @since  12.0.1
    * @access public
    */
   public function i18n()
@@ -169,7 +169,7 @@ final class Testimonials_Carousel_Elementor
    *
    * Fired by `plugins_loaded` action hook.
    *
-   * @since  11.7.0
+   * @since  12.0.1
    * @access public
    */
   public function init()
@@ -197,6 +197,10 @@ final class Testimonials_Carousel_Elementor
     }
 
     // Once we get here, We have passed all validation checks so we can safely include our widgets.
+    require_once 'includes/class-testimonials-carousel-slider-render.php';
+    require_once 'includes/class-testimonials-carousel-assets.php';
+    \TestimonialsCarouselElementor\Testimonials_Carousel_Assets::init();
+
     require_once 'class-widgets.php';
 
     // Elementor Editor Styles
@@ -221,7 +225,7 @@ final class Testimonials_Carousel_Elementor
    *
    * Warning when the site doesn't have Elementor installed or activated.
    *
-   * @since  11.7.0
+   * @since  12.0.1
    * @access public
    */
   public function admin_notice_missing_main_plugin()
@@ -244,7 +248,7 @@ final class Testimonials_Carousel_Elementor
    *
    * Warning when the site doesn't have a minimum required Elementor version.
    *
-   * @since  11.7.0
+   * @since  12.0.1
    * @access public
    */
   public function admin_notice_minimum_elementor_version()
@@ -268,7 +272,7 @@ final class Testimonials_Carousel_Elementor
    *
    * Warning when the site doesn't have a minimum required PHP version.
    *
-   * @since  11.7.0
+   * @since  12.0.1
    * @access public
    */
   public function admin_notice_minimum_php_version()
@@ -289,7 +293,7 @@ final class Testimonials_Carousel_Elementor
 
   /**
    *
-   * @since  11.7.0
+   * @since  12.0.1
    * @access public
    */
   public function openai_event_controller_script()

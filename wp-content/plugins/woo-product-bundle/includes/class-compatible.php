@@ -4,6 +4,7 @@ defined( 'ABSPATH' ) || exit;
 if ( ! class_exists( 'WPCleverWoosb_Compatible' ) ) {
 	class WPCleverWoosb_Compatible {
 		protected static $instance = null;
+		protected $helper = null;
 
 		public static function instance() {
 			if ( is_null( self::$instance ) ) {
@@ -14,6 +15,25 @@ if ( ! class_exists( 'WPCleverWoosb_Compatible' ) ) {
 		}
 
 		function __construct() {
+			$this->helper = WPCleverWoosb_Helper();
+			// WPC Add Product to Order
+			add_action( 'wpcap_added_to_order', [ $this, 'wpcap_added_to_order' ], 99, 3 );
+
+			// WPC Variations Radio Buttons
+			add_filter( 'woovr_default_selector', [ $this, 'woovr_default_selector' ], 99, 4 );
+
+			// WPC Smart Messages
+			add_filter( 'wpcsm_locations', [ $this, 'wpcsm_locations' ] );
+
+			// WPML
+			if ( function_exists( 'wpml_loaded' ) && apply_filters( 'woosb_wpml_filters', true ) ) {
+				add_filter( 'woosb_item_id', [ $this, 'wpml_item_id' ], 99 );
+			}
+
+			// PayPal
+			add_filter( 'woocommerce_paypal_payments_simulate_cart_enabled', '__return_false' );
+			add_filter( 'woocommerce_paypal_payments_simulate_cart_prevent_updates', '__return_false' );
+
 			/*
 			 * WooCommerce PDF Invoices & Packing Slips
 			 * https://wordpress.org/plugins/woocommerce-pdf-invoices-packing-slips/
@@ -43,6 +63,110 @@ if ( ! class_exists( 'WPCleverWoosb_Compatible' ) ) {
 				add_filter( 'wf_pklist_alter_order_items', [ $this, 'pklist_order_hide_bundled' ], 99 );
 				add_filter( 'wf_pklist_alter_package_order_items', [ $this, 'pklist_package_hide_bundled' ], 99 );
 			}
+		}
+
+		function wpcap_added_to_order( $item_id, $order, $parsed_data ) {
+			if ( empty( $parsed_data['woosb_ids'] ) ) {
+				return;
+			}
+
+			$order_item = $order->get_item( $item_id );
+			$quantity   = $order_item->get_quantity();
+
+			if ( 'line_item' === $order_item->get_type() ) {
+				$product = $order_item->get_product();
+
+				if ( is_a( $product, 'WC_Product_Woosb' ) ) {
+					$product_id = $product->get_id();
+					$product->build_items( $parsed_data['woosb_ids'] );
+					$items = $product->get_items();
+
+					// get bundle info
+					$fixed_price         = $product->is_fixed_price();
+					$discount_amount     = $product->get_discount_amount();
+					$discount_percentage = $product->get_discount_percentage();
+
+					// add the bundle
+					if ( ! $fixed_price ) {
+						if ( $discount_amount ) {
+							$product->set_price( - (float) $discount_amount );
+						} else {
+							$this->helper->set_price( $product, 0 );
+						}
+					}
+
+					if ( $order_id = $order->add_product( $product, $quantity ) ) {
+						$order_item = $order->get_item( $order_id );
+						$order_item->update_meta_data( '_woosb_ids', $product->get_ids_str(), true );
+						$order_item->save();
+
+						foreach ( $items as $item ) {
+							$_product = wc_get_product( $item['id'] );
+
+							if ( ! $_product || in_array( $_product->get_type(), $this->helper::get_types(), true ) ) {
+								continue;
+							}
+
+							if ( $fixed_price ) {
+								$this->helper->set_price( $_product, 0 );
+							} elseif ( $discount_percentage ) {
+								$_price = (float) ( 100 - $discount_percentage ) * $this->helper->get_price( $_product ) / 100;
+								$_price = apply_filters( 'woosb_product_price_before_set', $_price, $_product );
+								$_product->set_price( $_price );
+							}
+
+							// add bundled products
+							$_order_item_id = $order->add_product( $_product, $item['qty'] * $quantity );
+
+							if ( ! $_order_item_id ) {
+								continue;
+							}
+
+							$_order_item = $order->get_item( $_order_item_id );
+							$_order_item->update_meta_data( '_woosb_parent_id', $product_id, true );
+							$_order_item->save();
+						}
+
+						// remove the old bundle
+						$order->remove_item( $item_id );
+					}
+				}
+
+				$order->save();
+			}
+		}
+
+		function woovr_default_selector( $selector, $product, $variation, $context ) {
+			if ( isset( $context ) && ( $context === 'woosb' ) ) {
+				if ( ( $selector_interface = $this->helper->get_setting( 'selector_interface', 'unset' ) ) && ( $selector_interface !== 'unset' ) ) {
+					$selector = $selector_interface;
+				}
+			}
+
+			return $selector;
+		}
+
+		function wpcsm_locations( $locations ) {
+			$locations['WPC Product Bundles'] = [
+				'woosb_before_wrap'       => esc_html__( 'Before bundled products', 'woo-product-bundle' ),
+				'woosb_after_wrap'        => esc_html__( 'After bundled products', 'woo-product-bundle' ),
+				'woosb_before_table'      => esc_html__( 'Before bundled products table', 'woo-product-bundle' ),
+				'woosb_after_table'       => esc_html__( 'After bundled products table', 'woo-product-bundle' ),
+				'woosb_before_item'       => esc_html__( 'Before bundled product', 'woo-product-bundle' ),
+				'woosb_after_item'        => esc_html__( 'After bundled product', 'woo-product-bundle' ),
+				'woosb_before_item_name'  => esc_html__( 'Before bundled product name', 'woo-product-bundle' ),
+				'woosb_after_item_name'   => esc_html__( 'After bundled product name', 'woo-product-bundle' ),
+				'woosb_before_item_price' => esc_html__( 'Before bundled product price', 'woo-product-bundle' ),
+				'woosb_after_item_price'  => esc_html__( 'After bundled product price', 'woo-product-bundle' ),
+				'woosb_before_bundles'    => esc_html__( 'Before bundles', 'woo-product-bundle' ),
+				'woosb_after_bundles'     => esc_html__( 'After bundles', 'woo-product-bundle' ),
+			];
+
+			return $locations;
+		}
+
+		function wpml_item_id( $id ) {
+			return apply_filters( 'wpml_object_id', $id, 'product', true );
 		}
 
 		/*

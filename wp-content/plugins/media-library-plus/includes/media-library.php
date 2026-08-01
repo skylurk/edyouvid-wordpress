@@ -1117,7 +1117,7 @@ function display_protected_files() {
       jQuery.ajax({
         type: "POST",
         async: true,
-        data: { action: "mlfp_load_image", src: src, nonce: mgmlp_ajax.nonce },
+        data: { action: "mlfp_load_image", src: src, nonce: mgmlp_ajax.lin_nonce },
         url: mgmlp_ajax.ajaxurl,
         success: function (data) {
           if(data.length > 0)

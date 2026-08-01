@@ -1,7 +1,12 @@
 <?php // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName
 
 use Automattic\Jetpack\Constants;
+use Automattic\Jetpack\Current_Plan;
 use Automattic\Jetpack\Sync\Functions;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 0 );
+}
 
 /**
  * Base class for working with plugins.
@@ -35,6 +40,13 @@ abstract class Jetpack_JSON_API_Plugins_Endpoint extends Jetpack_JSON_API_Endpoi
 	 * @var array
 	 */
 	protected $log;
+
+	/**
+	 * If the request is a scheduled update.
+	 *
+	 * @var boolean
+	 */
+	protected $scheduled_update = false;
 
 	/**
 	 * Response format.
@@ -120,6 +132,11 @@ abstract class Jetpack_JSON_API_Plugins_Endpoint extends Jetpack_JSON_API_Endpoi
 			return $error;
 		}
 
+		$error = $this->validate_scheduled_update();
+		if ( is_wp_error( $error ) ) {
+			return $error;
+		}
+
 		$args = $this->input();
 		// find out what plugin, or plugins we are dealing with
 		// validate the requested plugins
@@ -156,7 +173,7 @@ abstract class Jetpack_JSON_API_Plugins_Endpoint extends Jetpack_JSON_API_Endpoi
 		}
 		foreach ( $this->plugins as $index => $plugin ) {
 			if ( ! preg_match( '/\.php$/', $plugin ) ) {
-				$plugin                  = $plugin . '.php';
+				$plugin                 .= '.php';
 				$this->plugins[ $index ] = $plugin;
 			}
 			$valid = $this->validate_plugin( urldecode( $plugin ) );
@@ -276,7 +293,7 @@ abstract class Jetpack_JSON_API_Plugins_Endpoint extends Jetpack_JSON_API_Endpoi
 	 * @return bool
 	 */
 	protected function plugin_has_translations_autoupdates_enabled( $plugin_file ) {
-		return (bool) in_array( $plugin_file, Jetpack_Options::get_option( 'autoupdate_plugins_translations', array() ), true );
+		return in_array( $plugin_file, Jetpack_Options::get_option( 'autoupdate_plugins_translations', array() ), true );
 	}
 
 	/**
@@ -313,8 +330,8 @@ abstract class Jetpack_JSON_API_Plugins_Endpoint extends Jetpack_JSON_API_Endpoi
 		}
 
 		$file_mod_capabilities = array(
-			'modify_files'     => (bool) empty( $reasons_can_not_modify_files ), // install, remove, update
-			'autoupdate_files' => (bool) empty( $reasons_can_not_modify_files ) && empty( $reasons_can_not_autoupdate ), // enable autoupdates
+			'modify_files'     => empty( $reasons_can_not_modify_files ), // install, remove, update
+			'autoupdate_files' => empty( $reasons_can_not_modify_files ) && empty( $reasons_can_not_autoupdate ), // enable autoupdates
 		);
 
 		if ( ! empty( $reasons_can_not_modify_files ) ) {
@@ -415,6 +432,25 @@ abstract class Jetpack_JSON_API_Plugins_Endpoint extends Jetpack_JSON_API_Endpoi
 		$error = validate_plugin( $plugin );
 		if ( is_wp_error( $error ) ) {
 			return new WP_Error( 'unknown_plugin', $error->get_error_messages(), 404 );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Validates if scheduled updates are allowed based on the current plan.
+	 *
+	 * @return bool|WP_Error True if scheduled updates are allowed or not provided, WP_Error otherwise.
+	 */
+	protected function validate_scheduled_update() {
+		$args = $this->input();
+
+		if ( isset( $args['scheduled_update'] ) && $args['scheduled_update'] ) {
+			if ( Current_Plan::supports( 'scheduled-updates' ) ) {
+				$this->scheduled_update = true;
+			} else {
+				return new WP_Error( 'unauthorized', __( 'Scheduled updates are not available on your current plan. Please upgrade to a plan that supports scheduled updates to use this feature.', 'jetpack' ), 403 );
+			}
 		}
 
 		return true;

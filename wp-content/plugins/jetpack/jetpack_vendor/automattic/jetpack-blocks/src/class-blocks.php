@@ -38,12 +38,12 @@ class Blocks {
 	 *     @type bool  $plan_check           Should we check for a specific plan before registering the block.
 	 * }
 	 *
-	 * @return WP_Block_Type|false The registered block type on success, or false on failure.
+	 * @return \WP_Block_Type|false The registered block type on success, or false on failure.
 	 */
 	public static function jetpack_register_block( $slug, $args = array() ) {
 		// Slug doesn't start with `jetpack/`, isn't an absolute path, or doesn't contain a slash
 		// (synonym of a namespace) at all.
-		if ( 0 !== strpos( $slug, 'jetpack/' ) && ! path_is_absolute( $slug ) && ! strpos( $slug, '/' ) ) {
+		if ( ! str_starts_with( $slug, 'jetpack/' ) && ! path_is_absolute( $slug ) && ! strpos( $slug, '/' ) ) {
 			_doing_it_wrong( 'jetpack_register_block', 'Prefix the block with jetpack/ ', 'Jetpack 9.0.0' );
 			$slug = 'jetpack/' . $slug;
 		}
@@ -54,7 +54,7 @@ class Blocks {
 		// the block name from that file.
 		if ( path_is_absolute( $slug ) ) {
 			$block_type = self::get_path_to_block_metadata( $slug );
-			$slug       = self::get_block_name( $block_type );
+			$slug       = self::get_block_name_from_path_convention( $slug );
 		}
 
 		if (
@@ -75,11 +75,26 @@ class Blocks {
 		if ( ! self::is_standalone_block() ) {
 			// If the block is dynamic, and a Jetpack block, wrap the render_callback to check availability.
 			if ( ! empty( $args['plan_check'] ) ) {
+				$existing_attributes = array();
+				$gated_blocks        = array(
+					'jetpack/donations',
+					'jetpack/payment-buttons',
+					'jetpack/paypal-payment-buttons',
+				);
+				if ( in_array( $slug, $gated_blocks, true ) &&
+					is_string( $block_type ) &&
+					file_exists( $block_type )
+				) {
+					$metadata            = self::get_block_metadata( $block_type );
+					$existing_attributes = $metadata['attributes'] ?? array();
+				}
+
 				// Set up attributes.
 				if ( ! isset( $args['attributes'] ) ) {
 					$args['attributes'] = array();
 				}
 				$args['attributes'] = array_merge(
+					$existing_attributes,
 					$args['attributes'],
 					array(
 						// Indicates that this block should display an upgrade nudge on the frontend when applicable.
@@ -109,6 +124,11 @@ class Blocks {
 			if ( ! isset( $args['editor_style'] ) ) {
 				$args['editor_style'] = 'jetpack-blocks-editor';
 			}
+
+			// Keep track of the JS loading strategy for any block that specifies it.
+			if ( isset( $args['js_loading_strategy'] ) ) {
+				Jetpack_Gutenberg::set_block_js_loading_strategy( $feature_name, $args['js_loading_strategy'] );
+			}
 		}
 
 		return register_block_type( $block_type, $args );
@@ -135,7 +155,7 @@ class Blocks {
 			}
 		}
 
-		return isset( $metadata ) ? $metadata : array();
+		return $metadata ?? array();
 	}
 
 	/**
@@ -172,6 +192,42 @@ class Blocks {
 		$metadata = self::get_block_metadata( $arg );
 
 		return self::get_block_name_from_metadata( $metadata );
+	}
+
+	/**
+	 * Get the block name from the path convention.
+	 * For example, path "./extensions/blocks/pinterest" is assumed to define
+	 * a block named "jetpack/pinterest" without checking any files.
+	 *
+	 * Any exceptions should be added to the $breaks_convention array.
+	 * For example, blocks/premium-content defines "premium-content\/container", not "jetpack/premium-content".
+	 * These paths will use the code that checks the disk for the block name.
+	 *
+	 * The unit test test_get_block_name_from_path_convention_matches_get_block_name() verifies that
+	 * all names are correctly guessed.
+	 *
+	 * Run with `./vendor/bin/phpunit --filter WP_Test_Jetpack_Gutenberg`.
+	 *
+	 * @param string $path The path to extract the block name from.
+	 *
+	 * @return string The block name with 'jetpack/' prefix.
+	 */
+	public static function get_block_name_from_path_convention( $path ) {
+		$path_parts = explode( '/', $path );
+		if ( count( $path_parts ) <= 0 ) {
+			$block_type = self::get_path_to_block_metadata( $path );
+			return self::get_block_name( $block_type );
+		}
+
+		$last_part         = $path_parts[ count( $path_parts ) - 1 ];
+		$breaks_convention = array( 'premium-content' );
+
+		if ( in_array( $last_part, $breaks_convention, true ) ) {
+			$block_type = self::get_path_to_block_metadata( $path );
+			return self::get_block_name( $block_type );
+		}
+
+		return 'jetpack/' . $last_part;
 	}
 
 	/**
@@ -232,7 +288,7 @@ class Blocks {
 	 * @return string The unprefixed extension name.
 	 */
 	public static function remove_extension_prefix( $extension_name ) {
-		if ( 0 === strpos( $extension_name, 'jetpack/' ) || 0 === strpos( $extension_name, 'jetpack-' ) ) {
+		if ( str_starts_with( $extension_name, 'jetpack/' ) || str_starts_with( $extension_name, 'jetpack-' ) ) {
 			return substr( $extension_name, strlen( 'jetpack/' ) );
 		}
 		return $extension_name;
@@ -282,6 +338,7 @@ class Blocks {
 			! $version_available
 			&& ! self::is_standalone_block() // This is only useful in Jetpack.
 		) {
+			$slug = Jetpack_Gutenberg::remove_extension_prefix( $slug );
 			Jetpack_Gutenberg::set_extension_unavailable(
 				$slug,
 				'incorrect_gutenberg_version',
@@ -413,9 +470,111 @@ class Blocks {
 	 */
 	public static function get_path_to_block_metadata( $block_src_dir, $package_dist_dir = '' ) {
 		$dir       = basename( $block_src_dir );
-		$dist_path = empty( $package_dist_dir ) ? dirname( Jetpack_Constants::get_constant( 'JETPACK__PLUGIN_FILE' ) ) . '/_inc/blocks' : $package_dist_dir;
-		$result    = realpath( "$dist_path/$dir" );
+		$dist_path = $package_dist_dir;
+
+		if ( empty( $dist_path ) ) {
+			$plugin_file = Jetpack_Constants::get_constant( 'JETPACK__PLUGIN_FILE' );
+			// Guard against strange situations where JETPACK__PLUGIN_FILE is undefined.
+			if ( empty( $plugin_file ) ) {
+				return $block_src_dir;
+			}
+
+			$dist_path = dirname( $plugin_file ) . '/_inc/blocks';
+		}
+
+		$result = realpath( "$dist_path/$dir" );
 
 		return false === $result ? $block_src_dir : $result;
+	}
+
+	/**
+	 * Determine whether a site should use the default set of blocks, or a custom set.
+	 * Possible variations are currently beta, experimental, and production.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return string $block_variation production|beta|experimental
+	 */
+	public static function get_variation() {
+		// Default to production blocks.
+		$block_variation = 'production';
+
+		/*
+		 * Prefer to use this JETPACK_BLOCKS_VARIATION constant
+		 * or the jetpack_blocks_variation filter
+		 * to set the block variation in your code.
+		 */
+		$default = Constants::get_constant( 'JETPACK_BLOCKS_VARIATION' );
+		if ( ! empty( $default ) && in_array( $default, array( 'beta', 'experimental', 'production' ), true ) ) {
+			$block_variation = $default;
+		}
+
+		/**
+		* Alternative to `JETPACK_BETA_BLOCKS`, set to `true` to load Beta Blocks.
+		*
+		* @since jetpack-6.9.0
+		* @deprecated jetpack-11.8.0 Use jetpack_blocks_variation filter instead.
+		*
+		* @param boolean
+		*/
+		$is_beta = apply_filters_deprecated(
+			'jetpack_load_beta_blocks',
+			array( false ),
+			'jetpack-11.8.0',
+			'jetpack_blocks_variation'
+		);
+
+		/*
+		 * Switch to beta blocks if you use the JETPACK_BETA_BLOCKS constant
+		 * or the deprecated jetpack_load_beta_blocks filter.
+		 * This only applies when not using the newer JETPACK_BLOCKS_VARIATION constant.
+		 */
+		if ( empty( $default )
+				&& (
+					$is_beta
+					|| Constants::is_true( 'JETPACK_BETA_BLOCKS' )
+				)
+			) {
+			$block_variation = 'beta';
+		}
+
+		/**
+		* Alternative to `JETPACK_EXPERIMENTAL_BLOCKS`, set to `true` to load Experimental Blocks.
+		*
+		* @since jetpack-6.9.0
+		* @deprecated jetpack-11.8.0 Use jetpack_blocks_variation filter instead.
+		*
+		* @param boolean
+		*/
+		$is_experimental = apply_filters_deprecated(
+			'jetpack_load_experimental_blocks',
+			array( false ),
+			'jetpack-11.8.0',
+			'jetpack_blocks_variation'
+		);
+
+		/*
+		 * Switch to experimental blocks if you use the JETPACK_EXPERIMENTAL_BLOCKS constant
+		 * or the deprecated jetpack_load_experimental_blocks filter.
+		 * This only applies when not using the newer JETPACK_BLOCKS_VARIATION constant.
+		 */
+		if ( empty( $default )
+			&& (
+				$is_experimental
+				|| Constants::is_true( 'JETPACK_EXPERIMENTAL_BLOCKS' )
+			)
+			) {
+			$block_variation = 'experimental';
+		}
+
+		/**
+		 * Allow customizing the variation of blocks in use on a site.
+		 * Overwrites any previously set values, whether by constant or filter.
+		 *
+		 * @since jetpack-8.1.0
+		 *
+		 * @param string $block_variation Can be beta, experimental, and production. Defaults to production.
+		 */
+		return apply_filters( 'jetpack_blocks_variation', $block_variation );
 	}
 }

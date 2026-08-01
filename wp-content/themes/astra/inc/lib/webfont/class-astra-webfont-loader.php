@@ -8,6 +8,10 @@
  * @since 3.6.0
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Download webfonts locally.
  */
@@ -19,7 +23,6 @@ class Astra_WebFont_Loader {
 	 * Use "woff" or "woff2".
 	 * This will change the user-agent user to make the request.
 	 *
-	 * @access protected
 	 * @since 3.6.0
 	 * @var string
 	 */
@@ -28,7 +31,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * The remote URL.
 	 *
-	 * @access protected
 	 * @since 3.6.0
 	 * @var string
 	 */
@@ -37,7 +39,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * Base path.
 	 *
-	 * @access protected
 	 * @since 3.6.0
 	 * @var string
 	 */
@@ -46,7 +47,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * Base URL.
 	 *
-	 * @access protected
 	 * @since 3.6.0
 	 * @var string
 	 */
@@ -55,16 +55,23 @@ class Astra_WebFont_Loader {
 	/**
 	 * Subfolder name.
 	 *
-	 * @access protected
 	 * @since 3.6.0
 	 * @var string
 	 */
 	protected $subfolder_name;
 
 	/**
+	 * Current blog id.
+	 *
+	 * @multisite
+	 * @since 4.6.0
+	 * @var int
+	 */
+	protected $current_blog_id;
+
+	/**
 	 * The fonts folder.
 	 *
-	 * @access protected
 	 * @since 3.6.0
 	 * @var string
 	 */
@@ -73,7 +80,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * The local stylesheet's path.
 	 *
-	 * @access protected
 	 * @since 3.6.0
 	 * @var string
 	 */
@@ -82,7 +88,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * The local stylesheet's URL.
 	 *
-	 * @access protected
 	 * @since 3.6.0
 	 * @var string
 	 */
@@ -91,7 +96,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * The remote CSS.
 	 *
-	 * @access protected
 	 * @since 3.6.0
 	 * @var string
 	 */
@@ -100,7 +104,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * The final CSS.
 	 *
-	 * @access protected
 	 * @since 3.6.0
 	 * @var string
 	 */
@@ -116,7 +119,6 @@ class Astra_WebFont_Loader {
 	 *
 	 * Get a new instance of the object for a new URL.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @param string $url The remote URL.
 	 */
@@ -133,7 +135,6 @@ class Astra_WebFont_Loader {
 	 *
 	 * Fallback to the remote URL if we were unable to write the file locally.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @return string
 	 */
@@ -159,7 +160,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * Get the local stylesheet URL.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @return string
 	 */
@@ -177,7 +177,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * Get styles with fonts downloaded locally.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @return string
 	 */
@@ -194,14 +193,21 @@ class Astra_WebFont_Loader {
 
 		// Get an array of locally-hosted files.
 		$files = $this->get_local_files_from_css();
-
-		// Convert paths to URLs.
+	
+		$convert_to_url = apply_filters( 'astra_convert_fonts_to_url', true ); 
+	
 		foreach ( $files as $remote => $local ) {
-			$files[ $remote ] = str_replace(
-				$this->get_base_path(),
-				$this->get_base_url(),
-				$local
-			);
+			if ( $convert_to_url ) {
+				$url = str_replace(
+					$this->get_base_path(),
+					$this->get_base_url(),
+					$local
+				);
+			} else {
+				$url = $local;
+			}
+	
+			$files[ $remote ] = apply_filters( 'astra_webfont_loader_file_url', $url, $remote, $local );
 		}
 
 		$this->css = str_replace(
@@ -218,7 +224,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * Get local stylesheet contents.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @return string|false Returns the remote URL contents.
 	 */
@@ -242,7 +247,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * Get remote file contents.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @return string Returns the remote URL contents.
 	 */
@@ -264,8 +268,11 @@ class Astra_WebFont_Loader {
 		// Get the response.
 		$response = wp_remote_get( $this->remote_url, array( 'user-agent' => $user_agent ) );
 
-		// Early exit if there was an error.
-		if ( is_wp_error( $response ) ) {
+		// Get the HTTP status code.
+		$status_code = wp_remote_retrieve_response_code( $response );
+
+		// Early exit if there was an error or the font does not exists on google fonts.
+		if ( is_wp_error( $response ) || 200 !== $status_code ) {
 			return '';
 		}
 
@@ -278,7 +285,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * Download files mentioned in our CSS locally.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @return array Returns an array of remote URLs and their local counterparts.
 	 */
@@ -287,13 +293,18 @@ class Astra_WebFont_Loader {
 		$stored     = get_site_option( 'ast_downloaded_font_files', array() );
 		$change     = false; // If in the end this is true, we need to update the cache option.
 
+		$filesystem = $this->get_filesystem();
+		if ( ! $filesystem ) {
+			return $stored;
+		}
+
 		if ( ! defined( 'FS_CHMOD_DIR' ) ) {
 			define( 'FS_CHMOD_DIR', ( 0755 & ~ umask() ) );
 		}
 
 		// If the fonts folder don't exist, create it.
 		if ( ! file_exists( $this->get_fonts_folder() ) ) {
-			$this->get_filesystem()->mkdir( $this->get_fonts_folder(), FS_CHMOD_DIR );
+			$filesystem->mkdir( $this->get_fonts_folder(), FS_CHMOD_DIR );
 		}
 
 		foreach ( $font_files as $font_family => $files ) {
@@ -303,7 +314,7 @@ class Astra_WebFont_Loader {
 
 			// If the folder doesn't exist, create it.
 			if ( ! file_exists( $folder_path ) ) {
-				$this->get_filesystem()->mkdir( $folder_path, FS_CHMOD_DIR );
+				$filesystem->mkdir( $folder_path, FS_CHMOD_DIR );
 			}
 
 			foreach ( $files as $url ) {
@@ -345,7 +356,7 @@ class Astra_WebFont_Loader {
 				}
 
 				// Move temp file to final destination.
-				$success = $this->get_filesystem()->move( $tmp_path, $font_path, true );
+				$success = $filesystem->move( $tmp_path, $font_path, true );
 				if ( $success ) {
 					$stored[ $url ] = $font_path;
 					$change         = true;
@@ -371,8 +382,6 @@ class Astra_WebFont_Loader {
 
 	/**
 	 * Get the font files and preload them.
-	 *
-	 * @access public
 	 */
 	public function preload_local_fonts() {
 		// Make sure variables are set.
@@ -402,7 +411,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * Get font files from the CSS.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @param string $remote_styles Remote stylesheet data.
 	 *
@@ -472,7 +480,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * Write the CSS to the filesystem.
 	 *
-	 * @access protected
 	 * @since 3.6.0
 	 * @return string|false Returns the absolute path of the file on success, or false on fail.
 	 */
@@ -480,13 +487,17 @@ class Astra_WebFont_Loader {
 		$file_path  = $this->get_local_stylesheet_path();
 		$filesystem = $this->get_filesystem();
 
+		if ( ! $filesystem ) {
+			return false;
+		}
+
 		if ( ! defined( 'FS_CHMOD_DIR' ) ) {
 			define( 'FS_CHMOD_DIR', ( 0755 & ~ umask() ) );
 		}
 
 		// If the folder doesn't exist, create it.
 		if ( ! file_exists( $this->get_fonts_folder() ) ) {
-			$this->get_filesystem()->mkdir( $this->get_fonts_folder(), FS_CHMOD_DIR );
+			$filesystem->mkdir( $this->get_fonts_folder(), FS_CHMOD_DIR );
 		}
 
 		// If the file doesn't exist, create it. Return false if it can not be created.
@@ -496,7 +507,7 @@ class Astra_WebFont_Loader {
 
 		// If we got this far, we need to write the file.
 		// Get the CSS.
-		if ( ! $this->css ) {
+		if ( null === $this->css ) {
 			$this->get_styles();
 		}
 
@@ -511,7 +522,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * Get the stylesheet path.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @return string
 	 */
@@ -528,7 +538,6 @@ class Astra_WebFont_Loader {
 	 * This is a hash, generated from the site-URL, the wp-content path and the URL.
 	 * This way we can avoid issues with sites changing their URL, or the wp-content path etc.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @return string
 	 */
@@ -539,7 +548,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * Set the font-format to be used.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @param string $format The format to be used. Use "woff" or "woff2".
 	 * @return void
@@ -551,7 +559,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * Check if the local stylesheet exists.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @return bool
 	 */
@@ -562,13 +569,14 @@ class Astra_WebFont_Loader {
 	/**
 	 * Get the base path.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @return string
 	 */
 	public function get_base_path() {
 		if ( ! $this->base_path ) {
-			$this->base_path = apply_filters( 'astra_local_fonts_base_path', $this->get_filesystem()->wp_content_dir() );
+			$filesystem      = $this->get_filesystem();
+			$wp_content_dir  = $filesystem ? $filesystem->wp_content_dir() : WP_CONTENT_DIR . '/';
+			$this->base_path = apply_filters( 'astra_local_fonts_base_path', $wp_content_dir );
 		}
 		return $this->base_path;
 	}
@@ -576,7 +584,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * Get the base URL.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @return string
 	 */
@@ -590,7 +597,6 @@ class Astra_WebFont_Loader {
 	/**
 	 * Get the subfolder name.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @return string
 	 */
@@ -602,9 +608,27 @@ class Astra_WebFont_Loader {
 	}
 
 	/**
+	 * Returns the current blog id if current WordPress setup is a multisite setup.
+	 *
+	 * @since 4.6.0
+	 * @return void|int Returns integer if current WP setup is multisite.
+	 */
+	public function get_current_blog_id() {
+
+		if ( ! is_multisite() ) {
+			return;
+		}
+
+		if ( ! $this->current_blog_id ) {
+			$this->current_blog_id = apply_filters( 'astra_local_fonts_current_blog_id', get_current_blog_id() );
+		}
+
+		return $this->current_blog_id;
+	}
+
+	/**
 	 * Get the folder for fonts.
 	 *
-	 * @access public
 	 * @return string
 	 */
 	public function get_fonts_folder() {
@@ -613,7 +637,39 @@ class Astra_WebFont_Loader {
 			if ( $this->get_subfolder_name() ) {
 				$this->fonts_folder .= '/' . $this->get_subfolder_name();
 			}
+
+			/**
+			 * Fix: Local google fonts issue in multisite.
+			 *
+			 * This block of code primarily does 3 things:
+			 * 1. Checks if we have blog id.
+			 * 2. If we have blog id, then checks if subfolder "$this->get_subfolder_name()" exists. If not, creates the subfolder.
+			 * 3. Then, finally, creates the child folders inside the subfolder by the current blog id.
+			 *
+			 * Ref: GH Issue: #5291, [AST-3438]
+			 * @since 4.6.0
+			 */
+			if ( $this->get_current_blog_id() ) {
+				if ( ! file_exists( $this->fonts_folder ) ) {
+					// Lets create subfolder first if it does not exists.
+					$filesystem = $this->get_filesystem();
+					if ( $filesystem ) {
+						if ( ! defined( 'FS_CHMOD_DIR' ) ) {
+							define( 'FS_CHMOD_DIR', ( 0755 & ~ umask() ) );
+						}
+						$filesystem->mkdir( $this->get_fonts_folder(), FS_CHMOD_DIR );
+					}
+				}
+
+				/**
+				 * This helps us to isolate the google fonts files according to the sub sites.
+				 * Which will also helps in isolated flushing of local font files without effecting
+				 * the font files and generated css files of other sub sites.
+				 */
+				$this->fonts_folder .= '/' . $this->get_current_blog_id();
+			}
 		}
+
 		return $this->fonts_folder;
 	}
 
@@ -624,7 +680,6 @@ class Astra_WebFont_Loader {
 	 * This way font files will get updated regularly,
 	 * and we avoid edge cases where unused files remain in the server.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @return void
 	 */
@@ -641,7 +696,6 @@ class Astra_WebFont_Loader {
 	 *
 	 * This runs as part of a cleanup routine.
 	 *
-	 * @access public
 	 * @since 3.6.0
 	 * @return bool
 	 */
@@ -649,17 +703,22 @@ class Astra_WebFont_Loader {
 		// Delete previously created supportive options.
 		astra_delete_option( 'astra_font_url' );
 		delete_site_option( 'astra_local_font_files' );
-		return $this->get_filesystem()->delete( $this->get_fonts_folder(), true );
+		$filesystem = $this->get_filesystem();
+		if ( ! $filesystem ) {
+			return false;
+		}
+		return $filesystem->delete( $this->get_fonts_folder(), true );
 	}
 
 	/**
 	 * Get the filesystem.
 	 *
-	 * @access protected
 	 * @since 3.6.0
-	 * @return \WP_Filesystem_Base
+	 * @return \WP_Filesystem_Base|null Filesystem instance, or null on failure.
 	 */
 	protected function get_filesystem() {
+
+		// Using WP_Filesystem to manage the local download of fonts. This ensures proper functionality of the theme by handling file operations securely and consistently -- This is a TRT-recommended webfont library.
 		global $wp_filesystem;
 
 		// If the filesystem has not been instantiated yet, do it here.
@@ -667,8 +726,19 @@ class Astra_WebFont_Loader {
 			if ( ! function_exists( 'WP_Filesystem' ) ) {
 				require_once wp_normalize_path( ABSPATH . '/wp-admin/includes/file.php' );  // PHPCS:ignore WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound
 			}
-			WP_Filesystem();
+			// WP_Filesystem() returns true only when fully connected; false covers
+			// missing credentials, wrong password, and connect() failures alike.
+			if ( true !== WP_Filesystem() ) {
+				return null;
+			}
 		}
+
+		// Secondary guard: reject a pre-set broken FTP object left behind by a
+		// previously-failed WP_Filesystem() call from another caller in the request.
+		if ( ! $wp_filesystem || $wp_filesystem->errors->has_errors() ) {
+			return null;
+		}
+
 		return $wp_filesystem;
 	}
 }
