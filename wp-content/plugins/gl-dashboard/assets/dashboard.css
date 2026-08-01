@@ -343,9 +343,13 @@
   font-weight: 600;
 }
 
-.gld-badge.completed   { background: #d1fae5; color: #065f46; }
-.gld-badge.in_progress { background: #fef3c7; color: #92400e; }
-.gld-badge.not_started { background: #f3f4f6; color: #6b7280; }
+.gld-badge.completed      { background: #d1fae5; color: #065f46; }
+.gld-badge.in_progress    { background: #fef3c7; color: #92400e; }
+.gld-badge.not_started    { background: #f3f4f6; color: #6b7280; }
+.gld-badge-success        { background: #d1fae5; color: #065f46; }
+.gld-badge-muted          { background: #f3f4f6; color: #6b7280; }
+.gld-badge-danger         { background: #fee2e2; color: #991b1b; }
+.gld-badge-info           { background: #dbeafe; color: #1e40af; }
 
 /* ─── Charts grid ────────────────────────────────────────────────────── */
 .gld-charts {

@@ -360,6 +360,115 @@
           </div>
         </div>
 
+        <!-- Bulk import -->
+        <div class="gld-panel" style="margin-bottom:20px">
+          <div class="gld-panel-header" style="cursor:pointer" @click="users.showImport = !users.showImport; users.importResults = null">
+            <div class="gld-panel-title">Bulk Import from CSV / Excel</div>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"
+                 style="width:18px;height:18px;transition:transform .2s"
+                 :style="users.showImport ? 'transform:rotate(180deg)' : ''">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+            </svg>
+          </div>
+          <div x-show="users.showImport" x-transition style="padding:16px 20px 20px">
+
+            <!-- Instructions -->
+            <p style="font-size:13px;color:var(--gld-muted);margin:0 0 14px">
+              Upload a <strong>.csv</strong> or <strong>.xlsx</strong> file with an <code>email</code> column (required) and optional
+              <code>first_name</code> / <code>last_name</code> columns. New emails will have WordPress accounts created automatically.
+              Each new seat is charged to your saved card.
+            </p>
+
+            <!-- File picker + button -->
+            <div class="gld-input-row" style="align-items:center;gap:12px;flex-wrap:wrap">
+              <input id="gld-import-file" type="file" accept=".csv,.xlsx"
+                     @change="onImportFileChange($event)"
+                     style="font-size:13px;flex:1;min-width:200px">
+              <button class="gld-btn gld-btn-primary"
+                      @click="importUsers()"
+                      :disabled="!users.importFile || users.importing">
+                <span x-show="!users.importing">Upload &amp; Import</span>
+                <span x-show="users.importing">Importing…</span>
+              </button>
+            </div>
+
+            <!-- Results -->
+            <template x-if="users.importResults">
+              <div style="margin-top:20px">
+
+                <!-- Summary chips -->
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+                  <span class="gld-badge gld-badge-success" x-text="`${users.importResults.totals.succeeded} added`"></span>
+                  <span class="gld-badge gld-badge-muted"   x-text="`${users.importResults.totals.skipped} skipped`"></span>
+                  <span class="gld-badge gld-badge-danger"  x-text="`${users.importResults.totals.failed} failed`" x-show="users.importResults.totals.failed > 0"></span>
+                </div>
+
+                <!-- Succeeded -->
+                <template x-if="users.importResults.succeeded.length > 0">
+                  <div style="margin-bottom:14px">
+                    <div style="font-size:12px;font-weight:600;color:var(--gld-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Added</div>
+                    <div class="gld-table-wrap">
+                      <table class="gld-table">
+                        <thead><tr><th>Name</th><th>Email</th><th>Account</th></tr></thead>
+                        <tbody>
+                          <template x-for="r in users.importResults.succeeded" :key="r.email">
+                            <tr>
+                              <td x-text="r.name || '—'"></td>
+                              <td style="color:var(--gld-muted)" x-text="r.email"></td>
+                              <td><span :class="r.new_account ? 'gld-badge gld-badge-info' : 'gld-badge gld-badge-muted'" x-text="r.new_account ? 'New' : 'Existing'"></span></td>
+                            </tr>
+                          </template>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </template>
+
+                <!-- Skipped -->
+                <template x-if="users.importResults.skipped.length > 0">
+                  <div style="margin-bottom:14px">
+                    <div style="font-size:12px;font-weight:600;color:var(--gld-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Skipped (already enrolled)</div>
+                    <div class="gld-table-wrap">
+                      <table class="gld-table">
+                        <thead><tr><th>Name</th><th>Email</th></tr></thead>
+                        <tbody>
+                          <template x-for="r in users.importResults.skipped" :key="r.email">
+                            <tr>
+                              <td x-text="r.name || '—'"></td>
+                              <td style="color:var(--gld-muted)" x-text="r.email"></td>
+                            </tr>
+                          </template>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </template>
+
+                <!-- Failed -->
+                <template x-if="users.importResults.failed.length > 0">
+                  <div>
+                    <div style="font-size:12px;font-weight:600;color:var(--gld-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Failed</div>
+                    <div class="gld-table-wrap">
+                      <table class="gld-table">
+                        <thead><tr><th>Email</th><th>Reason</th></tr></thead>
+                        <tbody>
+                          <template x-for="r in users.importResults.failed" :key="r.email">
+                            <tr>
+                              <td x-text="r.email"></td>
+                              <td style="color:var(--gld-danger,#e74c3c)" x-text="r.reason"></td>
+                            </tr>
+                          </template>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </template>
+
+              </div>
+            </template>
+          </div>
+        </div>
+
         <!-- Members list -->
         <div class="gld-panel">
           <div class="gld-panel-header">

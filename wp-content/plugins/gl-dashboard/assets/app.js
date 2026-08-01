@@ -152,6 +152,7 @@ document.addEventListener('alpine:init', () => {
       list: [], search: '', page: 1, searchQuery: '',
       searchResults: [], showDropdown: false,
       adding: false, searchTimeout: null,
+      showImport: false, importing: false, importFile: null, importResults: null,
     },
     selectedLearner: null,
     subscription: { sub: null, bundles: [] },
@@ -406,6 +407,58 @@ document.addEventListener('alpine:init', () => {
         this.users.list = this.users.list.filter(u => u.id !== user.id);
       } catch (_) {
         this.toast('Could not remove user.', 'error');
+      }
+    },
+
+    /* ── bulk import ───────────────────────────────────────────────── */
+    onImportFileChange(event) {
+      this.users.importFile    = event.target.files[0] || null;
+      this.users.importResults = null;
+    },
+
+    async importUsers() {
+      if (!this.users.importFile) return;
+      this.users.importing = true;
+      this.users.importResults = null;
+      try {
+        const form = new FormData();
+        form.append('file', this.users.importFile);
+
+        const r = await fetch(
+          window.location.origin + GLD.restPath + `/groups/${this.activeGroupId}/users/import`,
+          {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'X-WP-Nonce': GLD.nonce },
+            body: form,
+          }
+        );
+        const data = await r.json();
+
+        if (!r.ok) {
+          if (data.requires_card) {
+            this.toast('No payment card on file. Go to Billing to set up a card first.', 'error');
+          } else {
+            this.toast(data.message || 'Import failed.', 'error');
+          }
+          return;
+        }
+
+        this.users.importResults = data;
+        if (data.totals.succeeded > 0) {
+          await this.loadUsers();
+          this.toast(`Import complete: ${data.totals.succeeded} added.`, 'success');
+        } else {
+          this.toast('Import complete — no new learners were added.', 'info');
+        }
+      } catch (_) {
+        this.toast('Import request failed. Please try again.', 'error');
+      } finally {
+        this.users.importing     = false;
+        this.users.importFile    = null;
+        // Reset the file input via a ref trick.
+        const el = document.getElementById('gld-import-file');
+        if (el) el.value = '';
       }
     },
 

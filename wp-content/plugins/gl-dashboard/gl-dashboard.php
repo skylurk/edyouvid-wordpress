@@ -20,6 +20,7 @@ require_once GLD_PLUGIN_DIR . 'includes/class-shortcode.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-subscription.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-seat-charges-db.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-billing.php';
+require_once GLD_PLUGIN_DIR . 'includes/class-csv-import.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-woo.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-cron.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-admin.php';
@@ -30,6 +31,7 @@ require_once GLD_PLUGIN_DIR . 'includes/Api/class-users.php';
 require_once GLD_PLUGIN_DIR . 'includes/Api/class-subscription.php';
 require_once GLD_PLUGIN_DIR . 'includes/Api/class-course-stats.php';
 require_once GLD_PLUGIN_DIR . 'includes/Api/class-billing.php';
+require_once GLD_PLUGIN_DIR . 'includes/Api/class-import.php';
 
 // ── Custom cron interval ───────────────────────────────────────────────────
 // Must be registered before any wp_schedule_event() calls.
@@ -116,4 +118,5 @@ add_action( 'rest_api_init', function () {
 	( new GLD_Api_Subscription() )->register_routes();
 	( new GLD_Api_CourseStats() )->register_routes();
 	( new GLD_Api_Billing() )->register_routes();
+	( new GLD_Api_Import() )->register_routes();
 } );
