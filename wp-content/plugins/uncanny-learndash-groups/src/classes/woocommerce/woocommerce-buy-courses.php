@@ -119,11 +119,53 @@ class WoocommerceBuyCourses {
 	 * @param $product_id
 	 */
 	public function delete_me_if_i_am_not_purchased( $product_id ) {
-		$has_order_count = SharedFunctions::get_orders_from_product_id( absint( $product_id ) );
+		$product_id = absint( $product_id );
+		if ( $product_id <= 0 ) {
+			return;
+		}
+
+		// If any existing group already references this license product, do not auto-delete it.
+		if ( $this->is_product_linked_to_a_group( $product_id ) ) {
+			return;
+		}
+
+		$has_order_count = SharedFunctions::get_orders_from_product_id( $product_id );
 		if ( 0 === absint( $has_order_count ) ) {
 			//No order found related to this product-id
 			wp_delete_post( $product_id, true );
 		}
+	}
+
+	/**
+	 * Check whether a license product is already linked to any LearnDash group.
+	 *
+	 * @param int $product_id
+	 *
+	 * @return bool
+	 */
+	private function is_product_linked_to_a_group( $product_id ) {
+		$group_ids = get_posts(
+			array(
+				'post_type'              => 'groups',
+				'post_status'            => 'any',
+				'fields'                 => 'ids',
+				'posts_per_page'         => 1,
+				'no_found_rows'          => true,
+				'ignore_sticky_posts'    => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'meta_query'             => array(
+					array(
+						'key'     => '_ulgm_license_product_id',
+						'value'   => $product_id,
+						'compare' => '=',
+						'type'    => 'NUMERIC',
+					),
+				),
+			)
+		);
+
+		return ! empty( $group_ids );
 	}
 
 	/**

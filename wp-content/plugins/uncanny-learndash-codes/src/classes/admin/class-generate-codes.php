@@ -161,8 +161,9 @@ class GenerateCodes extends Config {
 			$message = '<h4>' . sprintf( __( 'Only %s unique codes were added out of %s codes. <a href="%s">Manage Codes</a>', 'uncanny-learndash-codes' ), self::$num_coupons_added, self::$num_codes_requested, esc_attr( add_query_arg( 'page', 'uncanny-learndash-codes' ) ) ) . '</h4>';
 		}
 		?>
-		<div class="updated notice">
-			<p><?php echo $message; ?></p>
+		<div class="updated notice uncannyowl-alert uncannyowl-alert-info">
+			<button  type="button" class="uncannyowl-alert-close" aria-label="Close alert">&times;</button>
+			<?php echo $message; ?>
 		</div>
 		<?php
 	}
@@ -175,10 +176,13 @@ class GenerateCodes extends Config {
 		if ( 'manual' === self::$generation_type && ! empty( self::$rejected_batch_codes ) ) {
 			$message = sprintf( '<h4>%s</h4><br />%s<br />', esc_html__( 'The following code(s) were rejected:', 'uncanny-learndash-codes' ), join( '<br />', self::$rejected_batch_codes ) );
 		}
-		?>
-		<div class="notice notice-error is-dismissible">
-			<p><?php echo $message; ?></p>
-		</div>
+		?> 
+ 
+		<div class="uncannyowl-alert uncannyowl-alert-error is-dismissible">
+			<button  type="button" class="uncannyowl-alert-close" aria-label="Close alert">&times;</button>
+		 <?php echo $message; ?>
+		</div> 
+		  
 		<?php
 	}
 

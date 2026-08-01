@@ -229,7 +229,6 @@ class WoocommerceModifyGroup {
 		$group_id      = (int) ulgm_filter_input( 'modify-group-id' );
 		$existing_qty  = ulgm()->group_management->seat->total_seats( $group_id );
 		$order_details = SharedFunctions::get_product_id_from_group_id( $group_id );
-		$all_orders    = SharedFunctions::get_group_leader_all_orders( $group_id, $order_details['product_id'] );
 
 		if ( ! is_array( $order_details ) ) {
 			return;
@@ -246,12 +245,22 @@ class WoocommerceModifyGroup {
 		$product_id = $order_details['product_id'];
 
 		$product = wc_get_product( $product_id );
+		if ( ! $product instanceof \WC_Product ) {
+			$recovered_product_id = $this->recreate_missing_license_product_for_add_seats( $group_id, $order_id, $product_id );
+			if ( $recovered_product_id > 0 ) {
+				$product_id                  = $recovered_product_id;
+				$order_details['product_id'] = $recovered_product_id;
+				$product                     = wc_get_product( $recovered_product_id );
+			}
+		}
 
 		if ( ! $product instanceof \WC_Product ) {
-			wc_add_notice( 'The associated license product is no longer available. Please try again.', 'error' );
+			wc_add_notice( esc_html__( 'The associated license product is no longer available. Please try again.', 'uncanny-learndash-groups' ), 'error' );
 			wp_safe_redirect( wc_get_cart_url() . '?removed_item=1' );
 			exit;
 		}
+
+		$all_orders = SharedFunctions::get_group_leader_all_orders( $group_id, $product_id );
 
 		$fixed_price = (string) get_post_meta( $product_id, 'ulgm_license_fixed_price', true );
 		if ( isset( $product_id ) && 'yes' === $fixed_price ) {
@@ -507,6 +516,12 @@ class WoocommerceModifyGroup {
 	 */
 	public function ld_added_group_access_edit_user_func( $user_id, $group_id ) {
 
+		// Skip seat assignment for group leaders only when "Group Leaders don't use seats" is on.
+		if ( user_can( $user_id, 'group_leader' ) && SharedFunctions::group_leaders_dont_use_seats( 'seats' ) ) {
+			// Group leaders don't use seats - skip seat assignment
+			return;
+		}
+
 		$order_id       = SharedFunctions::get_order_id_from_group_id( $group_id );
 		$remaining      = ulgm()->group_management->seat->remaining_seats( $group_id );
 		$codes_group_id = ulgm()->group_management->seat->get_code_group_id( $group_id );
@@ -715,5 +730,259 @@ class WoocommerceModifyGroup {
 		}
 
 		return 0;
+	}
+
+	/**
+	 * Recreate missing license product only during add-seats flow.
+	 *
+	 * @param int $group_id
+	 * @param int $order_id
+	 * @param int $missing_product_id
+	 *
+	 * @return int
+	 */
+	private function recreate_missing_license_product_for_add_seats( $group_id, $order_id, $missing_product_id ) {
+		$group_id           = absint( $group_id );
+		$order_id           = absint( $order_id );
+		$missing_product_id = absint( $missing_product_id );
+		if ( $group_id <= 0 ) {
+			return 0;
+		}
+
+		$group_name = trim( get_the_title( $group_id ) );
+		if ( empty( $group_name ) ) {
+			$group_name = sprintf( 'Group %d', $group_id );
+		}
+		if ( ! $this->has_matching_license_line_item( $order_id, $missing_product_id, $group_name ) ) {
+			return 0;
+		}
+
+		$user_id = wp_get_current_user()->ID;
+
+		$product_args = array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'post_author'    => $user_id,
+			'post_title'     => sprintf( __( '%s - License', 'uncanny-learndash-groups' ), $group_name ),
+			'post_content'   => '',
+			'post_excerpt'   => '',
+			'post_parent'    => 0,
+			'comment_status' => 'closed',
+			'ping_status'    => 'closed',
+		);
+
+		$cat_id = get_option( 'ulgm_group_license_product_cat', '' );
+		if ( ! empty( $cat_id ) ) {
+			$product_args['category_ids'] = absint( $cat_id );
+		}
+
+		$new_product = WoocommerceBuyCourses::create_license_product( $product_args );
+
+		if ( ! $new_product instanceof \WC_Product ) {
+			return 0;
+		}
+
+		$per_seat_price = $this->get_per_seat_price_from_order( $order_id, $missing_product_id, $group_name );
+		if ( $per_seat_price > 0 ) {
+			$new_product->set_regular_price( (string) $per_seat_price );
+			$new_product->set_price( (string) $per_seat_price );
+		}
+		$new_product->save();
+
+		$new_product_id = absint( $new_product->get_id() );
+		if ( $new_product_id <= 0 ) {
+			return 0;
+		}
+
+		$this->rehydrate_recovered_license_product_metadata( $new_product_id, $missing_product_id, $group_id );
+		update_post_meta( $new_product_id, '_uo_custom_buy_product', 'yes' );
+		update_post_meta( $new_product_id, '_group_name', $group_name );
+		update_post_meta( $new_product_id, '_ulgm_version', Utilities::get_version() );
+		update_post_meta( $group_id, '_ulgm_license_product_id', $new_product_id );
+
+		return $new_product_id;
+	}
+
+	/**
+	 * Infer per-seat price from a matching line item.
+	 *
+	 * @param int    $order_id
+	 * @param int    $missing_product_id
+	 * @param string $group_name
+	 *
+	 * @return float
+	 */
+	private function get_per_seat_price_from_order( $order_id, $missing_product_id, $group_name ) {
+		$order = wc_get_order( absint( $order_id ) );
+		if ( ! $order instanceof \WC_Order ) {
+			return 0.0;
+		}
+
+		foreach ( $order->get_items( 'line_item' ) as $item ) {
+			if ( ! $item instanceof \WC_Order_Item_Product ) {
+				continue;
+			}
+
+			$item_product_id = absint( $item->get_product_id() );
+			$item_group_name = trim( (string) $item->get_meta( 'ulgm_group_name', true ) );
+
+			$is_match = ( $missing_product_id > 0 && $item_product_id === $missing_product_id ) || ( ! empty( $group_name ) && $item_group_name === $group_name );
+			if ( ! $is_match ) {
+				continue;
+			}
+
+			$qty = absint( $item->get_quantity() );
+			if ( $qty <= 0 ) {
+				continue;
+			}
+
+			$subtotal = (float) $item->get_subtotal();
+			$total    = (float) $item->get_total();
+			$line     = $subtotal > 0 ? $subtotal : $total;
+			if ( $line <= 0 ) {
+				continue;
+			}
+
+			return (float) wc_format_decimal( $line / $qty, wc_get_price_decimals() );
+		}
+
+		return 0.0;
+	}
+
+	/**
+	 * Verify order contains a matching ULGM license line item.
+	 *
+	 * @param int    $order_id
+	 * @param int    $missing_product_id
+	 * @param string $group_name
+	 *
+	 * @return bool
+	 */
+	private function has_matching_license_line_item( $order_id, $missing_product_id, $group_name ) {
+		$order = wc_get_order( absint( $order_id ) );
+		if ( ! $order instanceof \WC_Order ) {
+			return false;
+		}
+
+		foreach ( $order->get_items( 'line_item' ) as $item ) {
+			if ( ! $item instanceof \WC_Order_Item_Product ) {
+				continue;
+			}
+
+			$item_product_id = absint( $item->get_product_id() );
+			$item_group_name = trim( (string) $item->get_meta( 'ulgm_group_name', true ) );
+			$has_ulgm_meta   = $item->meta_exists( 'ulgm_group_name' ) || $item->meta_exists( 'ulgm_courses' );
+
+			$matches_missing_product = $missing_product_id > 0 && $item_product_id === $missing_product_id;
+			$matches_group_name      = ! empty( $group_name ) && ! empty( $item_group_name ) && $item_group_name === $group_name;
+
+			if ( $has_ulgm_meta && ( $matches_missing_product || $matches_group_name ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Rehydrate critical metadata for recovered license products.
+	 *
+	 * @param int $new_product_id
+	 * @param int $missing_product_id
+	 * @param int $group_id
+	 *
+	 * @return void
+	 */
+	private function rehydrate_recovered_license_product_metadata( $new_product_id, $missing_product_id, $group_id ) {
+		$new_product_id     = absint( $new_product_id );
+		$missing_product_id = absint( $missing_product_id );
+		$group_id           = absint( $group_id );
+
+		if ( $new_product_id <= 0 || $group_id <= 0 ) {
+			return;
+		}
+
+		$meta_keys_to_copy = array(
+			'ulgm_license_fixed_price',
+			'ulgm_license_min_qty',
+			'ulgm_license_max_qty',
+		);
+
+		foreach ( $meta_keys_to_copy as $meta_key ) {
+			$value = $missing_product_id > 0 ? get_post_meta( $missing_product_id, $meta_key, true ) : '';
+			if ( '' !== $value && null !== $value ) {
+				update_post_meta( $new_product_id, $meta_key, $value );
+			}
+		}
+
+		$linked_courses = array();
+		if ( $missing_product_id > 0 ) {
+			$linked_courses = get_post_meta( $missing_product_id, SharedFunctions::$license_meta_field, true );
+			if ( ! is_array( $linked_courses ) ) {
+				$linked_courses = array();
+			}
+		}
+
+		if ( empty( $linked_courses ) ) {
+			$linked_courses = $this->derive_license_courses_from_group( $group_id );
+		}
+
+		if ( ! empty( $linked_courses ) ) {
+			update_post_meta( $new_product_id, SharedFunctions::$license_meta_field, array_map( 'absint', $linked_courses ) );
+		}
+	}
+
+	/**
+	 * Derive linked license course-product IDs from group courses.
+	 *
+	 * @param int $group_id
+	 *
+	 * @return array
+	 */
+	private function derive_license_courses_from_group( $group_id ) {
+		$group_id = absint( $group_id );
+		if ( $group_id <= 0 ) {
+			return array();
+		}
+
+		$course_ids = LearndashFunctionOverrides::learndash_group_enrolled_courses( $group_id );
+		if ( ! is_array( $course_ids ) || empty( $course_ids ) ) {
+			return array();
+		}
+
+		$linked_products = array();
+		foreach ( $course_ids as $course_id ) {
+			$course_id = absint( $course_id );
+			if ( $course_id <= 0 ) {
+				continue;
+			}
+
+			$product_ids = get_posts(
+				array(
+					'post_type'              => 'product',
+					'post_status'            => 'any',
+					'fields'                 => 'ids',
+					'posts_per_page'         => 1,
+					'no_found_rows'          => true,
+					'ignore_sticky_posts'    => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'meta_query'             => array(
+						array(
+							'key'     => SharedFunctions::$course_meta_field,
+							'value'   => $course_id,
+							'compare' => '=',
+							'type'    => 'NUMERIC',
+						),
+					),
+				)
+			);
+
+			if ( ! empty( $product_ids ) ) {
+				$linked_products[] = absint( $product_ids[0] );
+			}
+		}
+
+		return array_values( array_unique( array_filter( $linked_products ) ) );
 	}
 }

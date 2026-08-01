@@ -42,7 +42,7 @@ class RestEndpoint extends WP_REST_Controller {
 		$global_protection = get_option( 'tincanny_nonce_protection', 'yes' );
 		$protection        = 'Yes';
 
-		$postmeta['protect-scorm-tin-can-modules'] = strtolower( $postmeta['protect-scorm-tin-can-modules'] );
+		$postmeta['protect-scorm-tin-can-modules'] = strtolower( $postmeta['protect-scorm-tin-can-modules'] ?? '' );
 		if ( ! empty( $postmeta['protect-scorm-tin-can-modules'] ) ) {
 			switch ( $postmeta['protect-scorm-tin-can-modules'] ) {
 				case 'yes' :

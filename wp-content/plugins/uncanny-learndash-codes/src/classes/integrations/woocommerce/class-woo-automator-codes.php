@@ -52,7 +52,6 @@ class Automator_Codes extends Config {
 
 			add_action( 'init', array( $this, 'load_new_product_type' ), 11 );
 			add_action( 'woocommerce_automator_codes_add_to_cart', array( $this, 'custom_product_add_to_cart' ), 11 );
-			//add_action( 'woocommerce_single_product_summary', array( $this, 'custom_product_add_to_cart' ), 11 );
 			//add_action( 'woocommerce_single_product_summary', array( $this, 'show_out_of_stock' ), 11 );
 			add_action( 'admin_print_scripts', array( $this, 'admin_print_scripts_product' ), 9999 );
 			add_action( 'woocommerce_product_options_pricing', array( $this, 'add_advanced_pricing' ) );
@@ -223,50 +222,65 @@ class Automator_Codes extends Config {
 				return;
 			}
 		}
+
 		// Make sure it's our custom product type.
-		if ( $this->product_type === $product->get_type() ) {
-			$codes_available = SharedFunctionality::get_available_codes_by_group_id( $product->get_id() );
-			if ( $codes_available > 0 ) {
-				if ( $product && $product->is_type( $this->product_type ) ) {
-					do_action( 'woocommerce_before_add_to_cart_button' );
-					$html = '<form action="' . esc_url( $product->add_to_cart_url() ) . '" class="cart" method="post" enctype="multipart/form-data">';
-					$html .= woocommerce_quantity_input(
-						array(
-							'max_value' => $codes_available,
-							'min_value' => 1,
-						),
-						$product,
-						false
-					);
-					$html .= '<button type="submit" class="button alt">' . esc_html( $product->add_to_cart_text() ) . '</button>';
-					$html .= '</form>';
-				}
-				echo apply_filters( 'ulc_modify_add_to_cart', $html );
-				do_action( 'woocommerce_after_add_to_cart_button' );
+		$codes_available = SharedFunctionality::get_available_codes_by_group_id( $product->get_id() );
+		if ( $codes_available > 0 ) {
+			$html = '';
 
-				$display      = __( 'In stock', 'woocommerce' );
-				$stock_amount = $codes_available;
+			do_action( 'woocommerce_before_add_to_cart_button' );
 
-				switch ( get_option( 'woocommerce_stock_format' ) ) {
-					case 'low_amount':
-						if ( $stock_amount <= wc_get_low_stock_amount( $product ) ) {
-							/* translators: %s: stock amount */
-							$display = sprintf( __( 'Only %s left in stock', 'woocommerce' ), wc_format_stock_quantity_for_display( $stock_amount, $product ) );
-						}
-						break;
-					case '':
+			ob_start();
+
+			echo '<form action="' . esc_url( apply_filters( 'woocommerce_add_to_cart_form_action', $product->add_to_cart_url() ) ) . '" class="cart" method="post" enctype="multipart/form-data">';
+
+			do_action( 'woocommerce_before_add_to_cart_button' );
+			do_action( 'woocommerce_before_add_to_cart_quantity' );
+
+			echo woocommerce_quantity_input(
+				array(
+					'max_value' => $codes_available,
+					'min_value' => 1,
+				),
+				$product,
+				false
+			);
+
+			do_action( 'woocommerce_after_add_to_cart_quantity' );
+
+			echo '<button type="submit" class="' . esc_attr( $this->product_type ) . '_add_to_cart_button button alt" name="add-to-cart" value="' . esc_attr( $product->get_id() ) . '">' . esc_html( $product->add_to_cart_text() ) . '</button>';
+
+			do_action( 'woocommerce_after_add_to_cart_button' );
+
+			echo '</form>';
+
+			do_action( 'woocommerce_after_add_to_cart_form' );
+
+			$html = ob_get_clean();
+			echo apply_filters( 'ulc_modify_add_to_cart', $html );
+
+			$display      = __( 'In stock', 'woocommerce' );
+			$stock_amount = $codes_available;
+
+			switch ( get_option( 'woocommerce_stock_format' ) ) {
+				case 'low_amount':
+					if ( $stock_amount <= wc_get_low_stock_amount( $product ) ) {
 						/* translators: %s: stock amount */
-						$display = sprintf( __( '%s in stock', 'woocommerce' ), wc_format_stock_quantity_for_display( $stock_amount, $product ) );
-						break;
-				}
-
-				if ( $product->backorders_allowed() && $product->backorders_require_notification() ) {
-					$display .= ' ' . __( '(can be backordered)', 'woocommerce' );
-				}
-				?>
-				<p class="stock instock"><?php echo $display; ?></p>
-				<?php
+						$display = sprintf( __( 'Only %s left in stock', 'woocommerce' ), wc_format_stock_quantity_for_display( $stock_amount, $product ) );
+					}
+					break;
+				case '':
+					/* translators: %s: stock amount */
+					$display = sprintf( __( '%s in stock', 'woocommerce' ), wc_format_stock_quantity_for_display( $stock_amount, $product ) );
+					break;
 			}
+
+			if ( $product->backorders_allowed() && $product->backorders_require_notification() ) {
+				$display .= ' ' . __( '(can be backordered)', 'woocommerce' );
+			}
+			?>
+			<p class="stock instock"><?php echo wp_kses_post( $display ); // WPCS: XSS ok. ?></p>
+			<?php
 		}
 	}
 
@@ -410,7 +424,7 @@ class Automator_Codes extends Config {
 			<button id="codes_group_edit" type="button" style="margin: 5px 0 20px 10px;"
 					data-group="0"
 					data-href="<?php echo admin_url( 'admin.php?page=uncanny-learndash-codes-create&edit=true&group_id=' ); ?>"
-					class="button button-primary"><?php echo esc_html__( 'Edit Code Batch', 'uncanny-learndash-codes' ); ?>
+					class="uncannyowl-btn uncannyowl-btn--primary"><?php echo esc_html__( 'Edit Code Batch', 'uncanny-learndash-codes' ); ?>
 			</button>
 
 		</div>
@@ -473,6 +487,19 @@ class Automator_Codes extends Config {
 	}
 
 	/**
+	 * Generate a secure filename with hash to prevent predictable filenames
+	 *
+	 * @param int $order_id The order ID
+	 * @param string $base_name The base filename without extension
+	 * @return string The secure filename with hash
+	 */
+	private function generate_secure_filename( $order_id, $base_name ) {
+		// Create a hash based on order ID, current time, and a salt
+		$hash = substr( wp_hash( $order_id . time() . wp_salt() ), 0, 8 );
+		return sprintf( '%s-%s', $base_name, $hash );
+	}
+
+	/**
 	 * @param $attachments
 	 * @param $email_id
 	 * @param $order
@@ -488,20 +515,22 @@ class Automator_Codes extends Config {
 
 		$order_id    = $order->get_id();
 		$order_codes = Database::get_codes_usage_by_order_id( $order_id );
+
 		// Make sure to only add attachments if the order has codes
 		if ( empty( $order_codes ) ) {
 			return $attachments;
 		}
 
-		if (
-			( 'customer_processing_order' === $email_id || 'customer_completed_order' === $email_id ) &&
-			apply_filters( 'ulc_attach_csv_to_wc_emails', true, $email_id, $order )
+		if ( ( 'customer_processing_order' === $email_id || 'customer_completed_order' === $email_id ) &&
+			false === apply_filters( 'ulc_send_csv_as_download_link', false, $email_id, $order )
 		) {
-			$attachments = $this->generate_csv( $order->get_id() );
+			$attachments = array_merge( $attachments, $this->generate_csv( $order->get_id() ) );
 		}
 
 		return $attachments;
 	}
+
+
 
 	/**
 	 * @param $order_id
@@ -512,19 +541,26 @@ class Automator_Codes extends Config {
 		$order          = wc_get_order( $order_id );
 		$items          = $order->get_items();
 		$file_paths     = array();
-		$directory_path = WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'uploads/uncanny-codes';
+		$directory_path = UNCANNYC_CODES_CSV_PATH;
 		if ( ! file_exists( $directory_path ) ) {
 			mkdir( $directory_path, 0755, true );
 		}
-		// create .htaccess to deny everyone to read the directory/file directly.
-		if ( apply_filters( 'uncanny_codes_htaccess_folder_protection', true ) && ! file_exists( "{$directory_path}/.htaccess" ) ) {
-			$f_open = fopen( "{$directory_path}/.htaccess", 'w' );
-			fwrite( $f_open, 'deny from all' );
-			fclose( $f_open );
+		// create/update .htaccess to protect directory but allow CSV downloads
+		if ( apply_filters( 'uncanny_codes_htaccess_folder_protection', true ) ) {
+			$htaccess_path        = "{$directory_path}/.htaccess";
+			$new_htaccess_content = "# Protect directory from browsing\nOptions -Indexes\n\n# Allow CSV file downloads\n<Files \"*.csv\">\n\tOrder allow,deny\n\tAllow from all\n</Files>\n\n# Deny access to everything else\n<FilesMatch \"^(?!.*\\.csv$).*\">\n\tOrder deny,allow\n\tDeny from all\n</FilesMatch>";
+
+			// Check if .htaccess exists and has old content
+			if ( ! file_exists( $htaccess_path ) || file_get_contents( $htaccess_path ) === 'deny from all' ) {
+				$f_open = fopen( $htaccess_path, 'w' );
+				fwrite( $f_open, $new_htaccess_content );
+				fclose( $f_open );
+			}
 		}
 
-		$file_name = sprintf( esc_html__( 'Codes-for-Order %d', 'uncanny-learndash-codes' ), $order_id );
-		$file_name = sanitize_file_name( apply_filters( 'uncanny-codes-filter-csv-filename', $file_name, $order ) );
+		$base_filename   = sprintf( esc_html__( 'Codes-for-Order %d', 'uncanny-learndash-codes' ), $order_id );
+		$secure_filename = $this->generate_secure_filename( $order_id, $base_filename );
+		$file_name       = sanitize_file_name( apply_filters( 'uncanny-codes-filter-csv-filename', $secure_filename, $order ) );
 
 		// Save file path separately.
 		$file_path = $directory_path . DIRECTORY_SEPARATOR . $file_name;
@@ -683,6 +719,34 @@ WHERE c.order_id={$order_id}"
 				?>
 				</tbody>
 			</table>
+			
+			<?php
+			// Check if we should show download link instead of attachment
+			if ( true === apply_filters( 'ulc_send_csv_as_download_link', false, 'customer_processing_order', $order ) ) {
+				// Generate CSV file for download using existing method
+				$instance   = new self();
+				$file_paths = $instance->generate_csv( $order_id );
+
+				if ( ! empty( $file_paths ) ) {
+					$file_path = $file_paths[0];
+					$file_name = basename( $file_path );
+
+					// Generate the correct URL based on the directory path constant
+					$directory_path = dirname( $file_path );
+					$relative_path  = str_replace( WP_CONTENT_DIR . DIRECTORY_SEPARATOR, '', $directory_path );
+					$download_url   = content_url( $relative_path . '/' . $file_name );
+					?>
+					<div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; text-align: center;">
+						<p style="margin: 0 0 10px 0; font-weight: bold;"><?php esc_html_e( 'Download Your Codes', 'uncanny-learndash-codes' ); ?></p>
+						<a href="<?php echo esc_url( $download_url ); ?>" 
+						   style="display: inline-block; padding: 10px 20px; background-color: #007cba; color: #ffffff; text-decoration: none; border-radius: 3px; font-weight: bold;">
+							<?php esc_html_e( 'Download CSV File', 'uncanny-learndash-codes' ); ?>
+						</a>
+					</div>
+					<?php
+				}
+			}
+			?>
 		</div>
 		<?php
 	}
@@ -793,7 +857,7 @@ WHERE c.order_id={$order_id}"
 			<?php if ( empty( $order->get_refunds() ) ) { ?>
 				<div class="uncanny-codes-download-csv">
 					<a href="<?php echo sprintf( '%s?ulc-order-csv=true&order_id=%d&nonce=%s', site_url(), $order_id, wp_create_nonce( Config::get_project_name() ) ); ?>"
-					   class="btn button btn-primary"><?php echo esc_html__( 'Download CSV', 'uncanny-learndsah-codes' ); ?></a>
+					   class="uncannyowl-btn uncannyowl-btn--primary"><?php echo esc_html__( 'Download CSV', 'uncanny-learndsah-codes' ); ?></a>
 				</div>
 			<?php } ?>
 		</h2>
@@ -992,8 +1056,9 @@ WHERE c.order_id={$order_id}"
 			$order_id = absint( SharedFunctionality::ulc_filter_input( 'order_id' ) );
 			$nonce    = SharedFunctionality::ulc_filter_input( 'nonce' );
 			if ( wp_verify_nonce( $nonce, Config::get_project_name() ) ) {
-				$file_name = sprintf( esc_html__( 'Codes for Order %d', 'uncanny-learndash-codes' ), $order_id );
-				$file_name = apply_filters( 'uncanny-codes-filter-csv-filename', $file_name, $order_id );
+				$base_filename   = sprintf( esc_html__( 'Codes for Order %d', 'uncanny-learndash-codes' ), $order_id );
+				$secure_filename = $this->generate_secure_filename( $order_id, $base_filename );
+				$file_name       = apply_filters( 'uncanny-codes-filter-csv-filename', $secure_filename, $order_id );
 				$this->render_csv( $order_id, 'download', $file_name );
 				die();
 			}

@@ -4,7 +4,7 @@
  * Plugin Name:       Microsoft Clarity
  * Plugin URI:        https://clarity.microsoft.com/
  * Description:       With data and session replay from Clarity, you'll see how people are using your site — where they get stuck and what they love.
- * Version:           0.10.26
+ * Version:           0.10.27
  * Author:            Microsoft
  * Author URI:        https://www.microsoft.com/en-us/
  * License:           MIT
@@ -15,6 +15,7 @@ require_once plugin_dir_path(__FILE__) . '/includes/brandagent-config.php';
 require_once plugin_dir_path(__FILE__) . '/includes/brandagent-webhooks.php';
 require_once plugin_dir_path(__FILE__) . '/includes/brandagent-custom-webhooks.php';
 require_once plugin_dir_path(__FILE__) . '/includes/brandagent-rest-api.php';
+require_once plugin_dir_path(__FILE__) . '/includes/brandagent-wordpress.php';
 require_once plugin_dir_path(__FILE__) . '/clarity-page.php';
 require_once plugin_dir_path(__FILE__) . '/clarity-hooks.php';
 require_once plugin_dir_path(__FILE__) . '/clarity-server-analytics.php';
@@ -252,6 +253,7 @@ function clrt_update_clarity_options_handler($action, $network_wide)
 			delete_option('clarity_collect_batch');
 			// Remove the cached banner flag so it can't linger and resurface on reinstall.
 			delete_transient('clarity_is_latest_plugin_version');
+			delete_option('clarity_dismissed_update_version');
 			clarity_flush_and_clear_collect_recurring();
 			clarity_drop_collect_events_table();
 
@@ -309,30 +311,81 @@ function clarity_add_script_to_header()
 }
 
 /**
- * Adds the script to run clarity.
+ * Determines whether the Brand Agent frontend loader should run on the current
+ * request: OAuth must be connected and the current page must be an allowed
+ * (non-admin / non-login) context with BAInjectFrontendScript enabled.
+ */
+function brand_agent_should_inject_frontend_script()
+{
+	// Inject if: oauth succeeded AND (WooCommerce page OR BAInjectFrontendScript=true)
+	return get_option( 'BAOauthSuccess' ) == 1 && should_inject_brand_agents_script();
+}
+
+/**
+ * Enqueue the Brand Agent loader through the WordPress Script Modules API
+ * (WordPress 6.5+). Letting core emit the module tag guarantees it is printed
+ * AFTER the import map (in <head> for block themes, in the footer for classic
+ * themes), so the import map is always registered first. That keeps the
+ * WooCommerce Interactivity API (mini-cart, add-to-cart, product collections,
+ * checkout) working in browsers that reject import maps registered after a
+ * module load has started (Firefox, Chrome < 133, Android WebView).
+ */
+add_action('wp_enqueue_scripts', 'brand_agent_enqueue_frontend_module');
+function brand_agent_enqueue_frontend_module()
+{
+	// Only handled here on WordPress 6.5+; older versions use the inline fallback.
+	if ( ! function_exists( 'wp_enqueue_script_module' ) ) {
+		return;
+	}
+
+	if ( ! brand_agent_should_inject_frontend_script() ) {
+		return;
+	}
+
+	wp_enqueue_script_module(
+		'brand-agent-frontend',
+		BrandAgent_Config::get_frontend_injection_url(),
+		array(),
+		null
+	);
+}
+
+/**
+ * Fallback loader for WordPress versions without the Script Modules API (< 6.5).
+ * Those versions predate the block Interactivity API import map, so injecting the
+ * module from an inline script is safe. Insertion is still deferred until the
+ * document has parsed as a defensive measure.
  */
 add_action('wp_head', 'brand_agent_add_script_to_header');
 function brand_agent_add_script_to_header()
 {
-	$ba_oauth_success = get_option( 'BAOauthSuccess' );
-	$should_inject_on_woo_page = should_inject_brand_agents_script();
+	// WordPress 6.5+ is handled by the Script Modules API path above.
+	if ( function_exists( 'wp_enqueue_script_module' ) ) {
+		return;
+	}
 
-	// Inject if: oauth succeeded AND (WooCommerce page OR BAInjectFrontendScript=true)
-	$should_inject = $ba_oauth_success == 1 && $should_inject_on_woo_page;
+	if ( ! brand_agent_should_inject_frontend_script() ) {
+		return;
+	}
 
-	if ( $should_inject ) {
-		$frontend_injection_url = 'https://adsagentclientafd-b7hqhjdrf3fpeqh2.b01.azurefd.net/frontendInjection.js'
+	$frontend_injection_url = BrandAgent_Config::get_frontend_injection_url();
 	?>
 		<script>
 			(function() {
-				var script = document.createElement('script');
-				script.src = '<?php echo esc_js($frontend_injection_url); ?>';
-				script.type = 'module';
-				document.head.appendChild(script);
+				var injectBrandAgentLoader = function() {
+					var script = document.createElement('script');
+					script.src = '<?php echo esc_js($frontend_injection_url); ?>';
+					script.type = 'module';
+					document.head.appendChild(script);
+				};
+				if (document.readyState === 'loading') {
+					document.addEventListener('DOMContentLoaded', injectBrandAgentLoader);
+				} else {
+					injectBrandAgentLoader();
+				}
 			})();
 		</script>
-<?php
-	}
+	<?php
 }
 
 /**
@@ -359,28 +412,6 @@ function get_installed_plugin_version()
 	$plugin_data = get_plugin_data(plugin_dir_path(__FILE__) . 'clarity.php');
 
 	return $plugin_data['Version'];
-}
-
-/**
- * Retrieving the latest version from the WordPress.org repository.
- */
-function get_latest_plugin_version_from_api()
-{
-	$api_url = 'http://api.wordpress.org/plugins/info/1.0/microsoft-clarity.json';
-	$response = wp_remote_get($api_url);
-
-	if (is_wp_error($response)) {
-		return false;
-	}
-
-	$body = wp_remote_retrieve_body($response);
-	$plugin_info = json_decode($body);
-
-	if ($plugin_info && isset($plugin_info->version)) {
-		return $plugin_info->version;
-	}
-
-	return false;
 }
 
 /**
@@ -435,7 +466,9 @@ function clarity_backfill_webhooks_created() {
 }
 
 /**
- * Checking if the current plugin version is latest
+ * Refresh the cached "update available" flag used by the admin banner.
+ * Gated on core's update_plugins->response (the same source the Update button
+ * installs from), so the banner never offers an update that can't yet be installed.
  */
 add_action('admin_init', 'check_if_installed_plugin_version_is_latest');
 function check_if_installed_plugin_version_is_latest()
@@ -445,18 +478,19 @@ function check_if_installed_plugin_version_is_latest()
 		return;
 	}
 
-	$cached_is_latest_version = get_transient('clarity_is_latest_plugin_version');
-	if ($cached_is_latest_version !== false) {
+	// Throttle the check to every 5 minutes.
+	if (get_transient('clarity_is_latest_plugin_version') !== false) {
 		return;
 	}
 
-	$installed_version = get_installed_plugin_version();
-	$latest_version = get_latest_plugin_version_from_api();
+	// Refresh core's update data (self-throttled internally) and read its verdict.
+	wp_update_plugins();
 
-	if ($installed_version && $latest_version) {
-		$is_latest_version = version_compare($installed_version, $latest_version, '<') ? '0' : '1';
-		set_transient('clarity_is_latest_plugin_version', $is_latest_version, 24 * 60 * 60); // 24 hours cache
-	}
+	$plugin_file = plugin_basename(__FILE__);
+	$updates = get_site_transient('update_plugins');
+	$update_available = isset($updates->response[$plugin_file]->new_version);
+
+	set_transient('clarity_is_latest_plugin_version', $update_available ? '0' : '1', 5 * 60); // 5 minutes cache
 }
 
 /**

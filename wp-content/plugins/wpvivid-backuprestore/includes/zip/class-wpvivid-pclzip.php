@@ -3639,6 +3639,16 @@
         // TBC
     }
 
+    // ----- Validate the original archive member name before PclZip changes it.
+    // This prevents Zip Slip paths such as ../file.php, mixed separators,
+    // absolute paths, encoded traversal variants and null-byte paths.
+    if (!WPvivid_PclZipUtilIsSafeArchivePath($p_entry['filename'])) {
+      WPvivid_PclZip::privErrorLog(WPVIVID_PCLZIP_ERR_DIRECTORY_RESTRICTION,
+                                   "Unsafe archive path detected.");
+
+      return WPvivid_PclZip::errorCode();
+    }
+
     // ----- Look for all path to remove
     if ($p_remove_all_path == true) {
         // ----- Look for folder entry that not need to be extracted
@@ -5514,6 +5524,164 @@
   //   1 if $p_path is inside directory $p_dir
   //   2 if $p_path is exactly the same as $p_dir
   // --------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------
+  // Function : WPvivid_PclZipUtilIsSafeArchivePath()
+  // Description : Validate an untrusted archive member name before extraction.
+  // --------------------------------------------------------------------------------
+  function WPvivid_PclZipUtilIsSafeArchivePath($p_filename)
+  {
+    if (!is_string($p_filename) || $p_filename === '') {
+      return false;
+    }
+
+    if (strpos($p_filename, "\0") !== false) {
+      return false;
+    }
+
+    // Decode a few times only for validation so double-encoded traversal
+    // variants cannot bypass the component checks. The actual filename is
+    // not changed.
+    $v_decoded = $p_filename;
+    for ($i = 0; $i < 3; $i++) {
+      $v_next = rawurldecode($v_decoded);
+      if ($v_next === $v_decoded) {
+        break;
+      }
+      $v_decoded = $v_next;
+    }
+
+    $v_decoded = str_replace('\\', '/', $v_decoded);
+
+    // Reject Unix absolute paths, UNC paths and Windows drive paths.
+    if ((isset($v_decoded[0]) && $v_decoded[0] === '/')
+        || preg_match('/^[a-zA-Z]:\//', $v_decoded)) {
+      return false;
+    }
+
+    foreach (explode('/', $v_decoded) as $v_part) {
+      if ($v_part === '..') {
+        return false;
+      }
+    }
+
+    return true;
+  }
+  // --------------------------------------------------------------------------------
+
+  // --------------------------------------------------------------------------------
+  // Function : WPvivid_PclZipUtilNormalizePath()
+  // Description : Lexically normalize a path without requiring it to exist.
+  // --------------------------------------------------------------------------------
+  function WPvivid_PclZipUtilNormalizePath($p_path)
+  {
+    if (!is_string($p_path) || $p_path === '' || strpos($p_path, "\0") !== false) {
+      return false;
+    }
+
+    $v_path = str_replace('\\', '/', $p_path);
+    $v_prefix = '';
+
+    if (preg_match('/^[a-zA-Z]:\//', $v_path)) {
+      $v_prefix = strtoupper(substr($v_path, 0, 2)).'/';
+      $v_path = substr($v_path, 3);
+    }
+    else if (isset($v_path[0]) && $v_path[0] === '/') {
+      $v_prefix = '/';
+      $v_path = ltrim($v_path, '/');
+    }
+
+    $v_parts = array();
+    foreach (explode('/', $v_path) as $v_part) {
+      if ($v_part === '' || $v_part === '.') {
+        continue;
+      }
+
+      if ($v_part === '..') {
+        if (empty($v_parts)) {
+          return false;
+        }
+        array_pop($v_parts);
+        continue;
+      }
+
+      $v_parts[] = $v_part;
+    }
+
+    return $v_prefix.implode('/', $v_parts);
+  }
+  // --------------------------------------------------------------------------------
+
+  // --------------------------------------------------------------------------------
+  // Function : WPvivid_PclZipUtilIsPathInside()
+  // Description : Check a normalized destination stays in the extraction root.
+  // --------------------------------------------------------------------------------
+  function WPvivid_PclZipUtilIsPathInside($p_root, $p_target)
+  {
+    $v_root = WPvivid_PclZipUtilNormalizePath($p_root);
+    $v_target = WPvivid_PclZipUtilNormalizePath($p_target);
+
+    if ($v_root === false || $v_target === false) {
+      return false;
+    }
+
+    $v_root = rtrim($v_root, '/');
+    $v_target = rtrim($v_target, '/');
+
+    // The root itself is safe for a directory entry.
+    if (DIRECTORY_SEPARATOR === '\\') {
+      if (strcasecmp($v_root, $v_target) === 0) {
+        return true;
+      }
+      return stripos($v_target.'/', $v_root.'/') === 0;
+    }
+
+    if ($v_root === $v_target) {
+      return true;
+    }
+
+    return strpos($v_target.'/', $v_root.'/') === 0;
+  }
+  // --------------------------------------------------------------------------------
+
+  // --------------------------------------------------------------------------------
+  // Function : WPvivid_PclZipUtilHasSafeSymlinkPath()
+  // Description : Existing symlinks are allowed only when they resolve inside root.
+  // --------------------------------------------------------------------------------
+  function WPvivid_PclZipUtilHasSafeSymlinkPath($p_root, $p_target)
+  {
+    $v_root = WPvivid_PclZipUtilNormalizePath($p_root);
+    $v_target = WPvivid_PclZipUtilNormalizePath($p_target);
+
+    if ($v_root === false || $v_target === false
+        || !WPvivid_PclZipUtilIsPathInside($v_root, $v_target)) {
+      return false;
+    }
+
+    $v_relative = ltrim(substr($v_target, strlen(rtrim($v_root, '/'))), '/');
+    if ($v_relative === '') {
+      return true;
+    }
+
+    $v_current = rtrim($v_root, '/');
+    foreach (explode('/', $v_relative) as $v_part) {
+      if ($v_part === '') {
+        continue;
+      }
+
+      $v_current .= '/'.$v_part;
+      if (is_link($v_current)) {
+        $v_real = realpath($v_current);
+        if ($v_real === false || !WPvivid_PclZipUtilIsPathInside($v_root, $v_real)) {
+          return false;
+        }
+        $v_current = str_replace('\\', '/', $v_real);
+      }
+    }
+
+    return true;
+  }
+  // --------------------------------------------------------------------------------
+
   function WPvivid_PclZipUtilPathInclusion($p_dir, $p_path)
   {
     $v_result = 1;

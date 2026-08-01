@@ -37,9 +37,9 @@ class ST_Replace_Images {
 	public static $image_index = 0;
 
 	/**
-	 * Old Images ids
+	 * Old Images urls
 	 *
-	 * @var array<int,int>
+	 * @var array<int,string>
 	 * @since 4.1.0
 	 */
 	public static $old_image_urls = array();
@@ -262,6 +262,11 @@ class ST_Replace_Images {
 		delete_option( 'astra_sites_ai_imports' );
 		delete_option( 'astra_sites_sureforms_id_map' );
 		delete_option( 'astra_sites_surecart_forms_id_map' );
+		delete_option( 'astra_sites_suredonation_campaign_id_map' );
+		delete_option( 'astra_sites_suredonation_form_id_map' );
+		delete_option( 'astra_sites_suremembers_access_group_id_map' );
+		delete_option( 'astra_sites_suremembers_post_id_map' );
+		delete_option( 'astra_sites_suremembers_term_id_map' );
 
 		ST_Importer_Log::add( 'Cleanup options removed' );
 	}

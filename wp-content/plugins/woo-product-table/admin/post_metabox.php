@@ -205,6 +205,10 @@ function wpt_redirect_after_save($location, $post_id) {
         // Append the desired anchor to the redirect location
         $location = add_query_arg('message', 'updated', $location);
         $location = add_query_arg('wpt_active_tab', $wpt_last_active_tab, $location);
+
+        // Add nonce for tab validation in post_metabox_form.php
+        $tab_nonce = wp_create_nonce( WPT_PLUGIN_FOLDER_NAME );
+        $location = add_query_arg('_nonce', $tab_nonce, $location);
     }
     return $location;
 }

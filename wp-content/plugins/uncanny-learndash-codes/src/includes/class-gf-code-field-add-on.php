@@ -10,14 +10,14 @@ class GFCodeFieldAddOnCodes extends GFAddOn {
 	/**
 	 * @var object $_instance If available, contains an instance of this class.
 	 */
-	private static $_instance = null;
-	protected $_version = '1.0';
+	private static $_instance            = null;
+	protected $_version                  = '1.0';
 	protected $_min_gravityforms_version = '1.9';
-	protected $_slug = 'uncannycodefield';
-	protected $_path = 'uncanny-learndash-codes/src/classes/gravity-forms-code-field.php';
-	protected $_full_path = __FILE__;
-	protected $_title = 'Uncanny Codes &mdash; Code Field';
-	protected $_short_title = 'Uncanny Codes Code Field';
+	protected $_slug                     = 'uncannycodefield';
+	protected $_path                     = 'uncanny-learndash-codes/src/classes/gravity-forms-code-field.php';
+	protected $_full_path                = __FILE__;
+	protected $_title                    = 'Uncanny Redemption Codes &mdash; Code Field';
+	protected $_short_title              = 'Uncanny Redemption Codes Code Field';
 
 	/**
 	 * Returns an instance of this class, and stores it in the $_instance property.
@@ -39,7 +39,7 @@ class GFCodeFieldAddOnCodes extends GFAddOn {
 		parent::pre_init();
 
 		if ( $this->is_gravityforms_supported() && class_exists( 'GF_Field' ) ) {
-			require_once( 'class-uncanny-code-field.php' );
+			require_once 'class-uncanny-code-field.php';
 		}
 	}
 
@@ -81,7 +81,7 @@ class GFCodeFieldAddOnCodes extends GFAddOn {
 			<li class="input_class_setting field_setting">
 				<label for="input_class_setting">
 					<?php esc_html_e( 'Input CSS Classes', 'uncanny-learndash-codes' ); ?>
-					<?php gform_tooltip( 'input_class_setting' ) ?>
+					<?php gform_tooltip( 'input_class_setting' ); ?>
 				</label>
 				<input id="input_class_setting" type="text" class="fieldwidth-1"
 					   onkeyup="SetInputClassSetting(jQuery(this).val());"

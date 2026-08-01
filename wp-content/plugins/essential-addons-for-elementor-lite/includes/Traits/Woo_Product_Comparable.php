@@ -1969,6 +1969,19 @@ trait Woo_Product_Comparable {
 					continue;
 				}
 
+				// SECURITY FIX: do not expose non-published / inaccessible products to unauthenticated callers.
+				// Mirrors the quickview handler guards (CVE-2026-1004).
+				$compare_post = get_post( $product_id );
+				if ( ! $product->is_visible() ) {
+					continue;
+				}
+				if ( ! current_user_can( 'edit_post', $product_id ) && ( ! $compare_post || 'publish' !== $compare_post->post_status ) ) {
+					continue;
+				}
+				if ( ! current_user_can( 'edit_post', $product_id ) && post_password_required( $compare_post ) ) {
+					continue;
+				}
+
 				$product->fields = [];
 
 				// custom attributes
@@ -2002,7 +2015,7 @@ trait Woo_Product_Comparable {
 						case 'sku':
 							$sku = $product->get_sku();
 							! $sku && $sku = '-';
-							$product->fields[ $field ] = $sku;
+							$product->fields[ $field ] = esc_html( $sku );
 							break;
 						case 'weight':
 							if ( $weight = $product->get_weight() ) {
@@ -2024,7 +2037,7 @@ trait Woo_Product_Comparable {
 								if ( ! empty( $terms ) && is_array( $terms ) ) {
 									foreach ( $terms as $term ) {
 										$term                        = sanitize_term( $term, $field );
-										$product->fields[ $field ][] = $term->name;
+										$product->fields[ $field ][] = esc_html( $term->name );
 									}
 								}
 								if ( ! empty( $product->fields[ $field ] ) ) {
@@ -2215,6 +2228,19 @@ trait Woo_Product_Comparable {
 					continue;
 				}
 
+				// SECURITY FIX: do not expose non-published / inaccessible products to unauthenticated callers.
+				// Mirrors the quickview handler guards (CVE-2026-1004).
+				$compare_post = get_post( $product_id );
+				if ( ! $product->is_visible() ) {
+					continue;
+				}
+				if ( ! current_user_can( 'edit_post', $product_id ) && ( ! $compare_post || 'publish' !== $compare_post->post_status ) ) {
+					continue;
+				}
+				if ( ! current_user_can( 'edit_post', $product_id ) && post_password_required( $compare_post ) ) {
+					continue;
+				}
+
 				$product->fields = [];
 
 				// custom attributes
@@ -2248,7 +2274,7 @@ trait Woo_Product_Comparable {
 						case 'sku':
 							$sku = $product->get_sku();
 							! $sku && $sku = '-';
-							$product->fields[ $field ] = $sku;
+							$product->fields[ $field ] = esc_html( $sku );
 							break;
 						case 'weight':
 							if ( $weight = $product->get_weight() ) {
@@ -2272,7 +2298,7 @@ trait Woo_Product_Comparable {
 								if ( ! empty( $terms ) && is_array( $terms ) ) {
 									foreach ( $terms as $term ) {
 										$term                        = sanitize_term( $term, $field );
-										$product->fields[ $field ][] = $term->name;
+										$product->fields[ $field ][] = esc_html( $term->name );
 									}
 								}
 

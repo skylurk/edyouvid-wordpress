@@ -65,6 +65,7 @@ class ComposerStaticInit210aa3d23b132d094b983ef2a0563ed9
         'TinCannyProtection' => __DIR__ . '/../..' . '/src/core/tin-canny-protection.php',
         'UCTINCAN\\Admin\\CSV' => __DIR__ . '/../..' . '/src/uncanny-tincan/classes/Admin/CSV.php',
         'UCTINCAN\\Admin\\Metabox' => __DIR__ . '/../..' . '/src/uncanny-tincan/classes/Admin/Metabox.php',
+        'UCTINCAN\\Admin\\UO_Metabox_Tab' => __DIR__ . '/../..' . '/src/uncanny-tincan/classes/Admin/UO_Metabox_Tab.php',
         'UCTINCAN\\Admin\\WP_UserProfile' => __DIR__ . '/../..' . '/src/uncanny-tincan/classes/Admin/WP_UserProfile.php',
         'UCTINCAN\\Database' => __DIR__ . '/../..' . '/src/uncanny-tincan/classes/Database.php',
         'UCTINCAN\\Database\\Admin' => __DIR__ . '/../..' . '/src/uncanny-tincan/classes/Database/Admin.php',

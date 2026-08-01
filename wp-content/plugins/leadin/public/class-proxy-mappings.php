@@ -20,6 +20,7 @@ class Proxy_Mappings {
 		'~^/hs-fs/.*$~',
 		'~^/cs/c/.*$~',
 		'~^/e3t/.*$~',
+		'~^/events/public/v1/.*$~',
 	);
 
 	/**
@@ -178,10 +179,7 @@ class Proxy_Mappings {
 				)
 			);
 
-			// Host must be removed to let wp_remote_get set the correct host for the target URL.
-			// Content-Length must be removed as it refers to the original request size, not the proxied request.
-			unset( $headers['Host'] );
-			unset( $headers['Content-Length'] );
+			$headers = $this->strip_headers( $headers );
 
 			if ( isset( $headers['Cookie'] ) ) {
 				$headers['Cookie'] = $this->filter_wordpress_cookies( $headers['Cookie'] );
@@ -411,6 +409,16 @@ class Proxy_Mappings {
 			}
 		}
 
+		return $headers;
+	}
+
+	private function strip_headers( $headers ) {
+		$headers_to_strip = array( 'host', 'content-length', 'cf-connecting-ip', 'true-client-ip' );
+		foreach ( array_keys( $headers ) as $header_key ) {
+			if ( in_array( strtolower( $header_key ), $headers_to_strip, true ) ) {
+				unset( $headers[ $header_key ] );
+			}
+		}
 		return $headers;
 	}
 

@@ -99,7 +99,11 @@ if( ! function_exists( 'wpt_ajax_multiple_add_to_cart' ) ){
     function wpt_ajax_multiple_add_to_cart() {
 
         $data = filter_input_array(INPUT_POST);
-        $data = array_filter( $data );
+        if ( is_array( $data ) ) {
+            $data = array_filter( $data );
+        } else {
+            $data = array();
+        }
         
         $products = false;
         if ( isset( $data['products'] ) && is_array( $data['products'] ) ) {

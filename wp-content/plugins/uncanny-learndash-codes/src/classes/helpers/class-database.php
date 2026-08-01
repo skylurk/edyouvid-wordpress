@@ -198,6 +198,7 @@ class Database extends Config {
 `order_id` bigint unsigned DEFAULT 0 NOT NULL,
 `migrated` tinyint(1) NOT NULL DEFAULT '0',
 `is_active` tinyint(1) NOT NULL DEFAULT '1',
+`expire_date` datetime,
 PRIMARY KEY (ID),
 UNIQUE KEY `code` (`code`),
 KEY `order_id` (`order_id`),
@@ -209,7 +210,9 @@ CREATE TABLE {$wpdb->prefix}{$tbl_usage} (
 `user_id` bigint signed NOT NULL,
 `date_redeemed` datetime,
 PRIMARY KEY (ID),
-KEY `user_id` (`user_id`)
+KEY `code_id` (`code_id`),
+KEY `user_id` (`user_id`),
+KEY `code_id_date_redeemed` (`code_id`, `date_redeemed`)
 ) ENGINE=InnoDB {$charset_collate};
 CREATE TABLE {$wpdb->prefix}{$tbl_groups} (
 `ID` bigint unsigned NOT NULL auto_increment,
@@ -511,7 +514,7 @@ GROUP BY g.ID {$order} LIMIT {$limit}, 500",
 		$limit = ( $paged - 1 ) * 100;
 		$limit = "LIMIT {$limit}, 100";
 
-		return $wpdb->get_results( "SELECT c.*, g.expire_date FROM {$wpdb->prefix}" . Config::$tbl_codes . " c LEFT JOIN {$wpdb->prefix}" . Config::$tbl_groups . " g ON g.ID=c.code_group {$where} {$order} {$limit}" );
+		return $wpdb->get_results( "SELECT c.*, g.expire_date, c.expire_date AS code_expire_date FROM {$wpdb->prefix}" . Config::$tbl_codes . " c LEFT JOIN {$wpdb->prefix}" . Config::$tbl_groups . " g ON g.ID=c.code_group {$where} {$order} {$limit}" );
 	}
 
 	/**
@@ -572,7 +575,7 @@ GROUP BY g.ID {$order} LIMIT {$limit}, 500",
 		}
 
 		$qry     = $wpdb->prepare(
-			"SELECT g.ID AS codes_group_ID, g.code_for, c.ID as coupon_id, c.code, c.code_group, g.issue_max_count AS max_count, g.expire_date as expiry_date
+			"SELECT g.ID AS codes_group_ID, g.code_for, c.ID as coupon_id, c.code, c.code_group, g.issue_max_count AS max_count, g.expire_date as batch_expiry_date, g.linked_to, c.expire_date as code_expiry_date
 										FROM {$wpdb->prefix}" . Config::$tbl_groups . " g
 										LEFT JOIN {$wpdb->prefix}" . Config::$tbl_codes . ' c
 										ON g.ID = c.code_group
@@ -589,28 +592,36 @@ GROUP BY g.ID {$order} LIMIT {$limit}, 500",
 
 		$coupon_id      = absint( $results->coupon_id );
 		$codes_batch_id = absint( $results->code_group );
+		$user_id        = absint( $user_id );
 		$users          = self::get_users_of_code( $coupon_id, true, true );
 		$max_times      = (int) $results->max_count;
 		if ( 1 === $max_times && 'automator' === (string) $results->code_for ) {
 			$max_times = apply_filters( 'ulc_code_max_usage', $max_times, $results->code_for, $results->codes_group_ID );
 		}
 
-		if ( $results->expiry_date !== '0000-00-00 00:00:00' ) {
-			if ( strtotime( date_i18n( 'Y-m-d H:i:s' ), time() ) > strtotime( $results->expiry_date ) ) {
-				return array(
-					'result' => 'failed',
-					'error'  => 'expired',
-				);
-			}
+		$current_time      = strtotime( date_i18n( 'Y-m-d H:i:s' ) );
+		$code_expiry_date  = $results->code_expiry_date !== '0000-00-00 00:00:00' ? strtotime( $results->code_expiry_date ) : null;
+		$batch_expiry_date = $results->batch_expiry_date !== '0000-00-00 00:00:00' ? strtotime( $results->batch_expiry_date ) : null;
+
+		if ( $code_expiry_date && $current_time > $code_expiry_date ) {
+			return array(
+				'result' => 'failed',
+				'error'  => 'expired',
+			);
+		} elseif ( $batch_expiry_date && $current_time > $batch_expiry_date ) {
+			return array(
+				'result' => 'failed',
+				'error'  => 'expired',
+			);
 		}
 
 		// No one has used the code so far.
 		if ( empty( $users ) ) {
-			return $coupon_id;
+			return self::maybe_check_course_group_linkage( $results, $user_id, $coupon_id );
 		}
 
 		// User has already redeemed the code
-		if ( in_array( absint( $user_id ), $users, true ) && ( 0 !== $user_id || empty( $user_id ) || null !== $user_id ) ) {
+		if ( in_array( $user_id, $users, true ) && ( 0 !== $user_id || empty( $user_id ) || null !== $user_id ) ) {
 			// Check if the user has previously redeemed code and repeated usage is allowed
 			if ( false === self::is_multiple_redemption_allowed( $codes_batch_id ) ) {
 				// Multiple re-use are not allowed. Bail
@@ -629,7 +640,7 @@ GROUP BY g.ID {$order} LIMIT {$limit}, 500",
 			}
 			// If allowed to reuse code, return the Code ID.
 			if ( true === self::is_multiple_redemption_allowed( $codes_batch_id ) ) {
-				return $coupon_id;
+				return self::maybe_check_course_group_linkage( $results, $user_id, $coupon_id );
 			}
 
 			// fallback
@@ -647,8 +658,56 @@ GROUP BY g.ID {$order} LIMIT {$limit}, 500",
 			);
 		}
 
+		return self::maybe_check_course_group_linkage( $results, $user_id, $coupon_id );
+	}
+
+	/**
+	 * Check if the coupon is linked to a course or group that the user is already enrolled in.
+	 *
+	 * @param object $coupon_row The coupon row object containing coupon data.
+	 * @param int $user_id The user ID.
+	 * @param int $coupon_id The coupon ID.
+	 *
+	 * @return mixed The coupon ID if the user is not enrolled in any of the linked courses/groups, or an array with 'result' => 'failed' and 'error' => 'existing_course' or 'existing_group' if the user is already enrolled.
+	 */
+	private static function maybe_check_course_group_linkage( $coupon_row, $user_id, $coupon_id ) {
+		$linked_to = ! empty( $coupon_row->linked_to ) ? maybe_unserialize( $coupon_row->linked_to ) : '';
+		$code_for  = (string) $coupon_row->code_for;
+		if ( is_array( $linked_to ) && ! empty( $linked_to ) && 0 < $user_id ) {
+			if ( defined( 'LEARNDASH_VERSION' ) ) {
+				if ( 'course' === $code_for ) {
+					// Fetch the enrolled course IDs for the user
+					$user_courses = learndash_user_get_enrolled_courses( $user_id, array(), true );
+					if ( ! empty( $user_courses ) ) {
+						// Find elements in $linked_to that are not in $user_courses
+						$diff = array_diff( $linked_to, $user_courses );
+
+						if ( empty( $diff ) ) {
+							return array(
+								'result' => 'failed',
+								'error'  => 'existing_course',
+							);
+						}
+					}
+				} elseif ( 'group' === $code_for ) {
+					$user_groups = learndash_get_users_group_ids( $user_id, true );
+					if ( ! empty( $user_groups ) ) {
+						// Find elements in $linked_to that are not in $user_groups
+						$diff = array_diff( $linked_to, $user_groups );
+						if ( empty( $diff ) ) {
+							return array(
+								'result' => 'failed',
+								'error'  => 'existing_group',
+							);
+						}
+					}
+				}
+			}
+		}
+
 		return $coupon_id;
 	}
+
 
 	/**
 	 * @param      $code_id
@@ -657,6 +716,17 @@ GROUP BY g.ID {$order} LIMIT {$limit}, 500",
 	 * @return array
 	 */
 	public static function get_users_of_code( $code_id, $user_ids = true, $filter_user_id = false ) {
+		// Static cache to prevent duplicate queries within the same request
+		static $cache = array();
+
+		// Create cache key based on parameters
+		$cache_key = $code_id . '|' . (int) $user_ids . '|' . (int) $filter_user_id;
+
+		// Return cached result if available
+		if ( isset( $cache[ $cache_key ] ) ) {
+			return $cache[ $cache_key ];
+		}
+
 		global $wpdb;
 		$tbl_usage = $wpdb->prefix . Config::$tbl_codes_usage;
 		$sql       = "SELECT user_id, date_redeemed FROM {$tbl_usage}  WHERE code_id = %d ";
@@ -669,6 +739,9 @@ GROUP BY g.ID {$order} LIMIT {$limit}, 500",
 			$data = array_column( $data, 'user_id' );
 			$data = array_map( 'absint', $data );
 		}
+
+		// Cache the result for this request
+		$cache[ $cache_key ] = $data;
 
 		return $data;
 	}
@@ -884,6 +957,7 @@ AND is_active = 0',
 	c.code AS Code,
 	c.order_id,
 	c.is_active,
+	c.expire_date AS code_expire_date,
 	g.code_for AS `Code For`,
 	g.prefix AS Prefix,
 	g.suffix AS Suffix,
@@ -932,9 +1006,165 @@ $where";
 			$order_id       = ! empty( $val['order_id'] ) ? $val['order_id'] : '';
 			$expiry_date    = 'Unlimited';
 
-			if ( $val['expire_date'] !== '0000-00-00 00:00:00' ) {
-				$_date       = DateTime::createFromFormat( 'Y-m-d H:i:s', $val['expire_date'] );
-				$expiry_date = $_date->format( $date_format . ' ' . $time_format );
+			if ( ! empty( $val['code_expire_date'] ) && $val['code_expire_date'] !== '0000-00-00 00:00:00' ) {
+				$code_date = DateTime::createFromFormat( 'Y-m-d H:i:s', $val['code_expire_date'] );
+				if ( $code_date !== false ) {
+					$expiry_date = $code_date->format( $date_format . ' ' . $time_format );
+				}
+			} elseif ( ! empty( $val['expire_date'] ) && $val['expire_date'] !== '0000-00-00 00:00:00' ) {
+				$_date = DateTime::createFromFormat( 'Y-m-d H:i:s', $val['expire_date'] );
+				if ( $_date !== false ) {
+					$expiry_date = $_date->format( $date_format . ' ' . $time_format );
+				}
+			}
+
+			$users = self::get_users_of_code( $result->Coupon_ID, false );
+
+			if ( ! empty( $users ) ) {
+				if ( ! function_exists( 'get_user_by' ) ) {
+					include ABSPATH . 'wp-includes/pluggable.php';
+				}
+
+				foreach ( $users as $u ) {
+					$user_email = '';
+					$user       = get_user_by( 'ID', $u->user_id );
+
+					if ( $user ) {
+						$num_times_allowed = self::get_usage_count_of_user_by_code( $val['Coupon_ID'], $u->user_id );
+						$user_email        = $user->user_email;
+					}
+
+					if ( 0 < (int) $u->user_id && '' === $user_email ) {
+						$user_email        = sprintf( __( 'Deleted user (ID: %d)', 'uncanny-learndash-codes' ), (int) $u->user_id );
+						$num_times_allowed = '';
+					}
+
+					$array[] = (object) array(
+						'Code'           => $code,
+						'Status'         => $status,
+						'Code For'       => $code_for,
+						'Prefix'         => $prefix,
+						'Suffix'         => $suffix,
+						'Linked To'      => $linked_to,
+						'Issue Date'     => $issue_date,
+						'Redeemed Date'  => ! empty( $u->date_redeemed ) ? date_i18n( $date_format, strtotime( $u->date_redeemed ) ) : '',
+						'Redeemed User'  => $user_email,
+						'Redeemed Times' => $num_times_allowed,
+						'Expiry Date'    => $expiry_date,
+						'Linked Product' => $linked_product,
+						'Order ID'       => $order_id,
+					);
+				}
+			} else {
+
+				$array[] = (object) array(
+					'Code'           => $code,
+					'Status'         => $status,
+					'Code For'       => $code_for,
+					'Prefix'         => $prefix,
+					'Suffix'         => $suffix,
+					'Linked To'      => $linked_to,
+					'Issue Date'     => $issue_date,
+					'Redeemed Date'  => $redeemed_date,
+					'Redeemed User'  => $redeemed_user,
+					'Redeemed Times' => '',
+					'Expiry Date'    => $expiry_date,
+					'Linked Product' => $linked_product,
+					'Order ID'       => $order_id,
+				);
+			}
+		}
+
+		return $array;
+	}
+
+	/**
+	 * Get CSV data for selected codes by their IDs
+	 *
+	 * @param array $code_ids Array of code IDs to export
+	 * @return array
+	 */
+	public static function get_selected_codes_csv( $code_ids = array() ) {
+		global $wpdb;
+		$array = array();
+
+		if ( empty( $code_ids ) ) {
+			return array();
+		}
+
+		// Sanitize code IDs
+		$code_ids = array_map( 'absint', $code_ids );
+		$code_ids = array_filter( $code_ids );
+
+		if ( empty( $code_ids ) ) {
+			return array();
+		}
+
+		$code_ids_placeholders = implode( ',', array_fill( 0, count( $code_ids ), '%d' ) );
+
+		$qry = $wpdb->prepare(
+			"SELECT
+	c.ID as Coupon_ID,
+	c.code AS Code,
+	c.order_id,
+	c.is_active,
+	c.expire_date AS code_expire_date,
+	g.code_for AS `Code For`,
+	g.prefix AS Prefix,
+	g.suffix AS Suffix,
+	g.linked_to AS `Linked To`,
+	g.expire_date,
+	g.issue_date,
+	g.product_id
+FROM {$wpdb->prefix}" . Config::$tbl_groups . " g
+LEFT JOIN {$wpdb->prefix}" . Config::$tbl_codes . " c
+ON g.ID = c.code_group
+WHERE c.ID IN ($code_ids_placeholders)",
+			...$code_ids
+		);
+
+		$results = $wpdb->get_results( $qry );
+
+		if ( empty( $results ) ) {
+			return array();
+		}
+
+		$date_format = apply_filters( 'ulc_download_date_format', get_option( 'date_format' ) );
+		$time_format = apply_filters( 'ulc_download_time_format', get_option( 'time_format' ) );
+
+		foreach ( $results as $result ) {
+			$val       = (array) $result;
+			$dd        = array();
+			$linked_to = maybe_unserialize( $val['Linked To'] );
+
+			foreach ( $linked_to as $d ) {
+				$dd[] = get_the_title( $d );
+			}
+
+			$linked_to = join( '|', $dd );
+
+			$code           = $val['Code'];
+			$status         = 1 === (int) $val['is_active'] ? 'Active' : 'Cancelled';
+			$code_for       = $val['Code For'];
+			$prefix         = $val['Prefix'];
+			$suffix         = $val['Suffix'];
+			$issue_date     = ! empty( $val['issue_date'] ) ? date_i18n( $date_format, strtotime( $val['issue_date'] ) ) : '';
+			$redeemed_date  = '';
+			$redeemed_user  = '';
+			$linked_product = ! empty( $val['product_id'] ) ? get_the_title( $val['product_id'] ) : '';
+			$order_id       = ! empty( $val['order_id'] ) ? $val['order_id'] : '';
+			$expiry_date    = 'Unlimited';
+
+			if ( ! empty( $val['code_expire_date'] ) && $val['code_expire_date'] !== '0000-00-00 00:00:00' ) {
+				$code_date = \DateTime::createFromFormat( 'Y-m-d H:i:s', $val['code_expire_date'] );
+				if ( $code_date !== false ) {
+					$expiry_date = $code_date->format( $date_format . ' ' . $time_format );
+				}
+			} elseif ( ! empty( $val['expire_date'] ) && $val['expire_date'] !== '0000-00-00 00:00:00' ) {
+				$_date = \DateTime::createFromFormat( 'Y-m-d H:i:s', $val['expire_date'] );
+				if ( $_date !== false ) {
+					$expiry_date = $_date->format( $date_format . ' ' . $time_format );
+				}
 			}
 
 			$users = self::get_users_of_code( $result->Coupon_ID, false );
@@ -1341,5 +1571,27 @@ $where";
 		);
 
 		return $args;
+	}
+
+
+	/**
+	 * Check if a coupon is expired.
+	 *
+	 * @param object $coupon
+	 *
+	 * @return bool
+	 */
+	public static function is_coupon_expired( $coupon ) {
+		$current_time      = new DateTime();
+		$code_expiry_date  = ! empty( $coupon->code_expire_date ) && $coupon->code_expire_date !== '0000-00-00 00:00:00' ? new DateTime( $coupon->code_expire_date ) : null;
+		$batch_expiry_date = ! empty( $coupon->expire_date ) && $coupon->expire_date !== '0000-00-00 00:00:00' ? new DateTime( $coupon->expire_date ) : null;
+
+		if ( $code_expiry_date && $current_time > $code_expiry_date ) {
+			return true;
+		} elseif ( $batch_expiry_date && $current_time > $batch_expiry_date ) {
+			return true;
+		}
+
+		return false;
 	}
 }

@@ -431,7 +431,7 @@ class Shortcodes extends Config {
 					<input
 						type="submit"
 						value="<?php echo esc_html__( 'Redeem', 'uncanny-learndash-codes' ); ?>"
-						class="uoc-code-redemption__submit-button"/>
+						class="uncannyowl-btn uncannyowl-btn--primary"/>
 
 					<input
 						type="hidden"
@@ -567,7 +567,7 @@ class Shortcodes extends Config {
 	 * @return string
 	 */
 	public static function get_removal_form( $error ) {
-		$form = '<div class="uo uo-register uo-redeem gform_wrapper dark-form_wrapper" id="theme-my-login">
+		$form = '<div class="uo uo-register uo-redeem gform_wrapper dark-form_wrapper uncannyowl-default-design" id="theme-my-login">
 					<form name="codeRemovalForm" id="codeRemovalForm" action="" method="post" class="dark-form">
 						<p class="uo-submit-wrap gform_footer top_label">
 							<input type="submit" value="' . esc_html__( 'Remove access to all groups', 'uncanny-learndash-codes' ) . '" id="validate-confirm-removal">

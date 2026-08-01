@@ -16,6 +16,7 @@ namespace WP2FA\Utils;
 use WP2FA\Utils\Abstract_Migration;
 use WP2FA\Utils\User_Utils;
 use WP2FA\Utils\Settings_Utils;
+use WP2FA\Admin\Helpers\WP_Helper;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -280,7 +281,7 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 			$new_prefix = 'wp_2fa_trusted_device_';
 			$old_prefix = 'wp2fa_trusted_device_';
 
-			delete_transient( 'wp_2fa_config_file_hash' );
+			\delete_transient( 'wp_2fa_config_file_hash' );
 
 			$wpdb->query(
 				$wpdb->prepare(
@@ -290,9 +291,9 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 				 WHERE meta_key LIKE %s
 				 ",
 					array(
-						sanitize_key( $old_prefix ),
-						sanitize_key( $new_prefix ),
-						sanitize_key( $old_prefix . '%' ),
+						\sanitize_key( $old_prefix ),
+						\sanitize_key( $new_prefix ),
+						\sanitize_key( $old_prefix . '%' ),
 					)
 				)
 			);
@@ -410,6 +411,332 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		}
 
 		/**
+		 * Migration for version upto 4.0.0
+		 *
+		 * Disable the new interface for existing (upgrading) users.
+		 * Fresh installs will default to enabled since the option won't exist.
+		 *
+		 * Also renames settings keys that previously started with '2fa_' to 'wp-2fa_'
+		 * to comply with CSS naming conventions (no class/ID names starting with a digit).
+		 *
+		 * @return void
+		 *
+		 * @since 4.0.0
+		 */
+		protected static function migrate_up_to_400() {
+
+			\delete_transient( 'wp_2fa_config_file_hash' );
+
+			// On multisite, delete the config hash transient from ALL subsites
+			// to prevent stale checksums from blocking extensions after upgrade.
+			if ( \is_multisite() ) {
+				$sites = \get_sites(
+					array(
+						'fields' => 'ids',
+						'number' => 0,
+					)
+				);
+				foreach ( $sites as $blog_id ) {
+					\switch_to_blog( $blog_id );
+					\delete_transient( 'wp_2fa_config_file_hash' );
+					\restore_current_blog();
+				}
+			}
+
+			// Detect fresh install: if no policy settings exist, this is a new install
+			// (migration runs before the activation hook can set the version).
+			// In that case, skip interface/dialog changes so the new interface is enabled
+			// by default and the first-time wizard can run unimpeded.
+			$existing_policy  = self::get_settings( self::$plugin_policy_name );
+			$is_fresh_install = empty( $existing_policy );
+
+			$settings = self::get_settings( self::$plugin_settings_name );
+
+			if ( ! \is_array( $settings ) ) {
+				$settings = array();
+			}
+
+			if ( ! $is_fresh_install ) {
+				$settings['use_new_interface'] = false;
+
+				self::set_settings( self::$plugin_settings_name, $settings );
+			}
+
+			self::rename_white_label_keys();
+
+			self::migrate_sms_templates();
+
+			// Show the new interface announcement dialog only for upgrades.
+			// Skip for fresh installs, WP-CLI and bulk updates.
+			if ( ! $is_fresh_install ) {
+				$show_dialog = true;
+
+				if ( defined( 'WP_CLI' ) && WP_CLI ) {
+					$show_dialog = false;
+				} else {
+					$manual_update = \get_transient( 'wp_2fa_manual_update' );
+					if ( '0' === $manual_update ) {
+						$show_dialog = false;
+					}
+					\delete_transient( 'wp_2fa_manual_update' );
+				}
+
+				if ( $show_dialog ) {
+					Settings_Utils::update_option( \WP2FA\Admin\New_Interface_Notice::SHOW_DIALOG_OPTION, 1 );
+				}
+			}
+		}
+
+		/**
+		 * Migration for version up to 4.1.0
+		 *
+		 * Backfills 'custom-user-page-id' for installs that have a custom FE page URL
+		 * but are missing the stored page ID (bug fixed in 4.1.0).
+		 *
+		 * Handles:
+		 * - Global policy settings.
+		 * - Per-role settings (premium).
+		 * - Multisite: iterates all sub-sites when the page is created per-site.
+		 *
+		 * @return void
+		 *
+		 * @since 4.1.0
+		 */
+		protected static function migrate_up_to_410() {
+
+			self::delete_file_hash();
+
+			self::migrate_sms_templates_from_white_label();
+
+			$policy = self::get_settings( self::$plugin_policy_name );
+
+			if ( \is_array( $policy ) ) {
+				$updated = false;
+
+				// Global policy: backfill page ID if URL is set but ID is missing.
+				if ( ! empty( $policy['create-custom-user-page'] ) && 'yes' === $policy['create-custom-user-page']
+					&& ! empty( $policy['custom-user-page-url'] )
+					&& empty( $policy['custom-user-page-id'] )
+				) {
+					if ( WP_Helper::is_multisite() && ! empty( $policy['separate-multisite-page-url'] ) ) {
+						// Each sub-site has its own page — resolve per site.
+						$sites = WP_Helper::get_multi_sites();
+						foreach ( $sites as $site ) {
+							\switch_to_blog( $site->blog_id );
+							self::backfill_page_id_for_slug( $policy['custom-user-page-url'] );
+							\restore_current_blog();
+						}
+					} else {
+						$page_id = self::resolve_page_id_from_slug( $policy['custom-user-page-url'] );
+						if ( $page_id ) {
+							$policy['custom-user-page-id'] = $page_id;
+							$updated                       = true;
+						}
+					}
+				}
+
+				if ( $updated ) {
+					self::set_settings( self::$plugin_policy_name, $policy );
+				}
+			}
+
+		}
+
+		/**
+		 * Resolves a page ID from its slug.
+		 *
+		 * @param string $slug The page slug.
+		 *
+		 * @return int The page ID, or 0 if not found.
+		 *
+		 * @since 4.1.0
+		 */
+		private static function resolve_page_id_from_slug( string $slug ): int {
+			$page = \get_page_by_path( $slug, OBJECT, 'page' );
+
+			if ( $page ) {
+				return (int) $page->ID;
+			}
+
+			return 0;
+		}
+
+		/**
+		 * Backfills the custom-user-page-id in the global policy for the current
+		 * blog context. Used when iterating over multisite sub-sites.
+		 *
+		 * @param string $slug The page slug to look up.
+		 *
+		 * @return void
+		 *
+		 * @since 4.1.0
+		 */
+		private static function backfill_page_id_for_slug( string $slug ) {
+			$policy = self::get_settings( self::$plugin_policy_name );
+
+			if ( ! \is_array( $policy ) ) {
+				return;
+			}
+
+			$page_id = self::resolve_page_id_from_slug( $slug );
+
+			if ( $page_id ) {
+				$policy['custom-user-page-id'] = $page_id;
+				self::set_settings( self::$plugin_policy_name, $policy );
+			}
+		}
+
+		/**
+		 * Moves SMS templates from white label settings to email settings.
+		 *
+		 * The v4.0.0 migration only converted the format of SMS templates already
+		 * present in email settings (string → array) but did not move templates
+		 * that were still stored in white label settings. This method corrects that
+		 * by checking whether each SMS template key exists in email settings and,
+		 * if not, copies it from white label settings in the correct array format.
+		 *
+		 * If a template is not found in either location the plugin falls back to
+		 * hardcoded defaults, so no action is needed.
+		 *
+		 * @return void
+		 *
+		 * @since 4.1.0
+		 */
+		private static function migrate_sms_templates_from_white_label() {
+			$sms_keys = array(
+				'default-twilio-registration-text',
+				'default-twilio-code-text',
+			);
+
+			$email_settings = self::get_settings( self::$plugin_email_settings_name );
+
+			if ( ! \is_array( $email_settings ) ) {
+				$email_settings = array();
+			}
+
+			$white_label_settings = self::get_settings( self::$plugin_white_label_name );
+
+			if ( ! \is_array( $white_label_settings ) ) {
+				return;
+			}
+
+			$email_updated       = false;
+			$white_label_updated = false;
+
+			foreach ( $sms_keys as $key ) {
+				// Already present in email settings with a valid body — nothing to do.
+				if ( isset( $email_settings[ $key ] ) && \is_array( $email_settings[ $key ] ) && ! empty( $email_settings[ $key ]['body'] ) ) {
+					continue;
+				}
+
+				// Check white label settings for the template.
+				if ( ! isset( $white_label_settings[ $key ] ) ) {
+					continue;
+				}
+
+				$value = $white_label_settings[ $key ];
+
+				if ( \is_string( $value ) && '' !== $value ) {
+					$email_settings[ $key ] = array( 'body' => $value );
+					$email_updated          = true;
+				} elseif ( \is_array( $value ) && ! empty( $value['body'] ) ) {
+					$email_settings[ $key ] = $value;
+					$email_updated          = true;
+				}
+
+				// Remove from white label settings to avoid stale duplicates.
+				unset( $white_label_settings[ $key ] );
+				$white_label_updated = true;
+			}
+
+			if ( $email_updated ) {
+				self::set_settings( self::$plugin_email_settings_name, $email_settings );
+			}
+
+			if ( $white_label_updated ) {
+				self::set_settings( self::$plugin_white_label_name, $white_label_settings );
+			}
+		}
+
+		/**
+		 * Migrates SMS template settings from plain string format to array format.
+		 *
+		 * Prior to version 4.0.0, SMS templates were stored as plain strings:
+		 *   "default-twilio-registration-text" => "custom text"
+		 *
+		 * From version 4.0.0 onwards, they must be stored as arrays with a 'body' key:
+		 *   "default-twilio-registration-text" => array( "body" => "custom text" )
+		 *
+		 * @return void
+		 *
+		 * @since 4.0.0
+		 */
+		private static function migrate_sms_templates() {
+			$email_settings = self::get_settings( self::$plugin_email_settings_name );
+
+			if ( ! \is_array( $email_settings ) ) {
+				return;
+			}
+
+			$sms_keys = array(
+				'default-twilio-registration-text',
+				'default-twilio-code-text',
+			);
+
+			$updated = false;
+
+			foreach ( $sms_keys as $key ) {
+				if ( isset( $email_settings[ $key ] ) && \is_string( $email_settings[ $key ] ) ) {
+					$email_settings[ $key ] = array( 'body' => $email_settings[ $key ] );
+					$updated                = true;
+				}
+			}
+
+			if ( $updated ) {
+				self::set_settings( self::$plugin_email_settings_name, $email_settings );
+			}
+		}
+
+		/**
+		 * Renames white label settings keys that are also used as wp_editor HTML
+		 * element IDs, from '2fa_*' to 'wp-2fa_*' so they no longer start with a digit.
+		 *
+		 * Only keys that directly become HTML id attributes are renamed.
+		 * Internal-only settings keys (e.g. '2fa_settings_last_updated_by') and
+		 * user meta keys (e.g. 'wp_2fa_2fa_status') are left unchanged because
+		 * their final resolved values never start with a digit.
+		 *
+		 * @return void
+		 *
+		 * @since 4.0.0
+		 */
+		private static function rename_white_label_keys() {
+
+			$white_label_key_map = array(
+				'2fa_required_intro' => 'wp-2fa_required_intro',
+				'2fa_wizard_cancel'  => 'wp-2fa_wizard_cancel',
+			);
+
+			$white_label_settings = self::get_settings( self::$plugin_white_label_name );
+
+			if ( \is_array( $white_label_settings ) ) {
+				$updated = false;
+
+				foreach ( $white_label_key_map as $old_key => $new_key ) {
+					if ( \array_key_exists( $old_key, $white_label_settings ) && ! \array_key_exists( $new_key, $white_label_settings ) ) {
+						$white_label_settings[ $new_key ] = $white_label_settings[ $old_key ];
+						unset( $white_label_settings[ $old_key ] );
+						$updated = true;
+					}
+				}
+
+				if ( $updated ) {
+					self::set_settings( self::$plugin_white_label_name, $white_label_settings );
+				}
+			}
+		}
+
+		/**
 		 * Returns the plugin settings by a given setting type
 		 *
 		 * @param mixed $setting_name - The setting which needs to be extracted.
@@ -434,6 +761,34 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 */
 		private static function set_settings( $setting_name, $settings ) {
 			Settings_Utils::update_option( sanitize_key( $setting_name ), $settings );
+		}
+
+		/**
+		 * Deletes the config file hash transient.
+		 *
+		 * @return void
+		 *
+		 * @since 4.1.0
+		 */
+		private static function delete_file_hash() {
+
+			\delete_transient( 'wp_2fa_config_file_hash' );
+
+			// On multisite, delete the config hash transient from ALL subsites
+			// to prevent stale checksums from blocking extensions after upgrade.
+			if ( \is_multisite() ) {
+				$sites = \get_sites(
+					array(
+						'fields' => 'ids',
+						'number' => 0,
+					)
+				);
+				foreach ( $sites as $blog_id ) {
+					\switch_to_blog( $blog_id );
+					\delete_transient( 'wp_2fa_config_file_hash' );
+					\restore_current_blog();
+				}
+			}
 		}
 	}
 }

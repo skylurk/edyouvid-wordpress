@@ -6,6 +6,7 @@ import {
   leadinPluginVersion,
 } from '../constants/leadinConfig';
 import { initApp } from './appUtils';
+import { fetchAccessToken } from '../api/wordpressApiClient';
 
 type CallbackFn = (...args: any[]) => void;
 
@@ -26,7 +27,7 @@ const getLeadinConfig = () => {
   };
 };
 
-export const getOrCreateBackgroundApp = (refreshToken = '') => {
+export const getOrCreateBackgroundApp = (accessToken = '', expiresIn = 0) => {
   if ((window as any).LeadinBackgroundApp) {
     return (window as any).LeadinBackgroundApp;
   }
@@ -35,7 +36,7 @@ export const getOrCreateBackgroundApp = (refreshToken = '') => {
     .setLocale(locale)
     .setDeviceId(deviceId)
     .setLeadinConfig(getLeadinConfig())
-    .setRefreshToken(refreshToken.trim());
+    .setAccessToken(accessToken, expiresIn);
 
   const embedder = new IntegratedAppEmbedder(
     'integrated-plugin-proxy',
@@ -45,7 +46,8 @@ export const getOrCreateBackgroundApp = (refreshToken = '') => {
   ).setOptions(options);
 
   embedder.attachTo(document.body, false);
-  embedder.postStartAppMessage(); // lets the app know all all data has been passed to it
+  embedder.setTokenRenewalCallback(fetchAccessToken);
+  embedder.postStartAppMessage(); // lets the app know all data has been passed to it
 
   (window as any).LeadinBackgroundApp = embedder;
   return (window as any).LeadinBackgroundApp;

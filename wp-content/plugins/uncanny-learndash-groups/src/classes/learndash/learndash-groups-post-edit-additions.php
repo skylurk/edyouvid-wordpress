@@ -21,6 +21,25 @@ class LearndashGroupsPostEditAdditions {
 		if ( is_admin() ) {
 			add_action( 'add_meta_boxes_groups', array( $this, 'add_metabox' ) );
 			add_action( 'save_post', array( $this, 'perform_group_management_actions' ), 999, 2 );
+
+			require_once __DIR__ . '/class-uo-metabox-tab.php';
+			$uo_group_metaboxes = array(
+				'uo-group-management',
+				'uo-group-management-invited-users',
+				'uo-group-management-group-specific-emails',
+			);
+			if ( Utilities::if_woocommerce_active() ) {
+				$uo_group_metaboxes[] = 'uo-group-management-related-wooo';
+			}
+			UO_Metabox_Tab::boot(
+				array(
+					'groups' => array(
+						'tab_id'    => 'uo-groups-management',
+						'tab_label' => __( 'Uncanny Groups', 'uncanny-learndash-groups' ),
+						'metaboxes' => $uo_group_metaboxes,
+					),
+				)
+			);
 		}
 
 		//remove group related data from custom tables
@@ -562,8 +581,7 @@ class LearndashGroupsPostEditAdditions {
 
 			// Process group leaders
 			if ( ! empty( $group_admins ) ) {
-				$group_leaders_dont_use_seats = get_option( 'group_leaders_dont_use_seats', 'no' );
-				if ( 'no' === (string) $group_leaders_dont_use_seats ) {
+				if ( ! SharedFunctions::group_leaders_dont_use_seats( 'seats' ) ) {
 					foreach ( $group_admins as $gl ) {
 						$seat_groups_leaders[ $gl->ID ] = array(
 							'ID'         => $gl->ID,
@@ -583,7 +601,7 @@ class LearndashGroupsPostEditAdditions {
 						'role'       => user_can( $user, 'group_leader' ) ? 'group_leader' : 'user',
 					);
 
-					if ( user_can( $user, 'group_leader' ) && 'yes' === (string) get_option( 'group_leaders_dont_use_seats', 'no' ) ) {
+					if ( user_can( $user, 'group_leader' ) && SharedFunctions::group_leaders_dont_use_seats( 'seats' ) ) {
 						unset( $seat_users[ $user->ID ] );
 					}
 				}
@@ -641,8 +659,7 @@ class LearndashGroupsPostEditAdditions {
 			$seat_users          = array();
 			$seat_groups_leaders = array();
 
-			$group_leaders_dont_use_seats = get_option( 'group_leaders_dont_use_seats', 'no' );
-			if ( $group_leaders && 'no' === (string) $group_leaders_dont_use_seats ) {
+			if ( $group_leaders && ! SharedFunctions::group_leaders_dont_use_seats( 'seats' ) ) {
 				foreach ( $group_leaders as $gl ) {
 					$seat_groups_leaders[ $gl->ID ] = array(
 						'ID'         => $gl->ID,
@@ -660,7 +677,7 @@ class LearndashGroupsPostEditAdditions {
 						'role'       => user_can( $user, 'group_leader' ) ? 'group_leader' : 'user',
 					);
 
-					if ( user_can( $user, 'group_leader' ) && 'yes' === (string) get_option( 'group_leaders_dont_use_seats', 'no' ) ) {
+					if ( user_can( $user, 'group_leader' ) && SharedFunctions::group_leaders_dont_use_seats( 'seats' ) ) {
 						unset( $seat_users[ $user->ID ] );
 					}
 				}
@@ -766,7 +783,8 @@ class LearndashGroupsPostEditAdditions {
 			$group_users   = array_merge( $children_users, $group_users );
 			$group_leaders = array_merge( $children_gls, $group_leaders );
 		}
-		if ( $group_leaders && 'no' !== (string) get_option( 'group_leaders_dont_use_seats', 'no' ) ) {
+
+		if ( $group_leaders && ! SharedFunctions::group_leaders_dont_use_seats( 'seats' ) ) {
 			foreach ( $group_leaders as $gl ) {
 				$seat_users[ $gl->ID ] = array(
 					'ID'         => $gl->ID,
@@ -798,11 +816,12 @@ class LearndashGroupsPostEditAdditions {
 			}
 		}
 
-		//If group leader do not take seat checkbox is checked,
-		//remove group leader seat count if they are added as member
-		if ( 'yes' === (string) get_option( 'group_leaders_dont_use_seats', 'no' ) ) {
+		// If "Group Leaders don't use seats" is on, revoke codes held by group leaders (use 'seats' only).
+		// Note: When that setting is on, group leaders are NOT in $seat_users, so we must
+		// check user_can( $user_id, 'group_leader' ) directly.
+		if ( SharedFunctions::group_leaders_dont_use_seats( 'seats' ) ) {
 			foreach ( $codes_users as $user_id => $code_id ) {
-				if ( key_exists( (int) $user_id, $seat_users ) && 'group_leader' === (string) $seat_users[ $user_id ]['role'] ) {
+				if ( (int) $user_id > 0 && user_can( (int) $user_id, 'group_leader' ) ) {
 					$sql = $wpdb->prepare( "UPDATE {$wpdb->prefix}" . SharedFunctions::$db_group_codes_tbl . ' SET student_id = NULL, user_email = NULL, used_date = NULL, code_status = %s, ld_group_id = NULL WHERE ID = %d', SharedFunctions::$available_status, absint( $code_id ) );
 					$wpdb->query( $sql );
 				}
@@ -1018,7 +1037,10 @@ AND group_id = %d',
 		}
 
 		$existing_seats = (int) ulgm()->group_management->seat->total_seats( $post_id );
-		$new_seats      = null === $new_seats && ulgm_filter_has_var( '_ulgm_total_seats', INPUT_POST ) ? absint( ulgm_filter_input( '_ulgm_total_seats', INPUT_POST ) ) : absint( $new_seats );
+		$is_post_set    = ulgm_filter_has_var( '_ulgm_total_seats', INPUT_POST );
+		$post_val       = $is_post_set ? ulgm_filter_input( '_ulgm_total_seats', INPUT_POST ) : 'NOT SET';
+
+		$new_seats = null === $new_seats && $is_post_set ? absint( $post_val ) : absint( $new_seats );
 		// Seats added
 		if ( $new_seats > $existing_seats ) {
 			$diff      = $new_seats - $existing_seats;
@@ -1035,9 +1057,15 @@ AND group_id = %d',
 		if ( $new_seats < $existing_seats ) {
 			global $wpdb;
 
-			$diff             = $new_seats - $existing_seats;
-			$diff             = $diff * - 1; //convert to positive
+			$diff = ( $new_seats - $existing_seats ) * - 1; //convert to positive
+
 			$fetch_code_count = $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(code) AS available FROM ' . $wpdb->prefix . SharedFunctions::$db_group_codes_tbl . ' WHERE group_id = %d AND student_id IS NULL LIMIT %d', $code_group_id, $diff ) );
+
+			// Free orphan rows only when the cheap DELETE would fall short.
+			if ( (int) $fetch_code_count < $diff && true === apply_filters( 'ulgm_auto_clean_orphan_seats_on_resize', true, $post_id ) ) {
+				self::remove_users_from_group_admin_func( $post_id, true );
+				$fetch_code_count = $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(code) AS available FROM ' . $wpdb->prefix . SharedFunctions::$db_group_codes_tbl . ' WHERE group_id = %d AND student_id IS NULL LIMIT %d', $code_group_id, $diff ) );
+			}
 			if ( ! empty( $fetch_code_count ) && $fetch_code_count >= $diff ) {
 				//difference seats are empty, lets delete them
 				$sql = $wpdb->prepare( 'DELETE FROM ' . $wpdb->prefix . SharedFunctions::$db_group_codes_tbl . ' WHERE group_id = %d AND student_id IS NULL LIMIT %d', $code_group_id, $diff );
@@ -1259,7 +1287,7 @@ AND group_id = %d',
 	 * @return bool|string|null
 	 */
 	public static function fix_total_number_of_hierarchy_users( $group_id, $group_users = array(), $group_leaders = array() ) {
-		$group_leader_take_seat = 'no' !== (string) get_option( 'group_leaders_dont_use_seats', 'no' ) ? true : false;
+		$group_leader_take_seat = ! SharedFunctions::group_leaders_dont_use_seats( 'seats' );
 		if ( true === $group_leader_take_seat && empty( $group_leaders ) ) {
 			$group_leaders = LearndashFunctionOverrides::learndash_get_groups_administrators( $group_id, true );
 		}
@@ -1307,16 +1335,18 @@ AND group_id = %d',
 			if ( $diff > 0 ) {
 				$add = (int) apply_filters( 'ulgm_pool_seats_add_extra_seats_in_parent', absint( 10 + $diff ), $diff, $group_id );
 				self::increase_seat_count( $add, $group_id );
+				update_post_meta( $group_id, '_ulgm_total_seats', $seats_in_parent + $add );
 			}
 
 			return true;
 		}
 
-		if ( ( $seats_across_groups - $seats_in_parent ) > 0 ) {
+		$diff = $seats_across_groups - $seats_in_parent;
+		if ( $diff > 0 ) {
 			update_post_meta( $group_id, '_ulgm_seats_before_pooling', $seats_in_parent );
 			// total seats across all groups in hierarchy
-			$diff = $seats_across_groups;
 			self::increase_seat_count( $diff, $group_id );
+			update_post_meta( $group_id, '_ulgm_total_seats', $seats_in_parent + $diff );
 		}
 
 		return true;

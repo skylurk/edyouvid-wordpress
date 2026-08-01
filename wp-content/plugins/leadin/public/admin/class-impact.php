@@ -2,6 +2,8 @@
 
 namespace Leadin\admin;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 use Leadin\data\Filters;
 
 const IR_CLICK_ID = 'irclickid';

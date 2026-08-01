@@ -3,7 +3,7 @@
         'name' => 'uncannyowl/tin-canny-learndash-reporting',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '261ead8e86b882ad54a83530d77827e9313d7c21',
+        'reference' => 'f57dbe52102026f167e9576e3f3b05c0f438f3aa',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -34,7 +34,7 @@
         'uncannyowl/tin-canny-learndash-reporting' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '261ead8e86b882ad54a83530d77827e9313d7c21',
+            'reference' => 'f57dbe52102026f167e9576e3f3b05c0f438f3aa',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

@@ -163,14 +163,20 @@ class Woocommerce_Handlers {
 	 * @return array|int|object
 	 */
 	public function get_orders_from_product_id( $product_id, $return_count = true ) {
+		$product_id = absint( $product_id );
+		if ( $product_id <= 0 ) {
+			return $return_count ? 0 : array();
+		}
+
 		global $wpdb;
 		$results = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT DISTINCT wpp.order_id as OrderID
 										FROM {$wpdb->prefix}woocommerce_order_items as wpp
 											INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta as wpm ON wpp.order_item_id=wpm.order_item_id
-											INNER JOIN {$wpdb->postmeta} wppostmeta ON wpp.order_id=wppostmeta.post_id
-											WHERE wpm.meta_key='_product_id' AND wpm.meta_value = %d",
+											WHERE wpp.order_item_type = 'line_item'
+											AND wpm.meta_key = '_product_id'
+											AND wpm.meta_value = %d",
 				$product_id
 			)
 		);

@@ -600,10 +600,10 @@ class Group_Management_Helpers {
 		}
 
 		// Get a code
-		if ( 'yes' === (string) get_option( 'group_leaders_dont_use_seats', 'no' ) && true === $added_as_gl && user_can( $user, 'group_leader' ) ) {
+		if ( SharedFunctions::group_leaders_dont_use_seats( 'seats' ) && true === $added_as_gl && user_can( $user, 'group_leader' ) ) {
 			//Prevent group leader from taking seat if setting is turned on
 			//Do nothing
-		} elseif ( 'yes' !== (string) get_option( 'group_leaders_dont_use_seats', 'no' ) && true === $added_as_gl && user_can( $user, 'group_leader' ) && learndash_is_user_in_group( $user->ID, $group_id ) ) {
+		} elseif ( ! SharedFunctions::group_leaders_dont_use_seats( 'seats' ) && true === $added_as_gl && user_can( $user, 'group_leader' ) && learndash_is_user_in_group( $user->ID, $group_id ) ) {
 			//Prevent group leader from taking another seat if they are already a member of the group
 			//Do nothing
 		} else {
@@ -703,7 +703,7 @@ class Group_Management_Helpers {
 			$order_id = ulgm()->group_management->get_order_id_from_group_id( $group_id );
 		}
 
-		if ( 'yes' === (string) get_option( 'group_leaders_dont_use_seats', 'no' ) && $added_as_gl && user_can( $user, 'group_leader' ) ) {
+		if ( SharedFunctions::group_leaders_dont_use_seats( 'seats' ) && $added_as_gl && user_can( $user, 'group_leader' ) ) {
 			//Prevent group leader from taking seat if setting is turned on
 			//Do nothing
 		} else {
@@ -1410,7 +1410,7 @@ class Group_Management_Helpers {
 
 		// Temporarily bypass any plugin filters that might interfere with password reset
 		// during programmatic operations by using the highest priority filter that returns true
-		add_filter( 'allow_password_reset', array( __CLASS__, 'bypass_password_reset_filters' ), 99999 );
+		add_filter( 'allow_password_reset', array( __CLASS__, 'bypass_password_reset_filters' ), 99999, 2 );
 
 		$adt_rp_key = get_password_reset_key( $user );
 
@@ -1850,5 +1850,143 @@ class Group_Management_Helpers {
 		}
 
 		return $added;
+	}
+
+	/**
+	 * Free up any seats held by a user when their WP account is deleted.
+	 *
+	 * Queries the codes table directly by student_id — avoids relying on
+	 * learndash_get_users_group_ids() which may already return empty if
+	 * LearnDash has cleaned up its own meta at an earlier hook priority.
+	 *
+	 * @param int $user_id
+	 */
+	public static function free_seats_for_deleted_user( $user_id ) {
+		global $wpdb;
+		$tbl = $wpdb->prefix . ulgm()->db->tbl_group_codes;
+		$q   = $wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$tbl}
+				SET code_status = 'available',
+				    student_id  = NULL,
+				    user_email  = NULL,
+				    first_name  = NULL,
+				    last_name   = NULL,
+				    used_date   = NULL,
+				    ld_group_id = NULL
+				WHERE student_id = %d",
+				absint( $user_id )
+			)
+		);
+		if ( false === $q ) {
+			error_log( sprintf( 'Failed to free seats for deleted user %d: %s', $user_id, $wpdb->last_error ) );
+			return false;
+		}
+
+		if ( $q > 0 ) {
+			do_action( 'ulgm_seats_freed_for_deleted_user', $user_id );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Free seat codes held by group leaders when "Group Leaders don't use seats" is on.
+	 * Handles hierarchy: get_code_group_id resolves child→parent for pooled groups.
+	 *
+	 * @param int $ld_group_id LearnDash group post ID.
+	 * @return int Number of codes freed.
+	 */
+	public static function free_group_leader_codes_for_group( int $ld_group_id ) {
+		if ( ! SharedFunctions::group_leaders_dont_use_seats( 'seats' ) ) {
+			return 0;
+		}
+
+		$codes_group_id = ulgm()->group_management->seat->get_code_group_id( $ld_group_id );
+		if ( empty( $codes_group_id ) ) {
+			return 0;
+		}
+
+		global $wpdb;
+		$tbl   = $wpdb->prefix . ulgm()->db->tbl_group_codes;
+		$rows  = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT ID, student_id FROM {$tbl} WHERE group_id = %d AND student_id IS NOT NULL",
+				$codes_group_id
+			)
+		);
+		$freed = 0;
+
+		foreach ( $rows as $row ) {
+			$user_id = (int) $row->student_id;
+			if ( $user_id > 0 && user_can( $user_id, 'group_leader' ) ) {
+				$wpdb->update(
+					$tbl,
+					array(
+						'code_status' => SharedFunctions::$available_status,
+						'student_id'  => null,
+						'user_email'  => null,
+						'first_name'  => null,
+						'last_name'   => null,
+						'used_date'   => null,
+						'ld_group_id' => null,
+					),
+					array( 'ID' => (int) $row->ID )
+				);
+				if ( $wpdb->rows_affected > 0 ) {
+					++$freed;
+				}
+			}
+		}
+
+		return $freed;
+	}
+
+	/**
+	 * Bulk-reset every seat code whose student_id references a user that no
+	 * longer exists in wp_users.
+	 *
+	 * Runs as a single UPDATE … LEFT JOIN in MySQL — no PHP loop needed.
+	 * The entire operation is handled by the DB engine and is safe to call
+	 * from admin_init regardless of how many orphaned rows exist.
+	 *
+	 * Safe to call repeatedly — returns 0 when there is nothing to clean.
+	 *
+	 * @param int $code_group_id  Limit cleanup to one code-group (0 = all groups).
+	 * @return int|false  Number of rows reset, or false on DB error.
+	 */
+	public static function purge_orphaned_codes( int $code_group_id = 0 ) {
+		global $wpdb;
+		$tbl = $wpdb->prefix . ulgm()->db->tbl_group_codes;
+
+		$group_clause = $code_group_id > 0
+			? $wpdb->prepare( 'AND c.group_id = %d', $code_group_id )
+			: '';
+
+		$affected = $wpdb->query(
+			"UPDATE {$tbl} c
+			   LEFT JOIN {$wpdb->users} u ON u.ID = c.student_id
+			      SET c.code_status = 'available',
+			          c.student_id  = NULL,
+			          c.user_email  = NULL,
+			          c.first_name  = NULL,
+			          c.last_name   = NULL,
+			          c.used_date   = NULL,
+			          c.ld_group_id = NULL
+			  WHERE c.student_id IS NOT NULL
+			    AND u.ID IS NULL
+			    {$group_clause}"
+		);
+
+		if ( false === $affected ) {
+			error_log( sprintf( 'purge_orphaned_codes failed: %s', $wpdb->last_error ) );
+			return false;
+		}
+
+		if ( $affected > 0 ) {
+			do_action( 'ulgm_orphaned_codes_purged', $affected, $code_group_id );
+		}
+
+		return $affected;
 	}
 }

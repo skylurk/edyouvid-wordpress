@@ -34,6 +34,7 @@ return array(
     'Leadin\\admin\\widgets\\ElementorFormSelect' => $baseDir . '/public/admin/widgets/class-elementorformselect.php',
     'Leadin\\admin\\widgets\\ElementorMeeting' => $baseDir . '/public/admin/widgets/class-elementormeeting.php',
     'Leadin\\admin\\widgets\\ElementorMeetingSelect' => $baseDir . '/public/admin/widgets/class-elementormeetingselect.php',
+    'Leadin\\api\\Access_Token_Api_Controller' => $baseDir . '/public/modules/api/class-access-token-api-controller.php',
     'Leadin\\api\\Base_Api_Controller' => $baseDir . '/public/modules/api/class-base-api-controller.php',
     'Leadin\\api\\Healthcheck_Api_Controller' => $baseDir . '/public/modules/api/class-healthcheck-api-controller.php',
     'Leadin\\auth\\OAuth' => $baseDir . '/public/auth/class-oauth.php',

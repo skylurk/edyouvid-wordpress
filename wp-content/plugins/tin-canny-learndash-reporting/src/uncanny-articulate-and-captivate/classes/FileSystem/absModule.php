@@ -162,6 +162,8 @@ XMLHttpRequest.prototype.open = function() {
 			return false;
 		}
 
+		$is_replace = \TINCANNYSNC\Module_CRUD::is_replace_registration( $this->get_item_id() );
+
 		$item_id = $this->get_item_id();
 		if ( strpos( $item_id, '-temp' ) !== false ) {
 			// remove old folder
@@ -170,6 +172,10 @@ XMLHttpRequest.prototype.open = function() {
 			$this->delete_tree( $this->get_target_dir() );
 			rename( $this->get_target_dir() . '-temp', $this->get_target_dir() );
 			$url = $this->get_registering_url();
+		}
+
+		if ( $is_replace ) {
+			\TINCANNYSNC\Module_CRUD::bust_asset_cache_in_html_files( $this->get_target_dir() );
 		}
 
 		\TINCANNYSNC\Module_CRUD::add_detail( $this->get_item_id(), $this->get_type(), $url, $this->get_subtype() );

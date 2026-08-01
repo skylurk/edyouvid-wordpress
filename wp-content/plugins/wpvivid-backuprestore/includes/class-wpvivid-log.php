@@ -21,6 +21,9 @@ class WPvivid_Log
         }
         else
         {
+            // Prevent path traversal through log file names.
+            $file_name = sanitize_file_name($file_name);
+            $file_name = basename($file_name);
             $this->log_file=$this->GetSaveLogFolder().$file_name.'_log.txt';
         }
         if(file_exists($this->log_file))
@@ -45,6 +48,9 @@ class WPvivid_Log
         }
         else
         {
+            // Prevent path traversal through log file names.
+            $file_name = sanitize_file_name($file_name);
+            $file_name = basename($file_name);
             $this->log_file=$this->GetSaveLogFolder().$file_name.'_log.txt';
         }
         if($delete==1)

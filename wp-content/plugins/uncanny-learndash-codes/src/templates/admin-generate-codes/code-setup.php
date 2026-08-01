@@ -362,7 +362,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 						<div
 							class="uoc-generate-section-form-field__description uoc-generate-section-form-field__description--top">
-							<?php printf( esc_html__( 'Codes may only contain alphanumeric characters and hyphens and must be between %s and %s characters long.', 'uncanny-learndash-codes' ), '<u>4</u>', '<u>30</u>' ); ?>
+							<?php printf( esc_html__( 'Codes may only contain alphanumeric characters and hyphens and must be between %1$s and %2$s characters long.', 'uncanny-learndash-codes' ), '<u>4</u>', '<u>30</u>' ); ?>
 						</div>
 
 						<textarea
@@ -384,13 +384,17 @@ if ( ! defined( 'WPINC' ) ) {
 					<input
 						type="submit"
 						id="uoc-generate-submit-button"
-						value="<?php if ( 'edit' === (string) $generate_codes->mode ) {
-							_e( 'Modify codes', 'uncanny-learndash-codes' );
+						value="
+						<?php
+						if ( 'edit' === (string) $generate_codes->mode ) {
+							_e( 'Modify Codes', 'uncanny-learndash-codes' );
 						} else {
-							_e( 'Generate codes', 'uncanny-learndash-codes' );
-						} ?>"
+							_e( 'Generate Codes', 'uncanny-learndash-codes' );
+						}
+						?>
+						"
 
-						class="uoc-generate-button uoc-generate-button--primary"
+						class="uncannyowl-btn uncannyowl-btn--primary"
 					>
 
 				</div>

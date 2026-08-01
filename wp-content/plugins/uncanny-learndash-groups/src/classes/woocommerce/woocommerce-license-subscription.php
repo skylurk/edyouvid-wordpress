@@ -559,6 +559,15 @@ class WoocommerceLicenseSubscription {
 		if ( false === $continue ) {
 			return;
 		}
+
+		// Fallback: check order meta when line item has no group name
+		if ( empty( trim( $group_title ) ) ) {
+			$group_title = $order->get_meta( SharedFunctions::$group_name_field, true );
+		}
+		if ( empty( trim( $group_title ) ) ) {
+			$group_title = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() . ' ' . $order->get_billing_company();
+			$group_title = apply_filters( 'ulgm_group_name', trim( $group_title ), $order );
+		}
 		if ( 'yes' === get_post_meta( $product_id, '_uo_custom_buy_product', true ) ) {
 			wp_update_post(
 				array(
@@ -800,6 +809,7 @@ class WoocommerceLicenseSubscription {
 
 		$order = wc_get_order( $order_id );
 
+		// Check simple ulgm_group_name (legacy/single product)
 		if ( ulgm_filter_has_var( 'ulgm_group_name', INPUT_POST ) && ! empty( trim( ulgm_filter_input( 'ulgm_group_name', INPUT_POST ) ) ) ) {
 			$new_group_name = apply_filters( 'ulgm_group_name', sanitize_text_field( ulgm_filter_input( 'ulgm_group_name', INPUT_POST ) ), wc_get_order( $order_id ) );
 			$order->update_meta_data( SharedFunctions::$group_name_field, $new_group_name );
@@ -808,12 +818,23 @@ class WoocommerceLicenseSubscription {
 			return;
 		}
 
+		// Check order items for ulgm_group_name (set by group_name_item_meta during checkout)
+		foreach ( $order->get_items() as $item ) {
+			if ( $item->meta_exists( 'ulgm_group_name' ) && ! empty( trim( $item->get_meta( 'ulgm_group_name' ) ) ) ) {
+				$new_group_name = apply_filters( 'ulgm_group_name', sanitize_text_field( $item->get_meta( 'ulgm_group_name' ) ), $order );
+				$order->update_meta_data( SharedFunctions::$group_name_field, $new_group_name );
+				$order->save();
+
+				return;
+			}
+		}
+
 		$show_additional_fields = $this->check_if_course_subscription_in_order( $order_id );
 
 		if ( $show_additional_fields['status'] ) {
 			$order          = wc_get_order( $order_id );
 			$new_group_name = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() . ' ' . $order->get_billing_company();
-			$new_group_name = apply_filters( 'ulgm_group_name', $new_group_name, wc_get_order( $order_id ) );
+			$new_group_name = apply_filters( 'ulgm_group_name', trim( $new_group_name ), wc_get_order( $order_id ) );
 			$order->update_meta_data( SharedFunctions::$group_name_field, sanitize_text_field( $new_group_name ) );
 			$order->save();
 		}

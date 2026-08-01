@@ -14,28 +14,34 @@ class WPvivid_Snapshot_Function_Ex
         $this->options=new WPvivid_Snapshot_Option_Ex();
     }
 
-    public function check_manual_snapshot()
+    public function check_snapshot_retention($types = array('manual','merge','dev'))
     {
         $snapshots=$this->options->get_option('wpvivid_snapshot');
-        $manual_snapshots=array();
-        if($snapshots !== false)
+        $retention_snapshots=array();
+        if($snapshots !== false && is_array($snapshots))
         {
             foreach ($snapshots as $snapshot)
             {
-                if($snapshot['type']=='manual')
+                if(!isset($snapshot['id']) || !isset($snapshot['type']) || !isset($snapshot['time']))
                 {
-                    $manual_snapshots[]=$snapshot;
+                    continue;
+                }
+
+                if(empty($types) || in_array($snapshot['type'], $types, true))
+                {
+                    $retention_snapshots[]=$snapshot;
                 }
             }
         }
+
         $setting=$this->options->get_option('wpvivid_snapshot_setting');
-        $count=isset($setting['snapshot_retention'])?$setting['snapshot_retention']:6;
+        $count=isset($setting['snapshot_retention'])?intval($setting['snapshot_retention']):6;
         if(empty($count))
         {
             $count=6;
         }
 
-        usort($manual_snapshots, function ($a, $b)
+        usort($retention_snapshots, function ($a, $b)
         {
             if ($a['time'] == $b['time'])
                 return 0;
@@ -46,16 +52,23 @@ class WPvivid_Snapshot_Function_Ex
                 return -1;
         });
 
-        while(count($manual_snapshots)>=$count)
+        while(count($retention_snapshots)>=$count)
         {
-            $manual_snapshot=array_shift($manual_snapshots);
-            $this->remove_snapshot($manual_snapshot['id']);
+            $snapshot=array_shift($retention_snapshots);
+            $this->remove_snapshot($snapshot['id']);
         }
+    }
+
+    public function check_manual_snapshot($types = array('manual','merge','dev'))
+    {
+        $this->check_snapshot_retention($types);
     }
 
     public function create_merge_snapshot($comment='')
     {
         global $wpdb;
+
+        $this->check_snapshot_retention();
 
         $snapshot_id = 'wp'.$this->create_snapshot_uid();
         $tables = $wpdb->get_results('SHOW TABLE STATUS');
@@ -117,39 +130,7 @@ class WPvivid_Snapshot_Function_Ex
 
     public function check_dev_snapshot()
     {
-        $snapshots=$this->options->get_option('wpvivid_snapshot');
-        $dev_snapshots=array();
-        foreach ($snapshots as $snapshot)
-        {
-            if($snapshot['type']=='dev')
-            {
-                $dev_snapshots[]=$snapshot;
-            }
-        }
-
-        $setting=$this->options->get_option('wpvivid_merge_setting');
-        $count=isset($setting['snapshot_retention'])?$setting['snapshot_retention']:6;
-        if(empty($count))
-        {
-            $count=6;
-        }
-
-        while(count($dev_snapshots)>=$count)
-        {
-            usort($dev_snapshots, function ($a, $b)
-            {
-                if ($a['time'] == $b['time'])
-                    return 0;
-
-                if ($a['time'] > $b['time'])
-                    return 1;
-                else
-                    return -1;
-            });
-
-            $dev_snapshot=array_shift($dev_snapshots);
-            $this->remove_snapshot($dev_snapshot['id']);
-        }
+        $this->check_snapshot_retention();
     }
 
     public function create_dev_snapshot($task_data)

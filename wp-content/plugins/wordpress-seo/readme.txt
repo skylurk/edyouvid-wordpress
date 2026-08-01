@@ -5,7 +5,7 @@ License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Tags: SEO, XML sitemap, Content analysis, Readability, Schema
 Tested up to: 7.0
-Stable tag: 27.9
+Stable tag: 28.1
 Requires PHP: 7.4
 
 Improve your SEO with real-time feedback, schema, and clear guidance. Upgrade for AI tools, Google Docs integration, and 24/7 support, no hidden fees.
@@ -303,52 +303,33 @@ Your question has most likely been answered on our help center: [yoast.com/help/
 
 == Changelog ==
 
-= 27.9 =
+= 28.1 =
 
-Release date: 2026-06-22
+Release date: 2026-07-21
 
-Yoast SEO 27.9 brings more enhancements and bugfixes. [Find more information about our software releases and updates here](https://yoa.st/releases).
-
-#### Enhancements
-
-* Improves the performance of the content analysis by reusing previously built HTML trees across assessor runs, related-keyphrase passes and research calls instead of rebuilding the tree for each.
-* Passes shortcodes to the Insights analysis data for more consistent analysis result across application.
-
-#### Bugfixes
-
-* Fixes a bug where the recently modified posts were fetched twice when using the Content Planner.
-
-#### Other
-
-* Adds the web-server family to the server data collected for opt-in tracking.
-
-= 27.8 =
-
-Release date: 2026-06-09
-
-Yoast SEO 27.8 brings more enhancements and bugfixes. [Find more information about our software releases and updates here](https://yoa.st/releases).
+Yoast SEO 28.1 redesigns the Bulk editor into a focused workspace with new search and status filters, so you can find and fix titles and meta descriptions across posts, pages, and custom post types in one place. [Read the full release post here](https://yoa.st/57c).
 
 #### Enhancements
 
-* Makes the schema aggregator faster by reducing database roundtrips when indexables are disabled.
-* Speeds up the SEO optimization analysis by cutting down the number of database queries it runs.
-* Optimizes resource-heavy database queries when performing actions on admin pages related to SEO optimization.
-* Reduces loading times of the root sitemap on sites with many users.
-* Reduces loading times of the author sitemap on sites with many users.
-* Prevents unnecessary database queries when someone visits an admin page.
+* Redesigns the bulk editor page, which allows users to edit Metadata for multiple posts at once.
+
+= 28.0 =
+
+Release date: 2026-07-06
+
+Yoast SEO now works smoothly with Elementor's version 4 release. [Read the full release post here](https://yoa.st/578).
+
+#### Enhancements
+
+* Improves the compatibility with the atomic editor in Elementor V4.
 
 #### Bugfixes
 
-* Ensures compatibility with the React 19 version bundled in Gutenberg 23.3 (WordPress 7.1), fixing several screens and components that could otherwise fail to render.
-* Fixes a bug where NaN became the Primary taxonomy and triggered a console error.
-* Fixes a bug where the dismiss button in the Webinar promo notice on the General page was transparent.
-* Improves post editor rendering performance by stabilizing Redux selector and `withSelect` references in multiple components to prevent unnecessary re-renders.
+* Fixes a bug where raw `type` and `id` attributes were written on a link instead of `data-type` and `data-id`, when the link was added by selecting a suggestion in the block editor link popover.
 
 #### Other
 
-* Introduces the `wpseo_custom_fields_pre_query` filter, letting sites skip the resource-heavy custom-fields lookup in Yoast settings by supplying a pre-computed list or a custom query.
-* Removes the Yoast group from the filter bar on the WordPress plugins list.
-* Sets the title of a child task to "(no title)" in the task list when the related post has no title.
+* Updates the guzzlehttp/guzzle and guzzlehttp/psr7 dependencies to patched releases that address known security advisories.
 
 = Earlier versions =
 For the changelog of earlier versions, please refer to [the changelog on yoast.com](https://yoa.st/yoast-seo-changelog).

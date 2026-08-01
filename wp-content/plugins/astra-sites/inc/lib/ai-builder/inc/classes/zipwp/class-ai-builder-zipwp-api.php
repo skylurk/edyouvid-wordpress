@@ -354,6 +354,18 @@ class Ai_Builder_ZipWP_Api {
 
 		register_rest_route(
 			$namespace,
+			'/restore-credit/',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'restore_credit' ),
+					'permission_callback' => array( $this, 'get_item_permissions_check' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			$namespace,
 			'/migration-status/',
 			array(
 				array(
@@ -378,10 +390,12 @@ class Ai_Builder_ZipWP_Api {
 							'required'          => false,
 							'sanitize_callback' => 'sanitize_text_field',
 						),
-						'keyword'       => array(
-							'type'              => 'string',
-							'sanitize_callback' => 'sanitize_text_field',
-							'required'          => false,
+						'keywords'      => array(
+							'type'     => 'array',
+							'required' => false,
+							'items'    => array(
+								'type' => 'string',
+							),
 						),
 						'page_builder'  => array(
 							'type'              => 'string',
@@ -880,7 +894,7 @@ class Ai_Builder_ZipWP_Api {
 			'images'                 => isset( $request['images'] ) ? $request['images'] : '',
 			'language'               => isset( $request['language'] ) ? $request['language'] : 'en',
 			'site_type'              => 'ai',
-			'site_source'            => apply_filters( 'ai_builder_site_source', 'starter-templates' ),
+			'site_source'            => self::get_site_source(),
 			'site_features'          => isset( $request['site_features'] ) ? $request['site_features'] : [],
 			'site_features_data'     => isset( $request['site_features_data'] ) ? $request['site_features_data'] : [],
 		);
@@ -1556,9 +1570,27 @@ class Ai_Builder_ZipWP_Api {
 			);
 		}
 
-		$keyword = isset( $request['keyword'] ) ? sanitize_text_field( $request['keyword'] ) : 'multipurpose';
+		$keywords = isset( $request['keywords'] ) && is_array( $request['keywords'] )
+			? array_map( 'sanitize_text_field', $request['keywords'] )
+			: array( 'multipurpose' );
+		$keyword  = implode(
+			',',
+			array_map(
+				'rawurlencode',
+				array_filter(
+					$keywords,
+					static function ( $item ) {
+						return '' !== $item;
+					}
+				)
+			)
+		);
 
-		$api_endpoint = $this->get_api_domain() . '/sites/templates/search?query=' . $keyword;
+		if ( '' === $keyword ) {
+			$keyword = 'multipurpose';
+		}
+
+		$api_endpoint = add_query_arg( 'query', $keyword, $this->get_api_domain() . '/sites/templates/search' );
 
 		$post_data = array(
 			'business_name' => isset( $request['business_name'] ) ? sanitize_text_field( $request['business_name'] ) : '',
@@ -2058,6 +2090,78 @@ class Ai_Builder_ZipWP_Api {
 	}
 
 	/**
+	 * Restore the AI credit consumed by a failed site generation.
+	 *
+	 * Proxies to the ZipWP manual restore endpoint. The response mirrors the
+	 * backend contract: a `status` of `not_eligible`, `already_restored` or
+	 * `restored_now` plus a user-facing `message`. Idempotent on the backend.
+	 *
+	 * @since 1.2.83
+	 * @param \WP_REST_Request $request Full details about the request.
+	 * @return mixed
+	 */
+	public function restore_credit( $request ) {
+		$nonce = (string) $request->get_header( 'X-WP-Nonce' );
+		// Verify the nonce.
+		if ( ! wp_verify_nonce( sanitize_text_field( $nonce ), 'wp_rest' ) ) {
+			wp_send_json_error(
+				array(
+					'data'   => __( 'Nonce verification failed.', 'astra-sites' ),
+					'status' => false,
+				)
+			);
+		}
+
+		$site = get_option( 'zipwp_import_site_details', array() );
+		$uuid = is_array( $site ) && ! empty( $site['uuid'] ) ? $site['uuid'] : '';
+
+		if ( empty( $uuid ) ) {
+			wp_send_json_error(
+				array(
+					'data'   => __( 'Site not found.', 'astra-sites' ),
+					'status' => false,
+				)
+			);
+		}
+
+		$api_endpoint = $this->get_api_domain( false ) . '/sites/' . $uuid . '/restore-credit/';
+		$request_args = array(
+			'headers' => $this->get_api_headers(),
+			'timeout' => 100,
+		);
+		$response     = wp_safe_remote_post( $api_endpoint, $request_args );
+
+		if ( is_wp_error( $response ) ) {
+			wp_send_json_error(
+				array(
+					'data'   => 'Failed ' . $response->get_error_message(),
+					'status' => false,
+				)
+			);
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+		$response_data = json_decode( $response_body, true );
+
+		if ( 200 === $response_code && $response_data ) {
+			wp_send_json_success(
+				array(
+					'data'   => $response_data,
+					'status' => true,
+				)
+			);
+		} else {
+			wp_send_json_error(
+				array(
+					'data'   => $response_data,
+					'status' => false,
+				)
+			);
+		}
+	}
+
+	/**
 	 * Get Migration Status.
 	 *
 	 * @param \WP_REST_Request $request Full details about the request.
@@ -2159,6 +2263,23 @@ class Ai_Builder_ZipWP_Api {
 		);
 		return is_array( $token_details ) && isset( $token_details['email'] ) ? $token_details['email'] : '';
 	}
+
+	/**
+	 * Get the site source sent with ZipWP requests.
+	 *
+	 * @since 1.2.85
+	 * @return string
+	 */
+	public static function get_site_source() {
+		/**
+		 * Filter the site source sent with ZipWP requests.
+		 *
+		 * @param string $source The site source. Default 'starter-templates'.
+		 * @since 1.2.85
+		 */
+		return apply_filters( 'ai_builder_site_source', 'starter-templates' );
+	}
+
 	/**
 	 * Record step.
 	 *
@@ -2184,6 +2305,7 @@ class Ai_Builder_ZipWP_Api {
 			'current_step'      => isset( $request['current_step'] ) ? absint( $request['current_step'] ) : 0,
 			'current_step_name' => isset( $request['current_step_name'] ) ? sanitize_text_field( $request['current_step_name'] ) : '',
 			'email'             => $this->get_zip_user_email(),
+			'source'            => self::get_site_source(),
 		];
 
 		$body = wp_json_encode( $post_data );

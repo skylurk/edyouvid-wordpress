@@ -160,19 +160,63 @@ class Group_Management_Seat_Handler {
 			return $seats_remaining;
 		}
 
-		// If group leaders don't use seats, calculate remaining seats based on user count instead of database
-		if ( 'yes' === (string) get_option( 'group_leaders_dont_use_seats', 'no' ) ) {
-			$total_seats     = $this->total_seats( $ld_group_id );
-			$enrolled_seats  = ulgm()->group_management->count_users_enrolled_in_group_for_seats( $ld_group_id ) + ulgm()->group_management->users_invited_in_group( $ld_group_id );
-			$seats_remaining = max( 0, $total_seats - $enrolled_seats );
-		} else {
-			// Use database count when group leaders do use seats
+		// Always use the mathematical formula: Total - (Enrolled + Invited + Deleted).
+		// count_users_enrolled_in_group_for_seats() handles group leader filtering internally,
+		// and correctly expands to the full hierarchy when called with the parent group,
+		// which fixes pooled seat counts across all child groups.
+		$total_seats   = $this->total_seats( $ld_group_id );
+		$real_group_id = $this->get_real_ld_group_id( $ld_group_id );
+
+		$enrolled_seats = ulgm()->group_management->count_users_enrolled_in_group_for_seats( $real_group_id );
+
+		// For pooled hierarchies, count invites across the entire pool (no ld_group_id filter).
+		// For standalone groups, use the per-group invited count.
+		if ( $real_group_id !== $ld_group_id || ( SharedFunctions::is_a_parent_group( $ld_group_id ) && SharedFunctions::is_pool_seats_enabled_for_current_parent_group( $ld_group_id, false ) ) ) {
 			global $wpdb;
-			$qry             = $wpdb->prepare( 'SELECT COUNT(ID) AS remaining FROM ' . $wpdb->prefix . ulgm()->db->tbl_group_codes . ' WHERE student_id IS NULL AND user_email IS NULL AND group_id = %d', $group_id );
-			$seats_remaining = $wpdb->get_var( $qry );
+			$qry           = $wpdb->prepare(
+				'SELECT COUNT(ID) FROM ' . $wpdb->prefix . ulgm()->db->tbl_group_codes . ' WHERE student_id IS NULL AND user_email IS NOT NULL AND code_status = %s AND group_id = %d',
+				SharedFunctions::$not_redeemed_status,
+				$group_id
+			);
+			$invited_seats = absint( $wpdb->get_var( $qry ) );
+		} else {
+			$invited_seats = ulgm()->group_management->users_invited_in_group( $ld_group_id );
 		}
 
+		$deleted_seats = 0;
+		if ( true === apply_filters( 'ulgm_add_deleted_seats_to_tota_count', true, $ld_group_id ) ) {
+			$deleted_seats = $this->deleted_seats( $ld_group_id );
+		}
+
+		$seats_remaining = max( 0, $total_seats - ( $enrolled_seats + $invited_seats + $deleted_seats ) );
+
 		return absint( $seats_remaining );
+	}
+
+	/**
+	 * Get actual user IDs in the LearnDash group
+	 *
+	 * @param int $ld_group_id
+	 *
+	 * @return array
+	 */
+	private function get_group_user_ids( $ld_group_id ) {
+		$users = learndash_get_groups_users( $ld_group_id, true );
+
+		if ( ( SharedFunctions::is_a_parent_group( $ld_group_id ) || SharedFunctions::has_children_in_group( $ld_group_id ) ) && SharedFunctions::is_pool_seats_enabled_for_current_parent_group( $ld_group_id, false ) ) {
+			$group_children = learndash_get_group_children( $ld_group_id );
+			$children_users = array();
+			if ( ! empty( $group_children ) ) {
+				foreach ( $group_children as $child_group_id ) {
+					$children_users = array_merge( $children_users, learndash_get_groups_users( $child_group_id, true ) );
+				}
+			}
+			$users = array_merge( $children_users, $users );
+		}
+
+		$user_ids = array_unique( array_column( $users, 'ID' ) );
+
+		return array_map( 'absint', $user_ids );
 	}
 
 	/**
@@ -221,18 +265,38 @@ class Group_Management_Seat_Handler {
 			);
 		}
 
-		$fetch_code_count = $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(code) AS available FROM ' . $wpdb->prefix . SharedFunctions::$db_group_codes_tbl . ' WHERE group_id = %d AND student_id IS NULL LIMIT %d', $code_group_id, $to_remove ) );
+		// Business rule: partial refunds can only consume free seats; pending invited ("Not enrolled") seats stay reserved.
+		$is_full_refund   = absint( $to_remove ) === absint( $existing_seats );
+		$where_conditions = ' WHERE group_id = %d AND student_id IS NULL';
+		$query_args       = array( $code_group_id, $to_remove );
+
+		if ( ! $is_full_refund ) {
+			$where_conditions .= ' AND user_email IS NULL AND code_status = %s';
+			$query_args       = array( $code_group_id, SharedFunctions::$available_status, $to_remove );
+		}
+
+		$fetch_code_count = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(code) AS available FROM ' . $wpdb->prefix . SharedFunctions::$db_group_codes_tbl . $where_conditions . ' LIMIT %d',
+				$query_args
+			)
+		);
 
 		// If to remove is more than available seats OR total seats != to remove (full refund)
-		if ( empty( $fetch_code_count ) || ( $fetch_code_count < $to_remove ) && absint( $to_remove ) !== absint( $existing_seats ) ) {
+		if ( empty( $fetch_code_count ) || ( ( $fetch_code_count < $to_remove ) && absint( $to_remove ) !== absint( $existing_seats ) ) ) {
 			return array(
 				'result'  => false,
 				'message' => sprintf( __( 'Uncanny Groups &mdash; Unable to remove %1$s from the %2$s. Available count is less than %3$d.', 'uncanny-learndash-groups' ), $per_seat_text, $group_title, $to_remove ),
 			);
 		}
 
-		//difference seats are empty, lets delete them;
-		$wpdb->query( $wpdb->prepare( 'DELETE FROM ' . $wpdb->prefix . SharedFunctions::$db_group_codes_tbl . ' WHERE group_id = %d AND student_id IS NULL LIMIT %d', $code_group_id, $to_remove ) );
+		// Remove seats from the same filtered subset used in validation.
+		$wpdb->query(
+			$wpdb->prepare(
+				'DELETE FROM ' . $wpdb->prefix . SharedFunctions::$db_group_codes_tbl . $where_conditions . ' LIMIT %d',
+				$query_args
+			)
+		);
 
 		update_post_meta( $ld_group_id, '_ulgm_total_seats', $existing_seats - $to_remove );
 

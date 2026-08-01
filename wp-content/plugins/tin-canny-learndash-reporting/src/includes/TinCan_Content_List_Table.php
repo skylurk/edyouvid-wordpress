@@ -157,6 +157,7 @@ class TinCan_Content_List_Table extends \WP_List_Table {
 				$user       = wp_get_current_user();
 				$user_data  = is_a( $user, 'WP_User' ) && isset( $user->data ) ? $user->data : false;
 				$user_name  = $user_data && isset( $user_data->display_name ) ? $user_data->display_name : 'Unknown';
+				$user_name  = apply_filters( 'uo_tincanny_actor_name', $user_name, $user );
 				$user_name  = str_replace( array( '"', "'" ), array( '', '' ), $user_name );
 				$user_email = $user_data && isset( $user_data->user_email ) ? $user_data->user_email : 'Unknown@anonymous.com';
 				$user_email = apply_filters( 'uo_tincanny_actor_mbox', $user_email, $user );

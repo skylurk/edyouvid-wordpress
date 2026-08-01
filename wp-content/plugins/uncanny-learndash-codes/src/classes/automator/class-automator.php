@@ -1,6 +1,7 @@
 <?php
 
 namespace uncanny_learndash_codes;
+
 use WP_Post;
 
 /**
@@ -21,7 +22,7 @@ class Automator extends Config {
 	/**
 	 * If Automator is active and the code-for is Automator,
 	 * generate a query that redirect to Automator recipe page
-	 * which will add Uncanny Codes trigger with Batch pre-selected.
+	 * which will add Uncanny Redemption Codes trigger with Batch pre-selected.
 	 *
 	 * @param $url
 	 * @param $group_id

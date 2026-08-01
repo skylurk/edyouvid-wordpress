@@ -114,8 +114,8 @@ $learndash_posts = (object) array(
 
 ?>
 
-<div class="uo-ulc-admin wrap">
-	<div class="ulc">
+<div class="uo-ulc-admin wrap uncannyowl-default-design">
+	<div class="ulc uncannyowl-default-design">
 
 		<?php
 

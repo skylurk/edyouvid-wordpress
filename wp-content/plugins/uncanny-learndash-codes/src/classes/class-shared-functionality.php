@@ -203,6 +203,12 @@ class SharedFunctionality {
 				case 'existing';
 					$return = Config::$already_redeemed;
 					break;
+				case 'existing_course';
+					$return = Config::$already_redeemed_existing_course;
+					break;
+				case 'existing_group';
+					$return = Config::$already_redeemed_existing_group;
+					break;
 				default;
 				case 'invalid';
 					$return = Config::$invalid_code;
@@ -219,5 +225,64 @@ class SharedFunctionality {
 		}
 
 		return $return;
+	}
+
+	/**
+	 * Fetch Uncanny Owl SVG icon and convert to data URI
+	 *
+	 * @param int $timeout Request timeout in seconds (default: 5)
+	 *
+	 * @return string Data URI string or empty string on failure
+	 */
+	public static function get_svg_data_uri( $timeout = 5 ) {
+		// Build the SVG URL using the static assets URL
+		if ( ! defined( 'UNCANNY_OWL_ASSETS_STATIC_URL' ) ) {
+			return '';
+		}
+
+		$svg_url = UNCANNY_OWL_ASSETS_STATIC_URL . '/img/uncannyowl-eye-mono.svg';
+
+		// Determine if we should verify SSL based on filter or constant
+		$sslverify = self::should_verify_ssl();
+
+		$svg_content = wp_remote_get(
+			$svg_url,
+			array(
+				'timeout'   => $timeout,
+				'sslverify' => $sslverify,
+			)
+		);
+
+		if ( is_wp_error( $svg_content ) ) {
+			return '';
+		}
+
+		$svg_body = wp_remote_retrieve_body( $svg_content );
+		if ( empty( $svg_body ) ) {
+			return '';
+		}
+
+		return 'data:image/svg+xml;base64,' . base64_encode( $svg_body );
+	}
+
+	/**
+	 * Determine if SSL should be verified based on filter or constant
+	 *
+	 * @return bool True to verify SSL, false to skip verification
+	 */
+	public static function should_verify_ssl() {
+		// Allow filtering via WordPress filter (universal across all plugins)
+		$sslverify = apply_filters( 'uncanny_owl_disable_ssl_verify', null );
+		if ( null !== $sslverify ) {
+			return ! $sslverify; // Filter returns true to disable, so invert
+		}
+
+		// Check if explicitly disabled via wp-config.php constant (universal across all plugins)
+		if ( defined( 'UNCANNY_OWL_DISABLE_SSL_VERIFY' ) && true === \UNCANNY_OWL_DISABLE_SSL_VERIFY ) {
+			return false;
+		}
+
+		// Default to verifying SSL for production environments
+		return true;
 	}
 }

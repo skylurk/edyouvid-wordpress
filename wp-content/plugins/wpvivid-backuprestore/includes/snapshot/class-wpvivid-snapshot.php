@@ -51,6 +51,7 @@ class WPvivid_Snapshot_Ex
             add_action('wp_ajax_wpvivid_restore_snapshot',array( $this,'restore_snapshot'));
             add_action('wp_ajax_wpvivid_get_restore_snapshot_status',array( $this,'get_restore_snapshot_status'));
             add_action('wp_ajax_wpvivid_delete_snapshot',array( $this,'delete_snapshot'));
+            add_action('wp_ajax_wpvivid_get_snapshots_list',array( $this,'get_snapshots_list'));
 
             add_filter('wpvivid_check_create_snapshot',array($this,'check_create_snapshot'));
             add_action('wpvivid_create_snapshot',array($this,'create_snapshot_ex'),10,1);
@@ -1093,6 +1094,58 @@ class WPvivid_Snapshot_Ex
                     jQuery('#wpvivid_delete_snapshots_action').css({'pointer-events': 'auto', 'opacity': '1'});
                 });
             }
+
+            function wpvivid_get_snapshots_list(page_num)
+            {
+                var ajax_data= {
+                    'action': 'wpvivid_get_snapshots_list',
+                    'page_num': page_num
+                };
+                wpvivid_post_request(ajax_data, function(data)
+                {
+                    var jsonarray = jQuery.parseJSON(data);
+                    if (jsonarray.result === 'success')
+                    {
+                        jQuery('#wpvivid_snapshots_list').html(jsonarray.html);
+                    }
+                    else
+                    {
+                        alert(jsonarray.error);
+                    }
+                }, function(XMLHttpRequest, textStatus, errorThrown)
+                {
+                    alert('Retrieving the snapshot list failed.');
+                });
+            }
+
+            jQuery('#wpvivid_snapshots_list').on("click",'.first-page',function()
+            {
+                wpvivid_get_snapshots_list('first');
+            });
+
+            jQuery('#wpvivid_snapshots_list').on("click",'.prev-page',function()
+            {
+                var page_num=parseInt(jQuery(this).attr('value'),10)-1;
+                wpvivid_get_snapshots_list(page_num);
+            });
+
+            jQuery('#wpvivid_snapshots_list').on("click",'.next-page',function()
+            {
+                var page_num=parseInt(jQuery(this).attr('value'),10)+1;
+                wpvivid_get_snapshots_list(page_num);
+            });
+
+            jQuery('#wpvivid_snapshots_list').on("click",'.last-page',function()
+            {
+                wpvivid_get_snapshots_list('last');
+            });
+
+            jQuery('#wpvivid_snapshots_list').on("keypress", '.current-page', function(){
+                if(event.keyCode === 13){
+                    var page = jQuery(this).val();
+                    wpvivid_get_snapshots_list(page);
+                }
+            });
         </script>
         <?php
     }
@@ -1422,6 +1475,42 @@ class WPvivid_Snapshot_Ex
             $ret['finished']=$finished;
         }
 
+        echo wp_json_encode($ret);
+        die();
+    }
+
+
+    public function get_snapshots_list()
+    {
+        check_ajax_referer( 'wpvivid_ajax', 'nonce' );
+        $check=current_user_can('manage_options');
+        $check=apply_filters('wpvivid_ajax_check_security',$check);
+        if(!$check)
+        {
+            die();
+        }
+
+        $page_num=isset($_POST['page_num']) ? sanitize_text_field($_POST['page_num']) : 1;
+        if(!in_array($page_num, array('first','last'), true))
+        {
+            $page_num=absint($page_num);
+            if($page_num<1)
+            {
+                $page_num=1;
+            }
+        }
+
+        $snapshot=new WPvivid_Snapshot_Function_Ex();
+        $snapshot_data=$snapshot->get_snapshots();
+        $Snapshots_list = new WPvivid_Snapshots_List_Ex();
+        $Snapshots_list->set_list($snapshot_data,$page_num);
+        $Snapshots_list->prepare_items();
+        ob_start();
+        $Snapshots_list->display();
+        $html = ob_get_clean();
+
+        $ret['result']='success';
+        $ret['html']=$html;
         echo wp_json_encode($ret);
         die();
     }

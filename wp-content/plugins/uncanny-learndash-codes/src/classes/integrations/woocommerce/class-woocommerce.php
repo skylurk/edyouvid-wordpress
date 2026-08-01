@@ -88,17 +88,24 @@ class Woocommerce extends Config {
 			// Lets apply coupon and assign user to appropriate group!
 			add_action( 'woocommerce_order_status_completed', array( __CLASS__, 'so_payment_complete' ) );
 
-			if ( is_multisite() ) {
-				self::$label       = get_blog_option( get_current_blog_id(), Config::$uncanny_codes_settings_gravity_forms_label, esc_html__( 'Enter Registration Code', 'uncanny-learndash-codes' ) );
-				self::$error       = get_blog_option( get_current_blog_id(), Config::$uncanny_codes_settings_gravity_forms_error, esc_html__( 'This field is mandatory', 'uncanny-learndash-codes' ) );
-				self::$placeholder = get_blog_option( get_current_blog_id(), Config::$uncanny_codes_settings_gravity_forms_placeholder, esc_html__( 'Enter Code', 'uncanny-learndash-codes' ) );
-			} else {
-				self::$label       = get_option( Config::$uncanny_codes_settings_gravity_forms_label, esc_html__( 'Enter Registration Code', 'uncanny-learndash-codes' ) );
-				self::$error       = get_option( Config::$uncanny_codes_settings_gravity_forms_error, esc_html__( 'This field is mandatory', 'uncanny-learndash-codes' ) );
-				self::$placeholder = get_option( Config::$uncanny_codes_settings_gravity_forms_placeholder, esc_html__( 'Enter Code', 'uncanny-learndash-codes' ) );
-			}
+			add_action(
+				'before_woocommerce_init',
+				array( __CLASS__, 'init_static_vars' )
+			);
 		}
 
+	}
+
+	public static function init_static_vars() {
+		if ( is_multisite() ) {
+			self::$label       = get_blog_option( get_current_blog_id(), Config::$uncanny_codes_settings_gravity_forms_label, esc_html__( 'Enter Registration Code', 'uncanny-learndash-codes' ) );
+			self::$error       = get_blog_option( get_current_blog_id(), Config::$uncanny_codes_settings_gravity_forms_error, esc_html__( 'This field is mandatory', 'uncanny-learndash-codes' ) );
+			self::$placeholder = get_blog_option( get_current_blog_id(), Config::$uncanny_codes_settings_gravity_forms_placeholder, esc_html__( 'Enter Code', 'uncanny-learndash-codes' ) );
+		} else {
+			self::$label       = get_option( Config::$uncanny_codes_settings_gravity_forms_label, esc_html__( 'Enter Registration Code', 'uncanny-learndash-codes' ) );
+			self::$error       = get_option( Config::$uncanny_codes_settings_gravity_forms_error, esc_html__( 'This field is mandatory', 'uncanny-learndash-codes' ) );
+			self::$placeholder = get_option( Config::$uncanny_codes_settings_gravity_forms_placeholder, esc_html__( 'Enter Code', 'uncanny-learndash-codes' ) );
+		}
 	}
 
 	/**
@@ -341,7 +348,7 @@ class Woocommerce extends Config {
 				self::$coupon_id = intval( $coupon_id );
 			}
 			if ( intval( self::$coupon_id ) ) {
-				update_user_meta( $user_id, Config::$uncanny_codes_tracking, esc_html__( 'Woocommerce', 'uncanny-learndash-codes' ) );
+				update_user_meta( $user_id, Config::$uncanny_codes_tracking, 'WooCommerce' );
 
 				$result = Database::set_user_to_coupon( $user_id, self::$coupon_id );
 				LearnDash::set_user_to_course_or_group( $user_id, $result );

@@ -593,6 +593,40 @@ abstract class TinCanRequest {
 	}
 
 	/**
+	 * Resolve display text from an xAPI interaction component description (language map).
+	 *
+	 * Matching and likert parsing used only the "und" key. Articulate Storyline
+	 * multi-language packages typically use locale keys (en-US, fr-FR, etc.) and
+	 * omit "und", which produced empty labels in the xAPI Quiz Report.
+	 *
+	 * @param mixed $description Language map array, string, or null.
+	 * @return string
+	 */
+	private function get_interaction_description_string( $description ) {
+		if ( is_string( $description ) ) {
+			$trimmed = trim( $description );
+
+			return ! empty( $trimmed ) ? $trimmed : '';
+		}
+		if ( ! is_array( $description ) || empty( $description ) ) {
+			return '';
+		}
+		if ( isset( $description['und'] ) ) {
+			$und = trim( (string) $description['und'] );
+			if ( ! empty( $und ) ) {
+				return $und;
+			}
+		}
+		foreach ( $description as $value ) {
+			if ( is_string( $value ) && ! empty( trim( $value ) ) ) {
+				return trim( $value );
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * @return array
 	 */
 	private function parse_responses() {
@@ -678,8 +712,9 @@ abstract class TinCanRequest {
 			$sources = $activity_defination->getSource();
 			if ( ! empty( $sources ) ) {
 				foreach ( $sources as $source ) {
-					$available_sources[ $source['id'] ]     = $source['description']['und'];
-					$available_responses_string['source'][] = $source['description']['und'];
+					$label                                   = $this->get_interaction_description_string( isset( $source['description'] ) ? $source['description'] : null );
+					$available_sources[ $source['id'] ]     = $label;
+					$available_responses_string['source'][] = $label;
 				}
 			}
 		}
@@ -689,8 +724,9 @@ abstract class TinCanRequest {
 
 			if ( ! empty( $targets ) ) {
 				foreach ( $targets as $target ) {
-					$available_sources[ $target['id'] ]     = $target['description']['und'];
-					$available_responses_string['target'][] = $target['description']['und'];
+					$label                                   = $this->get_interaction_description_string( isset( $target['description'] ) ? $target['description'] : null );
+					$available_sources[ $target['id'] ]     = $label;
+					$available_responses_string['target'][] = $label;
 				}
 			}
 		}
@@ -823,9 +859,16 @@ abstract class TinCanRequest {
 		if ( ! is_null( $activity_defination->getScale() ) ) {
 			$sources = $activity_defination->getScale();
 			if ( ! empty( $sources ) ) {
+				$scale_choice_parts = array();
 				foreach ( $sources as $source ) {
-					$available_sources[ $source['id'] ] = $source['description']['und'];
-					$available_responses_string         .= ( '' !== $available_responses_string ? ',' : '' ) . $source['description']['und'];
+					$label                              = $this->get_interaction_description_string( isset( $source['description'] ) ? $source['description'] : null );
+					$available_sources[ $source['id'] ] = $label;
+					if ( '' !== $label ) {
+						$scale_choice_parts[] = $label;
+					}
+				}
+				if ( ! empty( $scale_choice_parts ) ) {
+					$available_responses_string = implode( ',', $scale_choice_parts );
 				}
 			}
 		}
@@ -834,10 +877,12 @@ abstract class TinCanRequest {
 			$correct_response_string = '';
 			$correct_response        = $activity_defination->getCorrectResponsesPattern();
 
-			if ( ! empty( $available_sources ) ) {
+			if ( is_array( $correct_response ) && ! empty( $correct_response ) ) {
+				$correct_response = $correct_response[0];
+			}
 
+			if ( ! empty( $available_sources ) && is_string( $correct_response ) && isset( $available_sources[ $correct_response ] ) ) {
 				$correct_response_string = $available_sources[ $correct_response ];
-
 			}
 
 			$correct_response = $correct_response_string;
@@ -846,7 +891,7 @@ abstract class TinCanRequest {
 		if ( ! is_null( $this->TC_Result->getResponse() ) ) {
 			$user_response        = $this->TC_Result->getResponse();
 			$user_response_string = '';
-			if ( ! empty( $user_response ) ) {
+			if ( ! empty( $user_response ) && ! empty( $available_sources ) && isset( $available_sources[ $user_response ] ) ) {
 				$user_response_string = $available_sources[ $user_response ];
 			}
 			if ( ! empty( $user_response_string ) ) {

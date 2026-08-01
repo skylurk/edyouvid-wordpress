@@ -447,8 +447,9 @@ class Group_Management_DB_Handler {
 			$users = array_merge( $children_users, $users );
 		}
 
-		// Filter out group leaders if they don't use seats
-		if ( 'yes' === (string) get_option( 'group_leaders_dont_use_seats', 'no' ) ) {
+		// Count leaders toward seats unless "Group Leaders don't use seats" is on. Use 'seats' only — not the
+		// helper default — so "Do not automatically add Group Leaders as Group Members" does not change this number.
+		if ( SharedFunctions::group_leaders_dont_use_seats( 'seats' ) ) {
 			$filtered_users = array();
 			foreach ( $users as $user ) {
 				if ( ! user_can( $user, 'group_leader' ) ) {
@@ -736,6 +737,8 @@ ON c.group_id = g.ID AND c.code = %s",
 										used_date = NULL,
 										student_id = NULL,
 										user_email = NULL,
+										first_name = NULL,
+										last_name = NULL,
 										ld_group_id = NULL
 										WHERE code = %s',
 					$new_code,
@@ -981,6 +984,14 @@ WHERE c.student_id = %d $limit",
 		);
 
 		$code = $wpdb->get_col( $sql );
+
+		if ( empty( $code ) ) {
+			// No available codes — free group leader codes (if setting on) and orphaned codes, then retry.
+			Group_Management_Helpers::purge_orphaned_codes( (int) $codes_group_id );
+			Group_Management_Helpers::free_group_leader_codes_for_group( (int) $group_id );
+			$code = $wpdb->get_col( $sql );
+		}
+
 		if ( empty( $code ) ) {
 			return false;
 		}

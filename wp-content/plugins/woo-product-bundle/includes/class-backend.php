@@ -104,8 +104,8 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
 
         function admin_menu_content() {
             add_thickbox();
-            $active_tab     = sanitize_key( $_GET['tab'] ?? 'settings' );
-            $active_section = sanitize_key( $_GET['section'] ?? 'none' );
+            $active_tab     = sanitize_key( wp_unslash( $_GET['tab'] ?? 'settings' ) );
+            $active_section = sanitize_key( wp_unslash( $_GET['section'] ?? 'none' ) );
             $settings_class = 'wpclever_settings_page_content wpclever_settings_tab_' . $active_tab . ' wpclever_settings_section_' . $active_section;
             ?>
             <div class="wpclever_settings_page wrap">
@@ -131,7 +131,7 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
                     </div>
                 </div>
                 <h2></h2>
-                <?php if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] ) { ?>
+                <?php if ( isset( $_GET['settings-updated'] ) && sanitize_text_field( wp_unslash( $_GET['settings-updated'] ?? '' ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
                     <div class="notice notice-success is-dismissible">
                         <p><?php esc_html_e( 'Settings updated.', 'woo-product-bundle' ); ?></p>
                     </div>
@@ -824,7 +824,7 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
                                         <label>
                                             <input type="text" name="woosb_localization[choose]" class="regular-text"
                                                    value="<?php echo esc_attr( $this->helper->localization( 'choose' ) ); ?>"
-                                                   placeholder="<?php /* translators: attribute name */
+                                                   placeholder="<?php /* translators: %s is the attribute name */
                                                    esc_attr_e( 'Choose %s', 'woo-product-bundle' ); ?>"/> </label>
                                         <span class="description"><?php /* translators: attribute name */
                                             esc_html_e( 'Use %s to show the attribute name.', 'woo-product-bundle' ); ?></span>
@@ -918,26 +918,28 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th><?php /* translators: bundled products */
+                                    <th><?php /* translators: %s is the product list */
                                         esc_html_e( 'Bundled products: %s', 'woo-product-bundle' ); ?></th>
                                     <td>
                                         <label>
                                             <input type="text" name="woosb_localization[bundled_products_s]"
-                                                   class="large-text" value="<?php /* translators: bundled products */
+                                                   class="large-text" value="<?php /* translators: %s is the product list */
                                             echo esc_attr( $this->helper->localization( 'bundled_products_s' ) ); ?>"
-                                                   placeholder="<?php esc_attr_e( 'Bundled products: %s', 'woo-product-bundle' ); ?>"/>
+                                                   placeholder="<?php /* translators: %s is the product list */
+                                                   esc_attr_e( 'Bundled products: %s', 'woo-product-bundle' ); ?>"/>
                                         </label>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th><?php /* translators: bundled in */
+                                    <th><?php /* translators: %s is the parent bundle name */
                                         esc_html_e( 'Bundled in: %s', 'woo-product-bundle' ); ?></th>
                                     <td>
                                         <label>
                                             <input type="text" name="woosb_localization[bundled_in_s]"
-                                                   class="large-text" value="<?php /* translators: bundled in */
+                                                   class="large-text" value="<?php /* translators: %s is the parent bundle name */
                                             echo esc_attr( $this->helper->localization( 'bundled_in_s' ) ); ?>"
-                                                   placeholder="<?php esc_attr_e( 'Bundled in: %s', 'woo-product-bundle' ); ?>"/>
+                                                   placeholder="<?php /* translators: %s is the parent bundle name */
+                                                   esc_attr_e( 'Bundled in: %s', 'woo-product-bundle' ); ?>"/>
                                         </label>
                                     </td>
                                 </tr>
@@ -1069,8 +1071,8 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
                                     <?php esc_html_e( 'If you have updated WPC Product Bundles from a version before 7.0.0, please run the Migrate tool once.', 'woo-product-bundle' ); ?>
                                     <?php
                                     echo '<p>';
-                                    $num   = absint( $_GET['num'] ?? 50 );
-                                    $paged = absint( $_GET['paged'] ?? 1 );
+                                    $num   = absint( wp_unslash( $_GET['num'] ?? 50 ) );
+                                    $paged = absint( wp_unslash( $_GET['paged'] ?? 1 ) );
 
                                     if ( isset( $_GET['act'] ) && ( $_GET['act'] === 'migrate' ) ) {
                                         $args = [
@@ -1180,31 +1182,31 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
         }
 
         function ajax_update_search_settings() {
-            if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['nonce'] ), 'woosb-security' ) || ! current_user_can( 'manage_options' ) ) {
+            if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['nonce'] ) ), 'woosb-security' ) || ! current_user_can( 'manage_options' ) ) {
                 die( 'Permissions check failed!' );
             }
 
             $settings                      = (array) get_option( 'woosb_settings', [] );
-            $settings['search_limit']      = (int) sanitize_text_field( $_POST['limit'] );
-            $settings['search_sku']        = sanitize_text_field( $_POST['sku'] );
-            $settings['search_id']         = sanitize_text_field( $_POST['id'] );
-            $settings['search_exact']      = sanitize_text_field( $_POST['exact'] );
-            $settings['search_sentence']   = sanitize_text_field( $_POST['sentence'] );
-            $settings['search_same']       = sanitize_text_field( $_POST['same'] );
-            $settings['search_show_image'] = sanitize_text_field( $_POST['show_image'] );
-            $settings['search_types']      = array_map( 'sanitize_text_field', (array) $_POST['types'] );
+            $settings['search_limit']      = (int) sanitize_text_field( wp_unslash( $_POST['limit'] ?? '' ) );
+            $settings['search_sku']        = sanitize_text_field( wp_unslash( $_POST['sku'] ?? '' ) );
+            $settings['search_id']         = sanitize_text_field( wp_unslash( $_POST['id'] ?? '' ) );
+            $settings['search_exact']      = sanitize_text_field( wp_unslash( $_POST['exact'] ?? '' ) );
+            $settings['search_sentence']   = sanitize_text_field( wp_unslash( $_POST['sentence'] ?? '' ) );
+            $settings['search_same']       = sanitize_text_field( wp_unslash( $_POST['same'] ?? '' ) );
+            $settings['search_show_image'] = sanitize_text_field( wp_unslash( $_POST['show_image'] ?? '' ) );
+            $settings['search_types']      = array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['types'] ?? [] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
             update_option( 'woosb_settings', $settings );
             wp_die();
         }
 
         function ajax_get_search_results() {
-            if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['nonce'] ), 'woosb-security' ) ) {
+            if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['nonce'] ) ), 'woosb-security' ) ) {
                 die( 'Permissions check failed!' );
             }
 
-            $keyword   = sanitize_text_field( $_POST['keyword'] );
-            $added_ids = explode( ',', $this->helper->clean_ids( $_POST['ids'] ) );
+            $keyword   = sanitize_text_field( wp_unslash( $_POST['keyword'] ?? '' ) );
+            $added_ids = explode( ',', $this->helper->clean_ids( wp_unslash( $_POST['ids'] ?? '' ) ) );
             $types     = $this->helper->get_setting( 'search_types', [ 'all' ] );
 
             if ( ( $this->helper->get_setting( 'search_id', 'no' ) === 'yes' ) && is_numeric( $keyword ) ) {
@@ -1334,7 +1336,7 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
             if ( $product->get_meta( 'woosb_ids' ) ) {
                 $ids = $product->get_meta( 'woosb_ids' );
             } elseif ( isset( $_GET['woosb_ids'] ) ) {
-                $ids = implode( ',', explode( '.', sanitize_text_field( $_GET['woosb_ids'] ) ) );
+                $ids = implode( ',', explode( '.', sanitize_text_field( wp_unslash( $_GET['woosb_ids'] ?? '' ) ) ) );
             } else {
                 $ids = '';
             }
@@ -1778,7 +1780,7 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
 
         function process_product_meta_woosb( $post_id ) {
             if ( isset( $_POST['woosb_ids'] ) ) {
-                update_post_meta( $post_id, 'woosb_ids', $this->helper->sanitize_array( $_POST['woosb_ids'] ) );
+                update_post_meta( $post_id, 'woosb_ids', $this->helper->sanitize_array( wp_unslash( $_POST['woosb_ids'] ?? '' ) ) );
             } else {
                 delete_post_meta( $post_id, 'woosb_ids' );
             }
@@ -1790,19 +1792,19 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
             }
 
             if ( isset( $_POST['woosb_discount'] ) ) {
-                update_post_meta( $post_id, 'woosb_discount', sanitize_text_field( $_POST['woosb_discount'] ) );
+                update_post_meta( $post_id, 'woosb_discount', sanitize_text_field( wp_unslash( $_POST['woosb_discount'] ?? '' ) ) );
             } else {
                 update_post_meta( $post_id, 'woosb_discount', 0 );
             }
 
             if ( isset( $_POST['woosb_discount_amount'] ) ) {
-                update_post_meta( $post_id, 'woosb_discount_amount', sanitize_text_field( $_POST['woosb_discount_amount'] ) );
+                update_post_meta( $post_id, 'woosb_discount_amount', sanitize_text_field( wp_unslash( $_POST['woosb_discount_amount'] ?? '' ) ) );
             } else {
                 update_post_meta( $post_id, 'woosb_discount_amount', 0 );
             }
 
             if ( isset( $_POST['woosb_shipping_fee'] ) ) {
-                update_post_meta( $post_id, 'woosb_shipping_fee', sanitize_text_field( $_POST['woosb_shipping_fee'] ) );
+                update_post_meta( $post_id, 'woosb_shipping_fee', sanitize_text_field( wp_unslash( $_POST['woosb_shipping_fee'] ?? '' ) ) );
             }
 
             if ( isset( $_POST['woosb_manage_stock'] ) ) {
@@ -1812,11 +1814,11 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
             }
 
             if ( isset( $_POST['woosb_limit_whole_min'] ) ) {
-                update_post_meta( $post_id, 'woosb_limit_whole_min', sanitize_text_field( $_POST['woosb_limit_whole_min'] ) );
+                update_post_meta( $post_id, 'woosb_limit_whole_min', sanitize_text_field( wp_unslash( $_POST['woosb_limit_whole_min'] ?? '' ) ) );
             }
 
             if ( isset( $_POST['woosb_limit_whole_max'] ) ) {
-                update_post_meta( $post_id, 'woosb_limit_whole_max', sanitize_text_field( $_POST['woosb_limit_whole_max'] ) );
+                update_post_meta( $post_id, 'woosb_limit_whole_max', sanitize_text_field( wp_unslash( $_POST['woosb_limit_whole_max'] ?? '' ) ) );
             }
 
             if ( isset( $_POST['woosb_total_limits'] ) ) {
@@ -1826,31 +1828,31 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
             }
 
             if ( isset( $_POST['woosb_total_limits_min'] ) ) {
-                update_post_meta( $post_id, 'woosb_total_limits_min', sanitize_text_field( $_POST['woosb_total_limits_min'] ) );
+                update_post_meta( $post_id, 'woosb_total_limits_min', sanitize_text_field( wp_unslash( $_POST['woosb_total_limits_min'] ?? '' ) ) );
             }
 
             if ( isset( $_POST['woosb_total_limits_max'] ) ) {
-                update_post_meta( $post_id, 'woosb_total_limits_max', sanitize_text_field( $_POST['woosb_total_limits_max'] ) );
+                update_post_meta( $post_id, 'woosb_total_limits_max', sanitize_text_field( wp_unslash( $_POST['woosb_total_limits_max'] ?? '' ) ) );
             }
 
             if ( isset( $_POST['woosb_exclude_unpurchasable'] ) ) {
-                update_post_meta( $post_id, 'woosb_exclude_unpurchasable', sanitize_text_field( $_POST['woosb_exclude_unpurchasable'] ) );
+                update_post_meta( $post_id, 'woosb_exclude_unpurchasable', sanitize_text_field( wp_unslash( $_POST['woosb_exclude_unpurchasable'] ?? '' ) ) );
             }
 
             if ( isset( $_POST['woosb_layout'] ) ) {
-                update_post_meta( $post_id, 'woosb_layout', sanitize_text_field( $_POST['woosb_layout'] ) );
+                update_post_meta( $post_id, 'woosb_layout', sanitize_text_field( wp_unslash( $_POST['woosb_layout'] ?? '' ) ) );
             }
 
             if ( isset( $_POST['woosb_custom_price'] ) ) {
-                update_post_meta( $post_id, 'woosb_custom_price', sanitize_post_field( 'post_content', $_POST['woosb_custom_price'], $post_id, 'display' ) );
+                update_post_meta( $post_id, 'woosb_custom_price', sanitize_post_field( 'post_content', wp_unslash( $_POST['woosb_custom_price'] ?? '' ), $post_id, 'display' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
             }
 
             if ( isset( $_POST['woosb_before_text'] ) ) {
-                update_post_meta( $post_id, 'woosb_before_text', sanitize_post_field( 'post_content', $_POST['woosb_before_text'], $post_id, 'display' ) );
+                update_post_meta( $post_id, 'woosb_before_text', sanitize_post_field( 'post_content', wp_unslash( $_POST['woosb_before_text'] ?? '' ), $post_id, 'display' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
             }
 
             if ( isset( $_POST['woosb_after_text'] ) ) {
-                update_post_meta( $post_id, 'woosb_after_text', sanitize_post_field( 'post_content', $_POST['woosb_after_text'], $post_id, 'display' ) );
+                update_post_meta( $post_id, 'woosb_after_text', sanitize_post_field( 'post_content', wp_unslash( $_POST['woosb_after_text'] ?? '' ), $post_id, 'display' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
             }
         }
 
@@ -1944,18 +1946,18 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
                                 continue;
                             }
 
-                            $items_str[] = apply_filters( 'woosb_admin_order_bundled_product_name', '<li>' . $item['qty'] . ' × ' . get_the_title( $item['id'] ) . '</li>', $item );
+                            $items_str[] = apply_filters( 'woosb_admin_order_bundled_product_name', '<li>' . $item['qty'] . ' × ' . esc_html( get_the_title( $item['id'] ) ) . '</li>', $item );
                         }
                     }
                 }
 
                 $items_str = apply_filters( 'woosb_admin_order_bundled_product_names', '<ul>' . implode( '', $items_str ) . '</ul>', $items );
 
-                echo apply_filters( 'woosb_before_admin_order_itemmeta_bundles', '<div class="woosb-itemmeta-bundles woosb-admin-itemmeta-bundles">' . /* translators: bundled products */ sprintf( $this->helper->localization( 'bundled_products_s', esc_html__( 'Bundled products: %s', 'woo-product-bundle' ) ), $items_str ) . '</div>', $order_item_id, $order_item );
+                echo apply_filters( 'woosb_before_admin_order_itemmeta_bundles', '<div class="woosb-itemmeta-bundles woosb-admin-itemmeta-bundles">' . /* translators: %s is the product list */ sprintf( $this->helper->localization( 'bundled_products_s', esc_html__( 'Bundled products: %s', 'woo-product-bundle' ) ), $items_str ) . '</div>', $order_item_id, $order_item );
             }
 
             if ( $parent_id = $order_item->get_meta( '_woosb_parent_id' ) ) {
-                echo apply_filters( 'woosb_before_admin_order_itemmeta_bundled', '<div class="woosb-itemmeta-bundled woosb-admin-itemmeta-bundled">' . /* translators: bundled in */ sprintf( $this->helper->localization( 'bundled_in_s', esc_html__( 'Bundled in: %s', 'woo-product-bundle' ) ), get_the_title( $parent_id ) ) . '</div>', $order_item_id, $order_item );
+                echo apply_filters( 'woosb_before_admin_order_itemmeta_bundled', '<div class="woosb-itemmeta-bundled woosb-admin-itemmeta-bundled">' . /* translators: %s is the parent bundle name */ sprintf( $this->helper->localization( 'bundled_in_s', esc_html__( 'Bundled in: %s', 'woo-product-bundle' ) ), esc_html( get_the_title( $parent_id ) ) ) . '</div>', $order_item_id, $order_item );
             }
         }
 
@@ -2002,7 +2004,7 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
 
         function bulk_actions_notice() {
             if ( ! empty( $_REQUEST['woosb_ids'] ) ) {
-                $ids = explode( '.', $_REQUEST['woosb_ids'] );
+                $ids = explode( '.', wp_unslash( $_REQUEST['woosb_ids'] ?? '' ) );
                 echo '<div id="message" class="updated fade">' . /* translators: count */ sprintf( esc_html__( 'Added %s product(s) to this bundle.', 'woo-product-bundle' ), count( $ids ) ) . '</div>';
             }
         }
@@ -2178,7 +2180,7 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
         }
 
         function admin_enqueue_scripts() {
-            wp_enqueue_style( 'hint', WOOSB_URI . 'assets/css/hint.css' );
+            wp_enqueue_style( 'hint', WOOSB_URI . 'assets/css/hint.css', [], WOOSB_VERSION );
             wp_enqueue_style( 'woosb-backend', WOOSB_URI . 'assets/css/backend.css', [], WOOSB_VERSION );
             wp_enqueue_script( 'woosb-backend', WOOSB_URI . 'assets/js/backend.js', [
                     'jquery',
@@ -2245,10 +2247,10 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
 
             if ( $bundles = $this->helper->get_bundles( $product_id ) ) {
                 foreach ( $bundles as $bundle ) {
-                    $message .= sprintf( /* translators: product name */ esc_html__( '%s is out of stock.', 'woo-product-bundle' ), html_entity_decode( esc_html( $bundle->get_formatted_name() ), ENT_QUOTES, get_bloginfo( 'charset' ) ) ) . ' <a href="' . get_edit_post_link( $bundle->get_id() ) . '" target="_blank">#' . $bundle->get_id() . '</a><br/>';
+                    $message .= sprintf( /* translators: product name */ esc_html__( '%s is out of stock.', 'woo-product-bundle' ), html_entity_decode( esc_html( $bundle->get_formatted_name() ), ENT_QUOTES, get_bloginfo( 'charset' ) ) ) . ' <a href="' . esc_url( get_edit_post_link( $bundle->get_id() ) ) . '" target="_blank">#' . $bundle->get_id() . '</a><br/>';
                 }
 
-                $message .= sprintf( /* translators: product name */ esc_html__( '%s is out of stock.', 'woo-product-bundle' ), html_entity_decode( esc_html( $product->get_formatted_name() ), ENT_QUOTES, get_bloginfo( 'charset' ) ) ) . ' <a href="' . get_edit_post_link( $product_id ) . '" target="_blank">#' . $product_id . '</a>';
+                $message .= sprintf( /* translators: product name */ esc_html__( '%s is out of stock.', 'woo-product-bundle' ), html_entity_decode( esc_html( $product->get_formatted_name() ), ENT_QUOTES, get_bloginfo( 'charset' ) ) ) . ' <a href="' . esc_url( get_edit_post_link( $product_id ) ) . '" target="_blank">#' . $product_id . '</a>';
 
                 wp_mail(
                         apply_filters( 'woocommerce_email_recipient_no_stock', get_option( 'woocommerce_stock_email_recipient' ), $product, null ),
@@ -2271,10 +2273,10 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
             $product_id = $product->get_id();
             if ( $bundles = $this->helper->get_bundles( $product_id ) ) {
                 foreach ( $bundles as $bundle ) {
-                    $message .= sprintf( /* translators: bundle name */ esc_html__( '%s is low in stock.', 'woo-product-bundle' ), html_entity_decode( esc_html( $bundle->get_formatted_name() ), ENT_QUOTES, get_bloginfo( 'charset' ) ) ) . ' <a href="' . get_edit_post_link( $bundle->get_id() ) . '" target="_blank">#' . $bundle->get_id() . '</a><br/>';
+                    $message .= sprintf( /* translators: bundle name */ esc_html__( '%s is low in stock.', 'woo-product-bundle' ), html_entity_decode( esc_html( $bundle->get_formatted_name() ), ENT_QUOTES, get_bloginfo( 'charset' ) ) ) . ' <a href="' . esc_url( get_edit_post_link( $bundle->get_id() ) ) . '" target="_blank">#' . $bundle->get_id() . '</a><br/>';
                 }
 
-                $message .= sprintf( /* translators: product name */ esc_html__( '%1$s is low in stock. There are %2$d left.', 'woo-product-bundle' ), html_entity_decode( esc_html( $product->get_formatted_name() ), ENT_QUOTES, get_bloginfo( 'charset' ) ), html_entity_decode( esc_html( $product->get_stock_quantity() ) ) ) . ' <a href="' . get_edit_post_link( $product_id ) . '" target="_blank">#' . $product_id . '</a>';
+                $message .= sprintf( /* translators: product name */ esc_html__( '%1$s is low in stock. There are %2$d left.', 'woo-product-bundle' ), html_entity_decode( esc_html( $product->get_formatted_name() ), ENT_QUOTES, get_bloginfo( 'charset' ) ), html_entity_decode( esc_html( $product->get_stock_quantity() ) ) ) . ' <a href="' . esc_url( get_edit_post_link( $product_id ) ) . '" target="_blank">#' . $product_id . '</a>';
 
                 wp_mail(
                         apply_filters( 'woocommerce_email_recipient_low_stock', get_option( 'woocommerce_stock_email_recipient' ), $product, null ),
@@ -2312,13 +2314,13 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
         }
 
         function ajax_import_export() {
-            if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['nonce'] ), 'woosb-security' ) || ! current_user_can( 'manage_options' ) ) {
+            if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['nonce'] ) ), 'woosb-security' ) || ! current_user_can( 'manage_options' ) ) {
                 die( 'Permissions check failed!' );
             }
 
             $ids      = [];
             $ids_arr  = [];
-            $ids_data = sanitize_post( $_POST['ids'] ?? '' );
+            $ids_data = sanitize_post( wp_unslash( $_POST['ids'] ?? '' ) );
             parse_str( $ids_data, $ids_arr );
 
             if ( isset( $ids_arr['woosb_ids'] ) && is_array( $ids_arr['woosb_ids'] ) ) {
@@ -2334,11 +2336,11 @@ if ( ! class_exists( 'WPCleverWoosb_Backend' ) ) {
         }
 
         function ajax_import_export_save() {
-            if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['nonce'] ), 'woosb-security' ) || ! current_user_can( 'manage_options' ) ) {
+            if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['nonce'] ) ), 'woosb-security' ) || ! current_user_can( 'manage_options' ) ) {
                 die( 'Permissions check failed!' );
             }
 
-            $ids = sanitize_textarea_field( $_POST['ids'] ?? '' );
+            $ids = sanitize_textarea_field( wp_unslash( $_POST['ids'] ?? '' ) );
 
             if ( ! empty( $ids ) ) {
                 $items = json_decode( stripcslashes( $ids ), true );

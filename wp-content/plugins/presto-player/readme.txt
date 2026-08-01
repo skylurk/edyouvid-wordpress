@@ -4,7 +4,8 @@ Donate link: https://prestoplayer.com
 Tags: video, audio, video player, youtube, vimeo
 Requires at least: 6.5
 Tested up to: 7.0
-Stable tag: 4.2.4
+Stable tag: 4.3.2
+
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -157,6 +158,21 @@ You can report the issue through our [Bug Bounty Program](https://brainstormforc
 
 
 == Changelog ==
+
+= 4.3.2 =
+* Improvement: Added internal unit test coverage.
+* Improvement: Optimized license verification to reduce unnecessary update-check network requests.
+* Fixed: Self-hosted and HLS videos added by URL now show a readable title instead of the raw URL.
+* Fixed: FluentCRM email capture now reliably collects email.
+
+= 4.3.1 =
+* New: Native Divi 5 module support for the Presto Player video player.
+* Security: Multiple security hardening improvements.
+* Fixed: Analytics charts no longer flatline on date ranges longer than 31 days.
+
+= 4.3.0 =
+* Improvement: Migrated to Block API v3 for improved compatibility and performance.
+* Improvement: Reworked editor styling for better performance and reliability.
 
 = 4.2.4 =
 * Improvement: WordPress.org plugin guideline compliance and Plugin Check hardening.

@@ -189,4 +189,339 @@ class Module_CRUD {
 			wp_schedule_single_event( time() + 60, 'tincanny_calculate_folder_size', array( $item_id ) );
 		}
 	}
+
+	/**
+	 * Cache-bust query param appended to relative JS/CSS URLs in module HTML after replace.
+	 */
+	const ASSET_CACHE_PARAM = 'uo_sncv';
+
+	const ASSET_CACHE_MAX_HTML_FILES = 100;
+
+	const ASSET_CACHE_MAX_DIRECTORY_DEPTH = 15;
+
+	const ASSET_CACHE_MAX_HTML_BYTES = 5242880; // 5 MB.
+
+	/**
+	 * Whether register() is replacing existing content (not a first-time upload).
+	 *
+	 * Full-zip replace uses a {id}-temp folder. Other replaces reuse an ID that
+	 * already has a launch URL from a previous successful registration.
+	 *
+	 * @param int|string $item_id Module item ID (may include `-temp` during full-zip replace).
+	 *
+	 * @return bool
+	 */
+	public static function is_replace_registration( $item_id ) {
+		if ( is_string( $item_id ) && false !== strpos( $item_id, '-temp' ) ) {
+			return true;
+		}
+
+		$item_id = absint( $item_id );
+		if ( ! $item_id ) {
+			return false;
+		}
+
+		$item = self::get_item( $item_id );
+
+		return is_array( $item ) && ! empty( $item['url'] );
+	}
+
+	/**
+	 * Patch module HTML so browsers load fresh JS/CSS after a replace (not fresh uploads).
+	 *
+	 * @param string|false $module_directory Absolute path to the module upload folder.
+	 *
+	 * @return void
+	 */
+	public static function bust_asset_cache_in_html_files( $module_directory ) {
+		$module_dir = self::get_validated_module_directory( $module_directory );
+		if ( ! $module_dir ) {
+			return;
+		}
+
+		$filesystem = self::get_wp_filesystem_for_cache_bust();
+		if ( ! $filesystem ) {
+			return;
+		}
+
+		$version    = (string) time();
+		$html_files = self::collect_module_html_files( $filesystem, $module_dir, $module_dir, 0 );
+		$patched    = 0;
+
+		foreach ( $html_files as $file_path ) {
+			if ( $patched >= self::ASSET_CACHE_MAX_HTML_FILES ) {
+				break;
+			}
+
+			if ( self::patch_module_html_file_cache_busters( $filesystem, $module_dir, $file_path, $version ) ) {
+				++$patched;
+			}
+		}
+	}
+
+	/**
+	 * @param string|false $target Normalized absolute module directory path candidate.
+	 *
+	 * @return string|false Normalized absolute module directory path.
+	 */
+	private static function get_validated_module_directory( $target ) {
+		if ( ! $target ) {
+			return false;
+		}
+
+		$target = wp_normalize_path( $target );
+
+		if ( ! defined( 'SnC_UPLOAD_DIR_NAME' ) ) { // phpcs:ignore Generic.NamingConventions
+			define( 'SnC_UPLOAD_DIR_NAME', 'uncanny-snc' ); // phpcs:ignore Generic.NamingConventions
+		}
+
+		$upload_dir = wp_upload_dir();
+		if ( ! empty( $upload_dir['error'] ) ) {
+			return false;
+		}
+
+		$snc_base    = wp_normalize_path( trailingslashit( $upload_dir['basedir'] ) . SnC_UPLOAD_DIR_NAME );
+		$snc_real    = realpath( $snc_base );
+		$module_real = realpath( $target );
+
+		if ( false === $snc_real || false === $module_real || ! is_dir( $module_real ) ) {
+			return false;
+		}
+
+		$snc_real    = wp_normalize_path( $snc_real );
+		$module_real = wp_normalize_path( $module_real );
+
+		if ( 0 !== strpos( $module_real, trailingslashit( $snc_real ) ) ) {
+			return false;
+		}
+
+		return $module_real;
+	}
+
+	/**
+	 * @return \WP_Filesystem_Base|false
+	 */
+	private static function get_wp_filesystem_for_cache_bust() {
+		global $wp_filesystem;
+
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
+		if ( ! is_object( $wp_filesystem ) ) {
+			if ( ! WP_Filesystem() ) {
+				return false;
+			}
+		}
+
+		if ( ! $wp_filesystem instanceof \WP_Filesystem_Base ) {
+			return false;
+		}
+
+		return $wp_filesystem;
+	}
+
+	/**
+	 * @param \WP_Filesystem_Base $filesystem  WordPress filesystem.
+	 * @param string              $module_dir  Validated module root path.
+	 * @param string              $directory   Directory to scan.
+	 * @param int                 $depth       Recursion depth.
+	 *
+	 * @return string[]
+	 */
+	private static function collect_module_html_files( $filesystem, $module_dir, $directory, $depth ) {
+		if ( $depth > self::ASSET_CACHE_MAX_DIRECTORY_DEPTH ) {
+			return array();
+		}
+
+		if ( ! self::is_path_inside_module_directory( $module_dir, $directory ) || ! $filesystem->is_dir( $directory ) ) {
+			return array();
+		}
+
+		$listing = $filesystem->dirlist( $directory, true, false );
+		if ( ! is_array( $listing ) ) {
+			return array();
+		}
+
+		$files = array();
+
+		foreach ( $listing as $info ) {
+			if ( count( $files ) >= self::ASSET_CACHE_MAX_HTML_FILES ) {
+				break;
+			}
+
+			if ( ! is_array( $info ) || empty( $info['name'] ) ) {
+				continue;
+			}
+
+			$entry_path = wp_normalize_path( trailingslashit( $directory ) . $info['name'] );
+
+			if ( ! self::is_path_inside_module_directory( $module_dir, $entry_path ) ) {
+				continue;
+			}
+
+			if ( isset( $info['type'] ) && 'd' === $info['type'] ) {
+				$files = array_merge( $files, self::collect_module_html_files( $filesystem, $module_dir, $entry_path, $depth + 1 ) );
+				continue;
+			}
+
+			if ( self::is_allowed_module_html_file( $filesystem, $entry_path ) ) {
+				$files[] = $entry_path;
+			}
+		}
+
+		return $files;
+	}
+
+	/**
+	 * @param string $module_dir Module root path.
+	 * @param string $path       Path to validate.
+	 *
+	 * @return bool
+	 */
+	private static function is_path_inside_module_directory( $module_dir, $path ) {
+		$module_real = realpath( $module_dir );
+		$entry_real  = realpath( wp_normalize_path( $path ) );
+
+		if ( false === $module_real || false === $entry_real ) {
+			return false;
+		}
+
+		$module_real = wp_normalize_path( $module_real );
+		$entry_real  = wp_normalize_path( $entry_real );
+
+		if ( $entry_real === $module_real ) {
+			return true;
+		}
+
+		return 0 === strpos( $entry_real, trailingslashit( $module_real ) );
+	}
+
+	/**
+	 * @param \WP_Filesystem_Base $filesystem WordPress filesystem.
+	 * @param string              $file_path  File path.
+	 *
+	 * @return bool
+	 */
+	private static function is_allowed_module_html_file( $filesystem, $file_path ) {
+		if ( ! $filesystem->is_file( $file_path ) ) {
+			return false;
+		}
+
+		$extension = strtolower( pathinfo( $file_path, PATHINFO_EXTENSION ) );
+
+		return in_array( $extension, array( 'html', 'htm' ), true );
+	}
+
+	/**
+	 * @param \WP_Filesystem_Base $filesystem WordPress filesystem.
+	 * @param string              $module_dir Validated module root.
+	 * @param string              $file_path  HTML file path.
+	 * @param string              $version    Cache-buster version.
+	 *
+	 * @return bool
+	 */
+	private static function patch_module_html_file_cache_busters( $filesystem, $module_dir, $file_path, $version ) {
+		if ( ! self::is_path_inside_module_directory( $module_dir, $file_path ) || ! self::is_allowed_module_html_file( $filesystem, $file_path ) ) {
+			return false;
+		}
+
+		$filesize = $filesystem->size( $file_path );
+		if ( false === $filesize || $filesize < 1 || $filesize > self::ASSET_CACHE_MAX_HTML_BYTES ) {
+			return false;
+		}
+
+		$content = $filesystem->get_contents( $file_path );
+		if ( false === $content || '' === $content ) {
+			return false;
+		}
+
+		$updated = self::apply_asset_cache_content_patches( $content, $version );
+		if ( null === $updated || $updated === $content ) {
+			return false;
+		}
+
+		return $filesystem->put_contents( $file_path, $updated, FS_CHMOD_FILE );
+	}
+
+	/**
+	 * @param string $url     Relative asset URL.
+	 * @param string $version Numeric cache-buster.
+	 *
+	 * @return string
+	 */
+	private static function append_asset_cache_param_to_url( $url, $version ) {
+		$version = (string) absint( $version );
+		$param   = self::ASSET_CACHE_PARAM;
+
+		if ( ! $version || ! is_string( $url ) || '' === $url ) {
+			return $url;
+		}
+
+		if ( false !== strpos( $url, $param . '=' ) ) {
+			return $url;
+		}
+
+		$hash          = '';
+		$hash_position = strpos( $url, '#' );
+		if ( false !== $hash_position ) {
+			$hash = substr( $url, $hash_position );
+			$url  = substr( $url, 0, $hash_position );
+		}
+
+		$separator = ( false !== strpos( $url, '?' ) ) ? '&' : '?';
+
+		return $url . $separator . $param . '=' . $version . $hash;
+	}
+
+	/**
+	 * @param string $version Numeric cache-buster.
+	 *
+	 * @return string
+	 */
+	private static function get_dynamic_asset_script_src_expression( $version ) {
+		$version = (string) absint( $version );
+		$param   = self::ASSET_CACHE_PARAM;
+
+		return '(function(u){var h="",i=u.indexOf("#");if(i>-1){h=u.slice(i);u=u.slice(0,i);}if(u.indexOf("http")===0||u.indexOf("//")===0)return u;if(u.indexOf("' . $param . '=")>-1)return u+h;return u+(u.indexOf("?")>-1?"&":"?")+"' . $param . '=' . $version . '"+h;})(src)';
+	}
+
+	/**
+	 * @param string $content HTML contents.
+	 * @param string $version Cache-buster version.
+	 *
+	 * @return string
+	 */
+	private static function apply_asset_cache_content_patches( $content, $version ) {
+		$version = (string) absint( $version );
+		if ( ! $version || ! is_string( $content ) || '' === $content ) {
+			return $content;
+		}
+
+		$patched_content = preg_replace_callback(
+			'/\b(src|href)\s*=\s*(["\'])(?!https?:|\/\/|data:)([^"\']+\.(?:js|mjs|css)(?:\?[^"\']*)?)\2/i',
+			function ( $matches ) use ( $version ) {
+				$patched = self::append_asset_cache_param_to_url( $matches[3], $version );
+
+				return $matches[1] . '=' . $matches[2] . $patched . $matches[2];
+			},
+			$content
+		);
+
+		if ( null === $patched_content ) {
+			return $content;
+		}
+
+		$content = $patched_content;
+
+		$dynamic_src = 'script.src = ' . self::get_dynamic_asset_script_src_expression( $version ) . ';';
+
+		$dynamic_patched = preg_replace( '/script\.src\s*=\s*src\s*;/', $dynamic_src, $content );
+
+		if ( null !== $dynamic_patched ) {
+			$content = $dynamic_patched;
+		}
+
+		return $content;
+	}
 }

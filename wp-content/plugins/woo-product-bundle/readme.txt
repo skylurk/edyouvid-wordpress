@@ -3,8 +3,8 @@ Contributors: wpclever
 Donate link: https://wpclever.net
 Tags: woocommerce, wpc, bundle, bundles, kits
 Tested up to: 7.0
-Version: 8.5.7
-Stable tag: 8.5.7
+Version: 8.5.9
+Stable tag: 8.5.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,13 @@ Please try other plugins from us:
 5. Almost done! Click Save and see the result
 
 == Changelog ==
+
+= 8.5.9 =
+* Fixed: Discount amount doesn't work with the default qty as zero
+
+= 8.5.8 =
+* Updated: Optimized the code
+* Updated: Compatible with WP 7.0 & Woo 10.9
 
 = 8.5.7 =
 * Fixed: Search settings (SKU, exact, sentence)

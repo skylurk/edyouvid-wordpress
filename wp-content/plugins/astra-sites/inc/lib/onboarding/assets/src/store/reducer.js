@@ -70,6 +70,18 @@ export const initialState = {
 			plugins: [ 'woocommerce', 'surecart' ],
 		},
 		{
+			title: __( 'Donations', 'astra-sites' ),
+			id: 'donations',
+			description: __(
+				'Collect donations on your website',
+				'astra-sites'
+			),
+			enabled: false,
+			compulsory: false,
+			icon: 'heart',
+			plugins: [ 'suredonation' ],
+		},
+		{
 			title: __( 'SEO & Search Visibility', 'astra-sites' ),
 			id: 'seo',
 			description: __(
@@ -127,6 +139,18 @@ export const initialState = {
 			compulsory: false,
 			icon: 'users',
 			plugins: [ 'surecontact' ],
+		},
+		{
+			title: __( 'Cookie Consent', 'astra-sites' ),
+			id: 'surecookie',
+			description: __(
+				'Add cookie consent and privacy compliance tools',
+				'astra-sites'
+			),
+			enabled: true,
+			compulsory: false,
+			icon: 'surecookie',
+			plugins: [ 'surecookie' ],
 		},
 		{
 			title: __( 'Free Live Chat', 'astra-sites' ),

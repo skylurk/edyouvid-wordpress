@@ -38,6 +38,10 @@ class BrandAgent_Endpoint {
         if ( $path === 'api/config/status' ) {
             self::handle_config_status();
         }
+
+        if ( $path === 'api/content/fetch' ) {
+            self::handle_content_fetch();
+        }
     }
 
     /**
@@ -362,6 +366,118 @@ class BrandAgent_Endpoint {
         wp_send_json_success( array(
             'message' => 'Configuration updated',
             'BAInjectFrontendScript' => $new_value ? 'true' : 'false'
+        ) );
+    }
+
+    /**
+     * Handle api/content/fetch endpoint
+     *
+     * Serves the site's own content (posts/pages) to the BrandAgent backend for
+     * indexing. Backend-to-plugin call, authenticated with the same X-BA-* inbound
+     * HMAC contract as config/update (signature over store_url + timestamp + sha256(raw body)).
+     * Content is read server-side via WP_Query, so it is reachable regardless of which
+     * post types opt into the public REST API and works on any WordPress (no WooCommerce).
+     */
+    private static function handle_content_fetch() {
+        header( 'Cache-Control: no-store' );
+
+        $signature = isset( $_SERVER['HTTP_X_BA_SIGNATURE'] )
+            ? sanitize_text_field( $_SERVER['HTTP_X_BA_SIGNATURE'] )
+            : '';
+        $timestamp = isset( $_SERVER['HTTP_X_BA_TIMESTAMP'] )
+            ? sanitize_text_field( $_SERVER['HTTP_X_BA_TIMESTAMP'] )
+            : '';
+        $store_url_header = isset( $_SERVER['HTTP_X_BA_STORE_URL'] )
+            ? sanitize_text_field( $_SERVER['HTTP_X_BA_STORE_URL'] )
+            : '';
+
+        if ( empty( $signature ) || empty( $timestamp ) || empty( $store_url_header ) ) {
+            brandagent_log( 'BrandAgent Content Fetch: Missing required authentication headers' );
+            wp_send_json_error( array( 'message' => 'Missing authentication headers' ), 401 );
+        }
+
+        if ( $store_url_header !== home_url() ) {
+            brandagent_log( 'BrandAgent Content Fetch: Store URL mismatch', array(
+                'expected_store_url' => home_url(),
+                'received_store_url' => $store_url_header,
+            ) );
+            wp_send_json_error( array( 'message' => 'Store URL mismatch' ), 403 );
+        }
+
+        $raw_body = file_get_contents( 'php://input' );
+        if ( ! brandagent_verify_incoming_hmac_signature( $signature, $timestamp, (string) $raw_body ) ) {
+            brandagent_log( 'BrandAgent Content Fetch: HMAC signature verification failed' );
+            wp_send_json_error( array( 'message' => 'Invalid signature' ), 401 );
+        }
+
+        $req = json_decode( (string) $raw_body, true );
+        if ( ! is_array( $req ) ) {
+            $req = array();
+        }
+
+        // Restrict to an explicit allowlist so a caller cannot pull private or PII-bearing
+        // custom post types through WP_Query. Sites can widen it via the filter.
+        $allowed_types   = apply_filters( 'brandagent_content_fetch_allowed_post_types', array( 'post', 'page' ) );
+        $requested_types = ( isset( $req['types'] ) && is_array( $req['types'] ) )
+            ? array_values( array_map( 'sanitize_key', $req['types'] ) )
+            : array();
+        $types = array_values( array_intersect( $requested_types, $allowed_types ) );
+        if ( empty( $types ) ) {
+            $types = $allowed_types;
+        }
+        $page     = isset( $req['page'] ) ? max( 1, intval( $req['page'] ) ) : 1;
+        $per_page = isset( $req['per_page'] ) ? min( 100, max( 1, intval( $req['per_page'] ) ) ) : 50;
+
+        $query = new WP_Query( array(
+            'post_type'           => $types,
+            'post_status'         => 'publish',
+            'posts_per_page'      => $per_page,
+            'paged'               => $page,
+            'orderby'             => 'ID',
+            'order'               => 'ASC',
+            'ignore_sticky_posts' => true,
+            'has_password'        => false,
+        ) );
+
+        $items = array();
+        foreach ( $query->posts as $post ) {
+            // Raw rendered content (the_content output). Tag-stripping / plain-text extraction is
+            // done on the Brand Agents server, so the plugin no longer cleans the content here.
+            $rendered = apply_filters( 'the_content', $post->post_content );
+
+            $cat_terms = wp_get_post_terms( $post->ID, 'category', array( 'fields' => 'names' ) );
+            $tag_terms = wp_get_post_terms( $post->ID, 'post_tag', array( 'fields' => 'names' ) );
+
+            // Prefer the post's featured image; fall back to the first inline image in the rendered
+            // content so image-rich posts (e.g. recipes) still get a card image when no thumbnail is set.
+            $feature_image = get_the_post_thumbnail_url( $post, 'full' );
+            if ( ! $feature_image && preg_match( '/<img[^>]+src=["\']([^"\']+)["\']/i', (string) $rendered, $img_match ) ) {
+                $feature_image = $img_match[1];
+            }
+            $feature_image = $feature_image ? $feature_image : '';
+
+            $items[] = array(
+                'id'            => (int) $post->ID,
+                'type'          => $post->post_type,
+                'title'         => get_the_title( $post ),
+                'url'           => get_permalink( $post ),
+                'feature_image' => $feature_image,
+                'content_text'  => $rendered,
+                'excerpt'       => has_excerpt( $post ) ? get_the_excerpt( $post ) : '',
+                'modified'      => get_post_modified_time( 'c', true, $post ),
+                'author'        => get_the_author_meta( 'display_name', $post->post_author ),
+                'categories'    => is_wp_error( $cat_terms ) ? array() : array_values( $cat_terms ),
+                'tags'          => is_wp_error( $tag_terms ) ? array() : array_values( $tag_terms ),
+            );
+        }
+
+        wp_send_json_success( array(
+            'page'        => $page,
+            'per_page'    => $per_page,
+            'total'       => (int) $query->found_posts,
+            'total_pages' => (int) $query->max_num_pages,
+            'count'       => count( $items ),
+            'items'       => $items,
         ) );
     }
 

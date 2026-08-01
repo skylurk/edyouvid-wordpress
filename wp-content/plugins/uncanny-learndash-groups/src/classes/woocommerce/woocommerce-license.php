@@ -938,6 +938,10 @@ class WoocommerceLicense {
 				$group_title = $item->meta_exists( 'ulgm_group_name' ) ? $item->get_meta( 'ulgm_group_name' ) : '';
 
 				if ( empty( $group_title ) ) {
+					// Fallback: check order meta (e.g. from subscription update_order_meta)
+					$group_title = $order->get_meta( SharedFunctions::$group_name_field, true );
+				}
+				if ( empty( $group_title ) ) {
 					$group_title = $this->set_group_name_from_order_id( $order_id );
 					$item->update_meta_data( 'ulgm_group_name', $group_title );
 					$order->update_meta_data( 'ulgm_group_name_' . $product_id, $group_title );
@@ -1838,14 +1842,20 @@ class WoocommerceLicense {
 
 		$key = 'ulgm_group_name_' . $cart_item_key;
 
-		// The $_POST['ulgm_group_name'] should contain group names indexed by cart item keys
-		if ( ulgm_filter_has_var( $key, INPUT_POST ) && ! empty( ulgm_filter_input( $key, INPUT_POST ) ) ) {
-			$new_group_name = esc_attr( sanitize_text_field( ulgm_filter_input( $key, INPUT_POST ) ) );
-
-			$group_name = $new_group_name;
+		// First check POST (checkout form submission)
+		if ( ulgm_filter_has_var( $key, INPUT_POST ) && ! empty( trim( ulgm_filter_input( $key, INPUT_POST ) ) ) ) {
+			$group_name = sanitize_text_field( ulgm_filter_input( $key, INPUT_POST ) );
+		}
+		// Fallback: check cart item data (from product page or cart page edit)
+		elseif ( ! empty( isset( $values['ulgm_group_name'] ) ? trim( $values['ulgm_group_name'] ) : '' ) ) {
+			$group_name = sanitize_text_field( $values['ulgm_group_name'] );
+		}
+		// Fallback: billing first name + last name + company (same as set_group_name_from_order_id)
+		elseif ( $order ) {
+			$group_name = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() . ' ' . $order->get_billing_company();
+			$group_name = apply_filters( 'ulgm_group_name', trim( $group_name ), $order );
 		}
 
-		// Group name is empty, generate from the order
 		if ( ! empty( trim( $group_name ) ) ) {
 			$item->update_meta_data( 'ulgm_group_name', $group_name );
 		}

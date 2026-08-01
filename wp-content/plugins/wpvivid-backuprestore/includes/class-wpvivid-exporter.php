@@ -1394,8 +1394,15 @@ class WPvivid_Exporter
         $task_id = $this->task->get_id();
         while ( $next_posts = array_splice( $posts_ids, 0, 20 ) )
         {
-            $where = 'WHERE ID IN (' . join( ',', $next_posts ) . ')';
-            $posts = $wpdb->get_results( "SELECT * FROM {$wpdb->posts} $where" );
+            $next_posts = array_map('absint', $next_posts);
+            $placeholders = implode(',', array_fill(0, count($next_posts), '%d'));
+
+            $sql = $wpdb->prepare(
+                "SELECT * FROM {$wpdb->posts} WHERE ID IN ($placeholders)",
+                $next_posts
+            );
+
+            $posts = $wpdb->get_results($sql);
             // Begin Loop.
             foreach ( $posts as $post )
             {
@@ -1405,8 +1412,15 @@ class WPvivid_Exporter
         WPvivid_Exporter_taskmanager::update_main_task_progress($task_id, 'export', 25, 0);
         while ( $next_posts = array_splice( $attachment_ids, 0, 20 ) )
         {
-            $where = 'WHERE ID IN (' . join( ',', $next_posts ) . ')';
-            $posts = $wpdb->get_results( "SELECT * FROM {$wpdb->posts} $where" );
+            $next_posts = array_map('absint', $next_posts);
+            $placeholders = implode(',', array_fill(0, count($next_posts), '%d'));
+
+            $sql = $wpdb->prepare(
+                "SELECT * FROM {$wpdb->posts} WHERE ID IN ($placeholders)",
+                $next_posts
+            );
+
+            $posts = $wpdb->get_results($sql);
             // Begin Loop.
             foreach ( $posts as $post )
             {

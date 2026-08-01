@@ -33,6 +33,15 @@ class AdminMenu extends Boot {
 					'save_form_settings',
 				)
 			);
+			add_action(
+				'admin_head',
+				array(
+					__CLASS__,
+					'hide_screen_options',
+				)
+			);
+			add_action( 'admin_head', array( __CLASS__, 'maybe_filter_non_codes_admin_notices' ), PHP_INT_MAX );
+			add_action( 'admin_print_scripts', array( __CLASS__, 'maybe_filter_non_codes_admin_notices' ), PHP_INT_MAX );
 		}
 
 	}
@@ -42,27 +51,27 @@ class AdminMenu extends Boot {
 	 */
 	public static function register_options_menu_page() {
 
-		$page_title = 'Uncanny Codes';
+		$page_title = 'Uncanny Redemption Codes';
 		$menu_title = 'Uncanny Codes';
 		$capability = apply_filters( 'ulc_capability', 'manage_options' );
 		$menu_slug  = 'uncanny-learndash-codes';
 		$function   = array( __CLASS__, 'options_menu_view_codes' );
 
-		$icon_url = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDU4MSA2NDAiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDU4MSA2NDAiIHhtbDpzcGFjZT0icHJlc2VydmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0ibTUyNi40IDM0LjFjMC42IDUgMSAxMC4xIDEuMyAxNS4xIDAuNSAxMC4zIDEuMiAyMC42IDAuOCAzMC45LTAuNSAxMS41LTEgMjMtMi4xIDM0LjQtMi42IDI2LjctNy44IDUzLjMtMTYuNSA3OC43LTcuMyAyMS4zLTE3LjEgNDEuOC0yOS45IDYwLjQtMTIgMTcuNS0yNi44IDMzLTQzLjggNDUuOS0xNy4yIDEzLTM2LjcgMjMtNTcuMSAyOS45LTI1LjEgOC41LTUxLjUgMTIuNy03Ny45IDEzLjggNzAuMyAyNS4zIDEwNi45IDEwMi44IDgxLjYgMTczLjEtMTguOSA1Mi42LTY4LjEgODguMS0xMjQgODkuNWgtNi4xYy0xMS4xLTAuMi0yMi4xLTEuOC0zMi45LTQuNy0yOS40LTcuOS01NS45LTI2LjMtNzMuNy01MC45LTI5LjItNDAuMi0zNC4xLTkzLjEtMTIuNi0xMzgtMjUgMjUuMS00NC41IDU1LjMtNTkuMSA4Ny40LTguOCAxOS43LTE2LjEgNDAuMS0yMC44IDYxLjEtMS4yLTE0LjMtMS4yLTI4LjYtMC42LTQyLjkgMS4zLTI2LjYgNS4xLTUzLjIgMTIuMi03OC45IDUuOC0yMS4yIDEzLjktNDEuOCAyNC43LTYwLjlzMjQuNC0zNi42IDQwLjYtNTEuM2MxNy4zLTE1LjcgMzcuMy0yOC4xIDU5LjEtMzYuOCAyNC41LTkuOSA1MC42LTE1LjIgNzYuOC0xNy4yIDEzLjMtMS4xIDI2LjctMC44IDQwLjEtMi4zIDI0LjUtMi40IDQ4LjgtOC40IDcxLjMtMTguMyAyMS05LjIgNDAuNC0yMS44IDU3LjUtMzcuMiAxNi41LTE0LjkgMzAuOC0zMi4xIDQyLjgtNTAuOCAxMy0yMC4yIDIzLjQtNDIuMSAzMS42LTY0LjcgNy42LTIxLjEgMTMuNC00Mi45IDE2LjctNjUuM3ptLTI3OS40IDMyOS41Yy0xOC42IDEuOC0zNi4yIDguOC01MC45IDIwLjQtMTcuMSAxMy40LTI5LjggMzIuMi0zNi4yIDUyLjktNy40IDIzLjktNi44IDQ5LjUgMS43IDczIDcuMSAxOS42IDE5LjkgMzcuMiAzNi44IDQ5LjYgMTQuMSAxMC41IDMwLjkgMTYuOSA0OC40IDE4LjZzMzUuMi0xLjYgNTEtOS40YzEzLjUtNi43IDI1LjQtMTYuMyAzNC44LTI4LjEgMTAuNi0xMy40IDE3LjktMjkgMjEuNS00NS43IDQuOC0yMi40IDIuOC00NS43LTUuOC02Ni45LTguMS0yMC0yMi4yLTM3LjYtNDAuMy00OS4zLTE4LTExLjctMzkuNS0xNy02MS0xNS4xeiIgZmlsbD0iIzgyODc4QyIvPjxwYXRoIGQ9Im0yNDIuNiA0MDIuNmM2LjItMS4zIDEyLjYtMS44IDE4LjktMS41LTExLjQgMTEuNC0xMi4yIDI5LjctMS44IDQyIDExLjIgMTMuMyAzMS4xIDE1LjEgNDQuNCAzLjkgNS4zLTQuNCA4LjktMTAuNCAxMC41LTE3LjEgMTIuNCAxNi44IDE2LjYgMzkuNCAxMSA1OS41LTUgMTguNS0xOCAzNC42LTM1IDQzLjUtMzQuNSAxOC4yLTc3LjMgNS4xLTk1LjUtMjkuNS0xLTItMi00LTIuOS02LjEtOC4xLTE5LjYtNi41LTQzIDQuMi02MS4zIDEwLTE3IDI2LjgtMjkuMiA0Ni4yLTMzLjR6IiBmaWxsPSIjODI4NzhDIi8+PC9zdmc+';
+		$icon_url = SharedFunctionality::get_svg_data_uri();
 
 		// 42 - Above Settings Menu.
 		$position = 42;
 		add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $function, $icon_url, $position );
 		if ( is_numeric( SharedFunctionality::ulc_filter_input( 'group_id' ) ) && 'true' === SharedFunctionality::ulc_filter_input( 'edit' ) ) {
-			$sub_menu_title = esc_html__( 'Modify codes', 'uncanny-learndash-codes' );
+			$sub_menu_title = esc_html__( 'Modify Codes', 'uncanny-learndash-codes' );
 		} else {
-			$sub_menu_title = esc_html__( 'Generate codes', 'uncanny-learndash-codes' );
+			$sub_menu_title = esc_html__( 'Generate Codes', 'uncanny-learndash-codes' );
 		}
 
 		add_submenu_page(
 			$menu_slug,
-			esc_html__( 'View codes', 'uncanny-learndash-codes' ),
-			esc_html__( 'View codes', 'uncanny-learndash-codes' ),
+			esc_html__( 'View Codes', 'uncanny-learndash-codes' ),
+			esc_html__( 'View Codes', 'uncanny-learndash-codes' ),
 			$capability,
 			'uncanny-learndash-codes',
 			array(
@@ -85,8 +94,8 @@ class AdminMenu extends Boot {
 
 		add_submenu_page(
 			$menu_slug,
-			esc_html__( 'Cancel codes', 'uncanny-learndash-codes' ),
-			esc_html__( 'Cancel codes', 'uncanny-learndash-codes' ),
+			esc_html__( 'Cancel Codes', 'uncanny-learndash-codes' ),
+			esc_html__( 'Cancel Codes', 'uncanny-learndash-codes' ),
 			$capability,
 			'uncanny-learndash-codes-cancel',
 			array(
@@ -121,9 +130,15 @@ class AdminMenu extends Boot {
 	 */
 	public static function options_menu_view_codes() {
 
+		// Bulk actions are now handled in boot.php
+
 		if ( empty( SharedFunctionality::ulc_filter_input( 'group_id' ) ) && empty( SharedFunctionality::ulc_filter_input( 'mode' ) ) ) {
 			// Group View.
 			self::display_code_groups();
+
+		} elseif ( SharedFunctionality::ulc_filter_has_var( 'group_id' ) && 'download' === SharedFunctionality::ulc_filter_input( 'mode' ) ) {
+			// Download CSV for entire group
+			self::handle_group_download();
 
 		} elseif ( SharedFunctionality::ulc_filter_has_var( 'group_id' ) && empty( SharedFunctionality::ulc_filter_input( 'mode' ) ) ) {
 			// Coupon View.
@@ -148,6 +163,20 @@ class AdminMenu extends Boot {
 	}
 
 	/**
+	 * Handle download of entire group
+	 */
+	public static function handle_group_download() {
+		$group_id = SharedFunctionality::ulc_filter_input( 'group_id' );
+
+		if ( empty( $group_id ) ) {
+			wp_die( esc_html__( 'No group selected for download', 'uncanny-learndash-codes' ) );
+		}
+
+		// Generate CSV using existing method
+		Boot::generate_csv( 'login_coupon' );
+	}
+
+	/**
 	 *
 	 */
 	public static function display_group_codes() {
@@ -159,50 +188,7 @@ class AdminMenu extends Boot {
 			$table = new ViewCodes( array( 'group_id' => '' ) );
 			$table->prepare_items();
 
-			?>
-
-			<div class="wrap uo-ulc-admin">
-				<div class="ulc">
-					<div id="page_coupon_stat">
-						<?php
-						// Add admin header and tabs.
-						$tab_active = 'uncanny-learndash-codes';
-						include Config::get_template( 'admin-header.php' );
-						?>
-						<div class="ulc__admin-content">
-
-							<h2></h2>
-							<!-- LearnDash notice will be shown here -->
-
-							<h1 class="wp-heading-inline"><?php echo esc_html__( 'View generated codes', 'uncanny-learndash-codes' ); ?></h1>
-							<hr class="wp-header-end">
-
-							<div class="uo-codes-heading">
-								<form class="uo-codes-search" method="get"
-									  action="">
-									<input type="hidden" name="page"
-										   value="<?php echo SharedFunctionality::ulc_filter_input( 'page' ); ?>"/>
-									<?php if ( SharedFunctionality::ulc_filter_has_var( 'group_id' ) ) { ?>
-										<input type="hidden" name="group_id"
-											   value="<?php echo SharedFunctionality::ulc_filter_input( 'group_id' ); ?>"/>
-									<?php } ?>
-									<?php $table->search_box( esc_html__( 'Search codes', 'uncanny-learndash-codes' ), Config::get_project_name() ); ?>
-								</form>
-							</div>
-
-							<div class="uo-codes-buttons">
-								<?php $table->views(); ?>
-							</div>
-
-							<div class="uo-codes-list">
-								<?php $table->display(); ?>
-							</div>
-
-						</div>
-					</div>
-				</div>
-			</div>
-			<?php
+			include Config::get_template( 'admin-view-codes.php' );
 		}
 	}
 
@@ -234,8 +220,8 @@ class AdminMenu extends Boot {
 	public static function options_menu_settings_page() {
 		?>
 
-		<div class="wrap uo-ulc-admin">
-			<div class="ulc">
+		<div class="wrap uo-ulc-admin uncannyowl-default-design">
+			<div class="ulc uncannyowl-default-design">
 				<?php
 
 				// Add admin header and tabs.
@@ -252,15 +238,21 @@ class AdminMenu extends Boot {
 
 					<?php if ( SharedFunctionality::ulc_filter_has_var( 'saved' ) ) { ?>
 
-						<div
-							class="updated notice"><?php esc_html_e( 'Settings saved!', 'uncanny-learndash-codes' ); ?></div>
+						 
+							<div class="uncannyowl-alert uncannyowl-alert-success uncannyowl-alert--dismissible">
+								<button  type="button" class="uncannyowl-alert-close" aria-label="Close alert">&times;</button>
+								<strong>Success!</strong> <?php esc_html_e( 'Settings saved!', 'uncanny-learndash-codes' ); ?>
+							</div>
+
+
 
 					<?php } elseif ( SharedFunctionality::ulc_filter_has_var( 'force_downloaded' ) ) { ?>
 
-						<div class="notice error">
-							<?php esc_html_e( 'Failed to create Theme My Login form! Download', 'uncanny-learndash-codes' ); ?>
 
-														   href="
+						<div class="uncannyowl-alert uncannyowl-alert-error uncannyowl-alert--dismissible">
+							<button type="button" class="uncannyowl-alert-close" aria-label="Close alert">&times;</button>
+							<?php esc_html_e( 'Failed to create Theme My Login form! Download', 'uncanny-learndash-codes' ); ?>
+							<a href="
 														   <?php
 															echo add_query_arg(
 																array( 'mode' => 'download_file' ),
@@ -274,18 +266,19 @@ class AdminMenu extends Boot {
 																)
 															)
 															?>
-							   ">
-								register-form.php
-							</a>
-
-							<?php esc_html_e( 'and upload to your theme\'s directory ( /wp-content/themes/YOUR-THEME/theme-my-login/ ) via (S)FTP.', 'uncanny-learndash-codes' ); ?>
+															">
+																register-form.php
+															</a>
+															<?php esc_html_e( 'and upload to your theme\'s directory ( /wp-content/themes/YOUR-THEME/theme-my-login/ ) via (S)FTP.', 'uncanny-learndash-codes' ); ?>
 						</div>
+					 
 
 					<?php } ?>
 
-					<div class="notice notice-error"
-						 id="registration_form_error" style="display: none">
-						<h4></h4></div>
+					<div id="registration_form_error" class="uncannyowl-alert uncannyowl-alert-error uncannyowl-alert--dismissible" style="display: none">
+					<button  type="button" class="uncannyowl-alert-close" aria-label="Close alert">&times;</button>
+   	
+					<h4></h4></div>
 
 					<?php Boot::uo_license_page( true ); ?>
 
@@ -432,6 +425,18 @@ class AdminMenu extends Boot {
 				$successfully_redeemed = '';
 			}
 
+			if ( SharedFunctionality::ulc_filter_has_var( 'already-redeemed-course', INPUT_POST ) && ! empty( SharedFunctionality::ulc_filter_input( 'already-redeemed-course', INPUT_POST ) ) ) {
+				$already_redeemed_course = sanitize_text_field( SharedFunctionality::ulc_filter_input( 'already-redeemed-course', INPUT_POST ) );
+			} else {
+				$already_redeemed_course = '';
+			}
+
+			if ( SharedFunctionality::ulc_filter_has_var( 'already-redeemed-group', INPUT_POST ) && ! empty( SharedFunctionality::ulc_filter_input( 'already-redeemed-group', INPUT_POST ) ) ) {
+				$already_redeemed_group = sanitize_text_field( SharedFunctionality::ulc_filter_input( 'already-redeemed-group', INPUT_POST ) );
+			} else {
+				$already_redeemed_group = '';
+			}
+
 			if ( SharedFunctionality::ulc_filter_has_var( 'uo_codes_term_condition', INPUT_POST ) && ! empty( SharedFunctionality::ulc_filter_input( 'uo_codes_term_condition', INPUT_POST ) ) ) {
 				$allowed_html            = wp_kses_allowed_html( 'post' );
 				$uo_codes_term_condition = wp_kses( SharedFunctionality::ulc_filter_input( 'uo_codes_term_condition', INPUT_POST ), $allowed_html );
@@ -442,12 +447,14 @@ class AdminMenu extends Boot {
 			}
 
 			$settings = array(
-				'invalid-code'          => $invalid_code,
-				'cancelled-code'        => $cancelled_code,
-				'expired-code'          => $expired_code,
-				'already-redeemed'      => $already_redeemed,
-				'redeemed-maximum'      => $redeemed_maximum,
-				'successfully-redeemed' => $successfully_redeemed,
+				'invalid-code'            => $invalid_code,
+				'cancelled-code'          => $cancelled_code,
+				'expired-code'            => $expired_code,
+				'already-redeemed'        => $already_redeemed,
+				'already-redeemed-course' => $already_redeemed_course,
+				'already-redeemed-group'  => $already_redeemed_group,
+				'redeemed-maximum'        => $redeemed_maximum,
+				'successfully-redeemed'   => $successfully_redeemed,
 			);
 
 			update_option( Config::$uncanny_codes_settings_custom_messages, $settings );
@@ -477,11 +484,138 @@ class AdminMenu extends Boot {
 	 * @param $message
 	 */
 	public static function show_message( $message ) {
-		?>
-		<div class="updated notice">
+		?> 
+		<div class="uncannyowl-alert uncannyowl-alert-info uncannyowl-alert--dismissible">
+			<button  type="button" class="uncannyowl-alert-close" aria-label="Close alert">&times;</button>
 			<?php esc_html_e( $message, 'uncanny-learndash-codes' ); ?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Hide Screen Options tab on Uncanny Codes admin pages
+	 */
+	public static function hide_screen_options() {
+		global $current_screen;
+		
+		// Check if we're on an Uncanny Codes admin page
+		$ulc_pages = array(
+			'toplevel_page_uncanny-learndash-codes',
+			'uncanny-codes_page_uncanny-learndash-codes-create',
+			'uncanny-codes_page_uncanny-learndash-codes-cancel',
+			'uncanny-codes_page_uncanny-learndash-codes-settings',
+			'uncanny-codes_page_uncanny-codes-kb',
+			'uncanny-codes_page_uncanny-codes-plugins',
+		);
+		
+		if ( isset( $current_screen->base ) && in_array( $current_screen->base, $ulc_pages ) ) {
+			// Remove screen options meta box
+			remove_meta_box( 'screen-options', $current_screen->id, 'normal' );
+			remove_meta_box( 'screen-options', $current_screen->id, 'side' );
+			remove_meta_box( 'screen-options', $current_screen->id, 'advanced' );
+			
+			// Hide the screen options link
+			echo '<style type="text/css">#screen-options-link-wrap { display: none !important; }</style>';
+		}
+	}
+
+	/**
+	 * Maybe apply notification filters to Uncanny Codes pages.
+	 * 
+	 * @return void
+	 */
+	public static function maybe_filter_non_codes_admin_notices() {
+
+		$codes_pages = array(
+			'uncanny-learndash-codes',
+			'uncanny-learndash-codes-create',
+			'uncanny-learndash-codes-cancel',
+			'uncanny-learndash-codes-settings',
+			'uncanny-codes-kb',
+			'uncanny-codes-plugins',
+			'uncanny-codes-license-activation',
+		);
+
+		// Bail if we're not on an Uncanny Codes screen.
+		if ( empty( $_REQUEST['page'] ) || ! in_array( strtolower( $_REQUEST['page'] ), $codes_pages, true ) ) {
+			return;
+		}
+
+		// Run filter on all admin notices.
+		self::filter_non_codes_admin_notices( 'user_admin_notices' );
+		self::filter_non_codes_admin_notices( 'admin_notices' );
+		self::filter_non_codes_admin_notices( 'all_admin_notices' );
+		
+		// Remove Automator Pro licensing notices
+		self::remove_automator_pro_licensing_notices();
+		
+	}
+
+	/**
+	 * Filter out all notices that are not from Uncanny Codes.
+	 * 
+	 * @param string $notice_type The type of notice to filter.
+	 * 
+	 * @return void
+	 */
+	public static function filter_non_codes_admin_notices( $notice_type ) {
+		global $wp_filter;
+
+		if ( empty( $wp_filter[ $notice_type ] ) ) {
+			return;
+		}
+
+		if ( ! is_array( $wp_filter[ $notice_type ]->callbacks ) ) {
+			return;
+		}
+
+		// All Uncanny Codes lowercased namespaces.
+		$allowed_sources = array(
+			'uncanny_learndash_codes',
+			'uo_codes',
+			'uncanny_owl',
+			'ulc',
+		);
+
+		foreach ( $wp_filter[ $notice_type ]->callbacks as $priority => $hooks ) {
+			foreach ( $hooks as $name => $arr ) {
+				if ( is_object( $arr['function'] ) && $arr['function'] instanceof \Closure ) {
+					unset( $wp_filter[ $notice_type ]->callbacks[ $priority ][ $name ] );
+					continue;
+				}
+
+				// Determine the source of the notice
+                $source = '';
+				if ( isset( $arr['function'] ) && is_array( $arr['function'] ) && ! empty( $arr['function'][0] ) && is_object( $arr['function'][0] ) ) {
+                    $source = strtolower( get_class( $arr['function'][0] ) );
+                } elseif ( ! empty( $name ) ) {
+                    $source = strtolower( $name );
+                }
+
+				// Remove the notice if its source is not in the list of allowed sources
+                $allowed = false;
+                foreach ( $allowed_sources as $allowed_source ) {
+                    if ( strpos( $source, $allowed_source ) !== false) {
+                        $allowed = true;
+                        break;
+                    }
+                }
+
+                if ( ! $allowed ) {
+                    unset( $wp_filter[ $notice_type ]->callbacks[ $priority ][ $name ] );
+                }
+			}
+		}
+	}
+
+	/**
+	 * Remove all automator_show_internal_admin_notice actions.
+	 * 
+	 * @return void
+	 */
+	public static function remove_automator_pro_licensing_notices() {
+		// Simply remove all actions from this hook
+		remove_all_actions( 'automator_show_internal_admin_notice' );
 	}
 
 }

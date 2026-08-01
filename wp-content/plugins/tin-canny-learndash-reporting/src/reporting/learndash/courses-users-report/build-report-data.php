@@ -883,13 +883,41 @@ class BuildReportData {
 		self::$course_completion_by_course = $course_completion_by_course;
 
 		//self::$completions_by_course = array();
+		/**
+		 * Filter the date interval for Tin Can statements query
+		 *
+		 * Allows customizing the date range for Tin Can statements in dashboard queries
+		 * for improved performance when dealing with large historical datasets.
+		 *
+		 * @param string|null $date_interval MySQL INTERVAL string (e.g., '3 MONTH', '90 DAY'). Return null to use default.
+		 * @param int          $leader_id     The group leader/admin user ID
+		 * @return string|null MySQL INTERVAL string or null to use default ('1 MONTH')
+		 */
+		$date_interval = apply_filters( 'uo_tincanny_dashboard_tincan_date_interval', null, self::$leader_id );
+		
+		// Use original default if filter not set or returns null/empty/invalid type
+		$default_date_interval = '1 MONTH';
+		if ( null === $date_interval || '' === $date_interval || false === $date_interval || ! is_string( $date_interval ) ) {
+			$date_interval = $default_date_interval; // Original default
+		} else {
+			// Safely parse and validate interval to prevent SQL injection
+			// Only allow single intervals: 'N UNIT' where N is integer and UNIT is whitelisted
+			$date_interval = self::validate_date_interval( $date_interval, $default_date_interval );
+		}
+		
 		// phpcs:disable WordPress.DB.PreparedSQL
+		// Note: MySQL INTERVAL syntax requires literal values and cannot use placeholders.
+		// The $date_interval is validated by validate_date_interval() which ensures:
+		// - Only positive integers for the number portion (via absint)
+		// - Only whitelisted units (MONTH, DAY, YEAR, WEEK, HOUR, MINUTE, SECOND)
+		// - Strict format validation (N UNIT where N is integer, UNIT is whitelisted)
+		// This makes direct interpolation safe after validation.
 		$qry = $wpdb->prepare(
 			"SELECT x.xstored, x.user_id, x.course_id
 						FROM {$wpdb->prefix}uotincan_reporting x
 						JOIN {$tbl_reporting_api_user} t
 							ON t.user_id = x.user_id AND t.group_leader_id = %d
-						WHERE x.xstored >= NOW() - INTERVAL 1 MONTH",
+						WHERE x.xstored >= NOW() - INTERVAL {$date_interval}",
 			self::$leader_id
 		);
 		$tin_can_completed = $wpdb->get_results( $qry );
@@ -1203,6 +1231,47 @@ class BuildReportData {
 	    Cache::create( $cache_key, $course_users );
 
 	    return $course_users;
+	}
+
+	/**
+	 * Safely validate and sanitize MySQL INTERVAL string to prevent SQL injection
+	 *
+	 * @param mixed  $interval The interval string to validate (e.g., '3 MONTH', '90 DAY')
+	 * @param string $default  Default interval to use if validation fails
+	 * @return string Validated interval string safe for SQL use
+	 */
+	private static function validate_date_interval( $interval, $default = '1 MONTH' ) {
+		// Type check: must be string
+		if ( ! is_string( $interval ) ) {
+			return $default;
+		}
+		
+		// Whitelist of allowed interval units
+		$allowed_units = array( 'MONTH', 'DAY', 'YEAR', 'WEEK', 'HOUR', 'MINUTE', 'SECOND' );
+		
+		// Trim and normalize whitespace
+		$interval = trim( $interval );
+		
+		// Handle empty string after trim
+		if ( '' === $interval ) {
+			return $default;
+		}
+		
+		$interval = preg_replace( '/\s+/', ' ', $interval );
+		
+		// Parse: expect format "N UNIT" where N is integer, UNIT is whitelisted
+		if ( preg_match( '/^(\d+)\s+([A-Z]+)$/i', $interval, $matches ) ) {
+			$number = absint( $matches[1] ); // Ensure positive integer
+			$unit   = strtoupper( trim( $matches[2] ) ); // Normalize to uppercase
+			
+			// Validate unit is in whitelist and number is positive
+			if ( in_array( $unit, $allowed_units, true ) && $number > 0 ) {
+				return $number . ' ' . $unit; // Reconstruct safely
+			}
+		}
+		
+		// Return default if validation fails (empty string, invalid format, invalid unit, etc.)
+		return $default;
 	}
 
 }

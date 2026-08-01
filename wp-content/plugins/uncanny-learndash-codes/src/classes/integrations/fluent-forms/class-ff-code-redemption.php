@@ -102,7 +102,7 @@ class Fluent_Forms_Code_Redemption extends Config {
 			}
 			$coupon_id = self::$coupon_id;
 			if ( is_numeric( $coupon_id ) ) {
-				update_user_meta( $user_id, Config::$uncanny_codes_tracking, esc_html__( 'Fluent_Forms', 'uncanny-learndash-codes' ) );
+				update_user_meta( $user_id, Config::$uncanny_codes_tracking, 'Fluent Forms' );
 				$result = Database::set_user_to_coupon( $user_id, $coupon_id );
 				LearnDash::set_user_to_course_or_group( $user_id, $result );
 

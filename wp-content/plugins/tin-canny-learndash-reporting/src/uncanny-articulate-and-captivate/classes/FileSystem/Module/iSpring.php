@@ -97,10 +97,14 @@ class iSpring extends \TINCANNYSNC\FileSystem\absModule {
 		//$ispring_html = preg_replace( '/endPoint\s?:\s?"([^"]*)/', 'endPoint: window.location.protocol + "//" + window.location.hostname + "'.$subdirectory.'/ucTinCan/iSpring/', $ispring_html );
 		$ispring_html = preg_replace( '/endPoint\s?:\s?"([^"]*)/', 'endPoint: baseUrl + "'.$subdirectory.'/ucTinCan/iSpring/', $ispring_html );
 		
-		$ispring_html = preg_replace( '/login\s?:\s?"([^"]*)/', 'login: "1', $ispring_html );
-		$ispring_html = preg_replace( '/password\s?:\s?"([^"]*)/', 'password: "1', $ispring_html );
-		$ispring_html = preg_replace( '/name\s?:\s?"([^"]*)/', 'name: "1', $ispring_html );
-		$ispring_html = preg_replace( '/email\s?:\s?"([^"]*)/', 'email: "1', $ispring_html );
+		// Inject real user identity from NONCE_BLOCK globals into the auth block.
+		// iSpring's lms.js (original for non-v11 w/ tincan.xml, or iSpring11-lms.js for v11)
+		// reads actor name/email from this auth block when endPoint is set (Yc/Oc gate = true).
+		// Hardcoding "1" caused all xAPI state requests to use agent {"name":"1","mbox":"mailto:1"}.
+		$ispring_html = preg_replace( '/login\s?:\s?"([^"]*)"/', 'login: email', $ispring_html );
+		$ispring_html = preg_replace( '/password\s?:\s?"([^"]*)"/', 'password: "1"', $ispring_html );
+		$ispring_html = preg_replace( '/name\s?:\s?"([^"]*)"/', 'name: (actor && actor.name ? actor.name[0] : "")', $ispring_html );
+		$ispring_html = preg_replace( '/email\s?:\s?"([^"]*)"/', 'email: email', $ispring_html );
 		
 		preg_match_all( '/iSpring\.LMS\.create\("([A-Z_]+)", "([\.A-Za-z0-9]+)/', $ispring_html, $match1 );
 		preg_match_all( '/iSpring\.quiz\.LMS\.create\("([\.A-Za-z0-9]+)", params/', $ispring_html, $match2 );

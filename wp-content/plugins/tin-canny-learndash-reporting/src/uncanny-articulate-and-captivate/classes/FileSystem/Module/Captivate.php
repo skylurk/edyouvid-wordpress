@@ -77,7 +77,8 @@ class Captivate extends \TINCANNYSNC\FileSystem\absModule {
 			}
 		}
 
-		return false;
+		// Fallback: tincan.xml and/or common HTML entry files (e.g. xAPI-style Captivate without captivate.css/CPLibraryAll).
+		return $this->get_launch_url_from_tincan_or_fallback( $file_list );
 	}
 
 	protected function add_tincan_support() {
@@ -163,6 +164,54 @@ class Captivate extends \TINCANNYSNC\FileSystem\absModule {
 			if( $object->getFilename() === 'CPLibraryAll.css' ) {
 				return true;
 			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get launch URL from tincan.xml (activity launch or resources) or fallback to common HTML entry files.
+	 * Used by Captivate for xAPI-style packages that have tincan.xml but no captivate.css/CPLibraryAll.
+	 *
+	 * @param array|null $file_list Optional. Directory contents; if null, get_dir_contents() is used.
+	 * @return string|false URL or false.
+	 */
+	protected function get_launch_url_from_tincan_or_fallback( $file_list = null ) {
+		$target = $this->get_target_dir();
+		if ( ! $target || ! is_dir( $target ) ) {
+			return false;
+		}
+		$file_list = $file_list ?? $this->get_dir_contents();
+		if ( ! is_array( $file_list ) ) {
+			$file_list = array();
+		}
+
+		$launch_file = '';
+		$tincan_path = $target . '/tincan.xml';
+		if ( file_exists( $tincan_path ) ) {
+			$contents = file_get_contents( $tincan_path );
+			$xml      = ( $contents !== false ) ? simplexml_load_string( $contents ) : false;
+			if ( $xml !== false && isset( $xml->activities->activity->launch ) && (string) $xml->activities->activity->launch !== '' ) {
+				$launch_file = (string) $xml->activities->activity->launch;
+			}
+			if ( $launch_file === '' && $xml !== false && isset( $xml->resources->resource ) ) {
+				$resources = $xml->resources->resource;
+				$list      = is_array( $resources ) ? $resources : array( $resources );
+				foreach ( $list as $resource ) {
+					if ( isset( $resource['href'] ) && (string) $resource['href'] !== '' ) {
+						$launch_file = (string) $resource['href'];
+						break;
+					}
+				}
+			}
+		}
+		if ( $launch_file !== '' && is_string( $launch_file ) && file_exists( $target . '/' . $launch_file ) ) {
+			return $this->get_target_url() . '/' . $launch_file;
+		}
+
+		$fallback = $this->in_array_search( array( 'index.html', 'index.htm', 'story.html', 'player.html', 'presentation.html' ), $file_list );
+		if ( $fallback ) {
+			return $this->get_target_url() . '/' . $fallback;
 		}
 
 		return false;

@@ -280,6 +280,15 @@ class TinCannyProtection {
 			if ( ! empty( $post_meta ) && isset( $post_meta['protect-scorm-tin-can-modules'] ) ) {
 				$post_protection_setting = sanitize_title( strtolower( $post_meta['protect-scorm-tin-can-modules'] ) );
 			}
+		} elseif ( ! empty( $this->content_data->id ) ) {
+			/*
+			 * Nested module files (e.g. Rise scormcontent/index.html) load without Tin Can query args.
+			 * Resolve LearnDash posts that embed this module ID so per-post "Protection = No" still applies.
+			 */
+			$referencing_posts = $this->get_post_ids_referencing_module( (int) $this->content_data->id );
+			if ( ! empty( $referencing_posts ) ) {
+				return $this->is_protection_enabled_for_referencing_posts( $referencing_posts, $global_protection_enabled );
+			}
 		}
 
 		// Decide if the user has access or not to the content
@@ -293,6 +302,97 @@ class TinCannyProtection {
 
 		// Check if the protection settings is enabled
 		return $protection_enabled;
+	}
+
+	/**
+	 * When protection is enabled if any referencing post requires it (explicit Yes or Use global + global on).
+	 *
+	 * @param int[] $post_ids                  Post IDs that embed this module.
+	 * @param bool  $global_protection_enabled Global "Protect SCORM/Tin Can modules" is on.
+	 * @return bool
+	 */
+	private function is_protection_enabled_for_referencing_posts( array $post_ids, $global_protection_enabled ) {
+		foreach ( $post_ids as $post_id ) {
+			$post_id = absint( $post_id );
+			if ( ! $post_id ) {
+				continue;
+			}
+			$setting = 'use-global-setting';
+			$post_meta = \UCTINCAN\Admin\Metabox::get_meta_values( $post_id );
+			if ( ! empty( $post_meta ) && isset( $post_meta['protect-scorm-tin-can-modules'] ) ) {
+				$setting = sanitize_title( strtolower( $post_meta['protect-scorm-tin-can-modules'] ) );
+			}
+			if ( 'yes' === $setting ) {
+				return true;
+			}
+			if ( 'use-global-setting' === $setting && $global_protection_enabled ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Find published posts that embed a Tin Canny module (Manage Content ID / uncanny-snc folder id).
+	 *
+	 * @param int $module_id Module ID.
+	 * @return int[]
+	 */
+	private function get_post_ids_referencing_module( $module_id ) {
+		$module_id = absint( $module_id );
+		if ( ! $module_id ) {
+			return array();
+		}
+
+		$cache_key = 'uotc_snc_refs_' . $module_id;
+		$cached    = get_transient( $cache_key );
+		if ( false !== $cached && is_array( $cached ) ) {
+			return array_map( 'absint', $cached );
+		}
+
+		global $wpdb;
+
+		$mid          = (string) $module_id;
+		$like_clauses = array();
+		$patterns     = array(
+			'item_id="' . $mid . '"',
+			"item_id='" . $mid . "'",
+			'item_id = "' . $mid . '"',
+			"item_id = '" . $mid . "'",
+			'"contentId":"' . $mid . '"',
+			'"contentId":' . $mid . ',',
+			'"contentId":' . $mid . '}',
+		);
+
+		foreach ( $patterns as $fragment ) {
+			$like_clauses[] = $wpdb->prepare( '(post_content LIKE %s)', '%' . $wpdb->esc_like( $fragment ) . '%' );
+		}
+
+		$post_types = apply_filters(
+			'uo_tincanny_protection_module_ref_post_types',
+			array( 'sfwd-lessons', 'sfwd-topic', 'sfwd-quiz', 'page', 'post' )
+		);
+		$post_types = array_filter( array_map( 'sanitize_key', (array) $post_types ) );
+
+		if ( empty( $post_types ) || empty( $like_clauses ) ) {
+			return array();
+		}
+
+		$in_types  = "'" . implode( "','", array_map( 'esc_sql', $post_types ) ) . "'";
+		$like_sql  = implode( ' OR ', $like_clauses );
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $like_sql built from $wpdb->prepare fragments; $in_types is escaped.
+		$sql       = "SELECT ID FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_type IN ({$in_types}) AND ( {$like_sql} ) LIMIT 20";
+		$post_ids  = $wpdb->get_col( $sql );
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		$post_ids  = array_map( 'absint', (array) $post_ids );
+		$post_ids  = array_values( array_filter( array_unique( $post_ids ) ) );
+		$post_ids  = apply_filters( 'uo_tincanny_protection_module_post_ids', $post_ids, $module_id );
+
+		set_transient( $cache_key, $post_ids, 12 * HOUR_IN_SECONDS );
+
+		return $post_ids;
 	}
 }
 

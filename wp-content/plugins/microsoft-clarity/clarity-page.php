@@ -574,6 +574,14 @@ function plugin_update_notice()
     }
 
     $plugin_slug = 'microsoft-clarity/clarity.php';
+
+    // Suppress the banner if it was already dismissed for this exact version.
+    $updates = get_site_transient('update_plugins');
+    $new_version = isset($updates->response[$plugin_slug]->new_version) ? $updates->response[$plugin_slug]->new_version : '';
+    if ($new_version !== '' && $new_version === get_option('clarity_dismissed_update_version')) {
+        return;
+    }
+
     $update_url = wp_nonce_url(
         add_query_arg(
             array(
@@ -584,9 +592,10 @@ function plugin_update_notice()
         ),
         'plugin_update_nonce'
     );
+    $dismiss_nonce = wp_create_nonce('clarity_dismiss_update_notice');
 
 ?>
-    <div class="notice notice-warning is-dismissible">
+    <div class="notice notice-warning is-dismissible clarity-update-notice">
         <p style="font-weight:700">
             <?php _e('A new version of Microsoft Clarity is available.', 'text-domain'); ?>
         </p>
@@ -596,6 +605,18 @@ function plugin_update_notice()
             </a>
         </p>
     </div>
+    <script>
+        // Persist the dismissal so the banner stays hidden for this version on future page loads.
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('notice-dismiss') && e.target.closest('.clarity-update-notice')) {
+                fetch(ajaxurl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    body: new URLSearchParams({ action: 'clarity_dismiss_update_notice', nonce: '<?php echo esc_js($dismiss_nonce); ?>' })
+                });
+            }
+        });
+    </script>
 <?php
 }
 
@@ -657,6 +678,25 @@ function plugin_perform_update()
         wp_redirect(esc_url($redirect_url));
         exit;
     }
+}
+
+/**
+* Persist dismissal of the update banner site-wide for the currently available version
+*/
+add_action('wp_ajax_clarity_dismiss_update_notice', 'clarity_dismiss_update_notice');
+function clarity_dismiss_update_notice()
+{
+    if (! current_user_can('update_plugins') || ! isset($_POST['nonce']) || ! wp_verify_nonce($_POST['nonce'], 'clarity_dismiss_update_notice')) {
+        wp_die('', '', array('response' => 403));
+    }
+
+    $plugin_slug = 'microsoft-clarity/clarity.php';
+    $updates = get_site_transient('update_plugins');
+    $new_version = isset($updates->response[$plugin_slug]->new_version) ? $updates->response[$plugin_slug]->new_version : '';
+    if ($new_version !== '') {
+        update_option('clarity_dismissed_update_version', $new_version);
+    }
+    wp_die();
 }
 
 /**

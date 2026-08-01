@@ -68,11 +68,29 @@ const woosbSubtotalPriceFormat = (defaultValue, extensions, args, validation) =>
     return '<price/>';
 };
 
+const woosbItemName = (defaultValue, extensions, args) => {
+    const isCartContext = args?.context === 'cart';
+
+    if (!isCartContext) {
+        return defaultValue;
+    }
+
+    // Append edit link after the product name when woosb_edit_url is available
+    if (args?.cartItem?.woosb_edit_url) {
+        const label = extensions?.['woosb-blocks']?.edit_label || 'Edit';
+
+        return defaultValue + ' <a class="woosb-cart-item-edit" href="' + args.cartItem.woosb_edit_url + '">' + label + '</a>';
+    }
+
+    return defaultValue;
+};
+
 woosbCheckoutFilters('woosb-blocks', {
     cartItemClass: woosbCartItemClass,
     showRemoveItemLink: woosbShowRemoveItemLink,
     cartItemPrice: woosbCartItemPrice,
-    subtotalPriceFormat: woosbSubtotalPriceFormat
+    subtotalPriceFormat: woosbSubtotalPriceFormat,
+    itemName: woosbItemName,
 });
 
 // https://github.com/woocommerce/woocommerce-blocks/blob/trunk/docs/third-party-developers/extensibility/checkout-block/available-filters/cart-line-items.md

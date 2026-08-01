@@ -333,15 +333,15 @@ class Feature_List extends Widget_Base {
                 'options'         => [
                     'left'  => [
                         'title' => esc_html__( 'Left', 'essential-addons-for-elementor-lite' ),
-                        'icon'  => 'eicon-text-align-left',
+                        'icon'  => 'eicon-order-start',
                     ],
                     'top'   => [
                         'title' => esc_html__( 'Top', 'essential-addons-for-elementor-lite' ),
-                        'icon'  => 'eicon-text-align-center',
+                        'icon'  => 'eicon-v-align-top',
                     ],
                     'right' => [
                         'title' => esc_html__( 'Right', 'essential-addons-for-elementor-lite' ),
-                        'icon'  => 'eicon-text-align-right',
+                        'icon'  => 'eicon-order-end',
                     ],
                 ],
                 'default'         => 'left',
@@ -1065,6 +1065,7 @@ class Feature_List extends Widget_Base {
 
 
             if ( $item['eael_feature_list_icon_type'] == 'image' ) {
+            $item['eael_feature_list_img'] = Helper::eael_wpml_translate_media( $item['eael_feature_list_img'] ); // WPML Media Translation compatibility
             $this->add_render_attribute( 'feature_list_image' . $index, [
                 'src'   => esc_url( $item['eael_feature_list_img']['url'] ),
                 'class' => 'eael-feature-list-img',

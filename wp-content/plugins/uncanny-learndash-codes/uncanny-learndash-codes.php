@@ -1,6 +1,6 @@
 <?php
 /*
- * Plugin Name:         Uncanny Codes
+ * Plugin Name:         Uncanny Redemption Codes
  * Description:         Generate, track and sell codes that can be redeemed for access, membership and more in 50+ plugins and apps
  * Author:              Uncanny Owl
  * Author URI:          https://www.uncannyowl.com/
@@ -9,8 +9,8 @@
  * Domain Path:         /languages
  * License:             GPLv3
  * License URI:         https://www.gnu.org/licenses/gpl-3.0.html
- * Version:             4.4.0.1
- * Requires at least:   5.3
+ * Version:             5.0.0
+ * Requires at least:   5.6
  * Requires PHP:        7.4
  */
 
@@ -18,19 +18,49 @@ use uncanny_learndash_codes\Config;
 use uncanny_learndash_codes\SharedFunctionality;
 
 /**
- * Define Uncanny Codes Version
+ * Define Uncanny Redemption Codes Version
  */
-define( 'UNCANNY_LEARNDASH_CODES_VERSION', '4.4.0.1' );
+define( 'UNCANNY_LEARNDASH_CODES_VERSION', '5.0.0' );
 
 /**
- * Define Uncanny Codes Database Version
+ * Define Uncanny Redemption Codes Database Version
  */
-define( 'UNCANNY_LEARNDASH_CODES_DB_VERSION', '4.2' );
+define( 'UNCANNY_LEARNDASH_CODES_DB_VERSION', '5.0.0' );
 
 /**
  * Base file
  */
 define( 'UO_CODES_FILE', __FILE__ );
+
+if ( ! defined( 'UNCANNY_API_URL' ) ) {
+	/**
+	 *
+	 */
+	define( 'UNCANNY_API_URL', 'https://api.uncannyowl.com/codes/' );
+}
+
+if ( ! defined( 'UNCANNY_API_KEY' ) ) {
+	/**
+	 *
+	 */
+	define( 'UNCANNY_API_KEY', 'kc)5zbblqxz' );
+}
+
+if ( ! defined( 'UNCANNY_OWL_ASSETS_STATIC_URL' ) ) {
+	/**
+	 *
+	 */
+	define( 'UNCANNY_OWL_ASSETS_STATIC_URL', 'https://static.uncannyowl.com' );
+}
+
+
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+/**
+ * Define Uncanny Redemption Codes CSV Path
+ */
+define( 'UNCANNYC_CODES_CSV_PATH', WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'uploads/uncanny-codes' );
 
 // On first activation, upgrades, create or update Database.
 register_activation_hook( UO_CODES_FILE, 'ulc_create_upgrade_db_tables' );
@@ -40,25 +70,19 @@ register_activation_hook( UO_CODES_FILE, 'ulc_create_upgrade_db_tables' );
  */
 function ulc_create_upgrade_db_tables() {
 	uncanny_learndash_codes\Database::create_tables();
-}
-
-// Allow Translations to be loaded.
-add_action( 'plugins_loaded', 'uncanny_learndash_codes_text_domain' );
-
-/**
- * All translation to be added
- */
-function uncanny_learndash_codes_text_domain() {
-	load_plugin_textdomain( 'uncanny-learndash-codes', false, basename( dirname( UO_CODES_FILE ) ) . '/languages/' );
+	delete_transient( 'uo_codes_cached_license_data' );
 }
 
 // Plugins Configurations File.
 require_once dirname( UO_CODES_FILE ) . '/src/classes/class-shared-functionality.php';
 $shared = SharedFunctionality::get_instance();
+
 require_once dirname( UO_CODES_FILE ) . '/src/config.php';
 $config = Config::get_instance();
+
 // Load all plugin classes(functionality).
 require_once dirname( UO_CODES_FILE ) . '/src/boot.php';
+
 $boot = '\uncanny_learndash_codes\Boot';
 $ulc  = new $boot();
 
@@ -90,3 +114,5 @@ if ( class_exists( '\Uncanny_Owl\Notifications' ) ) {
 
 	}
 }
+
+require_once __DIR__ . '/src/usage-reports/loader.php';

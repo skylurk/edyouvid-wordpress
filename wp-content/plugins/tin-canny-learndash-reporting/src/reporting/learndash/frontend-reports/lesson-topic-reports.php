@@ -109,11 +109,11 @@ class LessonTopicReports extends Config {
 		$courses = array();
 
 		if ( learndash_is_group_leader_user( $user_id ) ) {
-			$group_ids = learndash_get_administrators_group_ids( $user_id );
+			$group_ids = CourseData::get_group_leader_group_ids( $user_id );
 			if ( count( $group_ids ) === 1 ) {
 				$data['group_id'] = $group_ids[0];
 			}
-			$course_ids = learndash_get_groups_courses_ids( $user_id, $group_ids );
+			$course_ids = CourseData::get_group_leader_accessible_course_ids( $user_id );
 		} else {
 			$group_ids  = array();
 			$course_ids = array();
@@ -468,7 +468,7 @@ class LessonTopicReports extends Config {
 		if ( array_intersect( $allowed_roles, $user->roles ) ) {
 			// Check Group Leader has access to at least one group.
 			if ( in_array( 'group_leader', $user->roles, true ) ) {
-				$group_ids = learndash_get_administrators_group_ids( $user->ID );
+				$group_ids = CourseData::get_group_leader_group_ids( $user->ID );
 				if ( ! empty( $group_ids ) ) {
 					return true;
 				}
@@ -513,6 +513,13 @@ class LessonTopicReports extends Config {
 				if ( ! in_array( $course_id, $course_ids, true ) ) {
 					$course_id = 0;
 				}
+			}
+		} elseif ( ! uotc_is_user_admin( get_current_user_id() ) ) {
+			// Optional group: restrict to courses the group leader can see.
+			$accessible = CourseData::get_group_leader_accessible_course_ids( get_current_user_id() );
+			if ( $course_id > 0 && ! in_array( $course_id, $accessible, true ) ) {
+				$course_id = 0;
+				$step_id   = 0;
 			}
 		}
 
@@ -606,13 +613,23 @@ class LessonTopicReports extends Config {
 		$users = array();
 
 		if ( $group_id > 0 ) {
-			// If group id is set, get the users for the group.
 			$users = learndash_get_groups_users( $group_id );
 		} else {
-			// Get the users for the course.
-			$user_query = learndash_get_users_for_course( $course_id, array( 'fields' => 'all' ) );
+			$current_user_id = get_current_user_id();
+			$user_query      = learndash_get_users_for_course( $course_id, array( 'fields' => 'all' ) );
 			if ( $user_query instanceof \WP_User_Query ) {
-				$users = $user_query->get_results();
+				$course_users = $user_query->get_results();
+				if ( uotc_is_user_admin( $current_user_id ) ) {
+					$users = $course_users;
+				} else {
+					// Group leader: limit to learners they manage.
+					$managed_map = CourseData::get_group_leader_managed_user_id_map( $current_user_id );
+					foreach ( $course_users as $course_user ) {
+						if ( isset( $managed_map[ (int) $course_user->ID ] ) ) {
+							$users[] = $course_user;
+						}
+					}
+				}
 			}
 		}
 

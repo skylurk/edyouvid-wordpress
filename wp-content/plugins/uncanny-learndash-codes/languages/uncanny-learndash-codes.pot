@@ -1,24 +1,24 @@
-# Copyright (C) 2024 Uncanny Owl
+# Copyright (C) 2025 Uncanny Owl
 # This file is distributed under the GPLv3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Uncanny Codes 4.4.0.1\n"
+"Project-Id-Version: Uncanny Redemption Codes 5.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/uncanny-learndash-codes\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-09-27T18:31:54+00:00\n"
+"POT-Creation-Date: 2025-11-12T17:09:33+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.10.0\n"
+"X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: uncanny-learndash-codes\n"
 
 #. Plugin Name of the plugin
 #: uncanny-learndash-codes.php
 #: src/classes/integrations/forminator/class-create-codes-field.php:73
-#: src/templates/admin-header.php:57
-msgid "Uncanny Codes"
+#: src/templates/admin-header.php:58
+msgid "Uncanny Redemption Codes"
 msgstr ""
 
 #. Plugin URI of the plugin
@@ -48,11 +48,13 @@ msgstr ""
 
 #: src/auto-plugin-install/class-auto-plugin-install.php:140
 #: src/auto-plugin-install/class-auto-plugin-install.php:157
+#, php-format
 msgid "%s is already installed and active."
 msgstr ""
 
 #: src/auto-plugin-install/class-auto-plugin-install.php:340
 #: src/auto-plugin-install/class-auto-plugin-install.php:348
+#, php-format
 msgid "Could not install plugin. %s"
 msgstr ""
 
@@ -105,10 +107,12 @@ msgid "Install Uncanny Automator"
 msgstr ""
 
 #: src/auto-plugin-install/class-auto-plugin-install.php:557
+#, php-format
 msgid "Install %s"
 msgstr ""
 
 #: src/auto-plugin-install/class-auto-plugin-install.php:565
+#, php-format
 msgid "%s is active"
 msgstr ""
 
@@ -117,446 +121,528 @@ msgid "Activate Uncanny Automator"
 msgstr ""
 
 #: src/auto-plugin-install/class-auto-plugin-install.php:572
+#, php-format
 msgid "Activate %s"
 msgstr ""
 
-#: src/boot.php:211
-msgid "Uncanny Codes Support"
+#: src/boot.php:210
+msgid "Uncanny Redemption Codes Support"
 msgstr ""
 
-#: src/boot.php:212
+#: src/boot.php:211
 #: src/templates/admin-header.php:38
 msgid "Help"
 msgstr ""
 
-#: src/boot.php:225
+#: src/boot.php:224
 msgid "Uncanny LearnDash Plugins"
 msgstr ""
 
-#: src/boot.php:226
+#: src/boot.php:225
 #: src/templates/admin-header.php:43
 msgid "LearnDash Plugins"
 msgstr ""
 
-#: src/boot.php:309
-#: src/classes/admin/admin-menu.php:100
-#: src/classes/admin/admin-menu.php:101
+#: src/boot.php:508
+#: src/boot.php:546
+#: src/boot.php:583
+#: src/boot.php:620
+msgid "Security check failed"
+msgstr ""
+
+#: src/boot.php:514
+msgid "No codes selected for download"
+msgstr ""
+
+#: src/boot.php:521
+msgid "No valid codes found for download"
+msgstr ""
+
+#: src/boot.php:552
+msgid "No codes selected for replacement"
+msgstr ""
+
+#: src/boot.php:589
+msgid "No codes selected for cancellation"
+msgstr ""
+
+#: src/boot.php:626
+msgid "No codes selected for deletion"
+msgstr ""
+
+#: src/boot.php:729
+msgid "Please Input Maximum Usage Amount"
+msgstr ""
+
+#: src/boot.php:730
+msgid "Please Select LearnDash Groups"
+msgstr ""
+
+#: src/boot.php:731
+msgid "Please Select LearnDash Courses"
+msgstr ""
+
+#: src/boot.php:732
+msgid "Please Input Letter Length"
+msgstr ""
+
+#: src/boot.php:733
+msgid "The Length of Prefix and Suffix is Longer than Letter Length"
+msgstr ""
+
+#: src/boot.php:734
+msgid "The Length of Prefix and Suffix is same as Letter Length"
+msgstr ""
+
+#: src/boot.php:735
+msgid "Do you really want to delete this?"
+msgstr ""
+
+#: src/boot.php:736
+msgid "Are you sure you want to delete these codes? This action is irreversible."
+msgstr ""
+
+#: src/boot.php:737
+msgid "Are you sure you want to delete this code? This action is irreversible."
+msgstr ""
+
+#: src/boot.php:738
+msgid "Are you sure you want to replace this code? This action is irreversible."
+msgstr ""
+
+#: src/boot.php:739
+msgid "Are you sure you want to cancel this code? This action is irreversible."
+msgstr ""
+
+#: src/boot.php:760
+msgid "This name exists; please choose a new name."
+msgstr ""
+
+#: src/boot.php:764
+msgid "No results found"
+msgstr ""
+
+#: src/boot.php:767
+#: src/classes/admin/admin-menu.php:68
+#: src/templates/admin-generate-codes/code-setup.php:392
+#: src/templates/admin-generate-codes/header.php:22
+#: src/templates/admin-header.php:23
+msgid "Generate Codes"
+msgstr ""
+
+#: src/boot.php:768
+msgid "Generate Codes and create a recipe"
+msgstr ""
+
+#: src/boot.php:769
+msgid "Modify Batch"
+msgstr ""
+
+#: src/boot.php:772
+msgid "Something went wrong. Please, try again."
+msgstr ""
+
+#: src/boot.php:821
+msgid "Uncanny Redemption Codes License Activation"
+msgstr ""
+
+#: src/boot.php:822
+msgid "License activation"
+msgstr ""
+
+#: src/boot.php:981
+msgid "Hey!"
+msgstr ""
+
+#: src/boot.php:984
+#, php-format
+msgid "Once your recipe is set up, don't forget to connect your code batch to a product if you plan to sell your codes. %1$s to set up a new product. Visit our %2$s for additional assistance."
+msgstr ""
+
+#: src/boot.php:984
+msgid "Click here"
+msgstr ""
+
+#: src/boot.php:984
+#: src/templates/admin-license.php:185
+msgid "Knowledge Base"
+msgstr ""
+
+#: src/boot.php:1111
+#, php-format
+msgid "There was an issue in activating your license. Error: %s"
+msgstr ""
+
+#: src/boot.php:1174
+msgid "License cleared"
+msgstr ""
+
+#: src/boot.php:1285
+msgid "License is activated."
+msgstr ""
+
+#: src/classes/admin/admin-menu.php:66
+#: src/templates/admin-generate-codes/code-setup.php:390
+#: src/templates/admin-generate-codes/header.php:20
+#: src/templates/admin-header.php:23
+msgid "Modify Codes"
+msgstr ""
+
+#: src/classes/admin/admin-menu.php:73
+#: src/classes/admin/admin-menu.php:74
+#: src/templates/admin-header.php:18
+msgid "View Codes"
+msgstr ""
+
+#: src/classes/admin/admin-menu.php:97
+#: src/classes/admin/admin-menu.php:98
+#: src/classes/admin/class-view-codes.php:292
+#: src/templates/admin-cancel-codes.php:34
+#: src/templates/admin-header.php:28
+msgid "Cancel Codes"
+msgstr ""
+
+#: src/classes/admin/admin-menu.php:109
+#: src/classes/admin/admin-menu.php:110
 #: src/templates/admin-header.php:33
 msgid "Settings"
 msgstr ""
 
-#: src/boot.php:310
-msgid "Licensing"
+#: src/classes/admin/admin-menu.php:172
+msgid "No group selected for download"
 msgstr ""
 
-#: src/boot.php:549
-msgid "Please Input Maximum Usage Amount"
-msgstr ""
-
-#: src/boot.php:550
-msgid "Please Select LearnDash Groups"
-msgstr ""
-
-#: src/boot.php:551
-msgid "Please Select LearnDash Courses"
-msgstr ""
-
-#: src/boot.php:552
-msgid "Please Input Letter Length"
-msgstr ""
-
-#: src/boot.php:553
-msgid "The Length of Prefix and Suffix is Longer than Letter Length"
-msgstr ""
-
-#: src/boot.php:554
-msgid "The Length of Prefix and Suffix is same as Letter Length"
-msgstr ""
-
-#: src/boot.php:555
-msgid "Do you really want to delete this?"
-msgstr ""
-
-#: src/boot.php:556
-msgid "Are you sure you want to delete these codes? This action is irreversible."
-msgstr ""
-
-#: src/boot.php:557
-msgid "Are you sure you want to delete this code? This action is irreversible."
-msgstr ""
-
-#: src/boot.php:558
-msgid "Are you sure you want to replace this code? This action is irreversible."
-msgstr ""
-
-#: src/boot.php:559
-msgid "Are you sure you want to cancel this code? This action is irreversible."
-msgstr ""
-
-#: src/boot.php:580
-msgid "This name exists; please choose a new name."
-msgstr ""
-
-#: src/boot.php:584
-msgid "No results found"
-msgstr ""
-
-#: src/boot.php:587
-#: src/classes/admin/admin-menu.php:59
-#: src/templates/admin-generate-codes/code-setup.php:390
-#: src/templates/admin-generate-codes/header.php:23
-#: src/templates/admin-header.php:23
-msgid "Generate codes"
-msgstr ""
-
-#: src/boot.php:588
-msgid "Generate codes and create a recipe"
-msgstr ""
-
-#: src/boot.php:589
-msgid "Modify batch"
-msgstr ""
-
-#: src/boot.php:592
-msgid "Something went wrong. Please, try again."
-msgstr ""
-
-#: src/boot.php:641
-msgid "Uncanny Codes License Activation"
-msgstr ""
-
-#: src/boot.php:642
-msgid "License activation"
-msgstr ""
-
-#: src/boot.php:800
-msgid "Hey!"
-msgstr ""
-
-#: src/boot.php:803
-msgid "Once your recipe is set up, don't forget to connect your code batch to a product if you plan to sell your codes. %1$s to set up a new product. Visit our %2$s for additional assistance."
-msgstr ""
-
-#: src/boot.php:803
-msgid "Click here"
-msgstr ""
-
-#: src/boot.php:803
-#: src/templates/admin-license.php:229
-msgid "Knowledge Base"
-msgstr ""
-
-#: src/boot.php:930
-msgid "There was an issue in activating your license. Error: %s"
-msgstr ""
-
-#: src/boot.php:993
-msgid "License cleared"
-msgstr ""
-
-#: src/boot.php:1104
-msgid "License is activated."
-msgstr ""
-
-#: src/classes/admin/admin-menu.php:57
-#: src/templates/admin-generate-codes/code-setup.php:388
-#: src/templates/admin-generate-codes/header.php:21
-#: src/templates/admin-header.php:23
-msgid "Modify codes"
-msgstr ""
-
-#: src/classes/admin/admin-menu.php:64
-#: src/classes/admin/admin-menu.php:65
-#: src/templates/admin-header.php:18
-msgid "View codes"
-msgstr ""
-
-#: src/classes/admin/admin-menu.php:88
-#: src/classes/admin/admin-menu.php:89
-#: src/templates/admin-header.php:28
-msgid "Cancel codes"
-msgstr ""
-
-#: src/classes/admin/admin-menu.php:177
-msgid "View generated codes"
-msgstr ""
-
-#: src/classes/admin/admin-menu.php:189
-msgid "Search codes"
-msgstr ""
-
-#: src/classes/admin/admin-menu.php:256
+#: src/classes/admin/admin-menu.php:244
 msgid "Settings saved!"
 msgstr ""
 
-#: src/classes/admin/admin-menu.php:261
+#: src/classes/admin/admin-menu.php:254
 msgid "Failed to create Theme My Login form! Download"
 msgstr ""
 
-#: src/classes/admin/admin-menu.php:281
+#: src/classes/admin/admin-menu.php:272
 msgid "and upload to your theme's directory ( /wp-content/themes/YOUR-THEME/theme-my-login/ ) via (S)FTP."
 msgstr ""
 
-#: src/classes/admin/class-cancel-codes.php:61
+#: src/classes/admin/class-cancel-codes.php:62
 msgid "Upload summary"
 msgstr ""
 
-#: src/classes/admin/class-cancel-codes.php:66
+#: src/classes/admin/class-cancel-codes.php:67
 msgid "codes were successfully cancelled:"
 msgstr ""
 
-#: src/classes/admin/class-cancel-codes.php:78
+#: src/classes/admin/class-cancel-codes.php:79
 msgid "codes were already cancelled"
 msgstr ""
 
-#: src/classes/admin/class-cancel-codes.php:86
+#: src/classes/admin/class-cancel-codes.php:87
 msgid "codes do not exist"
 msgstr ""
 
-#: src/classes/admin/class-cancel-codes.php:94
+#: src/classes/admin/class-cancel-codes.php:95
 msgid "codes were redeemed and are cancelled now"
 msgstr ""
 
-#: src/classes/admin/class-cancel-codes.php:137
+#: src/classes/admin/class-cancel-codes.php:139
 msgid "Invalid file format uploaded. Only CSV file type is allowed."
 msgstr ""
 
-#: src/classes/admin/class-cancel-codes.php:153
+#: src/classes/admin/class-cancel-codes.php:155
 msgid "Something went wrong! Please re-upload the file again."
 msgstr ""
 
-#: src/classes/admin/class-cancel-codes.php:180
+#: src/classes/admin/class-cancel-codes.php:182
 msgid "The required \"Code\" header row is missing from the CSV. Please verify the CSV before uploading it again."
 msgstr ""
 
-#: src/classes/admin/class-cancel-codes.php:240
+#: src/classes/admin/class-cancel-codes.php:242
 msgid "File object is not found"
 msgstr ""
 
-#: src/classes/admin/class-cancel-codes.php:263
+#: src/classes/admin/class-cancel-codes.php:265
 msgid "No codes were found to cancel."
 msgstr ""
 
-#: src/classes/admin/class-cancel-codes.php:299
+#: src/classes/admin/class-cancel-codes.php:301
 msgid "Codes cancelled successfully."
 msgstr ""
 
-#: src/classes/admin/class-cancel-codes.php:310
+#: src/classes/admin/class-cancel-codes.php:312
 msgid "Uploaded codes were already cancelled or are invalid."
 msgstr ""
 
 #: src/classes/admin/class-generate-codes.php:151
+#, php-format
 msgid "%s Codes created listed below."
 msgstr ""
 
 #: src/classes/admin/class-generate-codes.php:153
+#, php-format
 msgid "Only %s unique codes were generated. Try increasing the number of characters to generate more codes."
 msgstr ""
 
 #: src/classes/admin/class-generate-codes.php:157
+#, php-format
 msgid "Only %s unique codes were added out of %s codes. The following codes were rejected:<br />%s.<br /><a href=\"%s\">Manage Codes</a>"
 msgstr ""
 
 #: src/classes/admin/class-generate-codes.php:161
+#, php-format
 msgid "Only %s unique codes were added out of %s codes. <a href=\"%s\">Manage Codes</a>"
 msgstr ""
 
-#: src/classes/admin/class-generate-codes.php:174
+#: src/classes/admin/class-generate-codes.php:175
 msgid "0 Codes Created! None of the generated codes were unique."
 msgstr ""
 
-#: src/classes/admin/class-generate-codes.php:176
+#: src/classes/admin/class-generate-codes.php:177
 msgid "The following code(s) were rejected:"
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:62
+#: src/classes/admin/class-view-codes.php:67
 msgid "Code"
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:63
-msgid "Redeemed date"
-msgstr ""
-
-#: src/classes/admin/class-view-codes.php:64
-#: src/classes/admin/class-view-groups.php:65
-msgid "Expiry date"
-msgstr ""
-
-#: src/classes/admin/class-view-codes.php:65
-msgid "Status"
-msgstr ""
-
-#: src/classes/admin/class-view-codes.php:66
-msgid "Order ID"
-msgstr ""
-
-#: src/classes/admin/class-view-codes.php:67
+#: src/classes/admin/class-view-codes.php:68
 msgid "Redeemed user"
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:68
-#: src/classes/admin/class-view-groups.php:68
-msgid "Actions"
+#: src/classes/admin/class-view-codes.php:69
+msgid "Redeemed date"
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:84
+#: src/classes/admin/class-view-codes.php:70
+msgid "Expiry date"
+msgstr ""
+
+#: src/classes/admin/class-view-codes.php:71
+msgid "Action"
+msgstr ""
+
+#: src/classes/admin/class-view-codes.php:88
 msgid "No codes found."
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:149
-#: src/classes/admin/class-view-groups.php:166
-msgid "Unlimited"
+#: src/classes/admin/class-view-codes.php:126
+msgid "Click to copy"
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:153
+#: src/classes/admin/class-view-codes.php:130
+msgid "Expired"
+msgstr ""
+
+#: src/classes/admin/class-view-codes.php:133
 msgid "Active"
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:155
-#: src/classes/admin/class-view-groups.php:67
+#: src/classes/admin/class-view-codes.php:136
+#: src/classes/admin/class-view-groups.php:65
 msgid "Cancelled"
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:160
-msgid "-"
+#: src/classes/admin/class-view-codes.php:150
+msgid "Woo Order ID"
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:172
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:835
+#: src/classes/admin/class-view-codes.php:151
+msgid "Order: "
+msgstr ""
+
+#: src/classes/admin/class-view-codes.php:191
+msgid "Unlimited"
+msgstr ""
+
+#: src/classes/admin/class-view-codes.php:199
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:899
 msgid "Order refunded"
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:189
+#: src/classes/admin/class-view-codes.php:216
+#, php-format
 msgid "%1$d/%2$d time(s)"
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:194
-#: src/classes/helpers/class-database.php:957
+#: src/classes/admin/class-view-codes.php:221
+#: src/classes/helpers/class-database.php:1038
+#: src/classes/helpers/class-database.php:1187
+#, php-format
 msgid "Deleted user (ID: %d)"
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:219
-msgid "Delete code"
+#: src/classes/admin/class-view-codes.php:234
+msgid "Edit expiry date"
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:235
-msgid "Replace code"
+#: src/classes/admin/class-view-codes.php:273
+#: src/templates/admin-view-codes.php:30
+#: src/templates/admin-view-codes.php:54
+msgid "View Code Batches"
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:250
-msgid "Cancel code"
+#: src/classes/admin/class-view-codes.php:290
+msgid "Update Expiry Date"
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:280
-#: src/classes/admin/class-view-groups.php:224
-msgid "Download"
+#: src/classes/admin/class-view-codes.php:291
+msgid "Replace Codes"
 msgstr ""
 
-#: src/classes/admin/class-view-codes.php:292
-msgid "Back to code group view"
+#: src/classes/admin/class-view-codes.php:293
+msgid "Delete Codes"
 msgstr ""
 
-#: src/classes/admin/class-view-groups.php:57
-msgid "Code name"
+#: src/classes/admin/class-view-codes.php:294
+msgid "Download Selected"
 msgstr ""
 
-#: src/classes/admin/class-view-groups.php:58
-msgid "Type"
-msgstr ""
-
-#: src/classes/admin/class-view-groups.php:59
-msgid "Created"
-msgstr ""
-
-#: src/classes/admin/class-view-groups.php:60
-#: src/classes/integrations/gravity-forms/class-gravity-forms.php:54
-msgid "Prefix"
+#: src/classes/admin/class-view-codes.php:433
+#: src/classes/admin/class-view-groups.php:358
+msgid "Search Codes"
 msgstr ""
 
 #: src/classes/admin/class-view-groups.php:61
-msgid "Suffix"
+msgid "Batch"
 msgstr ""
 
 #: src/classes/admin/class-view-groups.php:62
-msgid "LD type"
+msgid "Type"
 msgstr ""
 
 #: src/classes/admin/class-view-groups.php:63
-msgid "Max per code"
+msgid "Dates"
 msgstr ""
 
 #: src/classes/admin/class-view-groups.php:64
-msgid "Codes generated"
+msgid "Code Usage"
 msgstr ""
 
 #: src/classes/admin/class-view-groups.php:66
-msgid "Redeemed"
+msgid "Actions"
 msgstr ""
 
-#: src/classes/admin/class-view-groups.php:90
+#: src/classes/admin/class-view-groups.php:88
 msgid "Generate new codes"
 msgstr ""
 
-#: src/classes/admin/class-view-groups.php:126
-msgid "LearnDash Group"
+#: src/classes/admin/class-view-groups.php:127
+#: src/classes/integrations/gravity-forms/class-gravity-forms.php:55
+msgid "Prefix"
 msgstr ""
 
-#: src/classes/admin/class-view-groups.php:129
-msgid "LearnDash Course"
+#: src/classes/admin/class-view-groups.php:131
+msgid "Suffix"
 msgstr ""
 
-#: src/classes/admin/class-view-groups.php:137
-msgid "Woo: Prepaid"
+#: src/classes/admin/class-view-groups.php:144
+#: src/classes/admin/class-view-groups.php:148
+msgid "LearnDash"
 msgstr ""
 
-#: src/classes/admin/class-view-groups.php:139
-msgid "Woo: Not Prepaid"
+#: src/classes/admin/class-view-groups.php:145
+msgid "Group"
 msgstr ""
 
-#: src/classes/admin/class-view-groups.php:141
-#: src/templates/admin-generate-codes/dependency.php:333
-msgid "Default"
+#: src/classes/admin/class-view-groups.php:149
+msgid "Course"
 msgstr ""
 
-#: src/classes/admin/class-view-groups.php:188
-msgid "(using override)"
+#: src/classes/admin/class-view-groups.php:152
+msgid "Automator"
 msgstr ""
 
-#: src/classes/admin/class-view-groups.php:199
+#: src/classes/admin/class-view-groups.php:166
+#: src/templates/admin-generate-codes/dependency.php:360
+msgid "Prepaid"
+msgstr ""
+
+#: src/classes/admin/class-view-groups.php:168
+msgid "Not Prepaid"
+msgstr ""
+
+#: src/classes/admin/class-view-groups.php:176
+msgid "Date created"
+msgstr ""
+
+#: src/classes/admin/class-view-groups.php:182
+msgid "Date expiry"
+msgstr ""
+
+#: src/classes/admin/class-view-groups.php:194
+#, php-format
+msgid "Total codes: %d | Max uses per code: %d"
+msgstr ""
+
+#: src/classes/admin/class-view-groups.php:207
 msgid "Edit"
 msgstr ""
 
-#: src/classes/admin/class-view-groups.php:210
+#: src/classes/admin/class-view-groups.php:218
 msgid "View"
 msgstr ""
 
-#: src/classes/admin/class-view-groups.php:238
+#: src/classes/admin/class-view-groups.php:232
+msgid "Download"
+msgstr ""
+
+#: src/classes/admin/class-view-groups.php:246
 msgid "Delete"
 msgstr ""
 
-#: src/classes/admin/class-view-groups.php:272
-msgid "View all codes"
+#: src/classes/helpers/class-rest-api.php:72
+#: src/classes/helpers/class-rest-api.php:183
+msgid "Invalid nonce. Request not authenticated."
 msgstr ""
 
-#: src/classes/helpers/class-rest-api.php:58
-#: src/classes/helpers/class-rest-api.php:100
+#: src/classes/helpers/class-rest-api.php:81
+#: src/classes/helpers/class-rest-api.php:123
 msgid "There was a WordPress error. Please reload the page and trying again."
 msgstr ""
 
-#: src/classes/helpers/class-rest-api.php:73
+#: src/classes/helpers/class-rest-api.php:96
 msgid "Batch name available"
 msgstr ""
 
-#: src/classes/helpers/class-rest-api.php:77
+#: src/classes/helpers/class-rest-api.php:100
 msgid "Batch name already used"
 msgstr ""
 
-#: src/classes/helpers/class-rest-api.php:126
+#: src/classes/helpers/class-rest-api.php:148
 msgid "Data for the group cannot be found"
 msgstr ""
 
-#: src/classes/helpers/class-rest-api.php:143
+#: src/classes/helpers/class-rest-api.php:164
 msgid "You do not have the capability to save module settings."
+msgstr ""
+
+#: src/classes/helpers/class-rest-api.php:195
+msgid "No codes selected for update."
+msgstr ""
+
+#: src/classes/helpers/class-rest-api.php:199
+msgid "Expiry date is required."
+msgstr ""
+
+#: src/classes/helpers/class-rest-api.php:207
+msgid "No valid code IDs provided."
+msgstr ""
+
+#. translators: %d: number of codes updated
+#: src/classes/helpers/class-rest-api.php:240
+#, php-format
+msgid "%d code expiry date updated successfully."
+msgid_plural "%d codes expiry dates updated successfully."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %1$d: updated count, %2$d: total count
+#: src/classes/helpers/class-rest-api.php:270
+#, php-format
+msgid "%1$d of %2$d codes updated successfully. Some codes could not be updated."
+msgstr ""
+
+#: src/classes/helpers/class-rest-api.php:298
+msgid "Failed to update any codes. Please try again."
 msgstr ""
 
 #: src/classes/helpers/class-shortcodes.php:191
@@ -646,18 +732,13 @@ msgstr ""
 msgid "This action will remove you from all groups, which may remove your course access. Your group access cannot be restored. Are you sure you wish to continue?"
 msgstr ""
 
-#: src/classes/integrations/fluent-forms/class-ff-code-redemption.php:105
-msgid "Fluent_Forms"
-msgstr ""
-
 #: src/classes/integrations/fluent-forms/class-ff-codes-field.php:38
 #: src/classes/integrations/forminator/class-create-codes-field.php:87
 msgid "Enter the code provided"
 msgstr ""
 
-#: src/classes/integrations/formidable/class-formidable.php:46
+#: src/classes/integrations/formidable/class-formidable.php:45
 #: src/includes/class-uncanny-code-field.php:35
-#: src/includes/class-wpforms-code-field.php:24
 msgid "Uncanny Code"
 msgstr ""
 
@@ -666,51 +747,31 @@ msgstr ""
 msgid "Please enter valid code."
 msgstr ""
 
-#: src/classes/integrations/formidable/class-formidable.php:132
-msgid "Formidable"
-msgstr ""
-
 #: src/classes/integrations/forminator/class-create-codes-field.php:86
 msgid "Enter code"
 msgstr ""
 
-#: src/classes/integrations/forminator/class-forminator-codes-field.php:117
-msgid "Forminator"
-msgstr ""
-
-#: src/classes/integrations/gravity-forms/class-gravity-forms-code-field.php:35
-#: src/classes/integrations/gravity-forms/class-gravity-forms-code-field.php:160
-#: src/classes/integrations/gravity-forms/class-gravity-forms-code-field.php:218
-#: src/classes/integrations/gravity-forms/class-gravity-forms.php:189
-#: src/classes/integrations/gravity-forms/class-gravity-forms.php:207
-msgid "Gravity Forms"
-msgstr ""
-
-#: src/classes/integrations/gravity-forms/class-gravity-forms.php:141
-#: src/classes/integrations/gravity-forms/class-gravity-forms.php:146
-#: src/classes/integrations/woocommerce/class-woocommerce.php:92
-#: src/classes/integrations/woocommerce/class-woocommerce.php:96
-#: src/templates/admin-settings/admin-gravity-forms.php:67
+#: src/classes/integrations/gravity-forms/class-gravity-forms.php:142
+#: src/classes/integrations/gravity-forms/class-gravity-forms.php:147
+#: src/classes/integrations/woocommerce/class-woocommerce.php:101
+#: src/classes/integrations/woocommerce/class-woocommerce.php:105
+#: src/templates/admin-settings/admin-gravity-forms.php:59
 msgid "Enter Registration Code"
 msgstr ""
 
-#: src/classes/integrations/gravity-forms/class-gravity-forms.php:142
-#: src/classes/integrations/woocommerce/class-woocommerce.php:93
-#: src/classes/integrations/woocommerce/class-woocommerce.php:97
+#: src/classes/integrations/gravity-forms/class-gravity-forms.php:143
+#: src/classes/integrations/woocommerce/class-woocommerce.php:102
+#: src/classes/integrations/woocommerce/class-woocommerce.php:106
 msgid "This field is mandatory"
 msgstr ""
 
-#: src/classes/integrations/gravity-forms/class-gravity-forms.php:143
-#: src/classes/integrations/gravity-forms/class-gravity-forms.php:147
+#: src/classes/integrations/gravity-forms/class-gravity-forms.php:144
 #: src/classes/integrations/gravity-forms/class-gravity-forms.php:148
-#: src/classes/integrations/woocommerce/class-woocommerce.php:94
-#: src/classes/integrations/woocommerce/class-woocommerce.php:98
-#: src/templates/admin-settings/admin-gravity-forms.php:91
+#: src/classes/integrations/gravity-forms/class-gravity-forms.php:149
+#: src/classes/integrations/woocommerce/class-woocommerce.php:103
+#: src/classes/integrations/woocommerce/class-woocommerce.php:107
+#: src/templates/admin-settings/admin-gravity-forms.php:77
 msgid "Enter Code"
-msgstr ""
-
-#: src/classes/integrations/theme-my-login/class-theme-my-login.php:110
-msgid "Theme My Login"
 msgstr ""
 
 #: src/classes/integrations/theme-my-login/class-theme-my-login.php:137
@@ -731,159 +792,173 @@ msgstr ""
 msgid "Registration Code"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:143
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:142
 msgid "Codes for Uncanny Automator"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:184
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:209
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:183
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:208
+#, php-format
 msgid "You can't have more than %1$d items in cart of %2$s"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:285
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:299
 msgid "Out of stock"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:373
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:387
 msgid "Code batch:"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:388
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:402
 msgid "Total codes:"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:400
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:414
 msgid "Available codes:"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:413
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:427
 msgid "Edit Code Batch"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:526
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:561
+#, php-format
 msgid "Codes-for-Order %d"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:573
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:635
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:609
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:671
 msgid "Codes"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:574
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:638
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:610
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:674
 msgid "Product"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:575
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:611
 msgid "Used Date"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:678
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:862
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:714
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:926
 msgid "more codes."
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:733
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:740
+msgid "Download Your Codes"
+msgstr ""
+
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:743
+msgid "Download CSV File"
+msgstr ""
+
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:797
+#, php-format
 msgid "Code group not set for %1$s (#%2$d)"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:739
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:803
+#, php-format
 msgid "Code group (#%1$d) associated with %2$s (#%3$d) does not exist anymore."
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:757
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:821
+#, php-format
 msgid "and %d more."
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:761
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:825
+#, php-format
 msgid "%1$dx%2$s codes added to the order"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:792
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:856
 msgid "Purchased Codes"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:814
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:878
 msgid "Not Used"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:893
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:957
 msgid "Code:"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:995
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:1059
+#, php-format
 msgid "Codes for Order %d"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:1107
+#: src/classes/integrations/woocommerce/class-woo-automator-codes.php:1172
 msgid "Order Codes"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woocommerce.php:114
+#: src/classes/integrations/woocommerce/class-woocommerce.php:121
 msgid "Require Uncanny Code"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woocommerce.php:115
+#: src/classes/integrations/woocommerce/class-woocommerce.php:122
 msgid "Check to enable registration code field for this product at checkout"
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woocommerce.php:196
+#: src/classes/integrations/woocommerce/class-woocommerce.php:203
 msgid "is a required field."
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woocommerce.php:310
+#: src/classes/integrations/woocommerce/class-woocommerce.php:317
 msgid "Paid Code Applied: "
 msgstr ""
 
-#: src/classes/integrations/woocommerce/class-woocommerce.php:344
-msgid "Woocommerce"
-msgstr ""
-
-#: src/classes/integrations/wpforms/class-wpforms.php:83
-#: src/classes/integrations/wpforms/class-wpforms.php:121
-msgid "WPForms"
-msgstr ""
-
-#: src/config.php:204
-#: src/config.php:237
-#: src/templates/admin-settings/admin-custom-messages.php:40
-#: src/templates/admin-settings/admin-custom-messages.php:56
+#: src/config.php:212
+#: src/config.php:255
+#: src/templates/admin-settings/admin-custom-messages.php:43
+#: src/templates/admin-settings/admin-custom-messages.php:57
 msgid "Sorry, the code you entered is not valid."
 msgstr ""
 
-#: src/config.php:209
-#: src/config.php:238
-#: src/templates/admin-settings/admin-custom-messages.php:47
+#: src/config.php:217
+#: src/config.php:256
+#: src/templates/admin-settings/admin-custom-messages.php:50
 msgid "Sorry, the code you entered has expired."
 msgstr ""
 
-#: src/config.php:214
-#: src/config.php:239
+#: src/config.php:222
+#: src/config.php:257
 msgid "Sorry, the code you entered has already been redeemed."
 msgstr ""
 
-#: src/config.php:219
-#: src/config.php:240
+#: src/config.php:227
+#: src/config.php:258
 msgid "Sorry, the code you entered has already been redeemed the maximum number of times."
 msgstr ""
 
-#: src/config.php:224
+#: src/config.php:232
 msgid "Congratulations, the code you entered has been successfully redeemed."
 msgstr ""
 
-#: src/config.php:229
-#: src/config.php:242
+#: src/config.php:237
+#: src/config.php:260
 msgid "To use this code, enter it on the checkout page and complete your purchase."
 msgstr ""
 
-#: src/config.php:234
-#: src/config.php:243
-#: src/templates/admin-settings/admin-custom-messages.php:73
+#: src/config.php:242
+#: src/config.php:261
+#: src/templates/admin-settings/admin-custom-messages.php:85
 msgid "Sorry, the code you entered is cancelled."
 msgstr ""
 
-#: src/config.php:241
-#: src/templates/admin-settings/admin-custom-messages.php:84
+#: src/config.php:247
+msgid "Sorry, the code you entered has already been redeemed. User is already enrolled in the course."
+msgstr ""
+
+#: src/config.php:252
+msgid "Sorry, the code you entered has already been redeemed. User is already a member of the group."
+msgstr ""
+
+#: src/config.php:259
+#: src/templates/admin-settings/admin-custom-messages.php:95
 msgid "Congratulations, the code you entered has successfully been redeemed."
 msgstr ""
 
@@ -896,16 +971,16 @@ msgstr ""
 msgid "The CSS Class names to be added to the field input."
 msgstr ""
 
-#: src/templates/admin-cancel-codes.php:34
-msgid "Upload and cancel codes via CSV"
-msgstr ""
-
 #: src/templates/admin-cancel-codes.php:42
-msgid "Upload file here"
+msgid "Upload a CSV file that contains the Code(s) you want to cancel."
 msgstr ""
 
-#: src/templates/admin-cancel-codes.php:56
-msgid "Upload and cancel codes"
+#: src/templates/admin-cancel-codes.php:55
+msgid "Choose CSV file"
+msgstr ""
+
+#: src/templates/admin-cancel-codes.php:65
+msgid "Upload and Cancel Codes"
 msgstr ""
 
 #: src/templates/admin-generate-codes/batch-name.php:19
@@ -929,6 +1004,7 @@ msgid "Number of uses per code"
 msgstr ""
 
 #: src/templates/admin-generate-codes/code-setup.php:57
+#, php-format
 msgid "Batches with codes that can be redeemed more than once cannot be sold as %s products and will not be available on the edit product page."
 msgstr ""
 
@@ -1006,7 +1082,8 @@ msgid "Enter one code per line"
 msgstr ""
 
 #: src/templates/admin-generate-codes/code-setup.php:365
-msgid "Codes may only contain alphanumeric characters and hyphens and must be between %s and %s characters long."
+#, php-format
+msgid "Codes may only contain alphanumeric characters and hyphens and must be between %1$s and %2$s characters long."
 msgstr ""
 
 #: src/templates/admin-generate-codes/code-setup.php:374
@@ -1023,18 +1100,22 @@ msgstr ""
 
 #: src/templates/admin-generate-codes/dependency.php:66
 #: src/templates/admin-generate-codes/dependency.php:152
+#, php-format
 msgid "You must install %s to continue"
 msgstr ""
 
 #: src/templates/admin-generate-codes/dependency.php:70
+#, php-format
 msgid "%s is required to link code redemption to other plugins and apps. Install the free version to unlock code use in recipes."
 msgstr ""
 
 #: src/templates/admin-generate-codes/dependency.php:87
+#, php-format
 msgid "Please update %s"
 msgstr ""
 
 #: src/templates/admin-generate-codes/dependency.php:91
+#, php-format
 msgid "%1$s %2$s or higher is required to create recipes linked to a specific set of codes. Please upgrade Automator to use these codes in a recipe."
 msgstr ""
 
@@ -1051,7 +1132,8 @@ msgid "Enroll users into courses or groups when they redeem a code."
 msgstr ""
 
 #: src/templates/admin-generate-codes/dependency.php:156
-msgid "%s is a popular LMS plugin for WordPress. Uncanny Codes supports adding users to courses and groups when codes are redeemed."
+#, php-format
+msgid "%s is a popular LMS plugin for WordPress. Uncanny Redemption Codes supports adding users to courses and groups when codes are redeemed."
 msgstr ""
 
 #: src/templates/admin-generate-codes/dependency.php:164
@@ -1071,15 +1153,21 @@ msgid "Enroll users into groups"
 msgstr ""
 
 #: src/templates/admin-generate-codes/dependency.php:238
+#, php-format
 msgid "%s courses"
 msgstr ""
 
 #: src/templates/admin-generate-codes/dependency.php:275
+#, php-format
 msgid "%s groups"
 msgstr ""
 
 #: src/templates/admin-generate-codes/dependency.php:312
 msgid "What's the code type?"
+msgstr ""
+
+#: src/templates/admin-generate-codes/dependency.php:333
+msgid "Default"
 msgstr ""
 
 #: src/templates/admin-generate-codes/dependency.php:336
@@ -1090,12 +1178,9 @@ msgstr ""
 msgid "Code redemption on registration or while logged in immediately adds the user to courses or groups. This code type is not linked to a purchase."
 msgstr ""
 
-#: src/templates/admin-generate-codes/dependency.php:360
-msgid "Prepaid"
-msgstr ""
-
 #: src/templates/admin-generate-codes/dependency.php:363
 #: src/templates/admin-generate-codes/dependency.php:390
+#, php-format
 msgid "Requires %s"
 msgstr ""
 
@@ -1111,166 +1196,177 @@ msgstr ""
 msgid "Codes are redeemed during a WooCommerce purchase and the cost of the product is not adjusted. The code is used to unlock access to purchase the product."
 msgstr ""
 
-#: src/templates/admin-generate-codes/header.php:32
-msgid "Update code parameters in the fields below and the changes will be applied to new redemptions. Any fields not listed below can't be changed; a new batch will have to be created instead. For more information about editing codes, please refer to the <a href='%s' target='_blank'>%s</a>."
+#: src/templates/admin-generate-codes/header.php:31
+#, php-format
+msgid "Update code parameters in the fields below and the changes will be applied to new redemptions. Any fields not listed below can't be changed; a new batch will have to be created instead. For more information about editing codes, please refer to the <a href='%1$s' target='_blank'>%2$s</a>."
 msgstr ""
 
-#: src/templates/admin-generate-codes/header.php:32
-#: src/templates/admin-generate-codes/header.php:34
+#: src/templates/admin-generate-codes/header.php:31
+#: src/templates/admin-generate-codes/header.php:33
 msgid "Knowledge Base articles"
 msgstr ""
 
-#: src/templates/admin-generate-codes/header.php:34
-msgid "Create a new code batch using the wizard below. For assistance creating and editing codes, please refer to our <a href=\"%s\" target=\"_blank\" >%s</a>."
+#: src/templates/admin-generate-codes/header.php:33
+#, php-format
+msgid "Create a new code batch using the wizard below. For assistance creating and editing codes, please refer to our <a href=\"%1$s\" target=\"_blank\" >%2$s</a>."
 msgstr ""
 
-#: src/templates/admin-header.php:60
+#: src/templates/admin-header.php:61
 msgid "by"
 msgstr ""
 
-#: src/templates/admin-kb-articles.php:45
+#: src/templates/admin-header.php:70
+msgid "Follow us on Facebook"
+msgstr ""
+
+#: src/templates/admin-header.php:76
+msgid "Follow us on Twitter"
+msgstr ""
+
+#: src/templates/admin-header.php:82
+msgid "Follow us on LinkedIn"
+msgstr ""
+
+#: src/templates/admin-kb-articles.php:43
 msgid "I can't find the answer to my question."
 msgstr ""
 
-#: src/templates/admin-license.php:23
-msgid "License"
-msgstr ""
-
-#: src/templates/admin-license.php:68
+#: src/templates/admin-license.php:63
+#: src/templates/admin-license.php:131
 msgid "Please enter a valid license code and click \"Activate now\"."
 msgstr ""
 
-#: src/templates/admin-license.php:81
-#: src/templates/admin-license.php:100
+#: src/templates/admin-license.php:68
+#, php-format
+msgctxt "Your license has expired. Please renew your license to get instant access to updates and support."
+msgid "Your license has expired. Please %s to get instant access to updates and support."
+msgstr ""
+
+#: src/templates/admin-license.php:76
+#: src/templates/admin-license.php:95
 msgctxt "Your license has expired. Please renew your license to get instant access to updates and support."
 msgid "renew your license"
 msgstr ""
 
-#: src/templates/admin-license.php:92
+#: src/templates/admin-license.php:87
+#, php-format
 msgctxt "Your license has disabled. Please renew your license to get instant access to updates and support."
 msgid "Your license is disabled. Please %s to get instant access to updates and support."
 msgstr ""
 
-#: src/templates/admin-license.php:110
+#: src/templates/admin-license.php:106
 msgid "The license code you entered is invalid."
 msgstr ""
 
-#: src/templates/admin-license.php:113
-msgid "The license code you entered is deactivated."
+#: src/templates/admin-license.php:115
+msgid "Your license is active"
 msgstr ""
 
-#: src/templates/admin-license.php:128
-#: src/templates/admin-license.php:165
-msgid "Enter your license key"
+#: src/templates/admin-license.php:116
+msgid "Your license is valid and active. You have access to all premium features and updates."
 msgstr ""
 
-#: src/templates/admin-license.php:135
-msgid "Lifetime"
-msgstr ""
-
-#: src/templates/admin-license.php:139
+#: src/templates/admin-license.php:124
 msgid "Expires"
 msgstr ""
 
-#: src/templates/admin-license.php:145
-msgid "Activations"
+#: src/templates/admin-license.php:130
+msgid "Your license is not active"
 msgstr ""
 
-#: src/templates/admin-license.php:151
-msgid "Account"
+#: src/templates/admin-license.php:137
+msgid "Enter your Uncanny Redemption Codes license key"
 msgstr ""
 
-#: src/templates/admin-license.php:180
-#: src/templates/admin-license.php:245
-msgid "Deactivate License"
+#: src/templates/admin-license.php:146
+msgid "License Info"
 msgstr ""
 
-#: src/templates/admin-license.php:184
-#: src/templates/admin-license.php:249
-msgid "Are you sure you want to clear your license?"
-msgstr ""
-
-#: src/templates/admin-license.php:186
-#: src/templates/admin-license.php:251
-msgid "Clear License"
-msgstr ""
-
-#: src/templates/admin-license.php:190
-#: src/templates/admin-license.php:255
-msgid "Your license is managed by your site administrator."
-msgstr ""
-
-#: src/templates/admin-license.php:197
-#: src/templates/admin-license.php:262
-msgid "Activate now"
-msgstr ""
-
-#: src/templates/admin-license.php:202
-#: src/templates/admin-license.php:267
-msgid "Buy license"
-msgstr ""
-
-#: src/templates/admin-license.php:212
+#: src/templates/admin-license.php:150
 msgid "Need help?"
 msgstr ""
 
-#: src/templates/admin-license.php:219
+#: src/templates/admin-license.php:159
+msgid "Renew license"
+msgstr ""
+
+#: src/templates/admin-license.php:164
+msgid "Manage sites"
+msgstr ""
+
+#: src/templates/admin-license.php:169
+msgid "Download updates"
+msgstr ""
+
+#: src/templates/admin-license.php:175
 msgid "Where to get my license key"
 msgstr ""
 
-#: src/templates/admin-license.php:224
+#: src/templates/admin-license.php:180
 msgid "Buy a new license"
+msgstr ""
+
+#: src/templates/admin-license.php:201
+msgid "Deactivate license"
+msgstr ""
+
+#: src/templates/admin-license.php:205
+msgid "Your license is managed by your site administrator."
+msgstr ""
+
+#: src/templates/admin-license.php:211
+msgid "Activate now"
+msgstr ""
+
+#: src/templates/admin-license.php:216
+msgid "Buy license"
 msgstr ""
 
 #: src/templates/admin-send-ticket.php:52
 msgid "Your ticket has been created. Someone at Uncanny Owl will contact you regarding your issue."
 msgstr ""
 
-#: src/templates/admin-send-ticket.php:56
-msgid "Dismiss this notice."
-msgstr ""
-
-#: src/templates/admin-send-ticket.php:67
+#: src/templates/admin-send-ticket.php:61
 msgid "Submit a Ticket"
 msgstr ""
 
-#: src/templates/admin-send-ticket.php:80
+#: src/templates/admin-send-ticket.php:73
 msgid "Full Name"
 msgstr ""
 
-#: src/templates/admin-send-ticket.php:89
+#: src/templates/admin-send-ticket.php:81
 msgid "Email"
 msgstr ""
 
-#: src/templates/admin-send-ticket.php:98
+#: src/templates/admin-send-ticket.php:90
 msgid "Site URL"
 msgstr ""
 
-#: src/templates/admin-send-ticket.php:107
+#: src/templates/admin-send-ticket.php:99
 msgid "License Key"
 msgstr ""
 
-#: src/templates/admin-send-ticket.php:116
+#: src/templates/admin-send-ticket.php:108
 msgid "Subject"
 msgstr ""
 
-#: src/templates/admin-send-ticket.php:125
+#: src/templates/admin-send-ticket.php:117
 msgid "Message"
 msgstr ""
 
-#: src/templates/admin-send-ticket.php:133
+#: src/templates/admin-send-ticket.php:127
 msgid "Send site data"
 msgstr ""
 
-#: src/templates/admin-send-ticket.php:138
+#: src/templates/admin-send-ticket.php:134
 msgid "Emails must be enabled on your site to create a ticket using this form. If you don’t receive a confirmation email shortly after submitting this form, please log the ticket through your <a href=\"https://www.uncannyowl.com/my-account/submit-a-request/\" target=\"_blank\" rel=\"noreferrer\">My Account</a> page."
 msgstr ""
 
-#: src/templates/admin-send-ticket.php:141
+#: src/templates/admin-send-ticket.php:137
 msgid "Create ticket"
 msgstr ""
 
-#: src/templates/admin-send-ticket.php:148
+#: src/templates/admin-send-ticket.php:147
 msgid "Site Data"
 msgstr ""
 
@@ -1278,56 +1374,69 @@ msgstr ""
 msgid "Multiple code redemptions"
 msgstr ""
 
-#: src/templates/admin-settings/admin-codes.php:26
+#: src/templates/admin-settings/admin-codes.php:27
 msgid "Allow users to redeem the same code multiple times"
 msgstr ""
 
-#: src/templates/admin-settings/admin-codes.php:36
+#: src/templates/admin-settings/admin-codes.php:35
 msgid "Number of times the same code can be redeemed by one user"
 msgstr ""
 
-#: src/templates/admin-settings/admin-codes.php:46
+#: src/templates/admin-settings/admin-codes.php:44
 msgid "Enter a value between 1 and 100."
 msgstr ""
 
-#: src/templates/admin-settings/admin-codes.php:51
-#: src/templates/admin-settings/admin-custom-messages.php:99
-#: src/templates/admin-settings/admin-gravity-forms.php:96
+#: src/templates/admin-settings/admin-codes.php:50
+#: src/templates/admin-settings/admin-custom-messages.php:110
+#: src/templates/admin-settings/admin-gravity-forms.php:82
 #: src/templates/admin-settings/admin-learndash.php:31
-#: src/templates/admin-settings/admin-tos.php:26
-#: src/templates/admin-settings/admin-woocommerce.php:31
+#: src/templates/admin-settings/admin-tos.php:27
+#: src/templates/admin-settings/admin-woocommerce.php:35
 msgid "Save Changes"
 msgstr ""
 
-#: src/templates/admin-settings/admin-custom-messages.php:30
+#: src/templates/admin-settings/admin-custom-messages.php:34
 msgid "Custom messages"
 msgstr ""
 
-#: src/templates/admin-settings/admin-custom-messages.php:36
+#: src/templates/admin-settings/admin-custom-messages.php:40
 msgid "Invalid code"
 msgstr ""
 
-#: src/templates/admin-settings/admin-custom-messages.php:43
+#: src/templates/admin-settings/admin-custom-messages.php:47
 msgid "Expired code"
 msgstr ""
 
-#: src/templates/admin-settings/admin-custom-messages.php:52
+#: src/templates/admin-settings/admin-custom-messages.php:54
 msgid "Code already redeemed"
 msgstr ""
 
-#: src/templates/admin-settings/admin-custom-messages.php:60
-msgid "Code redeemed maximum times"
+#: src/templates/admin-settings/admin-custom-messages.php:61
+msgid "Courses Code already redeemed"
 msgstr ""
 
 #: src/templates/admin-settings/admin-custom-messages.php:64
-msgid "Sorry, the code you entered has already been redeemed maximum times."
+#: src/templates/admin-settings/admin-custom-messages.php:71
+msgid "Code already redeemed."
 msgstr ""
 
-#: src/templates/admin-settings/admin-custom-messages.php:69
-msgid "Code cancelled"
+#: src/templates/admin-settings/admin-custom-messages.php:68
+msgid "Groups Code already redeemed"
+msgstr ""
+
+#: src/templates/admin-settings/admin-custom-messages.php:75
+msgid "Code redeemed maximum times"
 msgstr ""
 
 #: src/templates/admin-settings/admin-custom-messages.php:78
+msgid "Sorry, the code you entered has already been redeemed maximum times."
+msgstr ""
+
+#: src/templates/admin-settings/admin-custom-messages.php:82
+msgid "Code cancelled"
+msgstr ""
+
+#: src/templates/admin-settings/admin-custom-messages.php:89
 msgid "Successfully redeemed"
 msgstr ""
 
@@ -1335,69 +1444,81 @@ msgstr ""
 msgid "Danger zone"
 msgstr ""
 
-#: src/templates/admin-settings/admin-danger-zone.php:15
+#: src/templates/admin-settings/admin-danger-zone.php:14
 msgid "Reset data in database"
 msgstr ""
 
-#: src/templates/admin-settings/admin-danger-zone.php:18
-msgid "Are you sure you want to delete all data?"
+#: src/templates/admin-settings/admin-danger-zone.php:16
+msgid "This will permanently delete all redemption codes, user data, and tracking information from the database."
 msgstr ""
 
-#: src/templates/admin-settings/admin-danger-zone.php:19
-msgid "Reset database"
+#: src/templates/admin-settings/admin-danger-zone.php:20
+msgid "Warning"
 msgstr ""
 
 #: src/templates/admin-settings/admin-danger-zone.php:22
-msgid "This action will <span class=\"uo-danger\">delete</span> all data including tracking of codes and users. Please download CSV before attempting this."
+msgid "This action will delete all data including tracking of codes and users. Please download CSV before attempting this."
 msgstr ""
 
 #: src/templates/admin-settings/admin-danger-zone.php:27
+msgid "Are you sure you want to delete all data?"
+msgstr ""
+
+#: src/templates/admin-settings/admin-danger-zone.php:28
+msgid "Reset database"
+msgstr ""
+
+#: src/templates/admin-settings/admin-danger-zone.php:32
 msgid "Delete database tables"
 msgstr ""
 
-#: src/templates/admin-settings/admin-danger-zone.php:31
+#: src/templates/admin-settings/admin-danger-zone.php:34
+msgid "This will completely remove all database tables and deactivate the plugin."
+msgstr ""
+
+#: src/templates/admin-settings/admin-danger-zone.php:38
+msgid "Critical Warning"
+msgstr ""
+
+#: src/templates/admin-settings/admin-danger-zone.php:40
+msgid "This action will delete all data including tracking of codes and users. Please download CSV before attempting this. This will deactivate Uncanny Redemption Codes."
+msgstr ""
+
+#: src/templates/admin-settings/admin-danger-zone.php:46
 msgid "Delete database"
 msgstr ""
 
-#: src/templates/admin-settings/admin-danger-zone.php:34
-msgid "This action will <span class=\"uo-danger\">delete</span> all data including tracking of codes and users. Please download CSV before attempting this. This will deactivate Uncanny Codes."
-msgstr ""
-
-#: src/templates/admin-settings/admin-gravity-forms.php:21
+#: src/templates/admin-settings/admin-gravity-forms.php:20
 msgid "Gravity Forms settings"
 msgstr ""
 
+#: src/templates/admin-settings/admin-gravity-forms.php:26
 #: src/templates/admin-settings/admin-gravity-forms.php:28
-#: src/templates/admin-settings/admin-gravity-forms.php:32
 msgid "Select form"
 msgstr ""
 
-#: src/templates/admin-settings/admin-gravity-forms.php:45
-msgid "Mandatory code field"
-msgstr ""
-
-#: src/templates/admin-settings/admin-gravity-forms.php:54
+#: src/templates/admin-settings/admin-gravity-forms.php:48
 msgid "Make Code field mandatory on User Registration form."
 msgstr ""
 
-#: src/templates/admin-settings/admin-gravity-forms.php:61
+#: src/templates/admin-settings/admin-gravity-forms.php:54
 msgid "User registration field label"
 msgstr ""
 
-#: src/templates/admin-settings/admin-gravity-forms.php:72
+#: src/templates/admin-settings/admin-gravity-forms.php:63
 msgid "User registration field error message"
 msgstr ""
 
-#: src/templates/admin-settings/admin-gravity-forms.php:79
+#: src/templates/admin-settings/admin-gravity-forms.php:68
 msgid "This Field is Mandatory"
 msgstr ""
 
-#: src/templates/admin-settings/admin-gravity-forms.php:84
+#: src/templates/admin-settings/admin-gravity-forms.php:72
 msgid "User registration field placeholder"
 msgstr ""
 
-#: src/templates/admin-settings/admin-gravity-forms.php:114
-#: src/templates/admin-settings/admin-gravity-forms.php:132
+#: src/templates/admin-settings/admin-gravity-forms.php:100
+#: src/templates/admin-settings/admin-gravity-forms.php:118
 msgid "Please Select a Valid Registration Form that has User Registration Feed enabled."
 msgstr ""
 
@@ -1405,11 +1526,11 @@ msgstr ""
 msgid "LearnDash settings"
 msgstr ""
 
-#: src/templates/admin-settings/admin-learndash.php:22
+#: src/templates/admin-settings/admin-learndash.php:23
 msgid "Allow users to register in multiple LearnDash groups"
 msgstr ""
 
-#: src/templates/admin-settings/admin-tml.php:25
+#: src/templates/admin-settings/admin-tml.php:24
 msgid "Theme My Login registration settings"
 msgstr ""
 
@@ -1421,7 +1542,7 @@ msgstr ""
 msgid "Make <strong>Registration code</strong> field required"
 msgstr ""
 
-#: src/templates/admin-settings/admin-tml.php:63
+#: src/templates/admin-settings/admin-tml.php:62
 msgid "Save Theme My Login Changes"
 msgstr ""
 
@@ -1438,8 +1559,8 @@ msgstr ""
 msgid "WooCommerce"
 msgstr ""
 
-#: src/templates/admin-settings/admin-woocommerce.php:24
-msgid "Automatically change the status of orders that include Uncanny Codes products to Completed."
+#: src/templates/admin-settings/admin-woocommerce.php:29
+msgid "Automatically change the status of orders that include Uncanny Redemption Codes products to Completed."
 msgstr ""
 
 #: src/templates/admin-siteinfo.php:70
@@ -1560,8 +1681,16 @@ msgstr ""
 msgid "PHP Settings"
 msgstr ""
 
-#: src/templates/admin-view-codes.php:33
-msgid "Search Codes"
+#: src/templates/admin-view-codes.php:34
+msgid "View All Generated Codes"
+msgstr ""
+
+#: src/templates/admin-view-codes.php:37
+msgid "View Generated Codes"
+msgstr ""
+
+#: src/templates/admin-view-codes.php:71
+msgid "View All Codes"
 msgstr ""
 
 #: src/templates/frontend-user-registration-form.php:8

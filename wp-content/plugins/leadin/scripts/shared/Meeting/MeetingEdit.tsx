@@ -1,17 +1,14 @@
-import React, { Fragment, useEffect } from 'react';
+import { Fragment, useEffect } from 'react';
 import { IMeetingBlockProps } from '../../gutenberg/MeetingsBlock/registerMeetingBlock';
 import MeetingController from './MeetingController';
 import PreviewMeeting from './PreviewMeeting';
 import {
-  BackgroudAppContext,
   useBackgroundAppContext,
   usePostBackgroundMessage,
 } from '../../iframe/useBackgroundApp';
-import { refreshToken } from '../../constants/leadinConfig';
 import { ProxyMessages } from '../../iframe/integratedMessages';
 import LoadingBlock from '../Common/LoadingBlock';
-import { getOrCreateBackgroundApp } from '../../utils/backgroundAppUtils';
-import { isRefreshTokenAvailable } from '../../utils/isRefreshTokenAvailable';
+import EmbedderContainer from '../Common/EmbedderContainer';
 
 interface IMeetingEditProps extends IMeetingBlockProps {
   preview?: boolean;
@@ -61,12 +58,8 @@ function MeetingEdit({
 
 export default function MeetingsEditContainer(props: IMeetingEditProps) {
   return (
-    <BackgroudAppContext.Provider
-      value={
-        isRefreshTokenAvailable() && getOrCreateBackgroundApp(refreshToken)
-      }
-    >
+    <EmbedderContainer>
       <MeetingEdit {...props} />
-    </BackgroudAppContext.Provider>
+    </EmbedderContainer>
   );
 }

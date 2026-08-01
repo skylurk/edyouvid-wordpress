@@ -43,6 +43,14 @@ class Config {
 	/**
 	 * @var string
 	 */
+	public static $already_redeemed_existing_course;
+	/**
+	 * @var string
+	 */
+	public static $already_redeemed_existing_group;
+	/**
+	 * @var string
+	 */
 	public static $redeemed_maximum;
 	/**
 	 * @var string
@@ -141,7 +149,7 @@ class Config {
 
 		$load_settings = self::load_plugin_settings();
 		if ( is_admin() || $load_settings ) {
-			self::load_default_messages();
+			add_action( 'init', array( __CLASS__, 'load_default_messages' ) );
 		}
 	}
 
@@ -232,6 +240,16 @@ class Config {
 				self::$cancelled_code = $messages['cancelled-code'];
 			} else {
 				self::$cancelled_code = esc_html__( 'Sorry, the code you entered is cancelled.', 'uncanny-learndash-codes' );
+			}
+			if ( ! empty( $messages['already-redeemed-course'] ) ) {
+				self::$already_redeemed_existing_course = $messages['already-redeemed-course'];
+			} else {
+				self::$already_redeemed_existing_course = esc_html__( 'Sorry, the code you entered has already been redeemed. User is already enrolled in the course.', 'uncanny-learndash-codes' );
+			}
+			if ( ! empty( $messages['already-redeemed-group'] ) ) {
+				self::$already_redeemed_existing_group = $messages['already-redeemed-group'];
+			} else {
+				self::$already_redeemed_existing_group = esc_html__( 'Sorry, the code you entered has already been redeemed. User is already a member of the group.', 'uncanny-learndash-codes' );
 			}
 		} else {
 			self::$invalid_code          = esc_html__( 'Sorry, the code you entered is not valid.', 'uncanny-learndash-codes' );

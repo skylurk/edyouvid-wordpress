@@ -470,17 +470,17 @@
         },
 
         fragmentLoad: function() {
-            if (this.state.ownFragmentLoad > 0) return;
-            setInterval(() => {
-                this.state.ownFragmentLoad = 0;
-            }, 1000);
-            this.state.ownFragmentLoad++;
-            $.ajax({
-                type: 'POST',
-                url: this.config.ajaxUrl,
-                data: { action: 'wpt_wc_fragments' },
-                success: (ownFragment) => this.wcFragmentHandle(ownFragment)
-            });
+            if (this.state.fragmentLoadTimeout) {
+                clearTimeout(this.state.fragmentLoadTimeout);
+            }
+            this.state.fragmentLoadTimeout = setTimeout(() => {
+                $.ajax({
+                    type: 'POST',
+                    url: this.config.ajaxUrl,
+                    data: { action: 'wpt_wc_fragments' },
+                    success: (ownFragment) => this.wcFragmentHandle(ownFragment)
+                });
+            }, 500);
         },
 
         wcFragmentHandle: function(ownFragment) {

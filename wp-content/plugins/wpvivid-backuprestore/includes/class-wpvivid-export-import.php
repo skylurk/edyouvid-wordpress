@@ -1132,17 +1132,38 @@ class WPvivid_Export_Import
 
             $post_ids=array();
             $posts_ids=array();
-            if(isset($export_data['post_ids']) && !empty($export_data['post_ids']))
+            if (is_array($export_data) && isset($export_data['post_ids']) && is_array($export_data['post_ids']))
             {
-                $post_ids=$export_data['post_ids'];
+                $post_ids = $export_data['post_ids'];
             }
-            foreach ($post_ids as $id=>$checked)
+            foreach ($post_ids as $id => $checked)
             {
-                if($checked)
+                if (!$checked)
                 {
-                    $posts_ids[]=$id;
+                    continue;
                 }
+
+                if (!is_int($id) && !(is_string($id) && ctype_digit($id)))
+                {
+                    $ret['result'] = 'failed';
+                    $ret['error']  = __('Invalid post id', 'wpvivid-backuprestore');
+                    echo wp_json_encode($ret);
+                    die();
+                }
+
+                $id = absint($id);
+
+                if ($id < 1)
+                {
+                    $ret['result'] = 'failed';
+                    $ret['error']  = __('Invalid post id', 'wpvivid-backuprestore');
+                    echo wp_json_encode($ret);
+                    die();
+                }
+
+                $posts_ids[] = $id;
             }
+            $posts_ids = array_values(array_unique($posts_ids));
 
             if(empty($posts_ids))
             {

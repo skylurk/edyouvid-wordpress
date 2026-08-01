@@ -83,7 +83,7 @@ class Points_Rewards_For_Woocommerce {
 			$this->version = REWARDEEM_WOOCOMMERCE_POINTS_REWARDS_VERSION;
 		} else {
 
-			$this->version = '2.10.0';
+			$this->version = '2.10.2';
 		}
 
 		$this->plugin_name = 'points-and-rewards-for-woocommerce';
@@ -290,6 +290,8 @@ class Points_Rewards_For_Woocommerce {
 			$this->loader->add_action( 'woocommerce_blocks_enqueue_cart_block_scripts_after', $plugin_public, 'wps_wpr_woocommerce_before_cart_contents' );
 			$this->loader->add_filter( 'woocommerce_cart_totals_fee_html', $plugin_public, 'wps_wpr_woocommerce_cart_totals_fee_html', 10, 2 );
 			$this->loader->add_action( 'wp_ajax_wps_wpr_remove_cart_point', $plugin_public, 'wps_wpr_remove_cart_point' );
+			$this->loader->add_action( 'wp_ajax_wps_wpr_get_redemption_state', $plugin_public, 'wps_wpr_get_redemption_state' );
+			$this->loader->add_action( 'wp_ajax_nopriv_wps_wpr_get_redemption_state', $plugin_public, 'wps_wpr_get_redemption_state' );
 			/*Apply points on the cart sub total*/
 			$this->loader->add_filter( 'wc_get_template', $plugin_public, 'wps_overwrite_form_temp', 10, 2 );
 			// cart block change.
@@ -321,8 +323,8 @@ class Points_Rewards_For_Woocommerce {
 			// custom_code.
 
 			$this->loader->add_action( 'wps_wpr_add_share_points', $plugin_public, 'wps_wpr_add_wallet_generation', 10, 1 );
+			// Security: Only allow authenticated users to convert points to wallet (removed nopriv hook).
 			$this->loader->add_action( 'wp_ajax_wps_wpr_generate_custom_wallet', $plugin_public, 'wps_wpr_generate_custom_wallet' );
-			$this->loader->add_action( 'wp_ajax_nopriv_wps_wpr_generate_custom_wallet', $plugin_public, 'wps_wpr_generate_custom_wallet' );
 
 			// Paypal Issue Change start.
 			$this->loader->add_filter( 'woocommerce_get_shop_coupon_data', $plugin_public, 'wps_wpr_validate_virtual_coupon_for_points', PHP_INT_MAX, 2 );

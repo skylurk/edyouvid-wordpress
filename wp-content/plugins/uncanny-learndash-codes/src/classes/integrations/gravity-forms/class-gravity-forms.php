@@ -42,6 +42,7 @@ class GravityForms extends Config {
 			// Registration completed.
 			add_action( 'user_register', array( __CLASS__, 'gf_user_register' ), 15 );
 			add_action( 'gform_activate_user', array( __CLASS__, 'gf_user_register_activation' ), 15, 3 );
+			add_action( 'gform_pre_handle_confirmation', array( __CLASS__, 'gf_pre_handle_confirmation' ), 1, 2 );
 		}
 	}
 
@@ -186,11 +187,54 @@ class GravityForms extends Config {
 	 */
 	public static function gf_user_register( $user_id ) {
 		if ( intval( self::$coupon_id ) && SharedFunctionality::ulc_filter_has_var( 'gform_submit', INPUT_POST ) ) {
-			update_user_meta( $user_id, Config::$uncanny_codes_tracking, esc_html__( 'Gravity Forms', 'uncanny-learndash-codes' ) );
+			update_user_meta( $user_id, Config::$uncanny_codes_tracking, 'Gravity Forms' );
 			$result = Database::set_user_to_coupon( $user_id, self::$coupon_id );
 			LearnDash::set_user_to_course_or_group( $user_id, $result );
 
 			do_action( 'ulc_user_redeemed_code', $user_id, self::$coupon_id, $result, 'gravityforms' );
+		}
+	}
+
+	/**
+	 * @param $lead
+	 * @param $form
+	 */
+	public static function gf_pre_handle_confirmation( $lead, $form ) {
+		if ( intval( self::$coupon_id ) && isset( $lead[99] ) && SharedFunctionality::ulc_filter_has_var( 'gform_submit', INPUT_POST ) ) {
+
+			$coupon_id = Database::is_coupon_available( $lead[99] );
+			if ( ! is_numeric( intval( $coupon_id ) ) ) {
+				return;
+			}
+
+			$email_field_id = null;
+
+			$fields = $form['fields'];
+
+			foreach ( $fields as $field ) {
+				if ( 'email' === $field->type ) {
+					$email_field_id = $field->id;
+					break;
+				}
+			}
+
+			if ( null === $email_field_id ) {
+				return;
+			}
+
+			if ( empty( $lead[ $email_field_id ] ) || ! is_email( $lead[ $email_field_id ] ) ) {
+				return;
+			}
+
+			$user = get_user_by( 'email', $lead[ $email_field_id ] );
+
+			if ( false === $user ) {
+				return;
+			}
+
+			$user_id = $user->ID;
+
+			self::gf_user_register( $user_id );
 		}
 	}
 
@@ -204,7 +248,7 @@ class GravityForms extends Config {
 		if ( false !== $code_redemption ) {
 			$coupon_id = Database::is_coupon_available( $code_redemption );
 			if ( is_numeric( intval( $coupon_id ) ) ) {
-				update_user_meta( $user_id, Config::$uncanny_codes_tracking, esc_html__( 'Gravity Forms', 'uncanny-learndash-codes' ) );
+				update_user_meta( $user_id, Config::$uncanny_codes_tracking, 'Gravity Forms' );
 				$result = Database::set_user_to_coupon( $user_id, $coupon_id );
 				LearnDash::set_user_to_course_or_group( $user_id, $result );
 

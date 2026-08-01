@@ -258,13 +258,13 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
 
             if ( ( str_contains( $name, '</a>' ) ) && ( $this->helper->get_setting( 'bundled_link', 'yes' ) !== 'no' ) ) {
                 if ( $show_bundle_name ) {
-                    $_name = '<a href="' . esc_url( get_permalink( $parent_id ) ) . '">' . get_the_title( $parent_id ) . '</a>' . apply_filters( 'woosb_name_separator', ' &rarr; ' ) . apply_filters( 'woosb_item_product_name', $name, $item );
+                    $_name = '<a href="' . esc_url( get_permalink( $parent_id ) ) . '">' . esc_html( get_the_title( $parent_id ) ) . '</a>' . apply_filters( 'woosb_name_separator', ' &rarr; ' ) . apply_filters( 'woosb_item_product_name', $name, $item );
                 } else {
                     $_name = apply_filters( 'woosb_item_product_name', $name, $item );
                 }
             } else {
                 if ( $show_bundle_name ) {
-                    $_name = get_the_title( $parent_id ) . apply_filters( 'woosb_name_separator', ' &rarr; ' ) . wp_strip_all_tags( apply_filters( 'woosb_item_product_name', $name, $item ) );
+                    $_name = esc_html( get_the_title( $parent_id ) ) . apply_filters( 'woosb_name_separator', ' &rarr; ' ) . wp_strip_all_tags( apply_filters( 'woosb_item_product_name', $name, $item ) );
                 } else {
                     $_name = wp_strip_all_tags( apply_filters( 'woosb_item_product_name', $name, $item ) );
                 }
@@ -354,7 +354,7 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
                 $ori_ids   = array_filter( array_column( $ori_items, 'id' ) );
 
                 if ( isset( $_REQUEST['woosb_ids'] ) ) {
-                    $ids = $this->helper->clean_ids( wp_unslash( $_REQUEST['woosb_ids'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                    $ids = $this->helper->clean_ids( wp_unslash( $_REQUEST['woosb_ids'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                     $product->build_items( $ids );
                 }
 
@@ -553,13 +553,13 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
                 $custom_request = apply_filters( 'woosb_custom_request_data', 'data' );
 
                 if ( ! empty( $custom_request ) && ! empty( $_REQUEST[ $custom_request ]['woosb_ids'] ) ) {
-                    $ids = $this->helper->clean_ids( $_REQUEST[ $custom_request ]['woosb_ids'] );
+                    $ids = $this->helper->clean_ids( wp_unslash( $_REQUEST[ $custom_request ]['woosb_ids'] ) );
                     unset( $_REQUEST[ $custom_request ]['woosb_ids'] );
                 }
 
                 // make sure that is a bundle
                 if ( isset( $_REQUEST['woosb_ids'] ) ) {
-                    $ids = $this->helper->clean_ids( $_REQUEST['woosb_ids'] );
+                    $ids = $this->helper->clean_ids( wp_unslash( $_REQUEST['woosb_ids'] ?? '' ) );
                     unset( $_REQUEST['woosb_ids'] );
                 }
 
@@ -764,6 +764,9 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
 
                 // bundles
                 if ( ! empty( $cart_item['woosb_ids'] ) && isset( $cart_item['woosb_fixed_price'] ) && ! $cart_item['woosb_fixed_price'] ) {
+                    // Rebuild items to sync quantity and avoid price being zero when default quantity is 0
+                    $cart_item['data']->build_items( $cart_item['woosb_ids'] );
+
                     // set tax status 'none'
                     $cart_item['data']->set_tax_status( 'none' );
 
@@ -947,7 +950,7 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
                             continue;
                         }
 
-                        $items_str[] = apply_filters( 'woosb_order_bundled_product_name', '<li>' . $item['qty'] . ' × ' . get_the_title( $item['id'] ) . '</li>', $item );
+                        $items_str[] = apply_filters( 'woosb_order_bundled_product_name', '<li>' . $item['qty'] . ' × ' . esc_html( get_the_title( $item['id'] ) ) . '</li>', $item );
                     }
                 }
 
@@ -965,7 +968,7 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
                             continue;
                         }
 
-                        $items_str[] = apply_filters( 'woosb_order_bundled_product_name', $item['qty'] . ' × ' . get_the_title( $item['id'] ), $item );
+                        $items_str[] = apply_filters( 'woosb_order_bundled_product_name', $item['qty'] . ' × ' . esc_html( get_the_title( $item['id'] ) ), $item );
                     }
                 }
 
@@ -1012,7 +1015,7 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
                                     continue;
                                 }
 
-                                $items_str[] = apply_filters( 'woosb_order_bundled_product_name', '<li>' . $item['qty'] . ' × ' . get_the_title( $item['id'] ) . '</li>', $item );
+                                $items_str[] = apply_filters( 'woosb_order_bundled_product_name', '<li>' . $item['qty'] . ' × ' . esc_html( get_the_title( $item['id'] ) ) . '</li>', $item );
                             }
                         }
                     }
@@ -1028,7 +1031,7 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
                                     continue;
                                 }
 
-                                $items_str[] = apply_filters( 'woosb_order_bundled_product_name', $item['qty'] . ' × ' . get_the_title( $item['id'] ), $item );
+                                $items_str[] = apply_filters( 'woosb_order_bundled_product_name', $item['qty'] . ' × ' . esc_html( get_the_title( $item['id'] ) ), $item );
                             }
                         }
                     }
@@ -1036,7 +1039,7 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
                     $items_str = apply_filters( 'woosb_order_bundled_product_names', implode( '; ', $items_str ), $items );
                 }
 
-                echo apply_filters( 'woosb_before_order_itemmeta_bundles', '<div class="woosb-itemmeta-bundles">' . /* translators: bundled products */ sprintf( $this->helper->localization( 'bundled_products_s', esc_html__( 'Bundled products: %s', 'woo-product-bundle' ) ), $items_str ) . '</div>', $order_item_id, $order_item );
+                echo apply_filters( 'woosb_before_order_itemmeta_bundles', '<div class="woosb-itemmeta-bundles">' . /* translators: %s is the product list */ sprintf( $this->helper->localization( 'bundled_products_s', esc_html__( 'Bundled products: %s', 'woo-product-bundle' ) ), $items_str ) . '</div>', $order_item_id, $order_item );
             }
         }
 
@@ -1136,7 +1139,7 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
             }
 
             $edit_link = $this->helper->get_setting( 'edit_link', 'no' ) === 'yes';
-            $edit_ids  = isset( $_GET['edit'] ) ? explode( ',', base64_decode( sanitize_text_field( wp_unslash( $_GET['edit'] ) ) ) ) : [];
+            $edit_ids  = isset( $_GET['edit'] ) ? explode( ',', base64_decode( sanitize_text_field( wp_unslash( $_GET['edit'] ?? '' ) ) ) ) : [];
             $edit_key  = sanitize_key( wp_unslash( $_GET['key'] ?? '' ) );
 
             if ( $edit_link && ! empty( $edit_ids ) && ! empty( $edit_key ) && ( $product->has_optional() || $product->has_variables() ) && ( $edit_item = WC()->cart->get_cart_item( $edit_key ) ) ) {
@@ -1524,7 +1527,7 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
                 return;
             }
 
-            $edit_ids = isset( $_GET['edit'] ) ? explode( ',', base64_decode( sanitize_text_field( $_GET['edit'] ) ) ) : [];
+            $edit_ids = isset( $_GET['edit'] ) ? explode( ',', base64_decode( sanitize_text_field( wp_unslash( $_GET['edit'] ?? '' ) ) ) ) : [];
 
             if ( $items = $product->get_items() ) {
                 $order                 = 1;

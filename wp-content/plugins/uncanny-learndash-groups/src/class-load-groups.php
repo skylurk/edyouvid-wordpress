@@ -107,6 +107,17 @@ class Load_Groups {
 
 		add_action( 'admin_print_scripts', array( $this, 'hide_nonuncanny_groups_warnings' ) );
 		add_action( 'admin_head', array( $this, 'hide_nonuncanny_groups_warnings' ), PHP_INT_MAX );
+
+		add_action( 'delete_user', array( $this, 'on_delete_user' ), 20 );
+	}
+
+	/**
+	 * Fires when a WP user is deleted. Frees any seats they held.
+	 *
+	 * @param int $user_id
+	 */
+	public function on_delete_user( $user_id ) {
+		Group_Management_Helpers::free_seats_for_deleted_user( $user_id );
 	}
 
 	/**
@@ -276,6 +287,9 @@ class Load_Groups {
 
 			// LearnDash modifications
 			self::$auto_loaded_classes['LearnDash_Modifications'] = __DIR__ . '/classes/learndash/class-learndash-modifications.php';
+
+			// Orphaned seat-code cleanup migration
+			self::$auto_loaded_classes['Orphan_Seat_Migration'] = __DIR__ . '/classes/admin/class-orphan-seat-migration.php';
 		}
 
 		self::$auto_loaded_classes['AdminCreateGroup'] = __DIR__ . '/classes/admin/class-admin-create-group.php';

@@ -132,6 +132,35 @@ class SharedFunctions {
 	}
 
 	/**
+	 * Check if group leaders should be excluded from seat consumption.
+	 *
+	 * Group leaders don't use seats if EITHER of these settings is enabled:
+	 * - 'group_leaders_dont_use_seats' - Group leaders don't consume seats even if added as members
+	 * - 'do_not_add_group_leader_as_member' - Group leaders are not added as members at all
+	 *
+	 * @param string $check Optional. Which setting to check: 'both' (default), 'seats', 'member'.
+	 *
+	 * @return bool True if group leaders should be excluded from seats, false otherwise.
+	 */
+	public static function group_leaders_dont_use_seats( $check = 'both' ) {
+		$group_leaders_dont_use_seats     = (string) get_option( 'group_leaders_dont_use_seats', 'no' );
+		$group_leaders_dont_add_as_member = (string) get_option( 'do_not_add_group_leader_as_member', 'no' );
+
+		switch ( $check ) {
+			case 'seats':
+				// Check only the "don't use seats" setting
+				return 'yes' === $group_leaders_dont_use_seats;
+			case 'member':
+				// Check only the "don't add as member" setting
+				return 'yes' === $group_leaders_dont_add_as_member;
+			case 'both':
+			default:
+				// Group leaders don't use seats if EITHER setting is 'yes'
+				return 'yes' === $group_leaders_dont_use_seats || 'yes' === $group_leaders_dont_add_as_member;
+		}
+	}
+
+	/**
 	 * Total amount of seats left
 	 *
 	 * @param int $ld_group_id
@@ -991,12 +1020,22 @@ class SharedFunctions {
 		if ( ! $order instanceof \WC_Order ) {
 			return false;
 		}
+
 		$exists = false;
 		/**
 		 * @var \WC_Order_Item_Product $item
 		 */
 		foreach ( $order->get_items() as $item ) {
 			$product = $item->get_product();
+			// Some legacy/deleted-product orders keep ULGM item meta even when product lookup fails.
+			if ( ! $product instanceof \WC_Product ) {
+				if ( $item instanceof \WC_Order_Item_Product && ( $item->meta_exists( 'ulgm_group_name' ) || $item->meta_exists( 'ulgm_courses' ) ) ) {
+					$exists = true;
+					break;
+				}
+				continue;
+			}
+
 			if ( ! self::is_group_licensed_product( $product ) ) {
 				continue;
 			}

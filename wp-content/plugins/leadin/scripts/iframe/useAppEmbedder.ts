@@ -14,7 +14,6 @@ import {
   portalEmail,
   portalId,
   reviewSkippedDate,
-  refreshToken,
   impactLink,
   theme,
   lastAuthorizeTime,
@@ -28,6 +27,7 @@ import {
   decryptError,
   LeadinConfig,
 } from '../constants/leadinConfig';
+import { fetchAccessToken } from '../api/wordpressApiClient';
 import { App, AppIframe } from './constants';
 import { messageMiddleware } from './messageMiddleware';
 import { resizeWindow, useIframeNotRendered } from '../utils/iframe';
@@ -184,11 +184,15 @@ export default function useAppEmbedder(
   useEffect(() => {
     const { IntegratedAppEmbedder }: any = window;
 
-    if (IntegratedAppEmbedder) {
+    if (!IntegratedAppEmbedder) {
+      return;
+    }
+
+    const createEmbedder = (accessToken = '', expiresIn = 0) => {
       const options = getAppOptions(app, createRoute)
         .setLocale(locale)
         .setDeviceId(deviceId)
-        .setRefreshToken(refreshToken)
+        .setAccessToken(accessToken, expiresIn)
         .setLeadinConfig(getLeadinConfig());
 
       const embedder = new IntegratedAppEmbedder(
@@ -196,14 +200,36 @@ export default function useAppEmbedder(
         portalId,
         hubspotBaseUrl,
         resizeWindow,
-        refreshToken ? '' : impactLink
+        accessToken ? '' : impactLink
       ).setOptions(options);
 
-      embedder.subscribe(messageMiddleware(embedder));
+      embedder.subscribe((message: any) => {
+        messageMiddleware(embedder)(message);
+      });
+      embedder.setTokenRenewalCallback(fetchAccessToken);
+
       embedder.attachTo(container, true);
       embedder.postStartAppMessage(); // lets the app know all all data has been passed to it
 
       (window as any).embedder = embedder;
+    };
+
+    if (connectionStatus === 'Connected') {
+      fetchAccessToken()
+        .then(
+          ({
+            accessToken,
+            expiresIn,
+          }: {
+            accessToken: string;
+            expiresIn: number;
+          }) => {
+            createEmbedder(accessToken, expiresIn);
+          }
+        )
+        .catch(() => {});
+    } else {
+      createEmbedder();
     }
   }, []);
 
@@ -223,7 +249,7 @@ export default function useAppEmbedder(
         hubspotBaseUrl,
         impactLink,
         appName: AppIframe[app],
-        hasRefreshToken: !!refreshToken,
+        isConnected: connectionStatus === 'Connected',
       },
     });
   }

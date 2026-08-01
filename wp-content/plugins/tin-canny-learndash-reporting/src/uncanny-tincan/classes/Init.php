@@ -261,6 +261,24 @@ class Init {
 		}
 		if ( is_admin() ) {
 			new Admin\Metabox();
+
+			require_once __DIR__ . '/Admin/UO_Metabox_Tab.php';
+			$tc_tab    = array(
+				'tab_id'    => 'uo-tincanny-settings',
+				'tab_label' => __( 'Tin Canny', 'uncanny-learndash-reporting' ),
+				'metaboxes' => array( 'tincanny_settings' ),
+			);
+			$tc_config = array(
+				'sfwd-lessons' => $tc_tab,
+				'sfwd-topic'   => $tc_tab,
+			);
+			if ( class_exists( '\uncanny_pro_toolkit\OnePageCourseStep' ) ) {
+				$active_classes = get_option( 'uncanny_toolkit_active_classes', array() );
+				if ( ! empty( $active_classes ) && is_array( $active_classes ) && array_key_exists( 'uncanny_pro_toolkit\OnePageCourseStep', $active_classes ) ) {
+					$tc_config['sfwd-courses'] = $tc_tab;
+				}
+			}
+			Admin\UO_Metabox_Tab::boot( $tc_config );
 		}
 		self::$endpint_url = get_bloginfo( 'wpurl' ) . '/' . $pathinfo . self::TINCAN_URL_KEY;
 		self::$TinCan      = new \TinCan\RemoteLRS( self::$endpint_url, '1.0.1', 0, 0 ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase

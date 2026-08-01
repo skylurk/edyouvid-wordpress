@@ -1,3 +1,24 @@
+= 11.3.69 (2026-07-30) =
+* Fix tracking code script tag ID and async attribute not applied on WordPress 5.7+
+
+= 11.3.64 (2026-07-10) =
+Remove deprecated /leadin/v1/refresh-token endpoint
+
+= 11.3.62 (2026-07-09) =
+* Migrate OAuth token exchange to v2 endpoint with token in request body
+
+= 11.3.61 (2026-07-08) =
+* Security fix: exchange OAuth refresh token server-side so it never reaches the browser (CVE-2026-57736 Phase 3)
+
+= 11.3.56 (2026-07-06) =
+Security fix: remove OAuth refresh token from HTML source to prevent exposure to low-privilege users
+
+= 11.3.53 (2026-06-25) =
+Strip cf-connecting-ip header from reverse proxied requests
+
+= 11.3.52 (2026-06-24) =
+- Forward /events/public/v1/* path to HubSpot via predefined proxy
+
 = 11.3.44 (2026-03-18) =
 * Fixed a trailing comma error on PHP versions lower than 7.3
 
@@ -281,26 +302,4 @@
 
 = 8.15.65 (2022-07-22) =
 * Fix encode URL for affiliate link
-
-= 8.15.36 (2022-07-19) =
-* Add validation for content type in meta data
-
-= 8.15.0 (2022-07-15) =
-* Add hubspot sidebar to set content type
-
-= 8.14.24 (2022-07-15) =
-* Add fallback for affiliate link
-* Increase WP tested up to version
-
-= 8.14.0 (2022-07-13) =
-* Add Meetings gutenberg block
-
-= 8.13.56 (2022-06-10) =
-* Use new script to render forms
-
-= 8.13.52 (2022-06-09) =
-* Add defer to forms script
-
-= 8.13.45 (2022-06-08) =
-* Remove char from proxy url
 

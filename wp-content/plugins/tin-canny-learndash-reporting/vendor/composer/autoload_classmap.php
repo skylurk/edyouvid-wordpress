@@ -39,6 +39,7 @@ return array(
     'TinCannyProtection' => $baseDir . '/src/core/tin-canny-protection.php',
     'UCTINCAN\\Admin\\CSV' => $baseDir . '/src/uncanny-tincan/classes/Admin/CSV.php',
     'UCTINCAN\\Admin\\Metabox' => $baseDir . '/src/uncanny-tincan/classes/Admin/Metabox.php',
+    'UCTINCAN\\Admin\\UO_Metabox_Tab' => $baseDir . '/src/uncanny-tincan/classes/Admin/UO_Metabox_Tab.php',
     'UCTINCAN\\Admin\\WP_UserProfile' => $baseDir . '/src/uncanny-tincan/classes/Admin/WP_UserProfile.php',
     'UCTINCAN\\Database' => $baseDir . '/src/uncanny-tincan/classes/Database.php',
     'UCTINCAN\\Database\\Admin' => $baseDir . '/src/uncanny-tincan/classes/Database/Admin.php',

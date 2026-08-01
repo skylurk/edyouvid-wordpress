@@ -73,6 +73,7 @@ class State extends \UCTINCAN\Database {
 
 		if ( ! empty( $return ) ) {
 			if ( 'suspend_data' === $state_id ) {
+				$return = $this->sanitize_suspend_data_value( $return );
 				$return = apply_filters( 'uo_tincanny_reporting_sanitize_suspend_data', $return, $module_id_value, 'GET' );
 			}
 			return $return;
@@ -98,6 +99,7 @@ class State extends \UCTINCAN\Database {
 
 			if ( ! empty( $return ) ) {
 				if ( 'suspend_data' === $state_id ) {
+					$return = $this->sanitize_suspend_data_value( $return );
 					$return = apply_filters( 'uo_tincanny_reporting_sanitize_suspend_data', $return, $module_id_value, 'GET' );
 				}
 				return $return;
@@ -386,6 +388,32 @@ class State extends \UCTINCAN\Database {
 		}
 
 		return array( $course_id, $lesson_id );
+	}
+
+	/**
+	 * Returns empty string if the stored value is a JSON-encoded artefact produced
+	 * by the parse_str '&' corruption bug, so the module starts fresh instead of crashing.
+	 * Corrupt values are JSON objects whose every entry has an empty-string value.
+	 *
+	 * @param string $value
+	 * @return string
+	 */
+	private function sanitize_suspend_data_value( $value ) {
+		if ( ! is_string( $value ) || '{' !== $value[0] ) {
+			return $value;
+		}
+		$decoded = json_decode( $value, true );
+		if ( ! is_array( $decoded ) ) {
+			return $value;
+		}
+		// Corrupt artefact: all values are empty strings.
+		foreach ( $decoded as $v ) {
+			if ( '' !== $v ) {
+				return $value;
+			}
+		}
+		self::log( 'sanitize_suspend_data_value: corrupt suspend_data detected and reset', 'State' );
+		return '';
 	}
 
 	//phpcs:enable WordPress.DB.PreparedSQL

@@ -615,7 +615,8 @@ class Auto_Plugin_Install {
 				$button_class = apply_filters(
 					'uncanny_one_click_install_button_class',
 					array(
-						'uoc-generate-button',
+						'uncannyowl-btn',
+						'uncannyowl-btn--primary',
 						'auto-plugin-install-button',
 					),
 					$plugin_info

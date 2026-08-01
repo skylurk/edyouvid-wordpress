@@ -32,7 +32,6 @@ class Formidable extends Config {
 		add_filter( 'frm_get_field_type_class', array( $this, 'add_uncanny_code_field_type' ), 99, 2 );
 		add_filter( 'frm_validate_field_entry', array( $this, 'validate_uncanny_code' ), 99, 3 );
 
-		add_action( 'frm_display_added_fields', array( $this, 'show_the_admin_field' ), 99 );
 		add_action( 'frm_after_create_entry', array( $this, 'redeem_uncanny_code' ), 30, 2 );
 	}
 
@@ -77,6 +76,7 @@ class Formidable extends Config {
 		if ( 'uncanny_code' !== (string) $posted_field->type ) {
 			return $errors;
 		}
+		
 		// Load default error messages.
 		Config::load_default_messages();
 
@@ -129,7 +129,7 @@ class Formidable extends Config {
 
 			$coupon_id = Database::is_coupon_available( $value );
 			if ( is_numeric( intval( $coupon_id ) ) ) {
-				update_user_meta( $user_id, Config::$uncanny_codes_tracking, esc_html__( 'Formidable', 'uncanny-learndash-codes' ) );
+				update_user_meta( $user_id, Config::$uncanny_codes_tracking, 'Formidable Forms' );
 				$result = Database::set_user_to_coupon( $user_id, $coupon_id );
 				LearnDash::set_user_to_course_or_group( $user_id, $result );
 

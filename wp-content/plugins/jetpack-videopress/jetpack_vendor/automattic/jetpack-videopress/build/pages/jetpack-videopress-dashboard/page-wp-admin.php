@@ -134,7 +134,9 @@ function jetpack_videopress_jetpack_videopress_dashboard_wp_admin_enqueue_script
 	// Load build constants
 	$build_constants = require __DIR__ . '/../../constants.php';
 
-	// Fire init action for extensions to register routes and menu items
+	/**
+	 * Fires when the jetpack-videopress-dashboard admin page is initialized so extensions can register routes and menu items.
+	 */
 	do_action( 'jetpack-videopress-dashboard-wp-admin_init' );
 
 	// Preload REST API data
@@ -153,13 +155,39 @@ function jetpack_videopress_jetpack_videopress_dashboard_wp_admin_enqueue_script
 		// 2. It initializes the boot module as an inline script.
 		wp_register_script( 'jetpack-videopress-dashboard-wp-admin-prerequisites', '', $asset['dependencies'], $asset['version'], true );
 
-		// Add inline script to initialize the app using initSinglePage (no menuItems)
+		$init_modules = [];
+
+		/*
+		 * Add inline script to initialize the app using initSinglePage (no menuItems).
+		 * The dynamic import is deferred until DOMContentLoaded so that all classic
+		 * script dependencies of @wordpress/boot (wp-private-apis, wp-components,
+		 * wp-theme, etc.) have finished parsing and executing before the boot module
+		 * evaluates. Otherwise, a modulepreloaded @wordpress/boot can win the race
+		 * against the classic-script-printing pass on fast CDN-fronted hosts in
+		 * Chrome, evaluating before wp.theme.privateApis is defined and throwing
+		 * "Cannot unlock an undefined object". See <https://core.trac.wordpress.org/ticket/65103>.
+		 */
+		$init_js_function = <<<'JS'
+		( mountId, routes, initModules ) => {
+			const run = async () => {
+				const mod = await import( "@wordpress/boot" );
+				mod.initSinglePage( { mountId, routes, initModules } );
+			};
+			if ( document.readyState === "loading" ) {
+				document.addEventListener( "DOMContentLoaded", run );
+			} else {
+				run();
+			}
+		}
+		JS;
 		wp_add_inline_script(
 			'jetpack-videopress-dashboard-wp-admin-prerequisites',
 			sprintf(
-				'import("@wordpress/boot").then(mod => mod.initSinglePage({mountId: "%s", routes: %s}));',
-				'jetpack-videopress-dashboard-wp-admin-app',
-				wp_json_encode( $routes, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+				'( %s )( %s, %s, %s );',
+				$init_js_function,
+				wp_json_encode( 'jetpack-videopress-dashboard-wp-admin-app', JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				wp_json_encode( $routes, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				wp_json_encode( $init_modules, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 			)
 		);
 
@@ -180,6 +208,9 @@ function jetpack_videopress_jetpack_videopress_dashboard_wp_admin_enqueue_script
 			),
 		);
 
+		// Add init modules as static dependencies
+			// No init modules configured
+
 		// Add all registered routes as dependencies
 		foreach ( $routes as $route ) {
 			if ( isset( $route['route_module'] ) ) {
@@ -195,6 +226,21 @@ function jetpack_videopress_jetpack_videopress_dashboard_wp_admin_enqueue_script
 				);
 			}
 		}
+
+		/**
+		 * Filters the boot script-module dependencies for the
+		 * jetpack-videopress-dashboard-wp-admin page.
+		 *
+		 * Surfaces extending this page can append entries to the boot
+		 * dependency list. Each entry is an array with 'import' (string
+		 * 'static' or 'dynamic') and 'id' (script-module handle) keys.
+		 *
+		 * @param array $boot_dependencies Boot dependencies for the page.
+		 */
+		$boot_dependencies = apply_filters(
+			'jetpack-videopress-dashboard-wp-admin_boot_dependencies',
+			$boot_dependencies
+		);
 
 		// Dummy script module to ensure dependencies are loaded
 		wp_register_script_module(
@@ -220,9 +266,7 @@ function jetpack_videopress_jetpack_videopress_dashboard_wp_admin_render_page() 
 	<style>
 		/* Critical styles to prevent layout shifts - inlined for immediate application */
 
-		/* Background colors */
 		#wpwrap {
-			background: var(--wpds-color-fg-content-neutral, #1e1e1e);
 			overflow-y: auto;
 		}
 		body {

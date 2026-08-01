@@ -92,3 +92,46 @@ export function fetchProxyMappingsEnabled() {
 export function toggleProxyMappingsEnabled(value: boolean) {
   return makeRequest('put', '/wp-mappings-proxy-enabled', value);
 }
+
+const ACCESS_TOKEN_CACHE_KEY = 'leadin_access_token';
+const ACCESS_TOKEN_MIN_TTL_SECONDS = 300;
+
+let accessTokenRequest: Promise<any> | null = null;
+
+export function fetchAccessToken() {
+  try {
+    const cached = sessionStorage.getItem(ACCESS_TOKEN_CACHE_KEY);
+    if (cached) {
+      const { accessToken, expiresAt } = JSON.parse(cached);
+      if (
+        accessToken &&
+        expiresAt > Math.floor(Date.now() / 1000) + ACCESS_TOKEN_MIN_TTL_SECONDS
+      ) {
+        return Promise.resolve({
+          accessToken,
+          expiresIn: expiresAt - Math.floor(Date.now() / 1000),
+        });
+      }
+    }
+  } catch (_) {}
+
+  if (!accessTokenRequest) {
+    accessTokenRequest = makeRequest('get', '/access-token')
+      .then((response: { accessToken: string; expiresIn: number }) => {
+        try {
+          sessionStorage.setItem(
+            ACCESS_TOKEN_CACHE_KEY,
+            JSON.stringify({
+              accessToken: response.accessToken,
+              expiresAt: Math.floor(Date.now() / 1000) + response.expiresIn,
+            })
+          );
+        } catch (_) {}
+        return response;
+      })
+      .finally(() => {
+        accessTokenRequest = null;
+      });
+  }
+  return accessTokenRequest;
+}

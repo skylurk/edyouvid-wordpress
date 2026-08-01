@@ -13,7 +13,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 ?>
 
-<div class="uoc-generate-section uoc-generate-batch-name">
+<div class="uoc-generate-section uoc-generate-batch-name pl-0">
 
 	<div class="uoc-generate-section__title">
 		<?php esc_html_e( 'Name this batch of codes', 'uncanny-learndash-codes' ); ?> <span

@@ -6,7 +6,7 @@ Donate link: https://www.malcare.com
 Requires at least: 4.0
 Tested up to: 7.0
 Requires PHP: 7.0
-Stable tag: 6.48
+Stable tag: 6.62
 License: GPLv2 or later
 License URI: [http://www.gnu.org/licenses/gpl-2.0.html](http://www.gnu.org/licenses/gpl-2.0.html)
 
@@ -402,6 +402,10 @@ FTP details input into MalCare is processed on our servers. We need your FTP cre
 These are available on our website: [Terms of Service](https://www.malcare.com/tos/) and [Privacy Policy](https://www.malcare.com/privacy/)
 
 == CHANGELOG ==
+= 6.62 =
+* Tweak: Firewall improvements.
+* Tweak: Table sync improvements.
+
 = 6.48 =
 * Fix: Preserve default PHP error handling after PHP Error Monitoring processes an error.
 * Tweak: Reduce repeated firewall IP whitelist lookups.

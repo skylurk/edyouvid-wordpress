@@ -123,7 +123,7 @@ class Blocks {
 			array(
 				array(
 					'slug'  => 'uncanny-learndash-codes',
-					'title' => 'Uncanny Codes',
+					'title' => 'Uncanny Redemption Codes',
 				),
 			)
 		);

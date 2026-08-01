@@ -553,11 +553,16 @@ class WPvivid_Send_to_site extends WPvivid_Remote
                     } else {
                         global $wpvivid_plugin;
                         $wpvivid_plugin->wpvivid_log = new WPvivid_Log();
-                        if (!file_exists($wpvivid_plugin->wpvivid_log->GetSaveLogFolder() . $params['backup_id'] . '_backup_log.txt')) {
-                            $wpvivid_plugin->wpvivid_log->CreateLogFile($params['backup_id'] . '_backup', 'no_folder', 'transfer');
+
+                        // Prevent path traversal through remote backup_id.
+                        $backup_id = sanitize_file_name($params['backup_id']);
+                        $backup_id = basename($backup_id);
+
+                        if (!file_exists($wpvivid_plugin->wpvivid_log->GetSaveLogFolder() . $backup_id . '_backup_log.txt')) {
+                            $wpvivid_plugin->wpvivid_log->CreateLogFile($backup_id . '_backup', 'no_folder', 'transfer');
                             $wpvivid_plugin->wpvivid_log->WriteLogHander();
                         } else {
-                            $wpvivid_plugin->wpvivid_log->OpenLogFile($params['backup_id'] . '_backup', 'no_folder');
+                            $wpvivid_plugin->wpvivid_log->OpenLogFile($backup_id . '_backup', 'no_folder');
                         }
 
 

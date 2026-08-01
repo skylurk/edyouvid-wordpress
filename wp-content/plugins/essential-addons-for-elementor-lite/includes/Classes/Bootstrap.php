@@ -101,6 +101,9 @@ class Bootstrap
         // init modules
         $this->installer = new WPDeveloper_Plugin_Installer();
 
+        // ThinkRank cross-promotion surfaces (admin-only; self-gates internally)
+        new ThinkRank_Promotion();
+
         // before init hook
         do_action('eael/before_init');
 
@@ -204,6 +207,12 @@ class Bootstrap
         add_action('wp_ajax_eael_lr_verify_otp',        [$this, 'eael_ajax_verify_otp']);
         add_action('wp_ajax_nopriv_eael_lr_verify_otp', [$this, 'eael_ajax_verify_otp']);
 
+        // Block any core authentication path (wp-login.php, XML-RPC, application
+        // passwords, wp_signon() calls elsewhere) for accounts still pending OTP
+        // verification. The EA login widget's own gate in log_user_in() only covers
+        // logins submitted through that widget's form/AJAX endpoint.
+        add_filter( 'wp_authenticate_user', [ $this, 'eael_block_otp_pending_authentication' ], 20, 2 );
+
         // Flag unverified OTP register users in wp-admin → Users.
         add_action('admin_footer-users.php', [$this, 'eael_lr_otp_pending_user_flag']);
         add_action( 'init', [$this, 'eael_redirect_to_reset_password'] );
@@ -219,9 +228,21 @@ class Bootstrap
         //rank math support
         add_filter('rank_math/researches/toc_plugins', [$this, 'toc_rank_math_support']);
 
-//        if(defined('WPML_TM_VERSION')){
-//	        add_filter( 'elementor/documents/get/post_id',[$this, 'eael_wpml_template_translation']);
-//        }
+        // Translate embedded Elementor templates/documents (saved templates used by
+        // Advanced Tabs, Advanced Accordion, Info Box, etc.) to the current language.
+        // eael_wpml_template_translation() handles both WPML and Polylang. Previously
+        // this was disabled and gated to WPML only, so Polylang sites always rendered
+        // the source-language template.
+        if ( defined( 'WPML_TM_VERSION' ) || defined( 'POLYLANG_VERSION' ) || function_exists( 'pll_get_post_language' ) ) {
+            add_filter( 'elementor/documents/get/post_id', [ $this, 'eael_wpml_template_translation' ] );
+        }
+
+        // Polylang has no Elementor integration, so the template library is not
+        // translatable by default. Opt it in so saved templates can be mapped to the
+        // current language (and managed from Polylang's UI).
+        if ( defined( 'POLYLANG_VERSION' ) || function_exists( 'pll_get_post_language' ) ) {
+            add_filter( 'pll_get_post_types', [ $this, 'eael_pll_translate_elementor_library' ], 10, 2 );
+        }
 
         //templately plugin support
         if( !class_exists('Templately\Plugin') && !get_option('eael_templately_promo_hide') ) {
@@ -357,7 +378,7 @@ class Bootstrap
 						    }
 					    }
 
-                        if ( ! current_user_can( 'install_plugins' ) && isset( $element['widgetType'] ) && $element['widgetType'] === 'eaicon-advanced-data-table' ) {
+                        if ( ! current_user_can( 'install_plugins' ) && isset( $element['widgetType'] ) && $element['widgetType'] === 'eael-advanced-data-table' ) {
 						    if ( ! empty( $element['settings']['ea_adv_data_table_source'] ) ) {
 							    $element['settings']['ea_adv_data_table_source'] = 'static';
 						    }

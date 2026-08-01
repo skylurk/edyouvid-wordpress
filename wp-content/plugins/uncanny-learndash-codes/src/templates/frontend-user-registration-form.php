@@ -125,7 +125,7 @@ if ( SharedFunctionality::ulc_filter_has_var( 'registered' ) ) { ?>
 												 required="required"
 												 class="required"
 												 value="<?php echo esc_attr( $uo_codes_terms_conditions ); ?>"
-												 type="checkbox"/><?php echo $term_conditions; ?>
+												 type="checkbox"/>  <?php echo $term_conditions; ?>
 						</td>
 					</tr>
 				<?php } ?>

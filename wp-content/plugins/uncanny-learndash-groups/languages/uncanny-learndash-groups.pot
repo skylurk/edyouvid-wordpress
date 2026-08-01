@@ -1,15 +1,15 @@
-# Copyright (C) 2025 Uncanny Owl
+# Copyright (C) 2026 Uncanny Owl
 # This file is distributed under the GPLv3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Uncanny Groups for LearnDash 6.1.5\n"
+"Project-Id-Version: Uncanny Groups for LearnDash 6.1.8\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/uncanny-learndash-groups\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-10-23T21:15:22+00:00\n"
+"POT-Creation-Date: 2026-05-29T20:42:05+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: uncanny-learndash-groups\n"
@@ -234,11 +234,12 @@ msgid "Override \"Send enrollment key\" Email."
 msgstr ""
 
 #: src/classes/admin/class-admin-menu.php:24
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:38
 msgid "Uncanny Groups"
 msgstr ""
 
 #: src/classes/admin/class-admin-page.php:51
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:295
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:314
 #: src/templates/admin/admin-custom-groups.php:227
 #: src/templates/admin/admin-header.php:53
 msgid "Settings"
@@ -266,17 +267,17 @@ msgstr ""
 #: src/classes/handlers/class-gm-seat-handler.php:36
 #: src/classes/woocommerce/woocommerce-license-subscription.php:313
 #: src/classes/woocommerce/woocommerce-license-subscription.php:342
-#: src/classes/woocommerce/woocommerce-modify-group.php:483
-#: src/classes/woocommerce/woocommerce-modify-group.php:569
+#: src/classes/woocommerce/woocommerce-modify-group.php:492
+#: src/classes/woocommerce/woocommerce-modify-group.php:584
 msgid "Seat"
 msgstr ""
 
 #: src/classes/admin/class-admin-page.php:197
 #: src/classes/handlers/class-gm-seat-handler.php:37
-#: src/classes/woocommerce/woocommerce-buy-courses.php:559
-#: src/classes/woocommerce/woocommerce-modify-group.php:382
-#: src/classes/woocommerce/woocommerce-modify-group.php:484
-#: src/classes/woocommerce/woocommerce-modify-group.php:570
+#: src/classes/woocommerce/woocommerce-buy-courses.php:601
+#: src/classes/woocommerce/woocommerce-modify-group.php:391
+#: src/classes/woocommerce/woocommerce-modify-group.php:493
+#: src/classes/woocommerce/woocommerce-modify-group.php:585
 #: src/templates/frontend-uo_groups_buy_courses.php:226
 #: src/templates/frontend-uo_groups_buy_courses.php:227
 msgid "Seats"
@@ -449,7 +450,7 @@ msgstr ""
 
 #: src/classes/admin/class-admin-page.php:239
 #: src/classes/admin/class-admin-page.php:259
-#: src/classes/group-management/group-management-interface.php:1306
+#: src/classes/group-management/group-management-interface.php:1309
 msgid "Send enrollment key"
 msgstr ""
 
@@ -595,13 +596,13 @@ msgstr ""
 #: src/classes/admin/class-admin-rest-api.php:365
 #: src/classes/admin/class-admin-rest-api.php:497
 #: src/classes/helpers/rest-api-end-points.php:362
-#: src/classes/helpers/rest-api-end-points.php:1078
-#: src/classes/helpers/rest-api-end-points.php:1194
-#: src/classes/helpers/rest-api-end-points.php:1253
-#: src/classes/helpers/rest-api-end-points.php:1349
-#: src/classes/helpers/rest-api-end-points.php:1428
-#: src/classes/helpers/rest-api-end-points.php:1557
-#: src/classes/helpers/rest-api-end-points.php:1680
+#: src/classes/helpers/rest-api-end-points.php:1218
+#: src/classes/helpers/rest-api-end-points.php:1334
+#: src/classes/helpers/rest-api-end-points.php:1393
+#: src/classes/helpers/rest-api-end-points.php:1489
+#: src/classes/helpers/rest-api-end-points.php:1568
+#: src/classes/helpers/rest-api-end-points.php:1697
+#: src/classes/helpers/rest-api-end-points.php:1820
 #: src/classes/reports/group-reports-interface.php:422
 #: src/classes/reports/group-reports-interface.php:548
 #: src/includes/class-csv-user-upload.php:115
@@ -1744,8 +1745,8 @@ msgstr ""
 
 #: src/classes/group-management/class-group-management-helpers.php:153
 #: src/classes/group-management/class-group-management-helpers.php:157
-#: src/classes/helpers/rest-api-end-points.php:1597
-#: src/classes/helpers/rest-api-end-points.php:2031
+#: src/classes/helpers/rest-api-end-points.php:1737
+#: src/classes/helpers/rest-api-end-points.php:2171
 msgid "You are not authorized to add this user to your group."
 msgstr ""
 
@@ -1925,11 +1926,11 @@ msgstr ""
 #: src/classes/group-management/group-management-interface.php:244
 #: src/classes/group-management/group-management-interface.php:535
 #: src/classes/group-management/group-management-interface.php:539
-#: src/classes/group-management/group-management-interface.php:1271
-#: src/classes/group-management/group-management-interface.php:1347
-#: src/classes/group-management/group-management-interface.php:1405
-#: src/classes/group-management/group-management-interface.php:1448
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:357
+#: src/classes/group-management/group-management-interface.php:1274
+#: src/classes/group-management/group-management-interface.php:1350
+#: src/classes/group-management/group-management-interface.php:1408
+#: src/classes/group-management/group-management-interface.php:1451
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:376
 #: src/classes/reports/group-assignments.php:730
 #: src/classes/reports/group-assignments.php:824
 #: src/classes/reports/group-essays.php:819
@@ -1947,11 +1948,11 @@ msgid "First name"
 msgstr ""
 
 #: src/classes/group-management/group-management-interface.php:245
-#: src/classes/group-management/group-management-interface.php:1275
-#: src/classes/group-management/group-management-interface.php:1351
-#: src/classes/group-management/group-management-interface.php:1412
-#: src/classes/group-management/group-management-interface.php:1455
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:358
+#: src/classes/group-management/group-management-interface.php:1278
+#: src/classes/group-management/group-management-interface.php:1354
+#: src/classes/group-management/group-management-interface.php:1415
+#: src/classes/group-management/group-management-interface.php:1458
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:377
 #: src/classes/reports/group-assignments.php:731
 #: src/classes/reports/group-assignments.php:826
 #: src/classes/reports/group-essays.php:820
@@ -1969,10 +1970,10 @@ msgid "Last name"
 msgstr ""
 
 #: src/classes/group-management/group-management-interface.php:246
-#: src/classes/group-management/group-management-interface.php:1279
-#: src/classes/group-management/group-management-interface.php:1355
-#: src/classes/group-management/group-management-interface.php:1419
-#: src/classes/group-management/group-management-interface.php:1462
+#: src/classes/group-management/group-management-interface.php:1282
+#: src/classes/group-management/group-management-interface.php:1358
+#: src/classes/group-management/group-management-interface.php:1422
+#: src/classes/group-management/group-management-interface.php:1465
 #: src/classes/reports/group-quiz-report.php:974
 #: src/classes/reports/group-quiz-report.php:1263
 #: src/classes/reports/group-reports-interface.php:125
@@ -1984,27 +1985,27 @@ msgstr ""
 msgid "Email"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:717
+#: src/classes/group-management/group-management-interface.php:720
 msgid "You do not have permission to manage groups."
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:725
-#: src/classes/group-management/group-management-interface.php:733
+#: src/classes/group-management/group-management-interface.php:728
+#: src/classes/group-management/group-management-interface.php:736
 msgid "You do not have any groups available to manage."
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:758
+#: src/classes/group-management/group-management-interface.php:761
 msgid "You do not have access to manage any group."
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:786
-#: src/classes/helpers/rest-api-end-points.php:1103
-#: src/classes/helpers/rest-api-end-points.php:1286
-#: src/classes/helpers/rest-api-end-points.php:1374
-#: src/classes/helpers/rest-api-end-points.php:1471
-#: src/classes/helpers/rest-api-end-points.php:1584
-#: src/classes/helpers/rest-api-end-points.php:1705
-#: src/classes/helpers/rest-api-end-points.php:1970
+#: src/classes/group-management/group-management-interface.php:789
+#: src/classes/helpers/rest-api-end-points.php:1243
+#: src/classes/helpers/rest-api-end-points.php:1426
+#: src/classes/helpers/rest-api-end-points.php:1514
+#: src/classes/helpers/rest-api-end-points.php:1611
+#: src/classes/helpers/rest-api-end-points.php:1724
+#: src/classes/helpers/rest-api-end-points.php:1845
+#: src/classes/helpers/rest-api-end-points.php:2110
 #: src/classes/reports/group-reports-interface.php:467
 #: src/includes/class-csv-user-upload.php:170
 #: src/templates/frontend-uo_groups_buy_courses.php:37
@@ -2012,24 +2013,24 @@ msgstr ""
 msgid "You do not have permission to manage this group."
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1035
+#: src/classes/group-management/group-management-interface.php:1038
 msgid "N/A"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1074
+#: src/classes/group-management/group-management-interface.php:1077
 msgid "Not Enrolled"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1249
+#: src/classes/group-management/group-management-interface.php:1252
 msgid "User"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1251
-#: src/classes/group-management/group-management-interface.php:1294
+#: src/classes/group-management/group-management-interface.php:1254
+#: src/classes/group-management/group-management-interface.php:1297
 msgid "Users"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1253
+#: src/classes/group-management/group-management-interface.php:1256
 #, php-format
 msgctxt "%1$s is a number, %2$s is the singular \"seat\" label, %3$s is the plural \"seats\" label"
 msgid "%1$s Total %2$s"
@@ -2037,7 +2038,7 @@ msgid_plural "%1$s Total %3$s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/classes/group-management/group-management-interface.php:1254
+#: src/classes/group-management/group-management-interface.php:1257
 #, php-format
 msgctxt "%1$s is a number, %2$s is the singular \"seat\" label, %3$s is the plural \"seats\" label"
 msgid "%1$s %2$s remaining"
@@ -2045,7 +2046,7 @@ msgid_plural "%1$s %3$s remaining"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/classes/group-management/group-management-interface.php:1255
+#: src/classes/group-management/group-management-interface.php:1258
 #, php-format
 msgctxt "%1$s is a number, %2$s is the singular \"seat\" label, %3$s is the plural \"seats\" label"
 msgid "%1$s %2$s available"
@@ -2053,7 +2054,7 @@ msgid_plural "%1$s %3$s available"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/classes/group-management/group-management-interface.php:1256
+#: src/classes/group-management/group-management-interface.php:1259
 #, php-format
 msgctxt "%1$s is a number, %2$s is the singular \"user\" label, %3$s is the plural \"users\" label"
 msgid "%1$s %2$s"
@@ -2061,20 +2062,20 @@ msgid_plural "%1$s %3$s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/classes/group-management/group-management-interface.php:1259
+#: src/classes/group-management/group-management-interface.php:1262
 #: src/classes/reports/learndash-progress-report.php:1860
 msgid "Select Group ID"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1267
+#: src/classes/group-management/group-management-interface.php:1270
 #: src/templates/frontend-uo_groups/users-table-actions.php:148
 #: src/blocks/dist/index.js:1
 #: src/blocks/src/groups-group-management-interface/sidebar.js:276
 msgid "Enrolled users"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1283
-#: src/classes/group-management/group-management-interface.php:1425
+#: src/classes/group-management/group-management-interface.php:1286
+#: src/classes/group-management/group-management-interface.php:1428
 #: src/classes/reports/group-assignments.php:267
 #: src/classes/reports/group-assignments.php:733
 #: src/classes/reports/group-assignments.php:830
@@ -2087,13 +2088,13 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1287
-#: src/classes/group-management/group-management-interface.php:1431
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:360
+#: src/classes/group-management/group-management-interface.php:1290
+#: src/classes/group-management/group-management-interface.php:1434
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:379
 msgid "Key"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1291
+#: src/classes/group-management/group-management-interface.php:1294
 #: src/classes/group-management/group-management-registration.php:145
 #: src/classes/theme-my-login/theme-my-login-support.php:323
 #: src/classes/theme-my-login/theme-my-login-support.php:334
@@ -2102,155 +2103,155 @@ msgstr ""
 msgid "Error"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1295
+#: src/classes/group-management/group-management-interface.php:1298
 msgid "Upload users"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1296
+#: src/classes/group-management/group-management-interface.php:1299
 msgid "Email users"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1297
+#: src/classes/group-management/group-management-interface.php:1300
 msgid "Manage progress"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1298
+#: src/classes/group-management/group-management-interface.php:1301
 #, php-format
 msgctxt "%1$s is a number, %2$s is the \"seats\" label"
 msgid "You have %1$s %2$s remaining"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1300
+#: src/classes/group-management/group-management-interface.php:1303
 msgid "Add and invite users"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1301
+#: src/classes/group-management/group-management-interface.php:1304
 msgid "Add and invite user"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1303
+#: src/classes/group-management/group-management-interface.php:1306
 #: src/templates/frontend-uo_groups/users-table-actions.php:787
 msgid "Add users"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1304
+#: src/classes/group-management/group-management-interface.php:1307
 #: src/templates/frontend-uo_groups/users-table-actions.php:527
 msgid "Add user"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1307
+#: src/classes/group-management/group-management-interface.php:1310
 msgid "Add existing user"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1308
+#: src/classes/group-management/group-management-interface.php:1311
 msgid "Send enrollment keys"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1309
+#: src/classes/group-management/group-management-interface.php:1312
 msgid "Suppress email (keys to be manually distributed)"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1312
-#: src/classes/group-management/group-management-interface.php:1318
+#: src/classes/group-management/group-management-interface.php:1315
+#: src/classes/group-management/group-management-interface.php:1321
 #: src/classes/learndash/class-learndash-modifications.php:37
 #, php-format
 msgid "%s"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1315
+#: src/classes/group-management/group-management-interface.php:1318
 msgid "Progress"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1321
+#: src/classes/group-management/group-management-interface.php:1324
 msgid "Assignments"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1323
+#: src/classes/group-management/group-management-interface.php:1326
 msgid "Essays"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1328
+#: src/classes/group-management/group-management-interface.php:1331
 msgid "Add seats"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1331
+#: src/classes/group-management/group-management-interface.php:1334
 #, php-format
 msgid "Add %s"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1333
+#: src/classes/group-management/group-management-interface.php:1336
 msgid "Administration"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1334
+#: src/classes/group-management/group-management-interface.php:1337
 msgid "Remove user(s)"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1335
+#: src/classes/group-management/group-management-interface.php:1338
 msgid "Resend invitation"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1336
+#: src/classes/group-management/group-management-interface.php:1339
 msgid "Copy key"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1339
+#: src/classes/group-management/group-management-interface.php:1342
 #: src/templates/frontend-uo_groups/groups-table-actions.php:3
 #: src/blocks/dist/index.js:1
 #: src/blocks/src/groups-group-management-interface/sidebar.js:339
 msgid "Group leaders"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1342
-#: src/classes/group-management/group-management-interface.php:1360
+#: src/classes/group-management/group-management-interface.php:1345
+#: src/classes/group-management/group-management-interface.php:1363
 #: src/templates/frontend-uo_groups/groups-table-actions.php:79
 msgid "Add group leader"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1343
+#: src/classes/group-management/group-management-interface.php:1346
 msgid "Remove group leader(s)"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1363
+#: src/classes/group-management/group-management-interface.php:1366
 msgid "Error: File API is not supported. Update your browser."
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1364
+#: src/classes/group-management/group-management-interface.php:1367
 msgid "Please select a CSV (.csv) file."
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1365
+#: src/classes/group-management/group-management-interface.php:1368
 msgid "CSV File Error"
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1366
+#: src/classes/group-management/group-management-interface.php:1369
 msgid "An incompatible format was detected. Please see the KB for supported .csv formats."
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1367
+#: src/classes/group-management/group-management-interface.php:1370
 #: src/includes/class-csv-user-upload.php:218
 msgid "The first row of the CSV file must contain the column header user_email."
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1368
+#: src/classes/group-management/group-management-interface.php:1371
 #: src/includes/class-csv-user-upload.php:225
 msgid "The first row of the CSV file must contain the column header first_name."
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1369
+#: src/classes/group-management/group-management-interface.php:1372
 #: src/includes/class-csv-user-upload.php:232
 msgid "The first row of the CSV file must contain the column header last_name."
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1370
+#: src/classes/group-management/group-management-interface.php:1373
 msgid "Each row in the CSV must contain a user_email value."
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1371
+#: src/classes/group-management/group-management-interface.php:1374
 msgid "Please choose a file to upload."
 msgstr ""
 
-#: src/classes/group-management/group-management-interface.php:1391
+#: src/classes/group-management/group-management-interface.php:1394
 msgid "Search by name, email, status or key"
 msgstr ""
 
@@ -2321,23 +2322,23 @@ msgstr ""
 msgid "Line #%d: Email field is empty."
 msgstr ""
 
-#: src/classes/handlers/class-gm-seat-handler.php:220
+#: src/classes/handlers/class-gm-seat-handler.php:264
 #, php-format
 msgid "Uncanny Groups &mdash; Unable to remove %1$s. Group %2$s is not linked to this order."
 msgstr ""
 
-#: src/classes/handlers/class-gm-seat-handler.php:230
+#: src/classes/handlers/class-gm-seat-handler.php:289
 #, php-format
 msgid "Uncanny Groups &mdash; Unable to remove %1$s from the %2$s. Available count is less than %3$d."
 msgstr ""
 
-#: src/classes/handlers/class-gm-seat-handler.php:243
+#: src/classes/handlers/class-gm-seat-handler.php:307
 #, php-format
 msgid "Uncanny Groups &mdash; Successfully removed %1$d %2$s from %3$s."
 msgstr ""
 
-#: src/classes/handlers/class-group-management-db-handler.php:964
-#: src/classes/handlers/class-group-management-db-handler.php:1087
+#: src/classes/handlers/class-group-management-db-handler.php:967
+#: src/classes/handlers/class-group-management-db-handler.php:1098
 #, php-format
 msgid "Sorry, this groups order status is: %s. Please contact your group leader or site administrator to resolve this issue."
 msgstr ""
@@ -2398,223 +2399,223 @@ msgstr ""
 msgid "No status selected."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:810
-#: src/classes/helpers/rest-api-end-points.php:879
+#: src/classes/helpers/rest-api-end-points.php:791
+#: src/classes/helpers/rest-api-end-points.php:824
 msgid "No users found in the group matching the criteria."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:888
+#: src/classes/helpers/rest-api-end-points.php:833
 msgid "Mail args empty. Unexpected condition from filter: ld_group_email_users_args."
 msgstr ""
 
 #. translators: Email errors
-#: src/classes/helpers/rest-api-end-points.php:941
+#: src/classes/helpers/rest-api-end-points.php:886
 #, php-format
 msgid "Error: Email(s) to %s not sent. Please try again or check with your hosting provider."
 msgstr ""
 
 #. translators: Number of successful emails sent
-#: src/classes/helpers/rest-api-end-points.php:949
+#: src/classes/helpers/rest-api-end-points.php:894
 #, php-format
 msgid "Success: Email sent to %d group users."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:961
+#: src/classes/helpers/rest-api-end-points.php:906
 msgid "Required data is missing"
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:970
+#: src/classes/helpers/rest-api-end-points.php:915
 msgid "User is logged-out"
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1085
+#: src/classes/helpers/rest-api-end-points.php:1225
 msgid "You do not have permission to remove users."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1094
-#: src/classes/helpers/rest-api-end-points.php:1277
-#: src/classes/helpers/rest-api-end-points.php:1574
-#: src/classes/helpers/rest-api-end-points.php:1696
-#: src/classes/helpers/rest-api-end-points.php:1960
+#: src/classes/helpers/rest-api-end-points.php:1234
+#: src/classes/helpers/rest-api-end-points.php:1417
+#: src/classes/helpers/rest-api-end-points.php:1714
+#: src/classes/helpers/rest-api-end-points.php:1836
+#: src/classes/helpers/rest-api-end-points.php:2100
 #: src/classes/reports/group-reports-interface.php:440
 #: src/includes/class-csv-user-upload.php:159
 msgid "Group ID must be a whole number."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1111
-#: src/classes/helpers/rest-api-end-points.php:1326
-#: src/classes/helpers/rest-api-end-points.php:1568
-#: src/classes/helpers/rest-api-end-points.php:1713
-#: src/classes/helpers/rest-api-end-points.php:1978
+#: src/classes/helpers/rest-api-end-points.php:1251
+#: src/classes/helpers/rest-api-end-points.php:1466
+#: src/classes/helpers/rest-api-end-points.php:1708
+#: src/classes/helpers/rest-api-end-points.php:1853
+#: src/classes/helpers/rest-api-end-points.php:2118
 #: src/classes/reports/group-reports-interface.php:475
 #: src/includes/class-csv-user-upload.php:179
 msgid "Group ID was not received. Reload page and try again."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1160
+#: src/classes/helpers/rest-api-end-points.php:1300
 msgid "User is removed."
 msgid_plural "Users have been removed."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/classes/helpers/rest-api-end-points.php:1171
-#: src/classes/helpers/rest-api-end-points.php:1590
+#: src/classes/helpers/rest-api-end-points.php:1311
+#: src/classes/helpers/rest-api-end-points.php:1730
 msgid "Users where not received."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1201
+#: src/classes/helpers/rest-api-end-points.php:1341
 msgid "You do not have permission to add group leaders."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1260
+#: src/classes/helpers/rest-api-end-points.php:1400
 msgid "You do not have permission to remove groups leaders."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1267
+#: src/classes/helpers/rest-api-end-points.php:1407
 msgid "You must select at least one group leader to remove."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1317
+#: src/classes/helpers/rest-api-end-points.php:1457
 msgid "Group leader is removed."
 msgid_plural "Group leaders are removed."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/classes/helpers/rest-api-end-points.php:1365
+#: src/classes/helpers/rest-api-end-points.php:1505
 msgid "You do not have permission to download csv keys."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1433
-#: src/classes/helpers/rest-api-end-points.php:1449
+#: src/classes/helpers/rest-api-end-points.php:1573
+#: src/classes/helpers/rest-api-end-points.php:1589
 msgid "Select a user."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1462
+#: src/classes/helpers/rest-api-end-points.php:1602
 msgid "You do not have permission to send password reset email."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1491
+#: src/classes/helpers/rest-api-end-points.php:1631
 msgid "You are not allowed to reset the password of this user."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1493
+#: src/classes/helpers/rest-api-end-points.php:1633
 msgid "You are not allowed to reset the password of one of the users."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1510
+#: src/classes/helpers/rest-api-end-points.php:1650
 msgid "There is some problem please try again later."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1514
+#: src/classes/helpers/rest-api-end-points.php:1654
 msgid "Someone has requested a password reset for the following account:"
 msgstr ""
 
 #. translators: %s: site name
-#: src/classes/helpers/rest-api-end-points.php:1516
+#: src/classes/helpers/rest-api-end-points.php:1656
 #, php-format
 msgid "Site Name: %s"
 msgstr ""
 
 #. translators: %s: user login
-#: src/classes/helpers/rest-api-end-points.php:1518
+#: src/classes/helpers/rest-api-end-points.php:1658
 #, php-format
 msgid "Username: %s"
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1519
+#: src/classes/helpers/rest-api-end-points.php:1659
 msgid "If this was a mistake, just ignore this email and nothing will happen."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1520
+#: src/classes/helpers/rest-api-end-points.php:1660
 msgid "To reset your password, visit the following address:"
 msgstr ""
 
 #. translators: Password reset notification email subject. %s: Site title
-#: src/classes/helpers/rest-api-end-points.php:1524
+#: src/classes/helpers/rest-api-end-points.php:1664
 #, php-format
 msgid "[%s] Password Reset"
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1530
+#: src/classes/helpers/rest-api-end-points.php:1670
 msgid "The email could not be sent. Possible reason: your host may have disabled the mail() function."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1536
+#: src/classes/helpers/rest-api-end-points.php:1676
 #, php-format
 msgid "Password reset email sent to %d group users."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1564
+#: src/classes/helpers/rest-api-end-points.php:1704
 msgid "You do not have permission to modify users."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1687
+#: src/classes/helpers/rest-api-end-points.php:1827
 msgid "You do not have permission to edit users."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1721
+#: src/classes/helpers/rest-api-end-points.php:1861
 msgid "You do not have permission to perform this action."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1731
+#: src/classes/helpers/rest-api-end-points.php:1871
 msgid "You do not have permission to edit this user."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1761
+#: src/classes/helpers/rest-api-end-points.php:1901
 msgid "The user is not part of the group."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1770
-#: src/classes/helpers/rest-api-end-points.php:1989
+#: src/classes/helpers/rest-api-end-points.php:1910
+#: src/classes/helpers/rest-api-end-points.php:2129
 msgid "First name can only contain letters, numbers, spaces, and hyphens."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1776
-#: src/classes/helpers/rest-api-end-points.php:1995
+#: src/classes/helpers/rest-api-end-points.php:1916
+#: src/classes/helpers/rest-api-end-points.php:2135
 msgid "First name not received. Reload page and try again."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1785
-#: src/classes/helpers/rest-api-end-points.php:2006
+#: src/classes/helpers/rest-api-end-points.php:1925
+#: src/classes/helpers/rest-api-end-points.php:2146
 msgid "Last name can only contain letters, numbers, spaces, commas, apostrophes and hyphens."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1791
-#: src/classes/helpers/rest-api-end-points.php:2012
+#: src/classes/helpers/rest-api-end-points.php:1931
+#: src/classes/helpers/rest-api-end-points.php:2152
 msgid "Last name not received. Reload page and try again."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1801
-#: src/classes/helpers/rest-api-end-points.php:2021
+#: src/classes/helpers/rest-api-end-points.php:1941
+#: src/classes/helpers/rest-api-end-points.php:2161
 msgid "Please enter a valid email address."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1810
+#: src/classes/helpers/rest-api-end-points.php:1950
 msgid "Email already in use."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1816
-#: src/classes/helpers/rest-api-end-points.php:2037
+#: src/classes/helpers/rest-api-end-points.php:1956
+#: src/classes/helpers/rest-api-end-points.php:2177
 msgid "Email not received. Reload page and try again."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1826
+#: src/classes/helpers/rest-api-end-points.php:1966
 msgid "Please enter a valid username."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1835
+#: src/classes/helpers/rest-api-end-points.php:1975
 msgid "Username already in use."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1841
+#: src/classes/helpers/rest-api-end-points.php:1981
 msgid "Username not received. Reload page and try again."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1933
+#: src/classes/helpers/rest-api-end-points.php:2073
 msgid "User has been updated."
 msgstr ""
 
-#: src/classes/helpers/rest-api-end-points.php:1937
+#: src/classes/helpers/rest-api-end-points.php:2077
 msgid "User ID was not received."
 msgstr ""
 
@@ -2724,143 +2725,143 @@ msgstr ""
 msgid "Download keys"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:44
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:63
 msgid "Uncanny Group Management"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:58
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:77
 msgid "Uncanny Group Management - Invited user(s)"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:67
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:86
 msgid "Uncanny Group Management - WooCommerce orders"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:104
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:123
 #, php-format
 msgid "This child %1$s is pooling seats from the parent %1$s. Reconcile seat count and seat change functionality are unavailable due to the %1$s hierarchy and pooled seats settings."
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:113
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:139
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:132
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:158
 msgid "Click for help!"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:117
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:136
 #: src/templates/admin/admin-custom-groups.php:99
 #: src/templates/frontend-edit-group/admin-custom-groups-edit.php:91
 msgid "Total seats"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:130
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:188
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:291
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:149
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:207
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:310
 msgid "Total number of seats available to the group administrator for dispersion."
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:143
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:162
 msgid "Remaining seats"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:156
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:175
 msgid "Total number of seats remaining to the group administrator for dispersion."
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:179
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:198
 msgid "Reconcile seat count"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:183
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:202
 msgid "Refresh"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:195
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:255
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:214
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:274
 #, php-format
 msgid "This will assign a %1$s to every member of the group that is not currently assigned a %2$s and restore missing %3$s. Continue?"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:210
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:229
 msgid "Confirmation"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:239
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:258
 msgid "This action cannot be reversed."
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:241
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:260
 msgid "Downgrade this group"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:247
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:266
 #, php-format
 msgid "Warning: Downgrading this group to \"basic\" will mean %s, courses and users can no longer be managed by Group Leaders and enrollment keys will be deleted."
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:286
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:305
 msgid "Upgrade group"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:297
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:316
 msgid "Clicking this button will enable seat management for this group and enable front end management using Uncanny Groups for LearnDash. To bulk upgrade all groups, use the button near the bottom of Uncanny Groups >"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:359
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:378
 msgid "User email"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:384
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:403
 #, php-format
 msgid "A %s has been reserved for the users listed above, who have been sent an enrollment key but have not yet created an account."
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:409
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:428
 msgid "This group was downgraded on"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:420
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:425
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:433
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:439
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:444
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:452
 msgid "No orders found."
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:442
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:461
 msgid "Main order"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:445
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:464
 msgid "Group license"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:460
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:479
 msgid "Additional group order(s):"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:475
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:494
 #, php-format
 msgctxt "LearnDash courses"
 msgid "Additional %s(s) purchased."
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:481
-#: src/classes/woocommerce/woocommerce-modify-group.php:453
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:500
+#: src/classes/woocommerce/woocommerce-modify-group.php:462
 #, php-format
 msgctxt "Group seats count and per seat label"
 msgid "Additional %1$s %2$s purchased."
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:499
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:518
 msgid "Other orders with the same license:"
 msgstr ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:524
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:543
 #, php-format
 msgid "%d additional order"
 msgid_plural "%d other orders."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/classes/learndash/learndash-groups-post-edit-additions.php:1299
+#: src/classes/learndash/learndash-groups-post-edit-additions.php:1327
 msgid "Your group does not have enough seats to accommodate all users in the group hierarchy. Please add more seats and try again."
 msgstr ""
 
@@ -2905,7 +2906,7 @@ msgstr ""
 #: src/classes/reports/group-essays.php:240
 #: src/classes/reports/group-quiz-report.php:358
 #: src/classes/woocommerce/woocommerce-learndash-groups.php:185
-#: src/classes/woocommerce/woocommerce-license.php:1236
+#: src/classes/woocommerce/woocommerce-license.php:1240
 #: src/templates/frontend-uo_groups/page-heading.php:30
 #: src/templates/frontend-uo_groups/page-heading.php:73
 #: src/templates/frontend-uo_groups_buy_courses.php:156
@@ -3769,27 +3770,28 @@ msgstr ""
 msgid "Please select at least one %s to continue."
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-buy-courses.php:150
+#: src/classes/woocommerce/woocommerce-buy-courses.php:192
 #, php-format
 msgid "Additional cost of license after adding a new %s."
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-buy-courses.php:203
+#: src/classes/woocommerce/woocommerce-buy-courses.php:245
+#: src/classes/woocommerce/woocommerce-modify-group.php:766
 #, php-format
 msgid "%s - License"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-buy-courses.php:222
-#: src/classes/woocommerce/woocommerce-buy-courses.php:260
+#: src/classes/woocommerce/woocommerce-buy-courses.php:264
+#: src/classes/woocommerce/woocommerce-buy-courses.php:302
 msgid "Something went wrong. Your license failed to create, please try again."
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-buy-courses.php:674
+#: src/classes/woocommerce/woocommerce-buy-courses.php:716
 #, php-format
 msgid "%1$s %2$s(s) added to the group."
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-buy-courses.php:752
+#: src/classes/woocommerce/woocommerce-buy-courses.php:794
 msgid "You cannot combine a new group purchase with a purchase that modifies an existing group. Products linked to the existing group have been removed from your cart."
 msgstr ""
 
@@ -3870,24 +3872,24 @@ msgstr ""
 msgid "group"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license-subscription.php:870
+#: src/classes/woocommerce/woocommerce-license-subscription.php:891
 #, php-format
 msgid "%s removed from cart. Only one license is allowed."
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license-subscription.php:917
+#: src/classes/woocommerce/woocommerce-license-subscription.php:938
 msgid "Cancel all subscriptions for this group"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license-subscription.php:939
+#: src/classes/woocommerce/woocommerce-license-subscription.php:960
 msgid "Linked group"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license-subscription.php:972
+#: src/classes/woocommerce/woocommerce-license-subscription.php:993
 msgid "Parent subscription"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license-subscription.php:1115
+#: src/classes/woocommerce/woocommerce-license-subscription.php:1136
 #, php-format
 msgid "The subscription quantity updated from %1$d to %2$d in the cart to match the minimum seat count in the linked group: %3$s."
 msgstr ""
@@ -3911,57 +3913,57 @@ msgstr ""
 msgid "If the box above is empty, first create at least one LearnDash Group %1$s product. See %2$s for details."
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license.php:1404
+#: src/classes/woocommerce/woocommerce-license.php:1408
 msgid "Please enter group name for:"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license.php:1498
+#: src/classes/woocommerce/woocommerce-license.php:1502
 msgid "Linked LearnDash group"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license.php:1502
+#: src/classes/woocommerce/woocommerce-license.php:1506
 msgid "LearnDash group name"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license.php:1782
+#: src/classes/woocommerce/woocommerce-license.php:1786
 #, php-format
 msgid "%s Name"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license.php:1878
+#: src/classes/woocommerce/woocommerce-license.php:1888
 msgctxt "\"Name\" in Group Name on checkout"
 msgid "Name"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license.php:1927
+#: src/classes/woocommerce/woocommerce-license.php:1937
 msgid "Group Name"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license.php:1969
+#: src/classes/woocommerce/woocommerce-license.php:1979
 msgid "Group Name:"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license.php:1981
+#: src/classes/woocommerce/woocommerce-license.php:1991
 msgid "Group Name: "
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license.php:2028
+#: src/classes/woocommerce/woocommerce-license.php:2038
 msgid "Group Name(s)"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license.php:2056
+#: src/classes/woocommerce/woocommerce-license.php:2066
 msgid "Group Name for"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license.php:2057
+#: src/classes/woocommerce/woocommerce-license.php:2067
 msgid "Enter group name"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license.php:2060
+#: src/classes/woocommerce/woocommerce-license.php:2070
 msgid "If left blank, the group name will be [First name] [Last name] - [Company name]."
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-license.php:2060
+#: src/classes/woocommerce/woocommerce-license.php:2070
 msgid "Enter your group name."
 msgstr ""
 
@@ -4023,37 +4025,41 @@ msgstr ""
 msgid "You cannot combine a new group purchase with a purchase that modifies an existing group. %1$s was removed from your cart."
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-modify-group.php:385
+#: src/classes/woocommerce/woocommerce-modify-group.php:258
+msgid "The associated license product is no longer available. Please try again."
+msgstr ""
+
+#: src/classes/woocommerce/woocommerce-modify-group.php:394
 #, php-format
 msgid "Add additional %s by changing quantity below."
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-modify-group.php:392
+#: src/classes/woocommerce/woocommerce-modify-group.php:401
 #, php-format
 msgid "Add additional %1$s by increasing the quantity below. A new subscription will be created when you complete the order with additional %2$s."
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-modify-group.php:397
+#: src/classes/woocommerce/woocommerce-modify-group.php:406
 #: src/templates/frontend-uo_groups/users-table-actions.php:905
 msgid "Learn more"
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-modify-group.php:489
+#: src/classes/woocommerce/woocommerce-modify-group.php:498
 #, php-format
 msgid "Adding users will automatically assign a %1$s for each new user. Additional %2$s will be added if number of users exceeds remaining %3$s."
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-modify-group.php:493
+#: src/classes/woocommerce/woocommerce-modify-group.php:502
 #, php-format
 msgid "Removing users will automatically increase remaining %s."
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-modify-group.php:583
+#: src/classes/woocommerce/woocommerce-modify-group.php:598
 #, php-format
 msgid "Adding user to this group will automatically adjust %1$s count. Additional %2$s will be added if number of users exceeds remaining %3$s."
 msgstr ""
 
-#: src/classes/woocommerce/woocommerce-modify-group.php:589
+#: src/classes/woocommerce/woocommerce-modify-group.php:604
 #, php-format
 msgid "Removing user will automatically increase remaining %1$s of the group."
 msgstr ""

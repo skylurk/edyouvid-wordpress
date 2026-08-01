@@ -1068,6 +1068,15 @@ class Shortcode extends Shortcode_Base{
         $product_loop = $this->apply_filter( 'wpt_product_loop', $product_loop );
         if (  $product_loop->have_posts() ) : while ($product_loop->have_posts()): $product_loop->the_post();
             global $product;
+             
+            if ( ( $this->only_stock === 'instock' ) && ! $product->is_in_stock() ) {
+                continue;
+            }else if ( ( $this->only_stock === 'outofstock' ) && $product->is_in_stock() ) {
+                continue;
+            }else if ( ( $this->only_stock === 'backorder' ) && ! $product->is_on_backorder() ) {
+                continue;
+            }
+
             $row = new Row($this);
             $row->render();
 

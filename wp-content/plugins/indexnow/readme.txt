@@ -3,8 +3,8 @@ Contributors: bingwebmastertools
 Plugin link: https://bing.com/indexnow
 Tags: seo, crawling
 Requires at least: 5.3
-Tested up to: 6.5
-Stable tag: 1.0.3
+Tested up to: 7.0
+Stable tag: 1.0.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.txt
 Requires PHP: 5.6.20
@@ -17,9 +17,12 @@ pages to supporting search engines.
 
 IndexNow Plugin for WordPress enables automated submission of URLs from WordPress sites to the multiple search engines without the need to register and verify your site with them. Once installed, the plugin will automatically generate and host the API key on your site. It detects page creation/update/ deletion in WordPress and automatically submits the URLs in the background. This ensures that search engines will always have the latest updates about your site. This plugin submits URLs to a generic end point `https://api.indexnow.org/indexnow` and these URLs are shared to all participating search engines.
 
+The plugin automatically respects noindex directives to prevent submission of URLs that should not be indexed. It checks the actual rendered HTML for `<meta name="robots" content="noindex">` tags. It also checks X-Robots-Tag HTTP headers and WordPress site-wide search engine visibility settings.
+
 Some other handy features included in the plugin:
 
 * Toggle the automatic submission feature.
+* Exclude specific URL paths from auto-submission using wildcard patterns.
 * Manually submit a URL to IndexNow.
 * View list of recent URL submissions from the plugin.
 * Retry any failed submissions from the recent submissions list.
@@ -60,6 +63,14 @@ Indexing of URLs is specific and dependent on each search engine’s rules, plea
 
 
 == Changelog ==
+
+= 1.0.4 =
+* Migrate UI to Fluent UI v9 with accessibility improvements.
+* Universal noindex detection by parsing HTML meta robots tags and X-Robots-Tag header.
+* Excluded paths feature to prevent submission of specific URL patterns.
+* Retry support for failed URL submissions.
+* Error banners for API key load failures.
+* Fix package vulnerabilities and dependency upgrades.
 
 = 1.0.3 =
 * Fix for resubmit button not working.

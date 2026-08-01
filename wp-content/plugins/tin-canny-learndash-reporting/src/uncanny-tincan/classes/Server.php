@@ -311,7 +311,7 @@ class Server {
 			$global_protection = get_option( 'tincanny_nonce_protection', 'yes' );
 			$protection        = 'Yes';
 
-			$postmeta['protect-scorm-tin-can-modules'] = strtolower( $postmeta['protect-scorm-tin-can-modules'] );
+			$postmeta['protect-scorm-tin-can-modules'] = strtolower( $postmeta['protect-scorm-tin-can-modules'] ?? '' );
 			if ( ! empty( $postmeta['protect-scorm-tin-can-modules'] ) ) {
 				switch ( $postmeta['protect-scorm-tin-can-modules'] ) {
 					case 'yes':
@@ -373,7 +373,7 @@ class Server {
 	 * Parse and Decode php://input
 	 *
 	 * @access private
-	 * @return void
+	 * @return string|array
 	 * @since  1.0.0
 	 */
 	private function get_decoded() {
@@ -381,17 +381,14 @@ class Server {
 		$decoded  = json_decode( $contents, true );
 
 		if ( ! is_array( $decoded ) ) {
-			parse_str( $contents, $decoded );
-			$state_id = ultc_get_filter_var( 'stateId', '' );
-			if ( 'suspend_data' === $state_id ) {
-				if ( count( $decoded ) === 1 ) {
-					$decoded = array( $contents => '' );
-				}
-			}
-			if ( 'resume' === $state_id ) {
-				if ( count( $decoded ) === 1 ) {
-					$decoded = array( $contents => '' );
-				}
+			$state_id           = ultc_get_filter_var( 'stateId', '' );
+			// These states carry a raw scalar blob; parse_str would corrupt it by
+			// splitting on '&' and mutating dots to underscores.
+			$raw_body_state_ids = array( 'suspend_data', 'resume', 'progress' );
+			if ( in_array( $state_id, $raw_body_state_ids, true ) ) {
+				$decoded = array( $contents => '' );
+			} else {
+				parse_str( $contents, $decoded );
 			}
 		}
 

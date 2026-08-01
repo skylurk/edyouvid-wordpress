@@ -53,6 +53,8 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Re_Login_2FA' ) ) {
 		 * @since 2.7.0
 		 */
 		public static function redirect_after_logout() {
+			\check_ajax_referer( 'wp2fa-verify-wizard-page' );
+
 			$enabled_method = User_Helper::get_enabled_method_for_user();
 			if ( empty( $enabled_method ) ) {
 				\wp_send_json_error();
@@ -76,7 +78,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Re_Login_2FA' ) ) {
 		 */
 		public static function reset_settings( string $role = '', string $name_prefix = '', string $data_role = '', string $role_id = '' ) {
 			ob_start();
-			
+
 			$password_reset_action = Settings_Utils::get_setting_role( sanitize_text_field( $role ), self::RE_LOGIN_SETTINGS_NAME, true );
 			?>
 			<div class="sub-setting-indent">

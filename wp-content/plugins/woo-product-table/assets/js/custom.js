@@ -959,24 +959,24 @@ jQuery(function($) {
             var itemAmount = 0;
             
             $('#table_id_' + temp_number + ' input.enabled.wpt_tabel_checkbox.wpt_td_checkbox:checked').each(function() {
-                var thisRow = $(this).closest('.wpt-tr-tag.wpt-row');
+                var thisRow = $(this).closest('.wpt-tr-tag');
                 var product_id = $(this).data('product_id');
-                var thisButton = $('.wpt-tr-tag.wpt_row_product_id_' + product_id + ' wpt_action a.button.wpt_woo_add_cart_button');
+                var thisButton = thisRow.find('.wpt_action a.button.wpt_woo_add_cart_button');
                 thisButton.removeClass('added');
                 thisButton.addClass( 'disabled' );
                 thisButton.addClass( 'loading' );
                 
-                //added at 4
-                var qtyElement = $('#table_id_' + temp_number + ' #product_id_' + product_id + ' input.input-text.qty.text');
+                // Find quantity element relative to the row
+                var qtyElement = thisRow.find('input.qty, input[name="quantity"]');
                 var min_quantity = qtyElement.attr('min');
                 if(min_quantity === '0' || typeof min_quantity === 'undefined'){
                     min_quantity = 1;
                 }
                 
-                var currentAddToCartSelector = $('#table_id_' + temp_number + ' #product_id_' + product_id + ' .wpt_action a.wpt_woo_add_cart_button');
-                var currentCustomMessage = $('#table_id_' + temp_number + ' #product_id_' + product_id + ' .wpt_message .message').val();
+                var currentAddToCartSelector = thisRow.find('.wpt_action a.wpt_woo_add_cart_button');
+                var currentCustomMessage = thisRow.find('.wpt_message .message').val();
                 var additional_json = thisRow.attr('additional_json');
-                var currentVariaionId = thisRow.attr('data-variation_id');//currentAddToCartSelector.data('variation_id');
+                var currentVariaionId = thisRow.attr('data-variation_id');
 
                 var currentVariaion;
                 try{
@@ -985,13 +985,18 @@ jQuery(function($) {
                         //Get error message
                 }
 
-
-                var currentQantity = $('#table_id_' + temp_number + ' #wpt_table.wpt-table-tag .product_id_' + product_id ).attr('data-quantity');
-                currentQantity = parseFloat(currentQantity);
-                if( currentQantity <= 0 ){
-                    return;
+                // Read quantity directly from the quantity input field inside thisRow
+                var currentQantity;
+                if(qtyElement.length > 0){
+                    currentQantity = parseFloat(qtyElement.val());
+                    // Sync data-quantity on the row
+                    thisRow.attr('data-quantity', currentQantity);
+                }else{
+                    currentQantity = parseFloat(thisRow.attr('data-quantity'));
                 }
-                //var currentQantity = $('#table_id_' + temp_number + ' #wpt_table.wpt-table-tag .wpt_row_product_id_' + product_id + ' .wpt_quantity .quantity input.input-text.qty.text').val();
+                if( isNaN(currentQantity) || currentQantity <= 0 ){
+                    currentQantity = 1;
+                }
                 products_data[product_id] = {
                     product_id: product_id, 
                     quantity: currentQantity, 
@@ -1000,7 +1005,7 @@ jQuery(function($) {
                     wpt_custom_message: currentCustomMessage,
                     additional_json:additional_json
                 };
-                var items = $('#table_id_' + temp_number + ' tr#product_id_' + product_id).attr('data-quantity');
+                var items = currentQantity;
                 items = parseFloat(items);
                 if(items <= 0){
                     return;
@@ -1008,9 +1013,6 @@ jQuery(function($) {
                 
                 var itemCountSystem = config_json.item_count;
                 if(typeof itemCountSystem !== 'undefined' && itemCountSystem === 'all'){
-                    
-
-                    
                     itemAmount += items;
                 }else{
                     itemAmount++;//To get Item Amount
@@ -1403,7 +1405,9 @@ jQuery(function($) {
             
             $('.wpt-wrap input.enabled.wpt_tabel_checkbox:checked').each(function() { //wpt_td_checkbox
                 var product_id = $(this).data('product_id');
-                var items = $('tr#product_id_' + product_id).attr('data-quantity');
+                var thisRow = $(this).closest('.wpt-tr-tag');
+                var qtyInput = thisRow.find('input.qty, input[name="quantity"]');
+                var items = qtyInput.length > 0 ? qtyInput.val() : thisRow.attr('data-quantity');
                 items = parseFloat(items);
                 if(items <= 0){
                     return;
@@ -1449,17 +1453,16 @@ jQuery(function($) {
             
             $('#table_id_' + temp_number + ' input.enabled.wpt_tabel_checkbox:checked').each(function() { //wpt_td_checkbox
                 var product_id = $(this).data('product_id');
+                var thisRow = $(this).closest('.wpt-tr-tag');
                 $('table.wpt_temporary_table_' + temp_number + ' .wpt-tr-tag.wpt_row#product_id_' + product_id).addClass('wpt_selected_tr');
-                var items = $('#table_id_' + temp_number + ' tr#product_id_' + product_id).attr('data-quantity');
+                var qtyInputCB = thisRow.find('input.qty, input[name="quantity"]');
+                var items = qtyInputCB.length > 0 ? qtyInputCB.val() : thisRow.attr('data-quantity');
                 items = parseFloat(items);
                 if(items <= 0){
                     //$('#table_id_' + temp_number + ' tr#product_id_' + product_id + ' input:checkbox').attr('checked',false);
                     return;
                 }
                 if(typeof itemCountSystem !== 'undefined' && itemCountSystem === 'all'){
-                    
-
-                    
                     itemAmount += items;
                 }else{
                     itemAmount++;//To get Item Amount
@@ -2053,19 +2056,11 @@ jQuery(function($) {
 
             $('#table_id_' + temp_number + ' input.enabled.wpt_tabel_checkbox.wpt_td_checkbox:checked').each(function() {
                 WPT_BlankNotice();
+                var thisRow = $(this).closest('.wpt-tr-tag');
                 var product_id = $(this).data('product_id');
-                var fullSelcetor = '#table_id_' + temp_number + ' #product_id_' + product_id + ' .wpt_action form';
-                var thisButton = $('#table_id_' + temp_number + ' #product_id_' + product_id + ' .wpt_action form button.single_add_to_cart_button');
-                
-
-                // thisButton.removeClass('added');
-                // thisButton.addClass( 'disabled' );
-                // thisButton.addClass( 'loading' );
-                
-                var form = $(fullSelcetor);
-                var title = $(this).parents('.wpt-tr-tag').data('title');
-                var additional_json = $(this).parents('.wpt-tr-tag').attr('additional_json');
-                var url = form.attr('action');//ajax_url;//
+                var form = thisRow.find('.wpt_action form');
+                var title = thisRow.data('title');
+                var additional_json = thisRow.attr('additional_json');
 
                 let eachProductData = 'product_id=' + product_id + '&' + form.serialize();
 
@@ -2074,15 +2069,31 @@ jQuery(function($) {
                 eachProductData.replace(/([^=&]+)=([^&]*)/g, function(m, key, value) {
                     obj[decodeURIComponent(key)] = decodeURIComponent(value);
                 });
+
+                // Find quantity element inside the row
+                var qtyInput = thisRow.find('input.qty, input[name="quantity"]');
+                var currentQantity;
+                if(qtyInput.length > 0){
+                    currentQantity = parseFloat(qtyInput.val());
+                    // Sync data-quantity on the row
+                    thisRow.attr('data-quantity', currentQantity);
+                }else{
+                    currentQantity = parseFloat(thisRow.attr('data-quantity'));
+                }
+                if( isNaN(currentQantity) || currentQantity <= 0 ){
+                    currentQantity = 1;
+                }
+
+                // Explicitly set quantity to the correct user input value
+                obj['quantity'] = currentQantity;
+
                 if(additional_json !== ''){
                     obj['additional_json'] = additional_json;
                 }
-                
 
                 products_data[product_id] = obj;
 
-                
-                var items = $('#table_id_' + temp_number + ' tr#product_id_' + product_id).attr('data-quantity');
+                var items = currentQantity;
                 items = parseFloat(items);
                 if(items <= 0){
                     return;
@@ -2090,9 +2101,6 @@ jQuery(function($) {
                 
                 var itemCountSystem = config_json.item_count;
                 if(typeof itemCountSystem !== 'undefined' && itemCountSystem === 'all'){
-                    
-
-                    
                     itemAmount += items;
                 }else{
                     itemAmount++;//To get Item Amount

@@ -80,7 +80,7 @@ class WPForms extends Config {
 					// Check if existing coupon or not!
 					$coupon_id = Database::is_coupon_available( $value );
 					if ( ! is_array( $coupon_id ) && is_numeric( (int) $coupon_id ) ) {
-						update_user_meta( $user_id, Config::$uncanny_codes_tracking, esc_html__( 'WPForms', 'uncanny-learndash-codes' ) );
+						update_user_meta( $user_id, Config::$uncanny_codes_tracking, 'WPForms' );
 						$result = Database::set_user_to_coupon( $user_id, $coupon_id );
 						LearnDash::set_user_to_course_or_group( $user_id, $result );
 
@@ -118,7 +118,7 @@ class WPForms extends Config {
 					// Check if existing coupon or not!
 					$coupon_id = Database::is_coupon_available( $value );
 					if ( ! is_array( $coupon_id ) && is_numeric( (int) $coupon_id ) ) {
-						update_user_meta( $user_id, Config::$uncanny_codes_tracking, esc_html__( 'WPForms', 'uncanny-learndash-codes' ) );
+						update_user_meta( $user_id, Config::$uncanny_codes_tracking, 'WPForms' );
 						$result = Database::set_user_to_coupon( $user_id, $coupon_id );
 						LearnDash::set_user_to_course_or_group( $user_id, $result );
 

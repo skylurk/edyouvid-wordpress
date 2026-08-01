@@ -70,7 +70,7 @@ class Forminator_Codes_Field extends Forminator_Field {
 	public function __construct() {
 		parent::__construct();
 
-		$this->name = __( 'Uncanny Codes', 'uncanny-learndash-codes' );
+		$this->name = __( 'Uncanny Redemption Codes', 'uncanny-learndash-codes' );
 	}
 
 	/**

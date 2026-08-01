@@ -32,7 +32,7 @@ class GravityFormsCodeField extends Config {
 	 */
 	public static function gf_user_register( $user_id ) {
 		if ( intval( self::$coupon_id ) && SharedFunctionality::ulc_filter_has_var( 'gform_submit', INPUT_POST ) ) {
-			update_user_meta( $user_id, Config::$uncanny_codes_tracking, esc_html__( 'Gravity Forms', 'uncanny-learndash-codes' ) );
+			update_user_meta( $user_id, Config::$uncanny_codes_tracking, 'Gravity Forms' );
 			$result = Database::set_user_to_coupon( $user_id, self::$coupon_id );
 			LearnDash::set_user_to_course_or_group( $user_id, $result );
 
@@ -157,7 +157,7 @@ class GravityFormsCodeField extends Config {
 		}
 
 		if ( is_numeric( intval( $coupon_id ) ) ) {
-			update_user_meta( $user_id, Config::$uncanny_codes_tracking, esc_html__( 'Gravity Forms', 'uncanny-learndash-codes' ) );
+			update_user_meta( $user_id, Config::$uncanny_codes_tracking, 'Gravity Forms' );
 			$result = Database::set_user_to_coupon( $user_id, $coupon_id );
 			LearnDash::set_user_to_course_or_group( $user_id, $result );
 
@@ -215,7 +215,7 @@ class GravityFormsCodeField extends Config {
 	public static function redeem_code( $code_redemption, $user_id ) {
 		$coupon_id = Database::is_coupon_available( $code_redemption );
 		if ( is_numeric( intval( $coupon_id ) ) ) {
-			update_user_meta( $user_id, Config::$uncanny_codes_tracking, esc_html__( 'Gravity Forms', 'uncanny-learndash-codes' ) );
+			update_user_meta( $user_id, Config::$uncanny_codes_tracking, 'Gravity Forms' );
 			$result = Database::set_user_to_coupon( $user_id, $coupon_id );
 			LearnDash::set_user_to_course_or_group( $user_id, $result );
 

@@ -203,19 +203,57 @@ GROUP BY u.ID;",
 	    }
 
 	    // Step 2: Get completions for those users (in chunks if too many IDs)
+	    /**
+	     * Filter the minimum completion date for dashboard queries
+	     *
+	     * Allows limiting course completions query to a specific date range for improved
+	     * performance when dealing with large historical datasets.
+	     *
+	     * @param int|null $date_filter Unix timestamp for minimum completion date. Return null to disable filter.
+	     * @param int      $leader_id   The group leader/admin user ID
+	     * @return int|null Unix timestamp or null to disable date filtering
+	     */
+	    $date_filter = apply_filters( 'uo_tincanny_dashboard_completions_date_filter', null, $leader_id );
+	    
 	    $results = [];
 	    $chunks  = array_chunk( $user_ids, 500 ); // avoid huge IN()
 	    foreach ( $chunks as $chunk ) {
 	        $placeholders = implode( ',', array_fill( 0, count( $chunk ), '%d' ) );
-	        $query = $wpdb->prepare(
-	            "SELECT post_id as course_id, user_id, activity_completed
+	        
+	        // Build query with date filter (only applies if filter hook returns a valid timestamp)
+	        $query_base = "SELECT post_id as course_id, user_id, activity_completed
 	             FROM {$wpdb->prefix}learndash_user_activity
 	             WHERE activity_type = 'course'
 	             AND activity_completed IS NOT NULL
-	             AND activity_completed <> 0
-	             AND user_id IN ($placeholders)",
-	            ...$chunk
-	        );
+	             AND activity_completed <> 0";
+	        
+	        // Apply date filter if valid (allows null/false to disable and get all data)
+	        // Validate: must be integer or integer string (rejects floats to prevent silent truncation)
+	        $valid_date = false;
+
+	        // Check if date filter is a positive integer or numeric string representing a whole number
+	        if ( null !== $date_filter && false !== $date_filter ) {
+	            if ( is_int( $date_filter ) && $date_filter > 0 ) {
+	                $valid_date = $date_filter;
+	            } elseif ( is_numeric( $date_filter ) && $date_filter > 0 && (string) absint( $date_filter ) === (string) $date_filter ) {
+	                $valid_date = absint( $date_filter );
+	            }
+	        }
+
+	        // Build query with optional date filter
+	        if ( $valid_date ) {
+	            $query_base .= " AND activity_completed >= %d";
+	        }
+	        
+	        // Prepare query arguments - conditionally include date filter
+	        $prepare_args = array( $query_base . " AND user_id IN ($placeholders)" );
+	        if ( $valid_date ) {
+	            $prepare_args[] = $valid_date;
+	        }
+	        $prepare_args = array_merge( $prepare_args, $chunk );
+	        
+	        $query = $wpdb->prepare( ...$prepare_args );
+
 	        $chunk_results = $wpdb->get_results( $query );
 	        if ( ! empty( $chunk_results ) ) {
 	            $results = array_merge( $results, $chunk_results );

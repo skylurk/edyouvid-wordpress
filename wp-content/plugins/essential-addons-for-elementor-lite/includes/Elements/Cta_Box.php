@@ -2134,18 +2134,21 @@ class Cta_Box extends Widget_Base
 		        $eael_template_id = $settings['eael_primary_templates'];
 		        // WPML Compatibility
 		        if ( ! is_array( $eael_template_id ) ) {
-			        $eael_template_id = apply_filters( 'wpml_object_id', $eael_template_id, 'wp_template', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+			        $eael_template_id = apply_filters( 'wpml_object_id', $eael_template_id, 'elementor_library', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		        }
 
-		        if ( Plugin::$instance->editor->is_edit_mode() ) {
-			        $contentMarkup .= '<div class="eael-cta-template-wrapper">';
-		        }
+		        // Re-validate the translated template is a published elementor_library post before rendering.
+		        if ( Helper::is_elementor_publish_template( $eael_template_id ) ) {
+			        if ( Plugin::$instance->editor->is_edit_mode() ) {
+				        $contentMarkup .= '<div class="eael-cta-template-wrapper">';
+			        }
 
-		        $contentMarkup .= Helper::eael_onpage_edit_template_markup( get_the_ID(), $eael_template_id, true );
-		        $contentMarkup .= Plugin::$instance->frontend->get_builder_content( $eael_template_id, true );
+			        $contentMarkup .= Helper::eael_onpage_edit_template_markup( get_the_ID(), $eael_template_id, true );
+			        $contentMarkup .= Plugin::$instance->frontend->get_builder_content( $eael_template_id, true );
 
-		        if ( Plugin::$instance->editor->is_edit_mode() ) {
-			        $contentMarkup .= '</div>';
+			        if ( Plugin::$instance->editor->is_edit_mode() ) {
+				        $contentMarkup .= '</div>';
+			        }
 		        }
 	        }
         }

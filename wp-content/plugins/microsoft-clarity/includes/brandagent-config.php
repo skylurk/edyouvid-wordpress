@@ -165,7 +165,7 @@ class BrandAgent_Config {
      * @return string|false Backend base URL or false on failure
      */
     private static function fetch_backend_url_from_clarity() {
-        $config_endpoint = self::$clarity_server_url . '/woocommerce/brandagent/config';
+        $config_endpoint = self::get_clarity_server_url() . '/woocommerce/brandagent/config';
         
         $response = wp_remote_get( $config_endpoint, array(
             'timeout' => 10,
@@ -204,6 +204,12 @@ class BrandAgent_Config {
      * @return string Backend base URL
      */
     public static function get_backend_base_url() {
+        // Local/dev override: when BRANDAGENT_BACKEND_BASE_URL is defined (e.g. via wp-config
+        // for a local wp-env store), use it directly and skip the dashboard config round-trip.
+        if ( defined( 'BRANDAGENT_BACKEND_BASE_URL' ) && BRANDAGENT_BACKEND_BASE_URL ) {
+            return rtrim( BRANDAGENT_BACKEND_BASE_URL, '/' );
+        }
+
         // // Try to get from cache first
         // $cached_url = get_transient( self::$cache_key );
         // if ( $cached_url !== false ) {
@@ -241,7 +247,26 @@ class BrandAgent_Config {
      * @return string Clarity server URL
      */
     public static function get_clarity_server_url() {
+        // Local/dev override: BRANDAGENT_CLARITY_SERVER_URL (e.g. via wp-config for a local
+        // wp-env store pointing at a dashboard on host.docker.internal). No-op in production.
+        if ( defined( 'BRANDAGENT_CLARITY_SERVER_URL' ) && BRANDAGENT_CLARITY_SERVER_URL ) {
+            return rtrim( BRANDAGENT_CLARITY_SERVER_URL, '/' );
+        }
         return self::$clarity_server_url;
+    }
+
+    /**
+     * URL of the frontend widget loader injected into store pages.
+     *
+     * @return string Frontend injection script URL.
+     */
+    public static function get_frontend_injection_url() {
+        // Local/dev override: BRANDAGENT_FRONTEND_INJECTION_URL points the injected loader at a
+        // self-hosted build (e.g. served same-origin from the store) instead of the CDN default.
+        if ( defined( 'BRANDAGENT_FRONTEND_INJECTION_URL' ) && BRANDAGENT_FRONTEND_INJECTION_URL ) {
+            return BRANDAGENT_FRONTEND_INJECTION_URL;
+        }
+        return 'https://adsagentclientafd-b7hqhjdrf3fpeqh2.b01.azurefd.net/frontendInjection.js';
     }
 }
 
@@ -342,8 +367,11 @@ function brandagent_generate_hmac_signature( $client_id, $timestamp, $secret_key
  */
 function brandagent_normalize_store_url( $store_url ) {
     $normalized = strtolower( str_replace( array( 'https://', 'http://' ), '', rtrim( $store_url, '/' ) ) );
-    // Match C# normalization: replace dots and slashes with hyphens
-    return str_replace( array( '.', '/' ), '-', $normalized );
+    // Replace dots, slashes, and colons with hyphens to produce a valid Key Vault / Azure Search
+    // identifier and HMAC client id. Must stay identical to the backend C# NormalizeStoreUrl so
+    // plugin-signed requests verify; the colon only affects host:port dev stores (production
+    // home_url() has no port).
+    return str_replace( array( '.', '/', ':' ), '-', $normalized );
 }
 
 /**

@@ -144,7 +144,12 @@ class LearnDash_Modifications {
 		// tell the browser we want to save it instead of displaying it
 		header( 'Content-Disposition: attachment;filename="' . $filename . '";' );
 		// make php send the generated csv lines to the browser
-		fpassthru( $f );
+		if ( function_exists( 'fpassthru' ) ) {
+			fpassthru( $f );
+		} else {
+			echo stream_get_contents( $f );
+			fclose( $f );
+		}
 
 		die();
 	}

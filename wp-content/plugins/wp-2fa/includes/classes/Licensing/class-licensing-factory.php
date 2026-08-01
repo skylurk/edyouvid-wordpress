@@ -18,6 +18,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Licensing;
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\Extensions_Loader;
 use WP2FA\Licensing\EDD_Provider;
 use WP2FA\Licensing\Freemius_Provider;
@@ -212,7 +214,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Licensing_Factory' ) ) {
 				add_action(
 					'admin_notices',
 					function () use ( $new_provider ) {
-						echo '<div class="notice notice-success is-dismissible"><p>';
+						echo '<div class="notice notice-success is-dismissible wp-2fa-admin-notice"><p>';
 						printf(
 							/* translators: %s: provider name */
 							esc_html__( 'Licensing provider switched to %s successfully.', 'wp-2fa' ),
@@ -261,11 +263,33 @@ if ( ! class_exists( '\WP2FA\Licensing\Licensing_Factory' ) ) {
 		 * Proxy method: Get the license object/data.
 		 *
 		 * @return mixed License object or data structure, null if not available.
+		 *
 		 * @since 3.2.0
 		 */
 		public static function get_license() {
 			$provider = self::get_provider();
 			return $provider ? $provider::get_license() : null;
+		}
+
+		/**
+		 * Proxy method: Check if the license is a free license.
+		 *
+		 * @return bool True if free, false otherwise.
+		 *
+		 * @since 4.1.0
+		 */
+		public static function is_free(): bool {
+			$provider = self::get_provider();
+
+			if ( ! $provider ) {
+				return false;
+			}
+
+			if ( method_exists( $provider, 'is_free' ) && is_callable( array( $provider, 'is_free' ) ) ) {
+				return $provider::is_free();
+			}
+
+			return false;
 		}
 
 		/**
@@ -298,7 +322,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Licensing_Factory' ) ) {
 		 */
 		public static function get_pricing_url(): string {
 			$provider = self::get_provider();
-			return $provider ? $provider::get_pricing_url() : 'https://melapress.com/wordpress-2fa/pricing/';
+			return $provider ? $provider::get_pricing_url() : 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=upgrade_pricing_fallback';
 		}
 
 		/**
@@ -309,7 +333,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Licensing_Factory' ) ) {
 		 */
 		public static function get_account_url(): string {
 			$provider = self::get_provider();
-			return $provider ? $provider::get_account_url() : 'https://melapress.com/account/';
+			return $provider ? $provider::get_account_url() : 'https://melapress.com/account/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=account_fallback';
 		}
 
 		/**

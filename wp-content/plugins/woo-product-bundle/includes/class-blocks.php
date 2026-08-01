@@ -66,7 +66,9 @@ class WPCleverWoosb_Blocks_IntegrationInterface implements IntegrationInterface 
 	 * @return array
 	 */
 	public function get_script_data() {
-		return [];
+		return [
+			'edit_label' => WPCleverWoosb_Helper()->localization( 'cart_item_edit', esc_html__( 'Edit', 'woo-product-bundle' ) ),
+		];
 	}
 
 	public function get_url( $file, $ext ) {
@@ -125,6 +127,7 @@ if ( ! class_exists( 'WPCleverWoosb_Blocks' ) ) {
 			$cart_contents    = WC()->cart->get_cart();
 			$hide_bundled     = WPCleverWoosb_Helper()->get_setting( 'hide_bundled', 'no' ) !== 'no';
 			$hide_bundle_name = WPCleverWoosb_Helper()->get_setting( 'hide_bundle_name', 'no' ) !== 'no';
+			$edit_link        = WPCleverWoosb_Helper()->get_setting( 'edit_link', 'no' ) === 'yes';
 
 			foreach ( $data['items'] as &$item_data ) {
 				$cart_item_key = $item_data['key'];
@@ -132,6 +135,14 @@ if ( ! class_exists( 'WPCleverWoosb_Blocks' ) ) {
 
 				if ( ! empty( $cart_item['woosb_ids'] ) ) {
 					$item_data['woosb_bundles'] = true;
+
+					// Pass edit URL to Cart Block when edit link setting is enabled
+					if ( $edit_link && is_a( $cart_item['data'], 'WC_Product_Woosb' ) && ( $cart_item['data']->has_optional() || $cart_item['data']->has_variables() ) ) {
+						$item_data['woosb_edit_url'] = apply_filters( 'woosb_cart_item_edit_url', add_query_arg( [
+							'edit' => base64_encode( $cart_item['woosb_ids'] ),
+							'key'  => $cart_item_key,
+						], $cart_item['data']->get_permalink() ), $cart_item, $cart_item_key );
+					}
 				}
 
 				if ( ! empty( $cart_item['woosb_parent_id'] ) ) {

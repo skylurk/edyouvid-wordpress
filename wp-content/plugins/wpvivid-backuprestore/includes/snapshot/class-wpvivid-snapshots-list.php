@@ -50,7 +50,7 @@ if ( ! class_exists( 'WPvivid_Snapshots_List_Ex' ) )
 
         public function _column_wpvivid_time( $data )
         {
-            $time = gmdate('M-d-Y H:i', $data['time']);
+            $time = wp_date('M-d-Y H:i', intval($data['time']));
             echo '<td>' . esc_html( $time ) . '</td>';
         }
 
@@ -84,6 +84,24 @@ if ( ! class_exists( 'WPvivid_Snapshots_List_Ex' ) )
 
         public function set_list($Snapshots_list,$page_num=1)
         {
+            if(!is_array($Snapshots_list))
+            {
+                $Snapshots_list=array();
+            }
+
+            usort($Snapshots_list, function ($a, $b)
+            {
+                $time_a = isset($a['time']) ? intval($a['time']) : 0;
+                $time_b = isset($b['time']) ? intval($b['time']) : 0;
+
+                if($time_a === $time_b)
+                {
+                    return 0;
+                }
+
+                return ($time_a < $time_b) ? 1 : -1;
+            });
+
             $this->Snapshots_list=$Snapshots_list;
             $this->page_num=$page_num;
         }

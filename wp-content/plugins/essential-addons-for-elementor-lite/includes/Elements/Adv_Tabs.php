@@ -1387,7 +1387,8 @@ class Adv_Tabs extends Widget_Base
                                     } else {
                                         echo '<i class="' . esc_attr( $tab['eael_adv_tabs_tab_title_icon'] ) . '"></i>';
                                     } ?>
-                                <?php elseif ($tab['eael_adv_tabs_icon_type'] === 'image') : ?>
+                                <?php elseif ($tab['eael_adv_tabs_icon_type'] === 'image') :
+                                    $tab['eael_adv_tabs_tab_title_image'] = Helper::eael_wpml_translate_media( $tab['eael_adv_tabs_tab_title_image'] ); // WPML Media Translation compatibility ?>
                                     <img src="<?php echo esc_url( $tab['eael_adv_tabs_tab_title_image']['url'] ); ?>" alt="<?php echo esc_attr(get_post_meta($tab['eael_adv_tabs_tab_title_image']['id'], '_wp_attachment_image_alt', true)); ?>">
                                 <?php endif; ?>
                             <?php endif; ?>
@@ -1478,13 +1479,16 @@ class Adv_Tabs extends Widget_Base
 
 							        // WPML Compatibility
 							        if ( ! is_array( $tab['eael_primary_templates'] ) ) {
-								        $tab['eael_primary_templates'] = apply_filters( 'wpml_object_id', $tab['eael_primary_templates'], 'wp_template', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+								        $tab['eael_primary_templates'] = apply_filters( 'wpml_object_id', $tab['eael_primary_templates'], 'elementor_library', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 							        }
 
-							        Helper::eael_onpage_edit_template_markup( $page_id, $tab['eael_primary_templates'] );
+							        // Re-validate the translated template is a published elementor_library post before rendering.
+							        if ( Helper::is_elementor_publish_template( $tab['eael_primary_templates'] ) ) {
+								        Helper::eael_onpage_edit_template_markup( $page_id, $tab['eael_primary_templates'] );
 
-							        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-							        echo Plugin::$instance->frontend->get_builder_content( $tab['eael_primary_templates'], true );
+								        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+								        echo Plugin::$instance->frontend->get_builder_content( $tab['eael_primary_templates'], true );
+							        }
 						        }
 					        }
 				        endif; ?>

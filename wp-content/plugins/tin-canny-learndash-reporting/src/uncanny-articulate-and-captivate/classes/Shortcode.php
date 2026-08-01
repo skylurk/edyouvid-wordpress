@@ -332,7 +332,11 @@ class Shortcode {
 		$global_protection = get_option( 'tincanny_nonce_protection', 'yes' );
 		$protection        = 'Yes';
 
-		$postmeta['protect-scorm-tin-can-modules'] = strtolower( $postmeta['protect-scorm-tin-can-modules'] );
+		if ( empty( $postmeta ) || ! is_array( $postmeta ) ) {
+			$postmeta = [];
+		}
+
+		$postmeta['protect-scorm-tin-can-modules'] = strtolower( $postmeta['protect-scorm-tin-can-modules'] ?? '' );
 		if ( ! empty( $postmeta['protect-scorm-tin-can-modules'] ) ) {
 			switch ( $postmeta['protect-scorm-tin-can-modules'] ) {
 				case 'yes' :
@@ -369,6 +373,7 @@ class Shortcode {
 
 			if ( $this->check_tincan() ) {
 				$user_name  = @( $User->data->display_name ) ? $User->data->display_name : 'Unknown';
+				$user_name  = apply_filters( 'uo_tincanny_actor_name', $user_name, $User );
 				$user_name  = str_replace( array( '"', "'" ), array( '', '' ), $user_name );
 				$user_email = @( $User->data->user_email ) ? $User->data->user_email : 'Unknown@anonymous.com';
 				$user_email = apply_filters( 'uo_tincanny_actor_mbox', $user_email, $User );

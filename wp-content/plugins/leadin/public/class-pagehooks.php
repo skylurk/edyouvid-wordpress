@@ -119,7 +119,11 @@ class PageHooks {
 	 */
 	public function add_id_to_tracking_code( $tag, $handle ) {
 		if ( AssetsManager::TRACKING_CODE === $handle ) {
-			$tag = str_replace( "id='" . $handle . "-js'", "async defer id='hs-script-loader'", $tag );
+			$tag = preg_replace(
+				'/id=[\'"]' . preg_quote( $handle . '-js', '/' ) . '[\'"]/',
+				"async defer id='hs-script-loader'",
+				$tag
+			);
 		}
 		return $tag;
 	}

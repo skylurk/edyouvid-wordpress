@@ -9,7 +9,7 @@
  * Domain Path:         /languages
  * License:             GPLv3
  * License URI:         https://www.gnu.org/licenses/gpl-3.0.html
- * Version:             6.1.5
+ * Version:             6.1.8
  * Requires at least:   5.8
  * Requires PHP:        7.4
  * Requires Plugins:    sfwd-lms
@@ -21,7 +21,7 @@ use uncanny_learndash_groups\Load_Groups;
 use uncanny_learndash_groups\Uncanny_Groups_Helpers;
 use uncanny_learndash_groups\Group_Management_DB_Handler;
 
-const UNCANNY_GROUPS_VERSION = '6.1.5';
+const UNCANNY_GROUPS_VERSION = '6.1.8';
 /**
  *
  */

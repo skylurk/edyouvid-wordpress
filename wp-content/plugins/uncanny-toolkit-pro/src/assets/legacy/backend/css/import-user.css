@@ -1,0 +1,84 @@
+#import-users-progress {
+    display: none;
+}
+#import-users-validation, #perform-import-users-text, #perform-import-users-review, #perform-import-users-ready {
+    display: none;
+}
+
+/* Target Select2 container for import_user_pillbox specifically */
+.import_user_pillbox + .select2-container .select2-selection--multiple {
+    border:1px solid #999999 !important;
+    border-radius: 8px !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    min-height: 32px !important;
+}
+
+/* Focus state for import_user_pillbox Select2 */
+.import_user_pillbox + .select2-container .select2-selection--multiple:focus,
+.import_user_pillbox + .select2-container.select2-container--focus .select2-selection--multiple {
+     
+}
+
+/* Remove any default browser outline */
+.import_user_pillbox + .select2-container .select2-selection--multiple:focus-within {
+    outline: none !important;
+}
+
+/* Style the individual choice items */
+.import_user_pillbox + .select2-container .select2-selection__choice {
+    background-color: #f1f1f1 !important;
+    border: 1px solid #ccc !important;
+    border-radius: 3px !important;
+    color: #333 !important;
+    padding: 2px 8px !important;
+    margin: 2px !important;
+}
+
+/* Style the search input inside the selection */
+.import_user_pillbox + .select2-container .select2-search--inline .select2-search__field {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Style the dropdown arrow */
+.import_user_pillbox + .select2-container .select2-selection__arrow {
+    height: 30px !important;
+    right: 8px !important;
+    top: 1px !important;
+}
+
+/* Style the dropdown when open */
+.import_user_pillbox + .select2-container .select2-dropdown {
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+/* Style dropdown options */
+.import_user_pillbox + .select2-container .select2-results__option {
+    padding: 8px 12px !important;
+}
+
+.import_user_pillbox + .select2-container .select2-results__option--highlighted {
+    background-color: #007cba !important;
+    color: #fff !important;
+}
+/* Target the Select2 container with custom class */
+.import-user-pillbox-container .select2-selection--multiple {
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: #fff !important;
+}
+
+.import-user-pillbox-container .select2-selection--multiple:focus {
+    border-color: #007cba !important;
+    outline: none !important;
+}

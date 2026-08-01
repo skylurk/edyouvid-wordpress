@@ -760,33 +760,14 @@ class RestApiEndPoints {
 
 		// Collect non-enrolled user email address and temp user info
 		if ( in_array( 'not-enrolled', $group_email_data['statuses'], true ) ) {
-			global $wpdb;
-
-			foreach ( $group_ids as $group_id ) {
-				$codes_group_id = ulgm()->group_management->seat->get_code_group_id( absint( $group_id ) );
-				if ( absint( $codes_group_id ) ) {
-					$temp_users_code = $wpdb->get_results(
-						$wpdb->prepare(
-							"SELECT * FROM {$wpdb->prefix}ulgm_group_codes WHERE ld_group_id = %d AND code_status = %s AND student_id IS NULL",
-							$group_id,
-							SharedFunctions::$not_redeemed_status
-						)
-					);
-					if ( $temp_users_code ) {
-						foreach ( $temp_users_code as $user ) {
-							$f     = $user->first_name;
-							$l     = $user->last_name;
-							$email = sanitize_email( $user->user_email );
-
-							$not_enrolled_users[ $email ] = (object) array(
-								'first_name' => $f,
-								'last_name'  => $l,
-								'email'      => $email,
-							);
-							$email_addresses[]            = $email;
-						}
-					}
-				}
+			$not_enrolled_users_data = self::get_not_enrolled_users_for_groups( $group_ids );
+			foreach ( $not_enrolled_users_data as $user ) {
+				$not_enrolled_users[ $user->email ] = (object) array(
+					'first_name' => $user->first_name,
+					'last_name'  => $user->last_name,
+					'email'      => $user->email,
+				);
+				$email_addresses[]                  = $user->email;
 			}
 		}
 
@@ -817,46 +798,10 @@ class RestApiEndPoints {
 			if ( ! $user instanceof \WP_User ) {
 				continue;
 			}
-			// Default is not completed
-			$completed = false;
 
-			// Default progress
-			$in_progress = false;
-
-			// Check group progress courses
-			foreach ( $learndash_group_enrolled_courses as $course_id ) {
-
-				$course_progress = learndash_course_progress(
-					array(
-						'course_id' => $course_id,
-						'user_id'   => $user->ID,
-						'array'     => true,
-					)
-				);
-				// does the groups course and user progress
-				if ( empty( $course_progress ) || ! is_array( $course_progress ) || ( is_array( $course_progress ) && 0 === (int) $course_progress['completed'] && 0 === (int) $course_progress['percentage'] ) ) {
-					$in_progress = false;
-					$completed   = false;
-				} elseif ( is_array( $course_progress ) && (int) $course_progress['completed'] === (int) $course_progress['total'] ) {
-					$completed = true;
-				} elseif ( is_array( $course_progress ) && (int) $course_progress['total'] !== (int) $course_progress['completed'] ) {
-					$in_progress = true;
-					$completed   = false;
-					break;
-				}
-			}
-
-			// Set Status
-			if ( $completed ) {
-				$status = 'completed';
-			} elseif ( $in_progress ) {
-				$status = 'in-progress';
-			} else {
-				$status = 'not-started';
-			}
-
-			// removing from bcc.
-			if ( in_array( $status, $group_email_data['statuses'], true ) ) {
+			// Match count function logic - use helper method for consistency
+			$matched_status = self::user_matches_course_status( $user_id, $learndash_group_enrolled_courses, $group_email_data['statuses'] );
+			if ( $matched_status ) {
 				$email_addresses[] = sanitize_email( $user->user_email );
 			}
 		}
@@ -1023,24 +968,32 @@ class RestApiEndPoints {
 			$user_ids = LearndashFunctionOverrides::learndash_get_groups_user_ids( $group_id );
 		}
 
-		$user_id_count = array();
+		$user_id_count = array(); // Associative array for O(1) lookup
 		$user_statuses = array();
-		foreach ( $user_ids as $user_id ) {
 
-			foreach ( $courses as $course_id ) {
-				$course_status = learndash_course_status( $course_id, $user_id, true );
-				$course_status = str_replace( '_', '-', $course_status );
-				if ( ! in_array( $course_status, $statuses, true ) ) {
-					continue;
+		// Handle "not-enrolled" status separately - these are users with unredeemed codes
+		// They won't be in learndash_get_groups_user_ids because they're not enrolled yet
+		if ( in_array( 'not-enrolled', $statuses, true ) ) {
+			$not_enrolled_users = self::get_not_enrolled_users_for_groups( $group_ids );
+			foreach ( $not_enrolled_users as $temp_user ) {
+				// Count each code separately to match UI display
+				$not_enrolled_id = 'not-enrolled-' . md5( $temp_user->email . $temp_user->code );
+				if ( ! isset( $user_id_count[ $not_enrolled_id ] ) ) {
+					$user_id_count[ $not_enrolled_id ] = true;
+					$user_statuses['not-enrolled'][]   = $not_enrolled_id;
 				}
-				if ( in_array( $user_id, $user_id_count, true ) ) {
-					continue;
-				}
-				$user_id_count[] = $user_id;
-				// For tracking
-				$user_statuses[ $course_status ][] = $user_id;
 			}
 		}
+
+		// Handle enrolled users with course statuses
+		foreach ( $user_ids as $user_id ) {
+			$matched_status = self::user_matches_course_status( $user_id, $courses, $statuses );
+			if ( $matched_status && ! isset( $user_id_count[ $user_id ] ) ) {
+				$user_id_count[ $user_id ]          = true;
+				$user_statuses[ $matched_status ][] = $user_id;
+			}
+		}
+
 		if ( empty( $user_id_count ) ) {
 			wp_send_json_success(
 				array(
@@ -1054,6 +1007,193 @@ class RestApiEndPoints {
 				'userStatuses' => $user_statuses,
 			)
 		);
+	}
+
+	/**
+	 * Gets not-enrolled users (users with unredeemed codes) for given group IDs
+	 *
+	 * @param array $group_ids Array of group IDs
+	 * @return array Array of not-enrolled user objects with email, first_name, last_name, and code
+	 */
+	private static function get_not_enrolled_users_for_groups( $group_ids ) {
+		global $wpdb;
+
+		$group_ids = array_map( 'absint', $group_ids );
+		$group_ids = array_filter( $group_ids );
+
+		if ( empty( $group_ids ) ) {
+			return array();
+		}
+
+		// Build placeholders
+		$placeholders = implode( ',', array_fill( 0, count( $group_ids ), '%d' ) );
+
+		// Single query for all group IDs
+		$query = "
+			SELECT first_name, last_name, user_email, code
+			FROM {$wpdb->prefix}" . SharedFunctions::$db_group_codes_tbl . "
+			WHERE ld_group_id IN ($placeholders)
+			  AND code_status = %s
+			  AND student_id IS NULL
+		";
+
+		$results = $wpdb->get_results(
+			$wpdb->prepare( $query, array_merge( $group_ids, array( SharedFunctions::$not_redeemed_status ) ) )
+		);
+
+		// Format output
+		$not_enrolled_users = array();
+		foreach ( $results as $user ) {
+			$not_enrolled_users[] = (object) array(
+				'first_name' => $user->first_name,
+				'last_name'  => $user->last_name,
+				'email'      => sanitize_email( $user->user_email ),
+				'code'       => $user->code,
+			);
+		}
+
+		return $not_enrolled_users;
+	}
+
+
+	/**
+	 * Determines user's overall course status across all courses using priority logic
+	 * Matches Group Management interface logic exactly - uses activity table, not learndash_course_status()
+	 *
+	 * @param int   $user_id User ID
+	 * @param array $courses Array of course IDs
+	 * @return string Returns 'completed', 'in-progress', or 'not-started'
+	 */
+	private static function determine_user_course_status( $user_id, $courses ) {
+		if ( empty( $courses ) || ! is_array( $courses ) ) {
+			return 'not-started';
+		}
+
+		$use_legacy_progress = GroupManagementInterface::use_legacy_course_progress();
+
+		if ( $use_legacy_progress ) {
+			// Use legacy method - check user meta
+			$progress    = get_user_meta( $user_id, '_sfwd-course_progress', true );
+			$completed   = false;
+			$in_progress = false;
+			$not_started = false;
+
+			foreach ( $courses as $course_id ) {
+				if ( isset( $progress[ $course_id ] ) && isset( $progress[ $course_id ]['status'] ) && 'completed' === (string) strtolower( $progress[ $course_id ]['status'] ) ) {
+					$completed = true;
+				} elseif ( isset( $progress[ $course_id ] ) && (int) $progress[ $course_id ]['completed'] !== (int) $progress[ $course_id ]['total'] && 'not_started' !== (string) strtolower( $progress[ $course_id ]['status'] ) ) {
+					$in_progress = true;
+				} elseif ( isset( $progress[ $course_id ] ) && (int) $progress[ $course_id ]['completed'] === (int) $progress[ $course_id ]['total'] ) {
+					$completed = true;
+				} else {
+					$not_started = true;
+				}
+			}
+		} else {
+			// Use activity table method - matches UI non-legacy logic (group-management-interface.php lines 913-945)
+			global $wpdb;
+
+			$course_ids = array_map( 'absint', $courses );
+			$course_ids = array_filter( $course_ids );
+
+			if ( empty( $course_ids ) ) {
+				return 'not-started';
+			}
+
+			$in_placeholders = implode( ',', array_fill( 0, count( $course_ids ), '%d' ) );
+
+			// Completions
+			$completions_query = "
+				SELECT post_id AS course_id, user_id, activity_completed
+				FROM {$wpdb->prefix}learndash_user_activity
+				WHERE activity_type = 'course'
+				  AND activity_completed IS NOT NULL
+				  AND activity_completed <> 0
+				  AND user_id = %d
+				  AND post_id IN ($in_placeholders)
+			";
+
+			$completions = $wpdb->get_results(
+				$wpdb->prepare( $completions_query, array_merge( array( $user_id ), $course_ids ) )
+			);
+
+			// In-progress
+			$in_progress_query = "
+				SELECT post_id AS course_id, user_id
+				FROM {$wpdb->prefix}learndash_user_activity
+				WHERE activity_type = 'course'
+				  AND activity_completed = 0
+				  AND (activity_started != 0 OR activity_updated != 0)
+				  AND user_id = %d
+				  AND post_id IN ($in_placeholders)
+			";
+
+			$in_progress_activities = $wpdb->get_results(
+				$wpdb->prepare( $in_progress_query, array_merge( array( $user_id ), $course_ids ) )
+			);
+
+			$completions_rearranged = array();
+			$in_progress_rearranged = array();
+
+			foreach ( $completions as $completion ) {
+				$completions_rearranged[ (int) $completion->user_id ][ (int) $completion->course_id ] = true;
+			}
+
+			foreach ( $in_progress_activities as $activity ) {
+				$in_progress_rearranged[ (int) $activity->user_id ][ (int) $activity->course_id ] = true;
+			}
+
+			$completed   = false;
+			$in_progress = false;
+			$not_started = false;
+
+			// Check each course - match UI logic exactly (lines 968-988)
+			foreach ( $courses as $course_id ) {
+				if ( isset( $in_progress_rearranged[ (int) $user_id ][ (int) $course_id ] ) ) {
+					$in_progress = true;
+				} elseif ( isset( $completions_rearranged[ (int) $user_id ][ (int) $course_id ] ) && false === $in_progress ) {
+					$completed = true;
+				} else {
+					$not_started = true;
+				}
+			}
+		}
+
+		// Match Group Management interface priority logic exactly.
+		if ( $in_progress && ! $not_started && ! $completed ) {
+			return 'in-progress';
+		}
+		if ( $not_started && $in_progress ) {
+			return 'in-progress';
+		}
+		if ( $not_started && $completed ) {
+			return 'in-progress';
+		}
+		if ( $in_progress && $completed ) {
+			return 'in-progress';
+		}
+		if ( $completed && ! $not_started && ! $in_progress ) {
+			return 'completed';
+		}
+		return 'not-started';
+	}
+
+	/**
+	 * Checks if a user matches any of the selected course statuses
+	 *
+	 * @param int   $user_id User ID
+	 * @param array $courses Array of course IDs
+	 * @param array $statuses Array of statuses to check against
+	 * @return string|false Returns the matching status or false if no match
+	 */
+	private static function user_matches_course_status( $user_id, $courses, $statuses ) {
+		$user_status = self::determine_user_course_status( $user_id, $courses );
+
+		if ( in_array( $user_status, $statuses, true ) ) {
+			return $user_status;
+		}
+
+		return false;
 	}
 
 	/**

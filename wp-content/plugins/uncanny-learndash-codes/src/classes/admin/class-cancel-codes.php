@@ -56,7 +56,8 @@ class CancelCodes extends Config {
 	 */
 	public static function success_notice() {
 		?>
-		<div class="updated notice">
+		<div class="updated notice uncannyowl-alert uncannyowl-alert-success uncannyowl-alert--dismissible">
+			<button  type="button" class="uncannyowl-alert-close" aria-label="Close alert">&times;</button>
 			<h2>
 				<strong><?php echo __( 'Upload summary', 'uncanny-learndash-codes' ); ?></strong>
 			</h2>
@@ -111,7 +112,8 @@ class CancelCodes extends Config {
 	public static function failed_notice() {
 		$message = '<h2>' . self::$notice . '</h2>';
 		?>
-		<div class="notice notice-error is-dismissible">
+		<div class="uncannyowl-alert uncannyowl-alert-error uncannyowl-alert--dismissible">
+			<button  type="button" class="uncannyowl-alert-close" aria-label="Close alert">&times;</button>
 			<?php echo $message; ?>
 		</div>
 		<?php

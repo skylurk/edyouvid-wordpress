@@ -251,7 +251,9 @@ class Dropbox_Base{
         $r = curl_exec($ch);
         $chinfo = curl_getinfo($ch);
         $error = curl_error($ch);
-        curl_close($ch);
+        if (defined('PHP_VERSION_ID') && PHP_VERSION_ID < 80500) {
+            curl_close($ch);
+        }
 
         if($r === false){
             $r['error_summary'] = $error;
@@ -271,7 +273,9 @@ class Dropbox_Base{
                     $r = curl_exec($ch);
                     $chinfo = curl_getinfo($ch);
                     $error = curl_error($ch);
-                    curl_close($ch);
+                    if (defined('PHP_VERSION_ID') && PHP_VERSION_ID < 80500) {
+                        curl_close($ch);
+                    }
                     if($r === false)
                     {
                         $r['error_summary'] = $error;
@@ -300,7 +304,16 @@ class Dropbox_Base{
             }
         }
         if($returnjson && !is_array($r))
-            $r = json_decode($r,true);
+        {
+            if(is_string($r) && $r !== '')
+            {
+                $r = json_decode($r,true);
+            }
+            else
+            {
+                $r = array();
+            }
+        }
 
         return $r;
     }

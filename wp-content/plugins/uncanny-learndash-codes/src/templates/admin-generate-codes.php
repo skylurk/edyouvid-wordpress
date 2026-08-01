@@ -8,37 +8,36 @@ if ( ! defined( 'WPINC' ) ) {
 
 ?>
 
-<div class="uoc-generate" id="uoc-generate">
+<div class="uncannyowl-card">
+	<div  class="uoc-generate" id="uoc-generate">
+		<div class="uoc-generate-main">
+			<form
+				action=""
+				autocomplete="off"
+				method="POST"
+			>
 
-	<div class="uoc-generate-main">
+				<?php include Config::get_template( 'admin-generate-codes/header.php' ); ?>
 
-		<form
-			action=""
-			autocomplete="off"
-			method="POST"
-		>
+				<?php include Config::get_template( 'admin-generate-codes/batch-name.php' ); ?>
 
-			<?php include Config::get_template( 'admin-generate-codes/header.php' ); ?>
+				<?php include Config::get_template( 'admin-generate-codes/dependency.php' ); ?>
 
-			<?php include Config::get_template( 'admin-generate-codes/batch-name.php' ); ?>
+				<?php include Config::get_template( 'admin-generate-codes/code-setup.php' ); ?>
 
-			<?php include Config::get_template( 'admin-generate-codes/dependency.php' ); ?>
+				<input type="hidden" name="_custom_wpnonce"
+					value="<?php echo wp_create_nonce( Config::get_project_name() ); ?>">
+				<?php if ( SharedFunctionality::ulc_filter_has_var( 'group_id' ) ) { ?>
+					<input type="hidden" name="group_id"
+						value="<?php echo absint( SharedFunctionality::ulc_filter_input( 'group_id' ) ); ?>"/>
+					<input type="hidden" name="edit_group"
+						value="yes"/>
+				<?php } ?>
+			</form> 
+		</div>
 
-			<?php include Config::get_template( 'admin-generate-codes/code-setup.php' ); ?>
-
-			<input type="hidden" name="_custom_wpnonce"
-				   value="<?php echo wp_create_nonce( Config::get_project_name() ); ?>">
-			<?php if ( SharedFunctionality::ulc_filter_has_var( 'group_id' ) ) { ?>
-				<input type="hidden" name="group_id"
-					   value="<?php echo absint( SharedFunctionality::ulc_filter_input( 'group_id' ) ); ?>"/>
-				<input type="hidden" name="edit_group"
-					   value="yes"/>
-			<?php } ?>
-		</form>
-	</div>
-
-	<div class="uoc-generate-sidebar">
-		<?php include Config::get_template( 'admin-generate-codes/sidebar.php' ); ?>
-	</div>
-
+		<div class="uoc-generate-sidebar">
+			<?php include Config::get_template( 'admin-generate-codes/sidebar.php' ); ?>
+		</div>
+	</div>						
 </div>

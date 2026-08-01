@@ -4,7 +4,7 @@ Donate link: https://donate.stripe.com/4gw2bB2Pzdjd8mYfYZ
 Tags: woo product table, wc product table, woo table, woocommerce product table, product table
 Requires at least: 6.2
 Tested up to: 7.0
-Stable tag: 6.1.0
+Stable tag: 6.1.2
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -307,6 +307,15 @@ You can easily show specific category products. While creating new table click o
 10. Template Selection list on Dashboard
 
 == Changelog ==
+
+= 6.1.2 =
+* Fix: Resolved an issue where using the checkbox column to add products to the cart ignored the user-entered quantity and defaulted to 1 item.
+* Bug fixed and code optimized.
+
+= 6.1.1 =
+* Fix: Resolved an issue where saving settings redirected the user back to the first tab.
+* Fix: Fixed stock status filtering issue where out-of-stock products were still displayed when filtering by "In Stock"
+* Bug fixed and code optimized.
 
 = 6.1.0 =
 * Fixed: Expanded column sort descending issue fixed.

@@ -1,0 +1,388 @@
+h1.nav-tab-wrapper {
+	margin-bottom: 15px;
+}
+
+.nav-tab-wrapper + .error {
+	margin-bottom: 15px;
+}
+
+.uo-license {
+	font-size: 15px;
+	font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+
+	background: #ffffff;
+	border: 1px solid #ddd;
+	border-radius: 12px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	overflow: hidden;
+	display: flex;
+	margin: 0 0 20px 0;
+}
+
+.uo-license,
+.uo-license * {
+	box-sizing: border-box;
+}
+
+.uo-license a {
+	text-decoration: none;
+}
+
+.uo-license input {
+	border: 0;
+}
+
+	.uo-license-status {
+		width: 140px;
+		flex: 0 0 auto;
+		padding: 40px 20px;
+		text-align: center;
+		background: #fff7f6;
+		border-right: 1px solid #e1e1e1;
+		position: relative;
+	}
+
+	.uo-license--active .uo-license-status {
+		background: #f4fff4;
+	}
+
+		.uo-license-status__icon {
+			width: 55px;
+			height: 55px;
+			background: #e94b35;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%,-50%);
+			border-radius: 50%;
+			box-shadow: 0 2px 8px rgba(233, 75, 53, 0.3);
+		}
+
+		.uo-license--active .uo-license-status__icon {
+			background: #1fce6d;
+			box-shadow: 0 2px 8px rgba(31, 206, 109, 0.3);
+		}
+
+			.uo-license-status-icon__svg {
+				max-width: 50%;
+				max-height: 50%;
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%,-50%);
+			}
+
+				.uo-license-status-icon__svg-path {
+					fill: #fef7f6;
+				}
+
+	.uo-license-content {
+		flex: 1 1 auto;
+	}
+
+		.uo-license-content-form {
+			padding: 0;
+			margin: 0;
+			border: 0;
+		}
+
+			.uo-license-content-form__notice {
+				background: #d2eaff;
+				color: #4a5568;
+				padding: 16px 20px;
+				border-radius: 8px;
+				line-height: 1.5;
+				margin-bottom: 20px;
+				border: 1px solid #c4e0ff;
+				font-size: 14px;
+			}
+
+				.uo-license-content-form__notice a {
+					color: #0073aa;
+					border-bottom: 1px solid rgba(0, 115, 170, 0.3);
+					transition: all 0.2s ease;
+				}
+
+				.uo-license-content-form__notice a:hover {
+					color: #005a87;
+					border-bottom-color: #005a87;
+				}
+
+		.uo-license-content-mobile-buttons {
+			margin-top: 15px;
+			display: none;
+		}
+
+		.uo-license-content-top {
+			display: flex;
+			padding: 24px;
+		}
+
+			.uo-license-content-title {
+				font-size: 18px;
+				font-weight: 600;
+				color: #23282d;
+				margin-bottom: 8px;
+				line-height: 1.3;
+			}
+
+			.uo-license-content-description {
+				color: #666;
+				margin-bottom: 16px;
+				line-height: 1.5;
+			}
+
+				.uo-license-content-description a {
+					color: #0073aa;
+					transition: color 0.2s ease;
+				}
+
+				.uo-license-content-description a:hover {
+					color: #005a87;
+				}
+
+			.uo-license-content-info,
+			.uo-license-content-faq {
+				padding: 0;
+				line-height: 1.4;
+			}
+
+			.uo-license-content-info {
+				width: 60%;
+			}
+
+				.uo-license-content-form {}
+
+					.uo-license-content-form #uo-license-field {
+						width: 100%;
+						height: 40px;
+						padding: 0 12px;
+						font-size: 14px;
+						transition: all 0.2s ease;
+						border-radius: 8px;
+						border: 1px solid #ddd;
+						box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+						outline: none;
+						background: #fff;
+					}
+
+						.uo-license-content-form #uo-license-field:valid {
+							font-family: Consolas, Monaco, 'Courier New', Courier, monospace;
+							letter-spacing: 1px;
+						}
+
+						@supports ( -moz-osx-font-smoothing: auto ){
+							.uo-license-content-form #uo-license-field:valid {
+								font-size: 13px;
+							}
+						}
+
+					.uo-license-content-form #uo-license-field:hover {
+						border-color: #b9b9b9;
+						box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+					}
+
+					.uo-license-content-form #uo-license-field:focus {
+						border-color: #0073aa;
+						box-shadow: 0 0 0 3px rgba(0, 115, 170, 0.1);
+					}
+
+			.uo-license-content-faq {
+				width: 40%;
+				position: relative;
+				padding-left: 32px;
+			}
+
+				.uo-license-content-faq:before {
+					content: '';
+					width: 1px;
+					height: calc(100% - 80px);
+					background: #e1e1e1;
+					position: absolute;
+					top: 40px;
+					left: 16px;
+				}
+
+				.uo-license-content-faq-list {}
+
+					.uo-license-content-faq-list-ul {
+						padding: 0;
+						margin: 0;
+					}
+
+						.uo-license-content-faq-item {
+							list-style: none;
+							padding: 0;
+							margin: 0 0 8px 0;
+						}
+
+							.uo-license-content-faq-item a {
+								color: #666;
+								padding: 4px 0;
+								display: inline-block;
+								text-decoration: none;
+								transition: color 0.2s ease;
+								font-size: 14px;
+							}
+
+							.uo-license-content-faq-item a:hover {
+								color: #0073aa;
+							}
+
+		.uo-license-content-footer {
+			background: #f9f9f9;
+			border-top: 1px solid #e1e1e1;
+			padding: 16px 24px;
+		}
+
+.uo-license-btn {
+	background-color: transparent;
+	border: 1px solid transparent;
+	border-radius: 8px;
+	box-shadow: 0 2px 5px 0 rgb(0 0 0 / 10%);
+	cursor: pointer;
+	display: inline-block;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1.5;
+	outline: none;
+	padding: 8px 16px;
+	position: relative;
+	text-align: center;
+	transition: all 0.2s ease;
+	user-select: none;
+	vertical-align: middle;
+	white-space: nowrap;
+	text-decoration: none !important;
+}
+
+	.uo-license-btn:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+	}
+
+	.uo-license-btn:active {
+		transform: translateY(0);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	}
+
+	.uo-license-btn--primary {
+		background: #0073aa;
+		color: #fff;
+		border-color: #0073aa;
+	}
+
+		.uo-license-btn--primary.uo-license-btn--loading,
+		.uo-license-btn--primary:hover {
+			background: #005a87;
+			border-color: #005a87;
+			color: #fff;
+		}
+
+		.uo-license-btn--primary:not(.uo-license-btn--disabled):active {
+			background: #004a73;
+			border-color: #004a73;
+		}
+
+	.uo-license-btn--secondary {
+		background: #fff;
+		color: #666;
+		border-color: #ddd;
+	}
+
+		.uo-license-btn--secondary.uo-license-btn--loading,
+		.uo-license-btn--secondary:hover {
+			background: #f9f9f9;
+			border-color: #b9b9b9;
+			color: #333;
+		}
+
+		.uo-license-btn--secondary:not(.uo-license-btn--disabled):active {
+			background: #f0f0f0;
+			border-color: #a0a0a0;
+		}
+
+	.uo-license-btn--error {
+		background: #e94b35;
+		color: #fff;
+		border-color: #e94b35;
+	}
+
+		.uo-license-btn--error.uo-license-btn--loading,
+		.uo-license-btn--error:hover {
+			background: #d73a29;
+			border-color: #d73a29;
+			color: #fff;
+		}
+
+		.uo-license-btn--error:not(.uo-license-btn--disabled):active {
+			background: #c52f1f;
+			border-color: #c52f1f;
+		}
+
+	.uo-license-btn--disabled,
+	.uo-license-btn--loading {
+		opacity: 0.6;
+		cursor: not-allowed;
+		pointer-events: none;
+	}
+
+	.uo-license-btn--loading {
+		color: transparent !important;
+	}
+
+		.uo-license-btn--loading:before {
+			content: '';
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 16px;
+			height: 16px;
+			margin: -8px 0 0 -8px;
+			border: 2px solid transparent;
+			border-top-color: currentColor;
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+		}
+
+@keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+
+@media screen and (max-width: 768px){
+	.uo-license {
+		flex-direction: column;
+	}
+
+		.uo-license-status {
+			width: 100%;
+			padding: 20px;
+		}
+
+		.uo-license-content {}
+
+			.uo-license-content-top {
+				flex-direction: column;
+				padding: 20px;
+			}
+
+				.uo-license-content-info,
+				.uo-license-content-faq {
+					width: 100%;
+				}
+
+					.uo-license-content-faq:before {
+						display: none;
+					}
+
+			.uo-license-content-mobile-buttons {
+				display: block;
+			}
+
+			.uo-license-content-footer {
+				padding: 16px 20px;
+			}
+}

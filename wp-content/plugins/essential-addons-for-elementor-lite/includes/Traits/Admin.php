@@ -227,6 +227,14 @@ trait Admin {
 						    'desc'     => __( 'Create and organize your knowledge base, FAQ & documentation page efficiently, making it easy for visitors to find any helpful article quickly and effortlessly.', 'essential-addons-for-elementor-lite' ),
 						    'status'   => is_plugin_active( 'betterdocs/betterdocs.php' )
 					    ],
+					    'tr' => [
+						    'slug'     => 'thinkrank',
+						    'basename' => 'thinkrank/thinkrank.php',
+						    'logo'     => 'images/TR.svg',
+						    'title'    => __( 'ThinkRank', 'essential-addons-for-elementor-lite' ),
+						    'desc'     => __( 'AI SEO assistant for WordPress — optimize titles, meta, schema, LLM answers & sitemaps, and track rankings with GA4. Turn the pages you build into pages that rank.', 'essential-addons-for-elementor-lite' ),
+						    'status'   => is_plugin_active( 'thinkrank/thinkrank.php' )
+					    ],
 					    'bl' => [
 						    'slug'     => 'betterlinks',
 						    'basename' => 'betterlinks/betterlinks.php',
@@ -643,6 +651,15 @@ trait Admin {
 						    'is_pro'      => false,
 						    'promotion'   => 'new',
 						    'is_activate' => boolval( $this->get_settings( 'image-masking' ) )
+					    ],
+						'advanced-slider'        => [
+						    'key'         => 'advanced-slider',
+						    'title'       => __( 'Advanced Slider', 'essential-addons-for-elementor-lite' ),
+						    'demo_link'   => 'https://essential-addons.com/advanced-slider/',
+						    'doc_link'    => 'https://essential-addons.com/docs/ea-advanced-slider/',
+						    'is_pro'      => true,
+						    'promotion'   => 'new',
+						    'is_activate' => boolval( $this->get_settings( 'advanced-slider' ) )
 					    ],
 					    'advanced-dynamic-tags' => [
 						    'key'         => 'advanced-dynamic-tags',
@@ -1433,6 +1450,14 @@ trait Admin {
 							    'doc_link'    => 'https://essential-addons.com/docs/ea-woo-product-list/',
 							    'is_activate' => boolval( $this->get_settings( 'woo-product-list' ) )
 						    ],
+						    'woo-product-title'     => [
+							    'key'         => 'woo-product-title',
+							    'title'       => __( 'Woo Product Title', 'essential-addons-for-elementor-lite' ),
+							    'demo_link'   => 'https://essential-addons.com/woo-product-title/',
+							    'doc_link'    => 'https://essential-addons.com/docs/ea-woo-product-title',
+							    'promotion'   => 'new',
+							    'is_activate' => boolval( $this->get_settings( 'woo-product-title' ) )
+						    ],
 						    'woo-product-price'     => [
 							    'key'         => 'woo-product-price',
 							    'title'       => __( 'Woo Product Price', 'essential-addons-for-elementor-lite' ),
@@ -1440,6 +1465,30 @@ trait Admin {
 							    'doc_link'    => 'https://essential-addons.com/docs/ea-woo-product-price',
 							    'promotion'   => 'new',
 							    'is_activate' => boolval( $this->get_settings( 'woo-product-price' ) )
+						    ],
+						    'woo-product-tabs'      => [
+							    'key'         => 'woo-product-tabs',
+							    'title'       => __( 'Woo Product Tabs', 'essential-addons-for-elementor-lite' ),
+							    'demo_link'   => 'https://essential-addons.com/woo-product-tabs/',
+							    'doc_link'    => 'https://essential-addons.com/docs/ea-woo-product-tabs',
+							    'promotion'   => 'new',
+							    'is_activate' => boolval( $this->get_settings( 'woo-product-tabs' ) )
+						    ],
+						    'woo-product-short-description' => [
+							    'key'         => 'woo-product-short-description',
+							    'title'       => __( 'Woo Product Short Description', 'essential-addons-for-elementor-lite' ),
+							    'demo_link'   => 'https://essential-addons.com/woo-product-short-description/',
+							    'doc_link'    => 'https://essential-addons.com/docs/ea-woo-product-short-description',
+							    'promotion'   => 'new',
+							    'is_activate' => boolval( $this->get_settings( 'woo-product-short-description' ) )
+						    ],
+						    'woo-product-description' => [
+							    'key'         => 'woo-product-description',
+							    'title'       => __( 'Woo Product Description', 'essential-addons-for-elementor-lite' ),
+							    'demo_link'   => 'https://essential-addons.com/woo-product-description/',
+							    'doc_link'    => 'https://essential-addons.com/docs/ea-woo-product-description',
+							    'promotion'   => 'new',
+							    'is_activate' => boolval( $this->get_settings( 'woo-product-description' ) )
 						    ],
 						    'woo-product-rating'    => [
 							    'key'         => 'woo-product-rating',
@@ -1768,7 +1817,7 @@ trait Admin {
 			    ],
 			    'admin_screen_promo'      => [
 				    'display' => get_option( 'eael_admin_promotion' ) < self::EAEL_PROMOTION_FLAG,
-				    'content' => sprintf( __("<p> <i>📣</i> <b>NEW:</b> Introducing EA Pro 6.9 with new \"<b><a target='_blank' href='%1\$s'>Pinterest Feed</a></b>\" widget. For more info, check out the <a target='_blank' href='%2\$s'>Changelog</a> 🎉</p>", "essential-addons-for-elementor-lite" ),  esc_url('https://essential-addons.com/pinterest-feed/' ), esc_url( 'https://essential-addons.com/view-ea-changelog' ) )
+				    'content' => sprintf( __("<p> <i>📣</i> <b>NEW:</b> Introducing EA Pro 7.0 with new \"<b><a target='_blank' href='%1\$s'>Advanced Slider</a></b>\" widget. For more info, check out the <a target='_blank' href='%2\$s'>Changelog</a> 🎉</p>", "essential-addons-for-elementor-lite" ),  esc_url('https://essential-addons.com/advanced-slider/' ), esc_url( 'https://essential-addons.com/view-ea-changelog' ) )
 			    ],
 			    'pro_modal'               => [
 				    'heading' => __( 'Unlock the PRO Features', 'essential-addons-for-elementor-lite' ),

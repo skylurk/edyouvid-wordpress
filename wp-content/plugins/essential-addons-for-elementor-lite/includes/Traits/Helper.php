@@ -488,17 +488,163 @@ trait Helper
 
 	/**
 	 * eael_wpml_template_translation
+	 *
+	 * Resolve an Elementor template/library id to its translation in the current
+	 * language. Works for both WPML and Polylang:
+	 *  - WPML auto-registers elementor_library and answers wpml_object_id.
+	 *  - Polylang does NOT register elementor_library as translatable by default, so
+	 *    its wpml_object_id compat filter would return the id unchanged. We therefore
+	 *    resolve via pll_get_post(), which honours the translation group directly.
+	 *
 	 * @param $id
 	 * @return mixed|void
 	 */
     public function eael_wpml_template_translation($id){
 	    $postType = get_post_type( $id );
-	    if ( 'elementor_library' === $postType ) {
-			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
-		    return apply_filters( 'wpml_object_id', $id, $postType, true );
+	    if ( 'elementor_library' !== $postType ) {
+		    return $id;
 	    }
-	    return $id;
+
+	    // Never remap while Elementor Pro is fetching the document for its own
+	    // theme-builder bookkeeping rather than to render it. See
+	    // eael_is_theme_builder_conditions_context() for why this is required.
+	    if ( $this->eael_is_theme_builder_conditions_context() ) {
+		    return $id;
+	    }
+
+	    // Polylang path (independent of the translatable-post-type setting).
+	    if ( function_exists( 'pll_get_post' ) && function_exists( 'pll_current_language' ) ) {
+		    $lang = pll_current_language();
+		    if ( $lang ) {
+			    $translated = pll_get_post( $id, $lang );
+			    // pll_get_post returns false when no translation exists for $lang;
+			    // keep the original id in that case. Only swap to a translation that is
+			    // itself a *published* elementor_library — otherwise this hook (bound to
+			    // elementor/documents/get/post_id) would remap the id downstream of the
+			    // widget's own publish re-check and render a draft/private template to
+			    // anonymous visitors.
+			    if ( $translated && HelperClass::is_elementor_publish_template( $translated )
+			         && ! $this->eael_remap_drops_conditions( $id, $translated ) ) {
+				    return $translated;
+			    }
+		    }
+		    return $id;
+	    }
+
+	    // WPML path.
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+	    $translated = apply_filters( 'wpml_object_id', $id, $postType, true );
+
+	    if ( $translated && (int) $translated !== (int) $id ) {
+		    // Same guard for WPML: never remap to a non-published template.
+		    if ( ! HelperClass::is_elementor_publish_template( $translated ) ) {
+			    return $id;
+		    }
+
+		    if ( $this->eael_remap_drops_conditions( $id, $translated ) ) {
+			    return $id;
+		    }
+	    }
+
+	    return $translated;
     }
+
+	/**
+	 * Is this filter running inside Elementor Pro's theme-builder conditions
+	 * machinery rather than a render?
+	 *
+	 * `Conditions_Cache::regenerate()` fetches every theme-builder document by id
+	 * purely to read its `_elementor_conditions` meta. If we hand it a translated
+	 * document instead of the one it asked for, that document carries no
+	 * conditions meta of its own, `$document->get_meta()` returns an empty string
+	 * and `Conditions_Cache::add( int $post_id, array $conditions )` fatals with
+	 * "Argument #2 ($conditions) must be of type array, string given" — which
+	 * aborts the save and returns HTTP 500 from admin-ajax.php, making display
+	 * conditions unsaveable site-wide.
+	 *
+	 * WPML solves the same problem the same way, by inspecting the call stack in
+	 * `WPML_Elementor_Translate_IDs::should_translate_template()`. We mirror that.
+	 *
+	 * Deliberately NOT gated on is_admin(): the conditions cache is also
+	 * regenerated lazily on the front end when it is empty (first pageview after
+	 * a cache flush), and the same fatal would take down the front end there.
+	 *
+	 * Matched on class name AND file path so the guard survives Elementor Pro
+	 * namespace refactors.
+	 *
+	 * @since 6.7.2
+	 * @return bool
+	 */
+	public function eael_is_theme_builder_conditions_context() {
+		// Cheap check first — the theme-builder conditions save request itself.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! empty( $_REQUEST['action'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$action = sanitize_key( wp_unslash( $_REQUEST['action'] ) );
+			if ( false !== strpos( $action, 'theme_builder' ) || false !== strpos( $action, 'save_conditions' ) ) {
+				return true;
+			}
+		}
+
+		$frames = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 20 ); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
+
+		foreach ( $frames as $frame ) {
+			if ( ! empty( $frame['class'] ) && false !== stripos( $frame['class'], 'ThemeBuilder\\Classes\\Conditions' ) ) {
+				return true;
+			}
+
+			if ( ! empty( $frame['file'] ) ) {
+				$file = str_replace( '\\', '/', $frame['file'] );
+				if ( false !== stripos( $file, 'theme-builder/classes/conditions' ) ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Would swapping $id for $translated lose the document's display conditions?
+	 *
+	 * Defence in depth behind eael_is_theme_builder_conditions_context(): any
+	 * caller that reads `_elementor_conditions` off the document we return must
+	 * never be handed a translation that has no conditions of its own, because
+	 * Elementor Pro type-hints that meta as an array.
+	 *
+	 * @since 6.7.2
+	 *
+	 * @param int $id         Requested document id.
+	 * @param int $translated Candidate translation id.
+	 * @return bool
+	 */
+	protected function eael_remap_drops_conditions( $id, $translated ) {
+		$original = get_post_meta( $id, '_elementor_conditions', true );
+		if ( ! is_array( $original ) || empty( $original ) ) {
+			return false;
+		}
+
+		return ! is_array( get_post_meta( $translated, '_elementor_conditions', true ) );
+	}
+
+	/**
+	 * Register Elementor's template library as translatable in Polylang.
+	 *
+	 * Polylang ships no Elementor integration, so elementor_library is not
+	 * translatable out of the box — which means saved templates embedded in EA
+	 * widgets cannot be mapped to the current language. Opt the post type in so the
+	 * translation group (and Polylang's own UI) works for these templates.
+	 *
+	 * Hooked to: pll_get_post_types
+	 *
+	 * @param array $post_types
+	 * @param bool  $is_settings
+	 * @return array
+	 */
+	public function eael_pll_translate_elementor_library( $post_types, $is_settings = false ) {
+		$post_types['elementor_library'] = 'elementor_library';
+		return $post_types;
+	}
 
 	/**
 	 * eael_sanitize_template_param

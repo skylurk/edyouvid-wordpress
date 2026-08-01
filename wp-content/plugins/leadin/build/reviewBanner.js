@@ -1,6 +1,148 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./scripts/api/wordpressApiClient.ts":
+/*!*******************************************!*\
+  !*** ./scripts/api/wordpressApiClient.ts ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "disableInternalTracking": () => (/* binding */ disableInternalTracking),
+/* harmony export */   "fetchAccessToken": () => (/* binding */ fetchAccessToken),
+/* harmony export */   "fetchDisableInternalTracking": () => (/* binding */ fetchDisableInternalTracking),
+/* harmony export */   "fetchProxyMappingsEnabled": () => (/* binding */ fetchProxyMappingsEnabled),
+/* harmony export */   "getBusinessUnitId": () => (/* binding */ getBusinessUnitId),
+/* harmony export */   "healthcheckRestApi": () => (/* binding */ healthcheckRestApi),
+/* harmony export */   "refreshProxyMappingsCache": () => (/* binding */ refreshProxyMappingsCache),
+/* harmony export */   "setBusinessUnitId": () => (/* binding */ setBusinessUnitId),
+/* harmony export */   "skipReview": () => (/* binding */ skipReview),
+/* harmony export */   "toggleProxyMappingsEnabled": () => (/* binding */ toggleProxyMappingsEnabled),
+/* harmony export */   "trackConsent": () => (/* binding */ trackConsent),
+/* harmony export */   "updateHublet": () => (/* binding */ updateHublet)
+/* harmony export */ });
+/* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! jquery */ "jquery");
+/* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jquery__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _lib_Raven__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../lib/Raven */ "./scripts/lib/Raven.ts");
+/* harmony import */ var _constants_leadinConfig__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../constants/leadinConfig */ "./scripts/constants/leadinConfig.ts");
+/* harmony import */ var _utils_queryParams__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/queryParams */ "./scripts/utils/queryParams.ts");
+
+
+
+
+function makeRequest(method, path) {
+  var data = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  var queryParams = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+  // eslint-disable-next-line compat/compat
+  var restApiUrl = new URL("".concat(_constants_leadinConfig__WEBPACK_IMPORTED_MODULE_2__.restUrl, "leadin/v1").concat(path));
+  (0,_utils_queryParams__WEBPACK_IMPORTED_MODULE_3__.addQueryObjectToUrl)(restApiUrl, queryParams);
+  return new Promise(function (resolve, reject) {
+    var payload = {
+      url: restApiUrl.toString(),
+      method: method,
+      contentType: 'application/json',
+      beforeSend: function beforeSend(xhr) {
+        return xhr.setRequestHeader('X-WP-Nonce', _constants_leadinConfig__WEBPACK_IMPORTED_MODULE_2__.restNonce);
+      },
+      success: resolve,
+      error: function error(response) {
+        _lib_Raven__WEBPACK_IMPORTED_MODULE_1__["default"].captureMessage("HTTP Request to ".concat(restApiUrl, " failed with error ").concat(response.status, ": ").concat(response.responseText), {
+          fingerprint: ['{{ default }}', path, response.status, response.responseText]
+        });
+        reject(response);
+      }
+    };
+    if (method !== 'get') {
+      payload.data = JSON.stringify(data);
+    }
+    jquery__WEBPACK_IMPORTED_MODULE_0___default().ajax(payload);
+  });
+}
+function healthcheckRestApi() {
+  return makeRequest('get', '/healthcheck');
+}
+function disableInternalTracking(value) {
+  return makeRequest('put', '/internal-tracking', value ? '1' : '0');
+}
+function fetchDisableInternalTracking() {
+  return makeRequest('get', '/internal-tracking').then(function (message) {
+    return {
+      message: message
+    };
+  });
+}
+function updateHublet(hublet) {
+  return makeRequest('put', '/hublet', {
+    hublet: hublet
+  });
+}
+function skipReview() {
+  return makeRequest('post', '/skip-review');
+}
+function trackConsent(canTrack) {
+  return makeRequest('post', '/track-consent', {
+    canTrack: canTrack
+  }).then(function (message) {
+    return {
+      message: message
+    };
+  });
+}
+function setBusinessUnitId(businessUnitId) {
+  return makeRequest('put', '/business-unit', {
+    businessUnitId: businessUnitId
+  });
+}
+function getBusinessUnitId() {
+  return makeRequest('get', '/business-unit');
+}
+function refreshProxyMappingsCache() {
+  return makeRequest('post', '/wp-mappings-cache-reset');
+}
+function fetchProxyMappingsEnabled() {
+  return makeRequest('get', '/wp-mappings-proxy-enabled');
+}
+function toggleProxyMappingsEnabled(value) {
+  return makeRequest('put', '/wp-mappings-proxy-enabled', value);
+}
+var ACCESS_TOKEN_CACHE_KEY = 'leadin_access_token';
+var ACCESS_TOKEN_MIN_TTL_SECONDS = 300;
+var accessTokenRequest = null;
+function fetchAccessToken() {
+  try {
+    var cached = sessionStorage.getItem(ACCESS_TOKEN_CACHE_KEY);
+    if (cached) {
+      var _JSON$parse = JSON.parse(cached),
+        accessToken = _JSON$parse.accessToken,
+        expiresAt = _JSON$parse.expiresAt;
+      if (accessToken && expiresAt > Math.floor(Date.now() / 1000) + ACCESS_TOKEN_MIN_TTL_SECONDS) {
+        return Promise.resolve({
+          accessToken: accessToken,
+          expiresIn: expiresAt - Math.floor(Date.now() / 1000)
+        });
+      }
+    }
+  } catch (_) {}
+  if (!accessTokenRequest) {
+    accessTokenRequest = makeRequest('get', '/access-token').then(function (response) {
+      try {
+        sessionStorage.setItem(ACCESS_TOKEN_CACHE_KEY, JSON.stringify({
+          accessToken: response.accessToken,
+          expiresAt: Math.floor(Date.now() / 1000) + response.expiresIn
+        }));
+      } catch (_) {}
+      return response;
+    })["finally"](function () {
+      accessTokenRequest = null;
+    });
+  }
+  return accessTokenRequest;
+}
+
+/***/ }),
+
 /***/ "./scripts/constants/leadinConfig.ts":
 /*!*******************************************!*\
   !*** ./scripts/constants/leadinConfig.ts ***!
@@ -384,6 +526,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _constants_leadinConfig__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../constants/leadinConfig */ "./scripts/constants/leadinConfig.ts");
 /* harmony import */ var _appUtils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./appUtils */ "./scripts/utils/appUtils.ts");
+/* harmony import */ var _api_wordpressApiClient__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../api/wordpressApiClient */ "./scripts/api/wordpressApiClient.ts");
+
 
 
 function initBackgroundApp(initFn) {
@@ -404,20 +548,47 @@ var getLeadinConfig = function getLeadinConfig() {
   };
 };
 var getOrCreateBackgroundApp = function getOrCreateBackgroundApp() {
-  var refreshToken = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+  var accessToken = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+  var expiresIn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
   if (window.LeadinBackgroundApp) {
     return window.LeadinBackgroundApp;
   }
   var _window = window,
     IntegratedAppEmbedder = _window.IntegratedAppEmbedder,
     IntegratedAppOptions = _window.IntegratedAppOptions;
-  var options = new IntegratedAppOptions().setLocale(_constants_leadinConfig__WEBPACK_IMPORTED_MODULE_0__.locale).setDeviceId(_constants_leadinConfig__WEBPACK_IMPORTED_MODULE_0__.deviceId).setLeadinConfig(getLeadinConfig()).setRefreshToken(refreshToken.trim());
+  var options = new IntegratedAppOptions().setLocale(_constants_leadinConfig__WEBPACK_IMPORTED_MODULE_0__.locale).setDeviceId(_constants_leadinConfig__WEBPACK_IMPORTED_MODULE_0__.deviceId).setLeadinConfig(getLeadinConfig()).setAccessToken(accessToken, expiresIn);
   var embedder = new IntegratedAppEmbedder('integrated-plugin-proxy', _constants_leadinConfig__WEBPACK_IMPORTED_MODULE_0__.portalId, _constants_leadinConfig__WEBPACK_IMPORTED_MODULE_0__.hubspotBaseUrl, function () {}).setOptions(options);
   embedder.attachTo(document.body, false);
-  embedder.postStartAppMessage(); // lets the app know all all data has been passed to it
+  embedder.setTokenRenewalCallback(_api_wordpressApiClient__WEBPACK_IMPORTED_MODULE_2__.fetchAccessToken);
+  embedder.postStartAppMessage(); // lets the app know all data has been passed to it
   window.LeadinBackgroundApp = embedder;
   return window.LeadinBackgroundApp;
 };
+
+/***/ }),
+
+/***/ "./scripts/utils/queryParams.ts":
+/*!**************************************!*\
+  !*** ./scripts/utils/queryParams.ts ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "addQueryObjectToUrl": () => (/* binding */ addQueryObjectToUrl),
+/* harmony export */   "removeQueryParamFromLocation": () => (/* binding */ removeQueryParamFromLocation)
+/* harmony export */ });
+function addQueryObjectToUrl(urlObject, queryParams) {
+  Object.keys(queryParams).forEach(function (key) {
+    urlObject.searchParams.append(key, queryParams[key]);
+  });
+}
+function removeQueryParamFromLocation(key) {
+  var location = new URL(window.location.href);
+  location.searchParams["delete"](key);
+  window.history.replaceState(null, '', location.href);
+}
 
 /***/ }),
 
@@ -3684,7 +3855,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils_backgroundAppUtils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/backgroundAppUtils */ "./scripts/utils/backgroundAppUtils.ts");
 /* harmony import */ var _constants_selectors__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../constants/selectors */ "./scripts/constants/selectors.ts");
 /* harmony import */ var _constants_leadinConfig__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../constants/leadinConfig */ "./scripts/constants/leadinConfig.ts");
-/* harmony import */ var _iframe_integratedMessages__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../iframe/integratedMessages */ "./scripts/iframe/integratedMessages/index.ts");
+/* harmony import */ var _api_wordpressApiClient__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../api/wordpressApiClient */ "./scripts/api/wordpressApiClient.ts");
+/* harmony import */ var _iframe_integratedMessages__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../iframe/integratedMessages */ "./scripts/iframe/integratedMessages/index.ts");
+
 
 
 
@@ -3702,34 +3875,39 @@ var userIsAfterIntroductoryPeriod = function userIsAfterIntroductoryPeriod() {
  * displayed to monitor events
  */
 function initMonitorReviewBanner() {
-  if (_constants_leadinConfig__WEBPACK_IMPORTED_MODULE_3__.refreshToken) {
-    var embedder = (0,_utils_backgroundAppUtils__WEBPACK_IMPORTED_MODULE_1__.getOrCreateBackgroundApp)(_constants_leadinConfig__WEBPACK_IMPORTED_MODULE_3__.refreshToken);
+  if (_constants_leadinConfig__WEBPACK_IMPORTED_MODULE_3__.connectionStatus !== 'Connected') return;
+  (0,_api_wordpressApiClient__WEBPACK_IMPORTED_MODULE_4__.fetchAccessToken)().then(function (_ref) {
+    var accessToken = _ref.accessToken,
+      expiresIn = _ref.expiresIn;
+    var embedder = (0,_utils_backgroundAppUtils__WEBPACK_IMPORTED_MODULE_1__.getOrCreateBackgroundApp)(accessToken, expiresIn);
     var container = jquery__WEBPACK_IMPORTED_MODULE_0___default()(_constants_selectors__WEBPACK_IMPORTED_MODULE_2__.domElements.reviewBannerContainer);
     if (container && userIsAfterIntroductoryPeriod()) {
       jquery__WEBPACK_IMPORTED_MODULE_0___default()(_constants_selectors__WEBPACK_IMPORTED_MODULE_2__.domElements.reviewBannerLeaveReviewLink).off('click').on('click', function () {
         embedder.postMessage({
-          key: _iframe_integratedMessages__WEBPACK_IMPORTED_MODULE_4__.ProxyMessages.TrackReviewBannerInteraction
+          key: _iframe_integratedMessages__WEBPACK_IMPORTED_MODULE_5__.ProxyMessages.TrackReviewBannerInteraction
         });
       });
       jquery__WEBPACK_IMPORTED_MODULE_0___default()(_constants_selectors__WEBPACK_IMPORTED_MODULE_2__.domElements.reviewBannerDismissButton).off('click').on('click', function () {
         embedder.postMessage({
-          key: _iframe_integratedMessages__WEBPACK_IMPORTED_MODULE_4__.ProxyMessages.TrackReviewBannerDismissed
+          key: _iframe_integratedMessages__WEBPACK_IMPORTED_MODULE_5__.ProxyMessages.TrackReviewBannerDismissed
         });
       });
       embedder.postAsyncMessage({
-        key: _iframe_integratedMessages__WEBPACK_IMPORTED_MODULE_4__.ProxyMessages.FetchContactsCreateSinceActivation,
+        key: _iframe_integratedMessages__WEBPACK_IMPORTED_MODULE_5__.ProxyMessages.FetchContactsCreateSinceActivation,
         payload: +_constants_leadinConfig__WEBPACK_IMPORTED_MODULE_3__.activationTime * 1000
-      }).then(function (_ref) {
-        var total = _ref.total;
+      }).then(function (_ref2) {
+        var total = _ref2.total;
         if (total >= 5) {
           container.removeClass('leadin-review-banner--hide');
           embedder.postMessage({
-            key: _iframe_integratedMessages__WEBPACK_IMPORTED_MODULE_4__.ProxyMessages.TrackReviewBannerRender
+            key: _iframe_integratedMessages__WEBPACK_IMPORTED_MODULE_5__.ProxyMessages.TrackReviewBannerRender
           });
         }
       });
     }
-  }
+  })["catch"](function (err) {
+    return console.error('[leadin] Failed to load review banner embedder:', err);
+  });
 }
 (0,_utils_backgroundAppUtils__WEBPACK_IMPORTED_MODULE_1__.initBackgroundApp)(initMonitorReviewBanner);
 })();

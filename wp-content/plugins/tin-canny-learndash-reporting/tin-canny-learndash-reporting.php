@@ -9,7 +9,7 @@
  * Domain Path:         /languages
  * License:             GPLv3
  * License URI:         https://www.gnu.org/licenses/gpl-3.0.html
- * Version:             5.1.3.1
+ * Version:             5.1.3.3
  * Requires at least:   5.8
  * Requires PHP:        7.4
 */
@@ -18,7 +18,7 @@
  * Define version
  */
 
-define( 'UNCANNY_REPORTING_VERSION', '5.1.3.1' );
+define( 'UNCANNY_REPORTING_VERSION', '5.1.3.3' );
 define( 'UNCANNY_REPORTING_DB_VERSION', '5.1.0' );
 
 // All Class instance are store in Global Variable $uncanny_learndash_reporting

@@ -15,20 +15,16 @@ if ( class_exists( '\GFFormsModel' ) && function_exists( 'gf_user_registration' 
 	?>
 
 	<!-- Gravity Forms -->
-	<div class="uo-admin-section">
-		<div class="uo-admin-header">
-			<div
-				class="uo-admin-title"><?php esc_html_e( 'Gravity Forms settings', 'uncanny-learndash-codes' ); ?></div>
+	<div class="uncannyowl-admin-section">
+		<div class="uncannyowl-admin-header">
+			<div class="uncannyowl-admin-title"><?php esc_html_e( 'Gravity Forms settings', 'uncanny-learndash-codes' ); ?></div>
 		</div>
-		<div class="uo-admin-block">
-			<div class="uo-admin-form">
+		<div class="uncannyowl-admin-block">
+			<div class="uncannyowl-admin-form">
 				<?php if ( ! empty( $existing ) ) { ?>
-					<div class="uo-admin-field">
-						<div
-							class="uo-admin-label"><?php esc_html_e( 'Select form', 'uncanny-learndash-codes' ); ?></div>
-
-						<select class="uo-admin-select" name="registration_form"
-								id="registration_form">
+					<div class="uncannyowl-admin-field">
+						<label for="registration_form"><?php esc_html_e( 'Select form', 'uncanny-learndash-codes' ); ?></label>
+						<select class="uncannyowl-select" name="registration_form" id="registration_form">
 							<option value="0"><?php esc_html_e( 'Select form', 'uncanny-learndash-codes' ); ?></option>
 							<?php foreach ( $forms as $form ) { ?>
 								<option
@@ -40,59 +36,49 @@ if ( class_exists( '\GFFormsModel' ) && function_exists( 'gf_user_registration' 
 						</select>
 					</div>
 
-					<div class="uo-admin-field">
-						<div
-							class="uo-admin-label"><?php esc_html_e( 'Mandatory code field', 'uncanny-learndash-codes' ); ?></div>
-
-						<label class="uo-checkbox">
+					<div class="uncannyowl-admin-field">
+						<label class="uncannyowl-toggle">
 							<input type="checkbox" value="1" name="registration-field-mandatory"
 								   id="registration-field-mandatory"<?php if ( 1 === intval( $code_field_mandatory ) ) {
 								echo 'checked="checked"';
 							} ?>>
-							<div class="uo-checkmark"></div>
-							<span class="uo-label">
-													<?php esc_html_e( 'Make Code field mandatory on User Registration form.', 'uncanny-learndash-codes' ); ?>
-												</span>
+							<span class="uncannyowl-toggle-slider"></span>
 						</label>
+						<span class="uncannyowl-toggle-label">
+							<?php esc_html_e( 'Make Code field mandatory on User Registration form.', 'uncanny-learndash-codes' ); ?>
+						</span>
 					</div>
 				<?php } ?>
-				<div class="uo-admin-field">
-					<div
-						class="uo-admin-label"><?php esc_html_e( 'User registration field label', 'uncanny-learndash-codes' ); ?></div>
-
-					<input class="uo-admin-input" type="text"
+				
+				<div class="uncannyowl-admin-field">
+					<label for="code_field_label"><?php esc_html_e( 'User registration field label', 'uncanny-learndash-codes' ); ?></label>
+					<input class="uncannyowl-input" type="text"
 						   value="<?php if ( null !== $code_field_label ) {
 							   echo esc_html( $code_field_label );
-						   } ?>" name="code_field_label" id="code_field_label" class="widefat"
+						   } ?>" name="code_field_label" id="code_field_label"
 						   placeholder="<?php esc_html_e( 'Enter Registration Code', 'uncanny-learndash-codes' ); ?>"/>
 				</div>
 
-				<div class="uo-admin-field">
-					<div
-						class="uo-admin-label"><?php esc_html_e( 'User registration field error message', 'uncanny-learndash-codes' ); ?></div>
-
-					<input class="uo-admin-input" type="text"
+				<div class="uncannyowl-admin-field">
+					<label for="code_field_error_message"><?php esc_html_e( 'User registration field error message', 'uncanny-learndash-codes' ); ?></label>
+					<input class="uncannyowl-input" type="text"
 						   value="<?php if ( null !== $code_field_error_message ) {
 							   echo esc_html( $code_field_error_message );
 						   } ?>" name="code_field_error_message" id="code_field_error_message"
-						   class="widefat"
 						   placeholder="<?php esc_html_e( 'This Field is Mandatory', 'uncanny-learndash-codes' ); ?>"/>
 				</div>
 
-				<div class="uo-admin-field">
-					<div
-						class="uo-admin-label"><?php esc_html_e( 'User registration field placeholder', 'uncanny-learndash-codes' ); ?></div>
-
-					<input class="uo-admin-input" type="text"
+				<div class="uncannyowl-admin-field">
+					<label for="code_field_placeholder"><?php esc_html_e( 'User registration field placeholder', 'uncanny-learndash-codes' ); ?></label>
+					<input class="uncannyowl-input" type="text"
 						   value="<?php if ( null !== $code_field_placeholder ) {
 							   echo esc_html( $code_field_placeholder );
 						   } ?>" name="code_field_placeholder" id="code_field_placeholder"
-						   class="widefat"
 						   placeholder="<?php esc_html_e( 'Enter Code', 'uncanny-learndash-codes' ); ?>"/>
 				</div>
 
-				<div class="uo-admin-field">
-					<input type="submit" name="submit" id="submit" class="uo-admin-form-submit"
+				<div class="uncannyowl-admin-field">
+					<input type="submit" name="submit" id="submit" class="uncannyowl-btn uncannyowl-btn--secondary"
 						   value="<?php esc_html_e( 'Save Changes', 'uncanny-learndash-codes' ); ?>">
 				</div>
 

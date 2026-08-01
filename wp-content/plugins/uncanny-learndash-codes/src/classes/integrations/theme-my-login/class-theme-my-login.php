@@ -107,7 +107,7 @@ class ThemeMyLogin extends Config {
 
 		$coupon_id = Database::is_coupon_available( SharedFunctionality::ulc_filter_input( 'code_registration', INPUT_POST ) );
 		if ( is_numeric( intval( $coupon_id ) ) && empty( SharedFunctionality::ulc_filter_input( 'gform_submit', INPUT_POST ) ) ) {
-			update_user_meta( $user_id, Config::$uncanny_codes_tracking, esc_html__( 'Theme My Login', 'uncanny-learndash-codes' ) );
+			update_user_meta( $user_id, Config::$uncanny_codes_tracking, 'Theme My Login' );
 
 			$result = Database::set_user_to_coupon( $user_id, self::$coupon_id );
 			LearnDash::set_user_to_course_or_group( $user_id, $result );

@@ -6,7 +6,7 @@ use WPForms_Field;
 use function wpforms_get_min_suffix;
 
 /**
- * Add new "Uncanny Codes" field type for WPForms
+ * Add new "Uncanny Redemption Codes" field type for WPForms
  *
  * Class WPForms_Code_Field
  * @package uncanny_learndash_codes
@@ -21,7 +21,7 @@ class WPForms_Code_Field extends WPForms_Field {
 	public function init() {
 
 		// Define field type information.
-		$this->name  = esc_html__( 'Uncanny Code', 'uncanny-learndash-codes' );
+		$this->name  = 'Uncanny Code';
 		$this->type  = 'uncanny_code';
 		$this->icon  = 'fa-ticket';
 		$this->order = 600;

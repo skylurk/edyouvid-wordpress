@@ -12,7 +12,7 @@ if ( ! defined( 'WPINC' ) ) {
  */
 ?>
 
-<div class="uoc-generate-section uoc-generate-dependency">
+<div class="uoc-generate-section uoc-generate-dependency pl-0">
 
 	<div class="uoc-generate-section__title">
 		<?php esc_html_e( 'How are the codes going to be used?', 'uncanny-learndash-codes' ); ?> <span
@@ -59,7 +59,7 @@ if ( ! defined( 'WPINC' ) ) {
 					</div>
 
 					<div
-						class="uoc-generate-notice uoc-generate-notice--warning uoc-generate-hidden"
+						class="uncannyowl-alert uncannyowl-alert-warning uoc-generate-hidden"
 						id="uoc-generate-dependency-automator-install"
 					>
 						<div class="uoc-generate-notice__title">
@@ -80,7 +80,7 @@ if ( ! defined( 'WPINC' ) ) {
 					</div>
 
 					<div
-						class="uoc-generate-notice uoc-generate-notice--warning uoc-generate-hidden"
+						class="uncannyowl-alert uncannyowl-alert-warning uoc-generate-hidden"
 						id="uoc-generate-dependency-automator-update"
 					>
 						<div class="uoc-generate-notice__title">
@@ -94,10 +94,10 @@ if ( ! defined( 'WPINC' ) ) {
 					</div>
 
 					<div
-						class="uoc-generate-notice uoc-generate-notice--info uoc-generate-hidden"
+						class=" uoc-generate-hidden  uncannyowl-alert uncannyowl-alert-info"
 						id="uoc-generate-dependency-automator-what-now"
 					>
-						<div class="uoc-generate-notice__title">
+						<div class="uoc-generate-notice__title ">
 							<?php esc_html_e( 'Cool! Make sure to set up a recipe', 'uncanny-learndash-codes' ); ?>
 						</div>
 						<div class="uoc-generate-notice__description">
@@ -114,7 +114,7 @@ if ( ! defined( 'WPINC' ) ) {
 				data-option="learndash"
 			>
 				<div class="uoc-generate-dependency-option__checkbox">
-					<div class="uoc-generate-section-form-field">
+					<div class="uoc-generate-section-form-field uncannyowl-radio"> 
 						<input
 							type="radio"
 							name="dependency"
@@ -145,7 +145,7 @@ if ( ! defined( 'WPINC' ) ) {
 					</div>
 
 					<div
-						class="uoc-generate-notice uoc-generate-notice--warning uoc-generate-hidden"
+						class="uncannyowl-alert uncannyowl-alert-warning uoc-generate-hidden"
 						id="uoc-generate-dependency-learndash-install"
 					>
 						<div class="uoc-generate-notice__title">
@@ -153,13 +153,13 @@ if ( ! defined( 'WPINC' ) ) {
 						</div>
 
 						<div class="uoc-generate-notice__description">
-							<?php printf( esc_html__( '%s is a popular LMS plugin for WordPress. Uncanny Codes supports adding users to courses and groups when codes are redeemed.', 'uncanny-learndash-codes' ), 'LearnDash' ); ?>
+							<?php printf( esc_html__( '%s is a popular LMS plugin for WordPress. Uncanny Redemption Codes supports adding users to courses and groups when codes are redeemed.', 'uncanny-learndash-codes' ), 'LearnDash' ); ?>
 						</div>
 
 						<div class="uoc-generate-notice__action">
 							<a
 								href="https://www.uncannyowl.com/share/learndash/"
-								class="uoc-generate-button uoc-generate-notice__button"
+								class="uncannyowl-btn uncannyowl-btn--secondary"
 								target="_blank">
 								<?php esc_html_e( 'Learn more', 'uncanny-learndash-codes' ); ?>
 							</a>
@@ -191,7 +191,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 					<div class="uoc-generate-section-form">
 						<label class="uoc-generate-section-form-field">
-							<div class="uoc-generate-section-form-field__radio">
+							<div class="uoc-generate-section-form-field__radio align-center">
 								<input
 									type="radio"
 									name="learndash-content"
@@ -332,7 +332,7 @@ if ( ! defined( 'WPINC' ) ) {
 									<div class="uoc-generate-section-form-field__radio-description-title">
 										<?php esc_html_e( 'Default', 'uncanny-learndash-codes' ); ?>
 
-										<div class="uoc-generate-tag uoc-generate-tag--info">
+										<div class="uncannyowl-badge uncannyowl-badge-info ml-sm">
 											<?php esc_html_e( 'Recommended', 'uncanny-learndash-codes' ); ?>
 										</div>
 									</div>
@@ -359,7 +359,7 @@ if ( ! defined( 'WPINC' ) ) {
 									<div class="uoc-generate-section-form-field__radio-description-title">
 										<?php esc_html_e( 'Prepaid', 'uncanny-learndash-codes' ); ?>
 
-										<div class="uoc-generate-tag uoc-generate-tag--warning">
+										<div class="uncannyowl-badge uncannyowl-badge-warning ml-sm">
 											<?php printf( esc_html__( 'Requires %s', 'uncanny-learndash-codes' ), 'WooCommerce' ); ?>
 										</div>
 									</div>
@@ -386,7 +386,7 @@ if ( ! defined( 'WPINC' ) ) {
 									<div class="uoc-generate-section-form-field__radio-description-title">
 										<?php esc_html_e( 'Not prepaid', 'uncanny-learndash-codes' ); ?>
 
-										<div class="uoc-generate-tag uoc-generate-tag--warning">
+										<div class="uncannyowl-badge uncannyowl-badge-warning  ml-sm">
 											<?php printf( esc_html__( 'Requires %s', 'uncanny-learndash-codes' ), 'WooCommerce' ); ?>
 										</div>
 									</div>

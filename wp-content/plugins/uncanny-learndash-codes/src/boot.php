@@ -42,7 +42,7 @@ class Boot extends Config {
 
 		add_filter( 'plugin_action_links', array( __CLASS__, 'uncanny_learndash_codes_plugin_settings_link' ), 10, 5 );
 
-		add_action( 'plugins_loaded', array( __CLASS__, 'uncanny_learndash_codes_text_domain' ) );
+		add_action( 'init', array( __CLASS__, 'uncanny_learndash_codes_text_domain' ), 0 );
 
 		// Add WPForms Code Field Functions!
 		add_action( 'plugins_loaded', array( __CLASS__, 'add_wpforms_code_field' ) );
@@ -68,7 +68,6 @@ class Boot extends Config {
 
 		add_action( 'admin_menu', array( __CLASS__, 'add_help_submenu' ), 30 );
 		add_action( 'admin_menu', array( __CLASS__, 'add_uncanny_plugins_page' ), 31 );
-		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_external_scripts' ) );
 		add_action( 'admin_init', array( __CLASS__, 'uo_admin_help_process' ) );
 
 		add_action( 'admin_notices', array( __CLASS__, 'uo_admin_notices' ) );
@@ -208,7 +207,7 @@ class Boot extends Config {
 	public static function add_help_submenu() {
 		add_submenu_page(
 			'uncanny-learndash-codes',
-			esc_html__( 'Uncanny Codes Support', 'uncanny-learndash-codes' ),
+			esc_html__( 'Uncanny Redemption Codes Support', 'uncanny-learndash-codes' ),
 			esc_html__( 'Help', 'uncanny-learndash-codes' ),
 			'manage_options',
 			'uncanny-codes-kb',
@@ -242,18 +241,6 @@ class Boot extends Config {
 	 */
 	public static function include_learndash_plugins_page() {
 		include Config::get_template( 'admin-learndash-plugins.php' );
-	}
-
-	/**
-	 * Enqueue external scripts from uncannyowl.com
-	 */
-	public static function enqueue_external_scripts() {
-		$pages_to_include = array( 'uncanny-codes-plugins', 'uncanny-codes-kb' );
-
-		if ( SharedFunctionality::ulc_filter_has_var( 'page' ) && in_array( SharedFunctionality::ulc_filter_input( 'page' ), $pages_to_include ) ) {
-			wp_enqueue_style( 'uncannyowl-core', 'https://uncannyowl.com/wp-content/mu-plugins/uncanny-plugins-core/dist/bundle.min.css', array(), Config::get_version() );
-			wp_enqueue_script( 'uncannyowl-core', 'https://uncannyowl.com/wp-content/mu-plugins/uncanny-plugins-core/dist/bundle.min.js', array( 'jquery' ), Config::get_version() );
-		}
 	}
 
 	/**
@@ -299,6 +286,7 @@ class Boot extends Config {
 	 * @return array
 	 */
 	public static function uncanny_learndash_codes_plugin_settings_link( $actions, $plugin_file ) {
+		//delay translation loading to init hook to avoid warning in WordPress 6.7+
 		static $plugin;
 
 		if ( ! isset( $plugin ) ) {
@@ -306,8 +294,7 @@ class Boot extends Config {
 		}
 
 		if ( $plugin === $plugin_file ) {
-			$settings_link[] = sprintf( '<a href="%s">%s</a>', admin_url( 'admin.php?page=uncanny-learndash-codes-settings' ), esc_html__( 'Settings', 'uncanny-learndash-codes' ) );
-			$settings_link[] = sprintf( '<a href="%s">%s</a>', admin_url( 'admin.php?page=uncanny-learndash-codes-settings' ), esc_html__( 'Licensing', 'uncanny-learndash-codes' ) );
+			$settings_link[] = sprintf( '<a href="%s">%s</a>', admin_url( 'admin.php?page=uncanny-learndash-codes-settings' ), 'Settings' );
 			$actions         = array_merge( $settings_link, $actions );
 		}
 
@@ -318,11 +305,11 @@ class Boot extends Config {
 	 *
 	 */
 	public static function uncanny_learndash_codes_text_domain() {
-		load_plugin_textdomain( 'uncanny-learndash-codes', false, basename( dirname( __FILE__ ) ) . '/languages/' );
+		load_plugin_textdomain( 'uncanny-learndash-codes', false, dirname( plugin_basename( UO_CODES_FILE ) ) . '/languages/' );
 	}
 
 	/**
-	 * Add Uncanny Codes field to WpForms
+	 * Add Uncanny Redemption Codes field to WpForms
 	 */
 	public static function add_wpforms_code_field() {
 		if ( function_exists( 'wpforms' ) ) {
@@ -331,7 +318,7 @@ class Boot extends Config {
 	}
 
 	/**
-	 * Add Uncanny Codes field to WpForms
+	 * Add Uncanny Redemption Codes field to WpForms
 	 */
 	public static function add_formidable_code_field() {
 		if ( function_exists( 'load_formidable_forms' ) ) {
@@ -343,6 +330,33 @@ class Boot extends Config {
 	 *
 	 */
 	public static function actions_before_header() {
+		// Handle bulk actions via POST first
+		if ( SharedFunctionality::ulc_filter_has_var( 'action', INPUT_POST ) &&
+			 SharedFunctionality::ulc_filter_has_var( 'page' ) &&
+			 'uncanny-learndash-codes' === SharedFunctionality::ulc_filter_input( 'page' ) ) {
+
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_die( 'Insufficient permissions.' );
+			}
+
+			$action = SharedFunctionality::ulc_filter_input( 'action', INPUT_POST );
+
+			switch ( $action ) {
+				case 'bulk_download':
+					self::handle_bulk_download();
+					break;
+				case 'bulk_replace':
+					self::handle_bulk_replace();
+					break;
+				case 'bulk_cancel':
+					self::handle_bulk_cancel();
+					break;
+				case 'bulk_delete':
+					self::handle_bulk_delete();
+					break;
+			}
+		}
+
 		if ( SharedFunctionality::ulc_filter_has_var( 'page' ) && ! empty( SharedFunctionality::ulc_filter_input( 'mode' ) ) ) {
 
 			if ( ! current_user_can( 'manage_options' ) ) {
@@ -486,6 +500,155 @@ class Boot extends Config {
 	}
 
 	/**
+	 * Handle bulk download of selected codes
+	 */
+	public static function handle_bulk_download() {
+		// Verify nonce
+		if ( ! wp_verify_nonce( SharedFunctionality::ulc_filter_input( '_wpnonce', INPUT_POST ), 'wp_rest' ) ) {
+			wp_die( esc_html__( 'Security check failed', 'uncanny-learndash-codes' ) );
+		}
+
+		$code_ids = SharedFunctionality::ulc_filter_input_array( 'code_ids', INPUT_POST );
+
+		if ( empty( $code_ids ) ) {
+			wp_die( esc_html__( 'No codes selected for download', 'uncanny-learndash-codes' ) );
+		}
+
+		// Get codes data for selected IDs
+		$codes_data = Database::get_selected_codes_csv( $code_ids );
+
+		if ( empty( $codes_data ) ) {
+			wp_die( esc_html__( 'No valid codes found for download', 'uncanny-learndash-codes' ) );
+		}
+
+		// Generate CSV filename
+		$filename = apply_filters(
+			'ulc_codes_csv_filename',
+			'selected-codes-' . date_i18n( 'Y-m-d', strtotime( current_time( 'mysql' ) ) ) . '-' . substr( md5( time() . 'bulk_download' ), 0, 8 ),
+			'bulk_download'
+		);
+
+		// Create CSV download
+		new CSV(
+			array(
+				'filename' => $filename,
+				'data'     => $codes_data,
+			)
+		);
+	}
+
+	/**
+	 * Handle bulk replace of selected codes
+	 */
+	public static function handle_bulk_replace() {
+		// Verify nonce
+		if ( ! wp_verify_nonce( SharedFunctionality::ulc_filter_input( '_wpnonce', INPUT_POST ), 'wp_rest' ) ) {
+			wp_die( esc_html__( 'Security check failed', 'uncanny-learndash-codes' ) );
+		}
+
+		$code_ids = SharedFunctionality::ulc_filter_input_array( 'code_ids', INPUT_POST );
+
+		if ( empty( $code_ids ) ) {
+			wp_die( esc_html__( 'No codes selected for replacement', 'uncanny-learndash-codes' ) );
+		}
+
+		$success_count = 0;
+		foreach ( $code_ids as $code_id ) {
+			$code_details = Database::get_coupon_details( $code_id );
+			if ( $code_details ) {
+				Database::replace_code( $code_id, $code_details->code_group );
+				$success_count++;
+			}
+		}
+
+		// Track bulk replace operations
+		if ( $success_count > 0 ) {
+			$count = get_option( 'uncanny_codes_bulk_replace_count', 0 );
+			update_option( 'uncanny_codes_bulk_replace_count', $count + 1 );
+
+			$weekly_count = get_option( 'uncanny_codes_bulk_replace_week', 0 );
+			update_option( 'uncanny_codes_bulk_replace_week', $weekly_count + 1 );
+		}
+
+		wp_safe_redirect( add_query_arg( array( 'replaced' => $success_count ), remove_query_arg( array( 'action', '_wpnonce', 'code_ids' ) ) ) );
+		exit;
+	}
+
+	/**
+	 * Handle bulk cancel of selected codes
+	 */
+	public static function handle_bulk_cancel() {
+		// Verify nonce
+		if ( ! wp_verify_nonce( SharedFunctionality::ulc_filter_input( '_wpnonce', INPUT_POST ), 'wp_rest' ) ) {
+			wp_die( esc_html__( 'Security check failed', 'uncanny-learndash-codes' ) );
+		}
+
+		$code_ids = SharedFunctionality::ulc_filter_input_array( 'code_ids', INPUT_POST );
+
+		if ( empty( $code_ids ) ) {
+			wp_die( esc_html__( 'No codes selected for cancellation', 'uncanny-learndash-codes' ) );
+		}
+
+		$success_count = 0;
+		foreach ( $code_ids as $code_id ) {
+			$code_details = Database::get_coupon_details( $code_id );
+			if ( $code_details ) {
+				Database::cancel_code( $code_id, $code_details->code_group );
+				$success_count++;
+			}
+		}
+
+		// Track bulk cancel operations
+		if ( $success_count > 0 ) {
+			$count = get_option( 'uncanny_codes_bulk_cancel_count', 0 );
+			update_option( 'uncanny_codes_bulk_cancel_count', $count + 1 );
+
+			$weekly_count = get_option( 'uncanny_codes_bulk_cancel_week', 0 );
+			update_option( 'uncanny_codes_bulk_cancel_week', $weekly_count + 1 );
+		}
+
+		wp_safe_redirect( add_query_arg( array( 'cancelled' => $success_count ), remove_query_arg( array( 'action', '_wpnonce', 'code_ids' ) ) ) );
+		exit;
+	}
+
+	/**
+	 * Handle bulk delete of selected codes
+	 */
+	public static function handle_bulk_delete() {
+		// Verify nonce
+		if ( ! wp_verify_nonce( SharedFunctionality::ulc_filter_input( '_wpnonce', INPUT_POST ), 'wp_rest' ) ) {
+			wp_die( esc_html__( 'Security check failed', 'uncanny-learndash-codes' ) );
+		}
+
+		$code_ids = SharedFunctionality::ulc_filter_input_array( 'code_ids', INPUT_POST );
+
+		if ( empty( $code_ids ) ) {
+			wp_die( esc_html__( 'No codes selected for deletion', 'uncanny-learndash-codes' ) );
+		}
+
+		$success_count = 0;
+		foreach ( $code_ids as $code_id ) {
+			$code_details = Database::get_coupon_details( $code_id );
+			if ( $code_details ) {
+				Database::delete_code( $code_id, $code_details->code_group );
+				$success_count++;
+			}
+		}
+
+		// Track bulk delete operations
+		if ( $success_count > 0 ) {
+			$count = get_option( 'uncanny_codes_bulk_delete_count', 0 );
+			update_option( 'uncanny_codes_bulk_delete_count', $count + 1 );
+
+			$weekly_count = get_option( 'uncanny_codes_bulk_delete_week', 0 );
+			update_option( 'uncanny_codes_bulk_delete_week', $weekly_count + 1 );
+		}
+
+		wp_safe_redirect( add_query_arg( array( 'deleted' => $success_count ), remove_query_arg( array( 'action', '_wpnonce', 'code_ids' ) ) ) );
+		exit;
+	}
+
+	/**
 	 * Evaluates whether the backend static assets should be enqueued
 	 */
 	public static function should_enqueue_backend_assets() {
@@ -528,11 +691,27 @@ class Boot extends Config {
 			return;
 		}
 
-		wp_enqueue_style( 'uncanny-learndash-codes-backend', Config::get_asset( 'backend', 'bundle.min.css' ), false, Config::get_version() );
+		// For Help and LearnDash Plugins pages, make sure our CSS loads after external CSS
+		$dependencies = false;
+		$current_page = SharedFunctionality::ulc_filter_has_var( 'page' ) ? SharedFunctionality::ulc_filter_input( 'page' ) : '';
+		if ( in_array( $current_page, array( 'uncanny-codes-plugins', 'uncanny-codes-kb' ) ) ) {
+			$dependencies = array( 'uncannyowl-core' );
+		}
+
+		wp_enqueue_style( 'uncanny-learndash-codes-backend', Config::get_asset( 'backend', 'bundle.min.css' ), $dependencies, Config::get_version() );
+
+		// Enqueue UncannyOwl Design System CSS
+		wp_enqueue_style( 'uncannyowl-asset', UNCANNY_OWL_ASSETS_STATIC_URL . '/css/main.css', array(), Config::get_version() );
+		wp_enqueue_script( 'uncannyowl-asset', UNCANNY_OWL_ASSETS_STATIC_URL . '/js/main.js', array(), Config::get_version(), array( 'in_footer' => true ) );
 
 		// Add select2 option for the dropdowns.
 		wp_enqueue_style( 'uoc-select2', Config::get_vendor( 'select2/css/select2.min.css' ), array(), Config::get_version() );
 		wp_enqueue_script( 'uoc-select2', Config::get_vendor( 'select2/js/select2.min.js' ), array( 'jquery' ), Config::get_version(), true );
+
+		// Enqueue jQuery UI
+		wp_enqueue_script( 'jquery-ui-datepicker' );
+		// Enqueue jQuery UI CSS
+		wp_enqueue_style( 'jquery-ui-css', 'https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css' );
 
 		wp_register_script(
 			'uncanny-learndash-codes-backend',
@@ -540,6 +719,7 @@ class Boot extends Config {
 			array(
 				'jquery',
 				'uoc-select2',
+				'jquery-ui-datepicker',
 			),
 			Config::get_version()
 		);
@@ -584,9 +764,9 @@ class Boot extends Config {
 					'noResults'          => esc_html__( 'No results found', 'uncanny-learndash-codes' ),
 
 					'submitButton'       => array(
-						'forLearnDash' => esc_html__( 'Generate codes', 'uncanny-learndash-codes' ),
-						'forAutomator' => esc_html__( 'Generate codes and create a recipe', 'uncanny-learndash-codes' ),
-						'modifyBatch'  => esc_html__( 'Modify batch', 'uncanny-learndash-codes' ),
+						'forLearnDash' => esc_html__( 'Generate Codes', 'uncanny-learndash-codes' ),
+						'forAutomator' => esc_html__( 'Generate Codes and create a recipe', 'uncanny-learndash-codes' ),
+						'modifyBatch'  => esc_html__( 'Modify Batch', 'uncanny-learndash-codes' ),
 					),
 
 					'somethingWentWrong' => esc_html__( 'Something went wrong. Please, try again.', 'uncanny-learndash-codes' ),
@@ -638,7 +818,7 @@ class Boot extends Config {
 
 		add_submenu_page(
 			'uncanny-learndash-codes',
-			esc_html__( 'Uncanny Codes License Activation', 'uncanny-learndash-codes' ),
+			esc_html__( 'Uncanny Redemption Codes License Activation', 'uncanny-learndash-codes' ),
 			esc_html__( 'License activation', 'uncanny-learndash-codes' ),
 			'manage_options',
 			'uncanny-codes-license-activation',
@@ -662,6 +842,7 @@ class Boot extends Config {
 
 		$license = self::get_license_key();
 		$status  = get_option( 'uo_codes_license_status' );
+		$license_check = $status;
 		// $license_data->license will be either "valid", "invalid", "expired", "disabled".
 
 		// Check license status.
@@ -671,7 +852,7 @@ class Boot extends Config {
 		$license_css_classes = array();
 
 		if ( $license_is_active ) {
-			$license_css_classes[] = 'ulc-license--active';
+			$license_css_classes[] = 'uncannyowl-license--active';
 		}
 
 		// Set links. Add UTM parameters at the end of each URL.

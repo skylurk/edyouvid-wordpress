@@ -1,15 +1,9 @@
-import React, { Fragment } from 'react';
-import { portalId, refreshToken } from '../../constants/leadinConfig';
+import { portalId } from '../../constants/leadinConfig';
+import { __ } from '@wordpress/i18n';
 import ElementorBanner from '../Common/ElementorBanner';
 import UISpinner from '../../shared/UIComponents/UISpinner';
-import { __ } from '@wordpress/i18n';
-import {
-  BackgroudAppContext,
-  useBackgroundAppContext,
-} from '../../iframe/useBackgroundApp';
 import useForms from './hooks/useForms';
-import { getOrCreateBackgroundApp } from '../../utils/backgroundAppUtils';
-import { isRefreshTokenAvailable } from '../../utils/isRefreshTokenAvailable';
+import EmbedderContainer from '../../shared/Common/EmbedderContainer';
 
 interface IElementorFormSelectProps {
   formId: string;
@@ -59,32 +53,12 @@ function ElementorFormSelect({
   );
 }
 
-function ElementorFormSelectWrapper(props: IElementorFormSelectProps) {
-  const isBackgroundAppReady = useBackgroundAppContext();
-
-  return (
-    <Fragment>
-      {!isBackgroundAppReady ? (
-        <div>
-          <UISpinner />
-        </div>
-      ) : (
-        <ElementorFormSelect {...props} />
-      )}
-    </Fragment>
-  );
-}
-
 export default function ElementorFormSelectContainer(
   props: IElementorFormSelectProps
 ) {
   return (
-    <BackgroudAppContext.Provider
-      value={
-        isRefreshTokenAvailable() && getOrCreateBackgroundApp(refreshToken)
-      }
-    >
-      <ElementorFormSelectWrapper {...props} />
-    </BackgroudAppContext.Provider>
+    <EmbedderContainer>
+      <ElementorFormSelect {...props} />
+    </EmbedderContainer>
   );
 }

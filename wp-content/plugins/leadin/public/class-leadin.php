@@ -2,6 +2,8 @@
 
 namespace Leadin;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 require_once LEADIN_PLUGIN_DIR . '/public/includes/api-loader.php';
 
 use \Leadin\PageHooks;

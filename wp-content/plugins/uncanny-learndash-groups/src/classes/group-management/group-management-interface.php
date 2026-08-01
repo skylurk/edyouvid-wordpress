@@ -627,33 +627,36 @@ class GroupManagementInterface {
 		/*
 		* Include template
 		*/
-
-		?>
-
-		<script>
-
-			// Shortcode data
-			var ulgmGroupManagementShortcode = {
-				firstnameLastnameRequired: <?php echo $first_last_name_required ? 1 : 0; ?>,
-				tables: {
-					enrolledUsers: {
-						orderBy: "<?php echo esc_attr( $enrolled_users_orderby_column ); ?>",
-						order: "<?php echo esc_attr( $enrolled_users_order_column ); ?>",
-					},
-					groupLeaders: {
-						orderBy: "<?php echo esc_attr( $group_leaders_orderby_column ); ?>",
-						order: "<?php echo esc_attr( $group_leaders_order_column ); ?>",
-					},
-				}
-			}
-
-		</script>
-
-		<?php
-
 		include Utilities::get_template( 'frontend-uo_groups/frontend-uo_groups.php' );
 
-		return ob_get_clean();
+		$shortcode_output = ob_get_clean();
+
+		// Prepare inline JS data
+		$inline_js = sprintf(
+			'var ulgmGroupManagementShortcode = {
+	firstnameLastnameRequired: %d,
+	tables: {
+		enrolledUsers: {
+			orderBy: "%s",
+			order: "%s"
+		},
+		groupLeaders: {
+			orderBy: "%s",
+			order: "%s"
+		}
+	}
+};',
+			$first_last_name_required ? 1 : 0,
+			esc_js( $enrolled_users_orderby_column ),
+			esc_js( $enrolled_users_order_column ),
+			esc_js( $group_leaders_orderby_column ),
+			esc_js( $group_leaders_order_column )
+		);
+
+		// Attach the JS variable before the plugin's frontend script
+		wp_add_inline_script( 'ulgm-frontend', $inline_js, 'before' );
+
+		return $shortcode_output;
 	}
 
 	/**

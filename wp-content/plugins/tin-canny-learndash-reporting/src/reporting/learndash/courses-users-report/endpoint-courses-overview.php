@@ -139,6 +139,61 @@ class CourseData extends BuildReportData {
 	}
 
 	/**
+	 * Group post IDs a group leader administers (frontend reports scope).
+	 *
+	 * @param int $user_id Group leader user ID.
+	 * @return int[]
+	 */
+	public static function get_group_leader_group_ids( $user_id ) {
+		$user_id = absint( $user_id );
+		if ( $user_id < 1 ) {
+			return array();
+		}
+		$ids = self::learndash_get_administrators_group_ids( $user_id, false );
+		return is_array( $ids ) ? array_map( 'intval', $ids ) : array();
+	}
+
+	/**
+	 * Course IDs a group leader may use in frontend reports.
+	 *
+	 * @param int $user_id Group leader user ID.
+	 * @return int[]
+	 */
+	public static function get_group_leader_accessible_course_ids( $user_id ) {
+		$user_id = absint( $user_id );
+		if ( $user_id < 1 ) {
+			return array();
+		}
+		$course_ids = learndash_get_group_leader_groups_courses( $user_id );
+		return is_array( $course_ids ) ? array_map( 'intval', $course_ids ) : array();
+	}
+
+	/**
+	 * Map of user IDs managed by a group leader (for intersecting with course enrollees).
+	 *
+	 * @param int $leader_id Group leader user ID.
+	 * @return array<int, true>
+	 */
+	public static function get_group_leader_managed_user_id_map( $leader_id ) {
+		$leader_id = absint( $leader_id );
+		if ( $leader_id < 1 ) {
+			return array();
+		}
+		$user_ids = learndash_get_group_leader_groups_users( $leader_id );
+		if ( ! is_array( $user_ids ) ) {
+			return array();
+		}
+		$map = array();
+		foreach ( $user_ids as $uid ) {
+			$uid = (int) $uid;
+			if ( $uid > 0 ) {
+				$map[ $uid ] = true;
+			}
+		}
+		return $map;
+	}
+
+	/**
 	 * LearnDash get administrators group IDs
 	 *
 	 * @param $leader_id

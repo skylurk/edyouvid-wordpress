@@ -17,6 +17,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Authenticator;
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\Methods\Email;
 use WP2FA\Authenticator\Login;
 use WP2FA\Utils\Settings_Utils;
@@ -108,7 +110,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 				return $errors;
 			}
 
-			$login_nonce = Login::create_login_nonce( $user_data->ID );
+			$login_nonce = Login::create_login_nonce( $user_data->ID, 'reset_2fa' );
 			if ( ! $login_nonce ) {
 				\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 			}
@@ -119,7 +121,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 			} else {
 				// Reached the maximum number of attempts - clear the attempts and redirect the user to the login page.
 				self::clear_login_attempts( $user_data );
-				\wp_redirect( \wp_login_url() );
+				\wp_safe_redirect( \wp_login_url() );
 			}
 
 			exit;
@@ -190,7 +192,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 						</p>
 					</p>
 
-					<p class="2fa-email-resend">
+					<p class="wp-2fa-email-resend">
 						<input type="submit" class="button"
 						name="<?php echo \esc_attr( Login::INPUT_NAME_RESEND_CODE ); ?>"
 						value="<?php \esc_attr_e( 'Resend Code', 'wp-2fa' ); ?>"/>
@@ -220,7 +222,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 			}
 
 			$nonce = ( isset( $_POST['wp-auth-nonce'] ) ) ? \sanitize_textarea_field( wp_unslash( $_POST['wp-auth-nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			if ( true !== Login::verify_login_nonce( $user->ID, $nonce ) ) {
+			if ( true !== Login::verify_login_nonce( $user->ID, $nonce, 'reset_2fa' ) ) {
 				\wp_safe_redirect( \get_bloginfo( 'url' ) );
 				exit;
 			}
@@ -231,7 +233,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 
 			// If this is an email login, or if the user failed validation previously, lets send the code to the user.
 			if ( Email::METHOD_NAME === $provider && true !== Login::pre_process_email_authentication( $user, true ) ) {
-				$login_nonce = Login::create_login_nonce( $user->ID );
+				$login_nonce = Login::create_login_nonce( $user->ID, 'reset_2fa' );
 				if ( ! $login_nonce ) {
 					\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 				}
@@ -248,7 +250,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 					)
 				);
 
-				$login_nonce = Login::create_login_nonce( $user->ID );
+				$login_nonce = Login::create_login_nonce( $user->ID, 'reset_2fa' );
 				if ( ! $login_nonce ) {
 					\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 				}
@@ -263,7 +265,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 				} else {
 					// Reached the maximum number of attempts - clear the attempts and redirect the user to the login page.
 					self::clear_login_attempts( $user );
-					\wp_redirect( \wp_login_url() );
+					\wp_safe_redirect( \wp_login_url() );
 				}
 
 				exit;
@@ -281,7 +283,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 				exit;
 			}
 
-			\wp_redirect( site_url( 'wp-login.php?action=lostpassword' ) );
+			\wp_safe_redirect( site_url( 'wp-login.php?action=lostpassword' ) );
 		}
 	}
 }

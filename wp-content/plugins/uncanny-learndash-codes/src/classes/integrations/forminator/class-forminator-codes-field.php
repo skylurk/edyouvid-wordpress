@@ -114,7 +114,7 @@ class Forminator_Codes_Field_Handler extends Config {
 		}
 		$coupon_id = SharedFunctionality::maybe_validate_coupon_code( $value );
 		if ( null !== $coupon_id && is_numeric( $coupon_id ) ) {
-			update_user_meta( $user_id, Config::$uncanny_codes_tracking, esc_html__( 'Forminator', 'uncanny-learndash-codes' ) );
+			update_user_meta( $user_id, Config::$uncanny_codes_tracking, 'Forminator Forms' );
 			$result = Database::set_user_to_coupon( $user_id, $coupon_id );
 			LearnDash::set_user_to_course_or_group( $user_id, $result );
 

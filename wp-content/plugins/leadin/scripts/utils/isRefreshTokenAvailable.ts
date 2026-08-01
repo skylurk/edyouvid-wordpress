@@ -1,5 +1,5 @@
-import { refreshToken } from '../constants/leadinConfig';
+import { connectionStatus } from '../constants/leadinConfig';
 
 export function isRefreshTokenAvailable() {
-  return !!(refreshToken && refreshToken.trim());
+  return connectionStatus === 'Connected';
 }

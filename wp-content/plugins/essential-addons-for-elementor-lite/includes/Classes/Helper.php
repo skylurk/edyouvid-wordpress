@@ -176,6 +176,54 @@ class Helper
         return $settings;
     }
 
+    /**
+     * Filter product query args by the current MultiVendorX (5.0+) store.
+     *
+     * MultiVendorX 5.0 replaced the legacy vendor taxonomy archive with a virtual
+     * store page and links products to stores via the `multivendorx_store_id`
+     * post meta. When a product widget renders on a store page, limit the query
+     * to that store's products so each seller's page shows only their items.
+     *
+     * @since 6.7.0
+     * @param array $args WP_Query arguments.
+     * @return array
+     */
+    public static function eael_multivendorx_store_query_args( $args ) {
+        if ( ! function_exists( 'MultiVendorX' ) || ! class_exists( '\MultiVendorX\Store\Store' ) ) {
+            return $args;
+        }
+
+        $store_query_var = 'store';
+        if ( is_callable( [ MultiVendorX()->setting, 'get_setting' ] ) ) {
+            $store_query_var = MultiVendorX()->setting->get_setting( 'store_url', 'store' ) ?: 'store';
+        }
+
+        $store_slug = get_query_var( $store_query_var );
+        if ( empty( $store_slug ) || ! is_string( $store_slug ) ) {
+            return $args;
+        }
+
+        $store = \MultiVendorX\Store\Store::get_store( $store_slug, 'slug' );
+        if ( empty( $store ) || ! $store->get_id() ) {
+            return $args;
+        }
+
+        $store_id_meta_key = defined( '\MultiVendorX\Utill::POST_META_SETTINGS' ) && ! empty( \MultiVendorX\Utill::POST_META_SETTINGS['store_id'] )
+            ? \MultiVendorX\Utill::POST_META_SETTINGS['store_id']
+            : 'multivendorx_store_id';
+
+        if ( ! isset( $args['meta_query'] ) || ! is_array( $args['meta_query'] ) ) {
+            $args['meta_query'] = [ 'relation' => 'AND' ];
+        }
+
+        $args['meta_query'][] = [
+            'key'   => $store_id_meta_key,
+            'value' => $store->get_id(),
+        ];
+
+        return apply_filters( 'eael/multivendorx/store_query_args', $args, $store );
+    }
+
     public static function get_query_args($settings = [], $post_type = 'post')
     {
 	    $settings = wp_parse_args( $settings, [
@@ -266,8 +314,88 @@ class Helper
             $args['meta_query'] = array_filter( apply_filters( 'woocommerce_product_query_meta_query', $args['meta_query'], new \WC_Query() ) );
         }
 
+	    // Polylang: pin the query to the language of the page/document the widget is
+	    // on, instead of the ambient (cookie / last-page-load) current language. In
+	    // the editor the ambient language flips on every page load, which made the
+	    // Post Grid show the wrong language's posts. Skip manual ("by_id") selections
+	    // and post types Polylang isn't translating.
+	    if ( function_exists( 'pll_get_post_language' ) && 'by_id' !== $settings['post_type'] ) {
+		    $eael_is_translated = ! function_exists( 'pll_is_translated_post_type' );
+		    if ( ! $eael_is_translated ) {
+			    foreach ( (array) $args['post_type'] as $eael_pt ) {
+				    if ( 'any' !== $eael_pt && pll_is_translated_post_type( $eael_pt ) ) {
+					    $eael_is_translated = true;
+					    break;
+				    }
+			    }
+		    }
+
+		    if ( $eael_is_translated ) {
+			    $eael_lang = self::eael_get_current_language();
+			    // Allow integrators to override the pinned language.
+			    $eael_lang = apply_filters( 'eael/post_grid/query_lang', $eael_lang, $settings, $args );
+			    if ( ! empty( $eael_lang ) ) {
+				    $args['lang'] = $eael_lang;
+			    }
+		    }
+	    }
+
         return $args;
     }
+
+	/**
+	 * Resolve the Polylang language slug a widget's query/content should be pinned
+	 * to.
+	 *
+	 * The Elementor editor (and admin-ajax) "current language" is ambient global
+	 * state driven by the pll_language cookie, which flips on every page load. That
+	 * made the Post Grid and template widgets follow the last-loaded language rather
+	 * than the language of the page the widget actually lives on. We instead derive
+	 * the language from the current document/page id so it is deterministic.
+	 *
+	 * @param int $post_id Optional page/post id to read the language from.
+	 *
+	 * @return string Language slug, or '' when Polylang is inactive/undeterminable.
+	 */
+	public static function eael_get_current_language( $post_id = 0 ) {
+		if ( ! function_exists( 'pll_get_post_language' ) ) {
+			return '';
+		}
+
+		if ( ! $post_id && class_exists( '\Elementor\Plugin' ) ) {
+			$document = \Elementor\Plugin::$instance->documents->get_current();
+			if ( $document ) {
+				$post_id = $document->get_main_id();
+			}
+		}
+
+		if ( ! $post_id ) {
+			$post_id = get_the_ID();
+		}
+
+		$lang = $post_id ? pll_get_post_language( $post_id ) : '';
+
+		if ( ! $lang && function_exists( 'pll_current_language' ) ) {
+			$lang = pll_current_language();
+		}
+
+		return $lang ? $lang : '';
+	}
+
+	/**
+	 * Build a language-specific cache-key suffix so translated pages that share a
+	 * widget id (e.g. created via Polylang "copy content") don't collide in the
+	 * Post Grid transients.
+	 *
+	 * @param int $post_id Optional page/post id to read the language from.
+	 *
+	 * @return string e.g. "_lang_es", or '' when no language is resolved.
+	 */
+	public static function eael_lang_suffix( $post_id = 0 ) {
+		$lang = self::eael_get_current_language( $post_id );
+
+		return $lang ? '_lang_' . sanitize_key( $lang ) : '';
+	}
 
     /**
      * Go Premium
@@ -1748,6 +1876,63 @@ class Helper
         ];
     }
 
+    /**
+     * Allowlist for wp_kses() when rendering a user-supplied raw SVG
+     * (e.g. SVG Draw's custom SVG textarea). Covers the shape/structure
+     * elements SVG Draw needs while excluding <script>, <foreignObject>,
+     * <use> (can reference external content) and any on* event handler
+     * attribute.
+     */
+    public static function eael_allowed_svg_draw_tags() {
+        $common_attrs = [
+            'id'              => [],
+            'class'           => [],
+            'style'           => [],
+            'fill'            => [],
+            'fill-rule'       => [],
+            'fill-opacity'    => [],
+            'stroke'          => [],
+            'stroke-width'    => [],
+            'stroke-linecap'  => [],
+            'stroke-linejoin' => [],
+            'stroke-dasharray' => [],
+            'stroke-dashoffset' => [],
+            'stroke-opacity' => [],
+            'opacity'         => [],
+            'transform'       => [],
+            'clip-rule'       => [],
+            'clip-path'       => [],
+        ];
+
+        return [
+            'svg'            => array_merge( $common_attrs, [
+                'xmlns'   => [],
+                'width'   => [],
+                'height'  => [],
+                'viewbox' => [],
+                'role'    => [],
+                'aria-hidden' => [],
+                'aria-labelledby' => [],
+                'preserveaspectratio' => [],
+            ] ),
+            'g'              => $common_attrs,
+            'defs'           => $common_attrs,
+            'title'          => [ 'class' => [] ],
+            'desc'           => [ 'class' => [] ],
+            'path'           => array_merge( $common_attrs, [ 'd' => [] ] ),
+            'circle'         => array_merge( $common_attrs, [ 'cx' => [], 'cy' => [], 'r' => [] ] ),
+            'ellipse'        => array_merge( $common_attrs, [ 'cx' => [], 'cy' => [], 'rx' => [], 'ry' => [] ] ),
+            'rect'           => array_merge( $common_attrs, [ 'x' => [], 'y' => [], 'width' => [], 'height' => [], 'rx' => [], 'ry' => [] ] ),
+            'line'           => array_merge( $common_attrs, [ 'x1' => [], 'y1' => [], 'x2' => [], 'y2' => [] ] ),
+            'polyline'       => array_merge( $common_attrs, [ 'points' => [] ] ),
+            'polygon'        => array_merge( $common_attrs, [ 'points' => [] ] ),
+            'lineargradient' => array_merge( $common_attrs, [ 'x1' => [], 'y1' => [], 'x2' => [], 'y2' => [], 'gradientunits' => [], 'gradienttransform' => [] ] ),
+            'radialgradient' => array_merge( $common_attrs, [ 'cx' => [], 'cy' => [], 'r' => [], 'fx' => [], 'fy' => [], 'gradientunits' => [], 'gradienttransform' => [] ] ),
+            'stop'           => array_merge( $common_attrs, [ 'offset' => [], 'stop-color' => [], 'stop-opacity' => [] ] ),
+            'clippath'       => $common_attrs,
+        ];
+    }
+
     public static function eael_fetch_color_or_global_color($settings, $control_name=''){
         if( !isset($settings[$control_name])) {
             return '';
@@ -1766,6 +1951,15 @@ class Helper
         }
 
         return $color;
+    }
+
+    /**
+     * Strip characters that could break out of an inline <style> block or
+     * inject new CSS rules/declarations from a user-supplied CSS value
+     * (e.g. a color/size setting interpolated raw into a <style> tag).
+     */
+    public static function eael_sanitize_css_value( $value ) {
+        return str_replace( [ '<', '>', '{', '}', ';' ], '', (string) $value );
     }
 
 	/**
@@ -2084,5 +2278,87 @@ class Helper
 		$template_id = absint( $template_id );
 
 		return get_post_status( $template_id ) === 'publish' && get_post_type( $template_id ) === 'elementor_library';
+	}
+
+	/**
+	 * Clamp a product-query post_status list to what the current viewer may see.
+	 *
+	 * Non-public statuses (draft/pending/future/private) are only honoured for
+	 * users who can edit others' products (shop managers / admins). Everyone else
+	 * — including logged-out visitors — is forced to 'publish'. This prevents the
+	 * WooCommerce listing widgets (Product Grid / Woo Product List / Carousel)
+	 * from leaking pending/scheduled/draft products through a saved or default
+	 * post_status control value on an anonymous render.
+	 *
+	 * @param mixed  $statuses Requested status(es) — array or single string.
+	 * @param string $context  Reserved for future per-widget filtering.
+	 *
+	 * @return array Sanitized, capability-clamped status list (never empty).
+	 */
+	/**
+	 * Render a saved Elementor template only when it is a *published* elementor_library
+	 * post. Every widget/extension that echoes a settings-selected template id must go
+	 * through here so a draft/private/pending template — or an id injected via Elementor
+	 * copy-paste / JSON import by a low-privilege editor — can never be rendered to
+	 * front-end (including anonymous) visitors.
+	 *
+	 * @param int  $template_id Selected template id.
+	 * @param bool $with_css    Pass-through to Frontend::get_builder_content().
+	 * @param bool $for_display Use get_builder_content_for_display() instead (Offcanvas et al.).
+	 *
+	 * @return string Rendered content, or '' when the id is not a published template.
+	 */
+	public static function eael_render_published_template( $template_id, $with_css = true, $for_display = false ) {
+		if ( ! static::is_elementor_publish_template( $template_id ) ) {
+			return '';
+		}
+
+		if ( $for_display ) {
+			return Plugin::$instance->frontend->get_builder_content_for_display( $template_id );
+		}
+
+		return Plugin::$instance->frontend->get_builder_content( $template_id, $with_css );
+	}
+
+	public static function eael_validate_product_statuses( $statuses, $context = '' ) {
+		$statuses = array_filter( array_map( 'sanitize_key', (array) $statuses ) );
+
+		if ( current_user_can( 'edit_others_products' ) ) {
+			$allowed = [ 'publish', 'draft', 'pending', 'future', 'private' ];
+		} else {
+			$allowed = [ 'publish' ];
+		}
+
+		$statuses = array_values( array_intersect( $statuses, $allowed ) );
+
+		return empty( $statuses ) ? [ 'publish' ] : $statuses;
+	}
+
+	/**
+	 * eael_wpml_translate_media
+	 *
+	 * Resolve an Elementor MEDIA control value (image/video) to its
+	 * WPML-translated attachment so the correct media is shown per language.
+	 * Safe to call when WPML / WPML Media Translation is inactive — the
+	 * `wpml_object_id` filter simply returns the original id unchanged.
+	 *
+	 * @param array $media Elementor MEDIA control value (expects 'id' and 'url').
+	 *
+	 * @return array The media array with translated 'id' and 'url' when available.
+	 */
+	public static function eael_wpml_translate_media( $media ) {
+		if ( ! is_array( $media ) || empty( $media['id'] ) ) {
+			return $media;
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+		$translated_id = apply_filters( 'wpml_object_id', $media['id'], 'attachment', true );
+
+		if ( $translated_id && (int) $translated_id !== (int) $media['id'] ) {
+			$media['id']  = $translated_id;
+			$media['url'] = wp_get_attachment_url( $translated_id );
+		}
+
+		return $media;
 	}
 }

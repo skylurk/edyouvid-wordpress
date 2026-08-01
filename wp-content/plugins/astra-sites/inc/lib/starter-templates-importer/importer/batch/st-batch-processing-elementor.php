@@ -206,6 +206,14 @@ if ( ! class_exists( 'ST_Batch_Processing_Elementor' ) ) :
 					$this->replace_surecart_forms_ids( $widget );
 				}
 
+				if ( isset( $widget['widgetType'] ) && 'shortcode' === $widget['widgetType'] && has_shortcode( $widget['settings']['shortcode'], 'suredonation_form' ) ) {
+					$this->replace_suredonation_ids( $widget );
+				}
+
+				if ( isset( $widget['widgetType'] ) && 'shortcode' === $widget['widgetType'] && has_shortcode( $widget['settings']['shortcode'], 'suremembers_restrict' ) ) {
+					$this->replace_suremembers_ids( $widget );
+				}
+
 				if ( isset( $widget['elements'] ) && is_array( $widget['elements'] ) ) {
 					$this->process_elementor_widgets( $widget['elements'] );
 				}
@@ -291,6 +299,66 @@ if ( ! class_exists( 'ST_Batch_Processing_Elementor' ) ) :
 
 			foreach ( $sureform_id_map as $old_id => $new_id ) {
 				$widget['settings']['shortcode'] = str_replace( '[sureforms id="' . $old_id . '"]', '[sureforms id="' . $new_id . '"]', $widget['settings']['shortcode'] );
+			}
+		}
+
+		/**
+		 * Replace SureDonation form IDs in shortcode widget.
+		 *
+		 * @since 1.1.35
+		 *
+		 * @param array<string, mixed> $widget Widget data.
+		 * @return void
+		 */
+		public function replace_suredonation_ids( &$widget ) {
+			$form_id_map = get_option( 'astra_sites_suredonation_form_id_map', array() );
+
+			if ( empty( $form_id_map ) ) {
+				return;
+			}
+
+			foreach ( $form_id_map as $old_id => $new_id ) {
+				$widget['settings']['shortcode'] = str_replace( '[suredonation_form id="' . $old_id . '"]', '[suredonation_form id="' . $new_id . '"]', $widget['settings']['shortcode'] );
+			}
+		}
+
+		/**
+		 * Replace SureMembers access group IDs in shortcode widget.
+		 *
+		 * The `[suremembers_restrict access_group_ids="1,2"]` shortcode holds a
+		 * comma-separated list of `wsm_access_group` post IDs, re-created with
+		 * new IDs on import.
+		 *
+		 * @since 1.1.37
+		 *
+		 * @param array<string, mixed> $widget Widget data.
+		 * @return void
+		 */
+		public function replace_suremembers_ids( &$widget ) {
+			$access_group_id_map = get_option( 'astra_sites_suremembers_access_group_id_map', array() );
+
+			if ( empty( $access_group_id_map ) || ! is_array( $access_group_id_map ) ) {
+				return;
+			}
+
+			$replaced = preg_replace_callback(
+				'/(\[suremembers_restrict\s[^\]]*access_group_ids=")([\d,\s]+)(")/',
+				function ( $matches ) use ( $access_group_id_map ) {
+					$new_ids = array_map(
+						function ( $id ) use ( $access_group_id_map ) {
+							$id = (int) trim( $id );
+							return isset( $access_group_id_map[ $id ] ) ? (int) $access_group_id_map[ $id ] : $id;
+						},
+						explode( ',', $matches[2] )
+					);
+
+					return $matches[1] . implode( ',', $new_ids ) . $matches[3];
+				},
+				$widget['settings']['shortcode']
+			);
+
+			if ( null !== $replaced ) {
+				$widget['settings']['shortcode'] = $replaced;
 			}
 		}
 
