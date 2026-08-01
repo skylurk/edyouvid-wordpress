@@ -593,7 +593,6 @@ document.addEventListener('alpine:init', () => {
         this.toast('Payment gateway not configured. Contact the site administrator.', 'error');
         return;
       }
-      const currentUser = this.activeGroup();
       this.billing.settingUpCard = true;
 
       FlutterwaveCheckout({
@@ -603,8 +602,8 @@ document.addEventListener('alpine:init', () => {
         currency: GLD.currency || 'KES',
         payment_options: 'card',
         customer: {
-          email: currentUser?.leader_email || '',
-          name: currentUser?.leader_name || '',
+          email: GLD.userEmail || '',
+          name:  GLD.userName  || '',
         },
         customizations: {
           title: GLD.siteName || 'Card Setup',
