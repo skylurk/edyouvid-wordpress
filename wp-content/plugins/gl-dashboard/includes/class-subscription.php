@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class GLD_Subscription {
 
 	const TABLE      = 'gld_subscriptions';
-	const DB_VERSION = '1.2';
+	const DB_VERSION = '1.3';
 
 	public static function install(): void {
 		global $wpdb;

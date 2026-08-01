@@ -21,6 +21,7 @@ require_once GLD_PLUGIN_DIR . 'includes/class-subscription.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-seat-charges-db.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-billing.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-csv-import.php';
+require_once GLD_PLUGIN_DIR . 'includes/class-notifications.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-auth.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-woo.php';
 require_once GLD_PLUGIN_DIR . 'includes/class-cron.php';

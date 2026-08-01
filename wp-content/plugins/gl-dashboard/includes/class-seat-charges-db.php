@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class GLD_Seat_Charges_DB {
 
 	const TABLE      = 'gld_seat_charges';
-	const DB_VERSION = '1.0';
+	const DB_VERSION = '1.1';
 
 	public static function install(): void {
 		global $wpdb;
@@ -26,6 +26,7 @@ class GLD_Seat_Charges_DB {
 			flw_txn_ref varchar(100) NOT NULL DEFAULT '',
 			flw_txn_id varchar(100) NOT NULL DEFAULT '',
 			status varchar(20) NOT NULL DEFAULT 'completed',
+			retry_count tinyint(3) NOT NULL DEFAULT 0,
 			charged_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (id),
 			KEY group_id (group_id),
@@ -36,6 +37,13 @@ class GLD_Seat_Charges_DB {
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
+
+		// dbDelta doesn't add columns to existing tables when CREATE TABLE IF NOT EXISTS
+		// is used, so we handle schema migrations explicitly here.
+		$columns = $wpdb->get_col( "SHOW COLUMNS FROM {$table}", 0 );
+		if ( ! in_array( 'retry_count', $columns, true ) ) {
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN retry_count tinyint(3) NOT NULL DEFAULT 0 AFTER status" );
+		}
 	}
 
 	public static function insert( array $data ): int {
@@ -75,6 +83,39 @@ class GLD_Seat_Charges_DB {
 		return (int) $wpdb->get_var( $wpdb->prepare(
 			"SELECT COUNT(*) FROM {$table} WHERE group_id = %d",
 			$group_id
+		) );
+	}
+
+	/**
+	 * Returns failed charges eligible for retry:
+	 *   - status = 'failed'
+	 *   - retry_count < $max_retries
+	 *   - charged within the last $max_age_days days
+	 */
+	public static function get_retryable_failed( int $max_retries = 3, int $max_age_days = 7 ): array {
+		global $wpdb;
+		$table = $wpdb->prefix . self::TABLE;
+		return $wpdb->get_results( $wpdb->prepare(
+			"SELECT * FROM {$table}
+			 WHERE status = 'failed'
+			   AND retry_count < %d
+			   AND charged_at >= DATE_SUB(NOW(), INTERVAL %d DAY)
+			 ORDER BY charged_at ASC",
+			$max_retries, $max_age_days
+		) ) ?: array();
+	}
+
+	public static function update( int $id, array $data ): void {
+		global $wpdb;
+		$wpdb->update( $wpdb->prefix . self::TABLE, $data, array( 'id' => $id ) );
+	}
+
+	public static function increment_retry( int $id ): void {
+		global $wpdb;
+		$table = $wpdb->prefix . self::TABLE;
+		$wpdb->query( $wpdb->prepare(
+			"UPDATE {$table} SET retry_count = retry_count + 1 WHERE id = %d",
+			$id
 		) );
 	}
 }

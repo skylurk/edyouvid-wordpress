@@ -144,25 +144,37 @@ class GLD_Api_Import {
 					$charge_result = GLD_Billing::charge( $leader_id, $owed, $currency, $desc );
 				}
 
+				$period_end = $sub ? $sub->expiry_date : date( 'Y-m-d', strtotime( '+1 year' ) );
+				$total_amt  = $owed + ( $credit['credit_used'] ?? 0 );
+
 				if ( ! $charge_result['success'] ) {
 					if ( $credit['credit_used'] > 0 ) {
 						GLD_Billing::add_credit( $group_id, $credit['credit_used'] );
 					}
+					// Record for cron retry.
+					GLD_Seat_Charges_DB::insert( array(
+						'group_id'     => $group_id,
+						'user_id'      => $user->ID,
+						'leader_id'    => $leader_id,
+						'amount'       => $total_amt,
+						'currency'     => $currency,
+						'period_start' => date( 'Y-m-d' ),
+						'period_end'   => $period_end,
+						'status'       => 'failed',
+					) );
 					$failed[] = array(
 						'email'  => $email,
 						'name'   => $user->display_name,
 						'reason' => 'Payment failed: ' . ( $charge_result['error'] ?? 'Unknown error.' ),
 					);
-					// Do NOT enrol — leave this user out and continue the loop.
 					continue;
 				}
 
-				$period_end = $sub ? $sub->expiry_date : date( 'Y-m-d', strtotime( '+1 year' ) );
 				GLD_Seat_Charges_DB::insert( array(
 					'group_id'     => $group_id,
 					'user_id'      => $user->ID,
 					'leader_id'    => $leader_id,
-					'amount'       => $owed + ( $credit['credit_used'] ?? 0 ),
+					'amount'       => $total_amt,
 					'currency'     => $currency,
 					'period_start' => date( 'Y-m-d' ),
 					'period_end'   => $period_end,
@@ -174,7 +186,7 @@ class GLD_Api_Import {
 
 			// ── Enrol ─────────────────────────────────────────────────────
 			ld_update_group_access( $user->ID, $group_id, false );
-			$existing[ $user->ID ] = true; // prevent double-enrol in same batch
+			$existing[ $user->ID ] = true;
 
 			$succeeded[] = array(
 				'email'       => $email,
@@ -183,15 +195,20 @@ class GLD_Api_Import {
 			);
 		}
 
+		$totals = array(
+			'succeeded' => count( $succeeded ),
+			'skipped'   => count( $skipped ),
+			'failed'    => count( $failed ),
+		);
+
+		// Send import summary email to the leader.
+		GLD_Notifications::import_summary( $leader_id, $group_id, $totals, $succeeded, $skipped, $failed );
+
 		return new WP_REST_Response( array(
 			'succeeded' => $succeeded,
 			'skipped'   => $skipped,
 			'failed'    => $failed,
-			'totals'    => array(
-				'succeeded' => count( $succeeded ),
-				'skipped'   => count( $skipped ),
-				'failed'    => count( $failed ),
-			),
+			'totals'    => $totals,
 		), 200 );
 	}
 }

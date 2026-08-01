@@ -115,32 +115,69 @@ class GLD_Api_Users {
 				$charge_result = GLD_Billing::charge( $leader_id, $owed, $currency, $desc );
 			}
 
+			$sub        = GLD_Subscription::get_for_group( $group_id );
+			$period_end = $sub ? $sub->expiry_date : date( 'Y-m-d', strtotime( '+1 year' ) );
+			$currency   = get_woocommerce_currency();
+			$total_amt  = $owed + ( $credit['credit_used'] ?? 0 );
+
 			if ( ! $charge_result['success'] ) {
-				// Restore credit that was optimistically deducted.
+				// Restore optimistically deducted credit.
 				if ( $credit['credit_used'] > 0 ) {
 					GLD_Billing::add_credit( $group_id, $credit['credit_used'] );
 				}
+				// Record the failed charge so the cron can retry.
+				GLD_Seat_Charges_DB::insert( array(
+					'group_id'     => $group_id,
+					'user_id'      => $user_id,
+					'leader_id'    => $leader_id,
+					'amount'       => $total_amt,
+					'currency'     => $currency,
+					'period_start' => date( 'Y-m-d' ),
+					'period_end'   => $period_end,
+					'status'       => 'failed',
+				) );
+				$user_data = get_userdata( $user_id );
+				GLD_Notifications::charge_failure( $leader_id, array(
+					'group_id'  => $group_id,
+					'user_name' => $user_data ? $user_data->display_name : "User #{$user_id}",
+					'user_email'=> $user_data ? $user_data->user_email : '',
+					'amount'    => $total_amt,
+					'currency'  => $currency,
+					'error'     => $charge_result['error'] ?? 'Unknown error.',
+				) );
 				return new WP_REST_Response( array(
 					'message' => 'Payment failed: ' . ( $charge_result['error'] ?? 'Unknown error.' ),
 				), 402 );
 			}
 
-			// Record the charge in the ledger.
-			$sub        = GLD_Subscription::get_for_group( $group_id );
-			$period_end = $sub ? $sub->expiry_date : date( 'Y-m-d', strtotime( '+1 year' ) );
-
+			// Record the successful charge in the ledger.
 			GLD_Seat_Charges_DB::insert( array(
 				'group_id'    => $group_id,
 				'user_id'     => $user_id,
 				'leader_id'   => $leader_id,
-				'amount'      => $owed + ( $credit['credit_used'] ?? 0 ),
-				'currency'    => get_woocommerce_currency(),
+				'amount'      => $total_amt,
+				'currency'    => $currency,
 				'period_start'=> date( 'Y-m-d' ),
 				'period_end'  => $period_end,
 				'flw_txn_ref' => $charge_result['txn_ref'] ?? '',
 				'flw_txn_id'  => $charge_result['txn_id'] ?? '',
 				'status'      => 'completed',
 			) );
+
+			// Send receipt email.
+			$user_data = get_userdata( $user_id );
+			if ( $user_data ) {
+				GLD_Notifications::charge_receipt( $leader_id, array(
+					'group_id'     => $group_id,
+					'user_name'    => $user_data->display_name,
+					'user_email'   => $user_data->user_email,
+					'amount'       => $total_amt,
+					'currency'     => $currency,
+					'period_start' => date( 'Y-m-d' ),
+					'period_end'   => $period_end,
+					'flw_ref'      => $charge_result['txn_ref'] ?? '',
+				) );
+			}
 		}
 
 		ld_update_group_access( $user_id, $group_id, false );

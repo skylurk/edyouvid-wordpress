@@ -43,6 +43,8 @@ class GLD_Cron {
 	}
 
 	public static function run(): void {
+		self::retry_failed_charges();
+
 		$subs  = GLD_Subscription::get_all_active();
 		$today = new DateTime( date( 'Y-m-d' ) );
 
@@ -65,6 +67,74 @@ class GLD_Cron {
 			} elseif ( $days_left <= 7 && ! in_array( '7day', $notified, true ) ) {
 				self::send_warning_email( (int) $sub->group_id, (int) $sub->leader_id, 7, $sub->expiry_date );
 				GLD_Subscription::mark_notified( (int) $sub->id, '7day' );
+			}
+		}
+	}
+
+	// ── Seat charge retry ─────────────────────────────────────────────────────
+
+	private static function retry_failed_charges(): void {
+		$max_retries = 3;
+		$charges     = GLD_Seat_Charges_DB::get_retryable_failed( $max_retries );
+
+		foreach ( $charges as $charge ) {
+			$leader_id = (int) $charge->leader_id;
+			$user_id   = (int) $charge->user_id;
+			$group_id  = (int) $charge->group_id;
+
+			if ( ! GLD_Billing::has_saved_card( $leader_id ) ) {
+				GLD_Seat_Charges_DB::increment_retry( (int) $charge->id );
+				continue;
+			}
+
+			$user = get_userdata( $user_id );
+			$desc = sprintf(
+				'Retry — 1 seat — %s — %s',
+				get_the_title( $group_id ),
+				$user ? $user->display_name : "user #{$user_id}"
+			);
+
+			$result = GLD_Billing::charge( $leader_id, (float) $charge->amount, $charge->currency, $desc );
+
+			if ( $result['success'] ) {
+				GLD_Seat_Charges_DB::update( (int) $charge->id, array(
+					'status'      => 'completed',
+					'flw_txn_ref' => $result['txn_ref'] ?? '',
+					'flw_txn_id'  => $result['txn_id'] ?? '',
+				) );
+
+				// Enrol the user only if they aren't already in the group.
+				$members = learndash_get_groups_user_ids( $group_id );
+				if ( ! in_array( $user_id, array_map( 'intval', $members ), true ) ) {
+					ld_update_group_access( $user_id, $group_id, false );
+				}
+
+				if ( $user ) {
+					GLD_Notifications::charge_receipt( $leader_id, array(
+						'group_id'     => $group_id,
+						'user_name'    => $user->display_name,
+						'user_email'   => $user->user_email,
+						'amount'       => $charge->amount,
+						'currency'     => $charge->currency,
+						'period_start' => $charge->period_start,
+						'period_end'   => $charge->period_end,
+						'flw_ref'      => $result['txn_ref'] ?? '',
+					) );
+				}
+			} else {
+				GLD_Seat_Charges_DB::increment_retry( (int) $charge->id );
+				$new_retry = (int) $charge->retry_count + 1;
+
+				if ( $new_retry >= $max_retries && $user ) {
+					// All retries exhausted — update status and notify leader.
+					GLD_Seat_Charges_DB::update( (int) $charge->id, array( 'status' => 'failed_final' ) );
+					GLD_Notifications::charge_failure_final( $leader_id, array(
+						'group_id'  => $group_id,
+						'user_name' => $user->display_name,
+						'amount'    => $charge->amount,
+						'currency'  => $charge->currency,
+					) );
+				}
 			}
 		}
 	}
